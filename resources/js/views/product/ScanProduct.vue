@@ -242,7 +242,7 @@ export default {
         {
           text: "Home",
           disabled: false,
-          link: "/product/index",
+          link: "/",
         },
         {
           text: "Create Product",

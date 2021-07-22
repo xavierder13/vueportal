@@ -119,6 +119,30 @@ Route::group(['prefix' => 'product', 'middleware' => ['auth:api', 'product.maint
 
 });
 
+// Product Routes
+Route::group(['prefix' => 'employee', 'middleware' => ['auth:api', 'employee.maintenance']], function(){
+    Route::get('/index', [
+        'uses' => 'API\EmployeeController@index',
+        'as' => 'employee.index',
+    ]);
+
+    Route::post('/import_employee/{id}', [
+        'uses' => 'API\EmployeeController@import_employee',
+        'as' => 'employee.import'
+    ]);
+
+    Route::post('/export_employee/{id}', [
+        'uses' => 'API\EmployeeController@export_employee',
+        'as' => 'employee.export'
+    ]);
+
+    Route::post('/clear_list/{id}', [
+        'uses' => 'API\EmployeeController@clear_list',
+        'as' => 'employee.clear_list'
+    ]);
+
+});
+
 Route::get('/product/export/{id}', [
     'uses' => 'API\ProductController@export',
     'as' => 'product.export',

@@ -117,7 +117,7 @@ export default {
           (response) => {
             if (response.data.access_token) {
               localStorage.setItem("access_token", response.data.access_token);
-              this.$router.push("/product/index").catch((e) => {});
+              this.$router.push("/").catch((e) => {});
               this.clear();
             } else {
               this.isInvalid = true;

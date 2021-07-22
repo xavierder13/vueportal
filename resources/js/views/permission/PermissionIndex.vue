@@ -146,7 +146,7 @@ export default {
         {
           text: "Home",
           disabled: false,
-          link: "/dashboard",
+          link: "/",
         },
         {
           text: "Permission Lists",
@@ -288,7 +288,7 @@ export default {
             (response) => {
               if (response.data.success) {
                 // send data to Sockot.IO Server
-                this.$socket.emit("sendData", { action: "permission-create" });
+                // this.$socket.emit("sendData", { action: "permission-create" });
 
                 this.showAlert();
                 this.close();
@@ -296,6 +296,7 @@ export default {
                 //push recently added data from database
                 this.permissions.push(response.data.permission);
               }
+              console.log(response.data);
               this.disabled = false;
             },
             (error) => {

@@ -19,10 +19,10 @@
       <v-list>
         <v-list-item class="px-2">
           <v-list-item-avatar class="rounded-5" height="60" width="60">
-            <v-img src="/img/default-profile.png"></v-img>
+            <v-img src="/img/addessa.jpg"></v-img>
           </v-list-item-avatar>
           <v-list-item-content>
-            <v-list-item-title>Inventory</v-list-item-title>
+            <v-list-item-title>Web Portal</v-list-item-title>
             <v-list-item-subtitle>{{ user.name }}</v-list-item-subtitle>
           </v-list-item-content>
         </v-list-item>
@@ -79,6 +79,61 @@
           <v-list-item link to="/scan_product">
             <v-list-item-content>
               <v-list-item-title>Scan Product</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list-group>
+        <v-list-group 
+          no-action
+          v-if="userPermissions.employee_list || 
+                userPermissions.employee_resigned_list || 
+                userPermissions.employee_payroll_list || 
+                userPermissions.employee_absences_list ||
+                userPermissions.employee_overtime_list ||
+                userPermissions.employee_holiday_pay_list ||
+                userPermissions.employee_loans_list"
+        >
+          <!-- List Group Icon-->
+          <v-icon slot="prependIcon">mdi-account-multiple</v-icon>
+          <!-- List Group Title -->
+          <template v-slot:activator>
+            <v-list-item-content>
+              <v-list-item-title>Employee</v-list-item-title>
+            </v-list-item-content>
+          </template>
+          <!-- List Group Items -->
+          <v-list-item link to="/employee/list" v-if="userPermissions.employee_list">
+            <v-list-item-content>
+              <v-list-item-title>Employee Lists</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item link to="/employee/resigned/list" v-if="userPermissions.employee_resigned_list">
+            <v-list-item-content>
+              <v-list-item-title>Resigned</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item link to="/employee/payroll/list" v-if="userPermissions.employee_payroll_list">
+            <v-list-item-content>
+              <v-list-item-title>Payroll</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item link to="/employee/absences/list" v-if="userPermissions.employee_absences_list">
+            <v-list-item-content>
+              <v-list-item-title>Absences</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item link to="/employee/overtime/list" v-if="userPermissions.employee_overtime_list">
+            <v-list-item-content>
+              <v-list-item-title>Overtime</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item link to="/employee/holiday_pay/list" v-if="userPermissions.employee_holiday_pay_list">
+            <v-list-item-content>
+              <v-list-item-title>Holiday Pay</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item link to="/employee/loans/list" v-if="userPermissions.employee_loans_list">
+            <v-list-item-content>
+              <v-list-item-title>Loans</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
         </v-list-group>

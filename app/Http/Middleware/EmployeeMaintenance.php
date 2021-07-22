@@ -1,0 +1,52 @@
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Auth;
+
+class EmployeeMaintenance
+{
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \Closure  $next
+     * @return mixed
+     */
+    public function handle($request, Closure $next)
+    {
+        $user = Auth::user();
+
+        //Employee Record
+        if($request->is('api/employee/index')){
+            if($user->can('employee-list')){
+                return $next($request); 
+            }
+        }
+
+        //Employee Import Data
+        if($request->is('api/employee/import_employee/*')){
+            if($user->can('employee-list-import')){
+                return $next($request); 
+            }
+        }
+
+        //Employee Export Data
+        if($request->is('api/employee/export_employee/*')){
+            if($user->can('employee-list-export')){
+                return $next($request); 
+            }
+        }
+
+        //Employee Delete All
+        if($request->is('api/employee/clear_list/*')){
+            if($user->can('employee-clear-list')){
+                return $next($request); 
+            }
+        }
+        
+
+        return abort(401, 'Unauthorized');
+    }
+}

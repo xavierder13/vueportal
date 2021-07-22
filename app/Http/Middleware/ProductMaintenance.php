@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use Closure;
+use Auth;
 
 class ProductMaintenance
 {
@@ -15,6 +16,36 @@ class ProductMaintenance
      */
     public function handle($request, Closure $next)
     {
-        return $next($request);
+        $user = Auth::user();
+
+        //Product Record
+        if($request->is('api/product/index')){
+            if($user->can('product-list')){
+                return $next($request); 
+            }
+        }
+
+        //Product Create
+        if($request->is('api/product/create') || $request->is('api/product/store')){
+            if($user->can('product-create')){
+                return $next($request); 
+            }
+        }
+
+        //Product Edit
+        if($request->is('api/product/edit/*') || $request->is('api/product/update/*')){
+            if($user->can('product-edit')){
+                return $next($request); 
+            }
+        }
+
+        //Product Delete
+        if($request->is('api/product/delete')){
+            if($user->can('product-delete')){
+                return $next($request); 
+            }
+        }
+
+        return abort(401, 'Unauthorized');
     }
 }

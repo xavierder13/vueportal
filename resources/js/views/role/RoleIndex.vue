@@ -201,7 +201,7 @@ export default {
         {
           text: "Home",
           disabled: false,
-          link: "/dashboard",
+          link: "/",
         },
         {
           text: "Roles Record",
