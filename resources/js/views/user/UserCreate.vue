@@ -28,9 +28,9 @@
                 <v-text-field
                   name="name"
                   v-model="editedItem.name"
-                  :error-messages="nameErrors"
+                  :error-messages="nameErrors + userError.name"
                   label="Full Name"
-                  @input="$v.editedItem.name.$touch()"
+                  @input="$v.editedItem.name.$touch() + (userError.name = [])"
                   @blur="$v.editedItem.name.$touch()"
                   :readonly="editedItem.id == 1 ? true : false"
                 ></v-text-field>
@@ -41,9 +41,9 @@
                 <v-text-field
                   name="email"
                   v-model="editedItem.email"
-                  :error-messages="emailErrors"
+                  :error-messages="emailErrors + userError.email"
                   label="E-mail"
-                  @input="$v.editedItem.email.$touch()"
+                  @input="$v.editedItem.email.$touch() + (userError.email = [])"
                   @blur="$v.editedItem.email.$touch()"
                 ></v-text-field>
               </v-col>
@@ -53,10 +53,10 @@
                 <v-text-field
                   name="password"
                   v-model="editedItem.password"
-                  :error-messages="passwordErrors"
+                  :error-messages="passwordErrors + userError.password"
                   label="Password"
                   required
-                  @input="$v.editedItem.password.$touch()"
+                  @input="$v.editedItem.password.$touch() + (userError.password = [])"
                   @blur="$v.editedItem.password.$touch()"
                   type="password"
                   :readonly="editedItem.id == 1 ? true : false"
@@ -68,10 +68,10 @@
                 <v-text-field
                   name="confirm_password"
                   v-model="editedItem.confirm_password"
-                  :error-messages="confirm_passwordErrors"
+                  :error-messages="confirm_passwordErrors + userError.confirm_password"
                   label="Confirm Password"
                   required
-                  @input="$v.editedItem.confirm_password.$touch()"
+                  @input="$v.editedItem.confirm_password.$touch() + (userError.confirm_password = [])"
                   @blur="$v.editedItem.confirm_password.$touch()"
                   type="password"
                 ></v-text-field>
@@ -110,8 +110,8 @@
                   item-value="id"
                   label="Branch"
                   required
-                  :error-messages="branchErrors"
-                  @input="$v.editedItem.branch_id.$touch()"
+                  :error-messages="branchErrors + userError.branch_id"
+                  @input="$v.editedItem.branch_id.$touch() + (userError.branch_id = [])"
                   @blur="$v.editedItem.branch_id.$touch()"
                 >
                 </v-autocomplete>
@@ -133,7 +133,7 @@
             >
               Save
             </v-btn>
-            <v-btn color="#E0E0E0" to="/dashboard" class="mb-4"> Cancel </v-btn>
+            <v-btn color="#E0E0E0" to="/" class="mb-4"> Cancel </v-btn>
           </v-card-actions>
         </v-card>
       </v-main>
@@ -203,6 +203,13 @@ export default {
         active: "Y",
         branch_id: "",
       },
+      userError: {
+        name: [],
+        email: [],
+        password: [],
+        confirm_password: [],
+        branch_id: [],
+      },
     };
   },
 
@@ -231,6 +238,13 @@ export default {
 
     save() {
       this.$v.$touch();
+      this.userError = {
+        name: [],
+        email: [],
+        password: [],
+        confirm_password: [],
+        branch_id: [],
+      };
 
       if (!this.$v.$error) {
         this.disabled = true;
@@ -249,6 +263,14 @@ export default {
 
               //push recently added data from database
               this.users.push(response.data.user);
+            } 
+            else {
+              let errors = response.data;
+              let errorNames = Object.keys(response.data);
+
+              errorNames.forEach((value) => {
+                this.userError[value].push(errors[value]);
+              });
             }
             this.overlay = false;
             this.disabled = false;

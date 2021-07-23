@@ -16,6 +16,7 @@ class ActivityLogController extends Controller
                            ->select('activity_log.log_name', 'activity_log.description', 'activity_log.properties',
                                     DB::raw("DATE_FORMAT(activity_log.created_at, '%m/%d/%Y') as log_date"),
                                     'users.name', 'users.email', 'activity_log.subject_id')
+                           ->orderBy('activity_log.id', 'DESC')
                            ->get();
 
         return response()->json(['activity_logs' => $activity_logs], 200);

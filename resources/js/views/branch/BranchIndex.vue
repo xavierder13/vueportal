@@ -48,8 +48,8 @@
                               v-model="editedBranch.code"
                               label="Branch Code"
                               required
-                              :error-messages="branchCodeErrors"
-                              @input="$v.editedBranch.code.$touch()"
+                              :error-messages="branchCodeErrors + branchError.code"
+                              @input="$v.editedBranch.code.$touch() + (branchError.code = [])"
                               @blur="$v.editedBranch.code.$touch()"
                             ></v-text-field>
                           </v-col>
@@ -61,8 +61,8 @@
                               v-model="editedBranch.name"
                               label="Branch"
                               required
-                              :error-messages="branchErrors"
-                              @input="$v.editedBranch.name.$touch()"
+                              :error-messages="branchErrors + branchError.name"
+                              @input="$v.editedBranch.name.$touch() + (branchError.name = [])"
                               @blur="$v.editedBranch.name.$touch()"
                             ></v-text-field>
                           </v-col>
@@ -173,6 +173,10 @@ export default {
         },
       ],
       loading: true,
+      branchError: {
+        name: [],
+        code: []
+      }
     };
   },
 
@@ -269,6 +273,10 @@ export default {
 
     save() {
       this.$v.$touch();
+      this.branchError = {
+        code: [],
+        name: []
+      };
 
       if (!this.$v.$error) {
         this.disabled = true;
@@ -290,6 +298,15 @@ export default {
                 this.showAlert();
                 this.close();
               }
+              else
+              {
+                let errors = response.data;
+                let errorNames = Object.keys(response.data);
+
+                errorNames.forEach(value => {
+                  this.branchError[value].push(errors[value]);
+                });
+              }
 
               this.disabled = false;
             },
@@ -303,6 +320,7 @@ export default {
 
           axios.post("/api/branch/store", data).then(
             (response) => {
+ 
               if (response.data.success) {
                 // send data to Sockot.IO Server
                 // this.$socket.emit("sendData", { action: "branch-create" });
@@ -312,6 +330,15 @@ export default {
 
                 //push recently added data from database
                 this.branches.push(response.data.branch);
+              }
+              else
+              {
+                let errors = response.data;
+                let errorNames = Object.keys(response.data);
+
+                errorNames.forEach(value => {
+                  this.branchError[value].push(errors[value]);
+                });
               }
               this.disabled = false;
             },
@@ -327,6 +354,10 @@ export default {
     clear() {
       this.$v.$reset();
       this.editedBranch.name = "";
+      this.branchError = {
+        code: [],
+        name: []
+      }
     },
    
     isUnauthorized(error) {

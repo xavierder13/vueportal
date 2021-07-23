@@ -55,9 +55,9 @@
                             <v-text-field
                               name="name"
                               v-model="editedItem.name"
-                              :error-messages="nameErrors"
+                              :error-messages="nameErrors + userError.name"
                               label="Full Name"
-                              @input="$v.editedItem.name.$touch()"
+                              @input="$v.editedItem.name.$touch() + (userError.name = [])"
                               @blur="$v.editedItem.name.$touch()"
                               :readonly="editedItem.id == 1 ? true : false"
                             ></v-text-field>
@@ -68,9 +68,9 @@
                             <v-text-field
                               name="email"
                               v-model="editedItem.email"
-                              :error-messages="emailErrors"
+                              :error-messages="emailErrors + userError.email"
                               label="E-mail"
-                              @input="$v.editedItem.email.$touch()"
+                              @input="$v.editedItem.email.$touch() + (userError.email = [])"
                               @blur="$v.editedItem.email.$touch()"
                               :readonly="
                                 emailReadonly || editedItem.id == 1
@@ -85,10 +85,10 @@
                             <v-text-field
                               name="password"
                               v-model="password"
-                              :error-messages="passwordErrors"
+                              :error-messages="passwordErrors + userError.password"
                               label="Password"
                               required
-                              @input="$v.password.$touch()"
+                              @input="$v.password.$touch() + (userError.password = [])"
                               @blur="$v.password.$touch() + dummyPassword"
                               @keyup="passwordChange()"
                               @focus="onFocus()"
@@ -102,10 +102,10 @@
                             <v-text-field
                               name="confirm_password"
                               v-model="confirm_password"
-                              :error-messages="confirm_passwordErrors"
+                              :error-messages="confirm_passwordErrors + userError.confirm_password"
                               label="Confirm Password"
                               required
-                              @input="$v.confirm_password.$touch()"
+                              @input="$v.confirm_password.$touch() + (userError.confirm_password = [])"
                               @blur="
                                 $v.confirm_password.$touch() + dummyPassword
                               "
@@ -150,8 +150,8 @@
                               item-value="id"
                               label="Branch"
                               required
-                              :error-messages="branchErrors"
-                              @input="$v.editedItem.branch_id.$touch()"
+                              :error-messages="branchErrors + userError.branch_id"
+                              @input="$v.editedItem.branch_id.$touch() + (userError.branch_id = [])"
                               @blur="$v.editedItem.branch_id.$touch()"
                             >
                             </v-autocomplete>
@@ -385,6 +385,13 @@ export default {
       confirm_password: "",
       loading: true,
       passwordHasChanged: false,
+      userError: {
+        name: [],
+        email: [],
+        password: [],
+        confirm_password: [],
+        branch_id: []
+      }
     };
   },
 
@@ -490,6 +497,13 @@ export default {
 
     save() {
       this.$v.$touch();
+      this.userError = {
+        name: [],
+        email: [],
+        password: [],
+        confirm_password: [],
+        branch_id: []
+      };
 
       if (!this.$v.$error) {
         this.disabled = true;
@@ -527,6 +541,15 @@ export default {
                 this.showAlert();
                 this.close();
               }
+              else
+              {
+                let errors = response.data;
+                let errorNames = Object.keys(response.data);
+
+                errorNames.forEach(value => {
+                  this.userError[value].push(errors[value]);
+                });
+              }
               this.overlay = false;
               this.disabled = false;
             },
@@ -555,6 +578,15 @@ export default {
                 //push recently added data from database
                 this.users.push(response.data.user);
               }
+              else
+              {
+                let errors = response.data;
+                let errorNames = Object.keys(response.data);
+
+                errorNames.forEach(value => {
+                  this.userError[value].push(errors[value]);
+                });
+              }
               this.overlay = false;
               this.disabled = false;
             },
@@ -577,6 +609,13 @@ export default {
       this.editedItem.active = "Y";
       this.passwordHasChanged = false;
       this.switch1 = true;
+      this.userError = {
+        name: [],
+        email: [],
+        password: [],
+        confirm_password: [],
+        branch_id: []
+      };
     },
     onFocus() {
       if (this.editedIndex > -1 && this.editedItem.id != 1) {

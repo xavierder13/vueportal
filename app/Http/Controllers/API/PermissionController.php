@@ -32,7 +32,7 @@ class PermissionController extends Controller
         ];
 
         $validator = Validator::make($request->all(),[
-            'name' => 'required|unique:permissions,name'
+            'name' => 'required|unique:permissions,name',
         ], $rules);
 
         if($validator->fails())

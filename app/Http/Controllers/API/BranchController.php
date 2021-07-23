@@ -29,7 +29,7 @@ class BranchController extends Controller
             'name.required' => 'Please enter branch',
             'name.unique' => 'Branch already exists',
             'code.required' => 'Please enter branch code',
-            'code.unique' => 'Branch Codee already exists'
+            'code.unique' => 'Branch Code already exists'
         ];
 
         $validator = Validator::make($request->all(),[
@@ -76,7 +76,7 @@ class BranchController extends Controller
             'name.required' => 'Please enter branch',
             'name.unique' => 'Branch already exists',
             'code.required' => 'Please enter branch code',
-            'code.unique' => 'Branch Codee already exists'
+            'code.unique' => 'Branch Code already exists'
         ];
 
         $validator = Validator::make($request->all(),[

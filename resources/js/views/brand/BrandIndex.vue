@@ -48,8 +48,8 @@
                               v-model="editedBrand.name"
                               label="Brand"
                               required
-                              :error-messages="brandErrors"
-                              @input="$v.editedBrand.name.$touch()"
+                              :error-messages="brandErrors + brandError.name"
+                              @input="$v.editedBrand.name.$touch() + (brandError.name = [])"
                               @blur="$v.editedBrand.name.$touch()"
                             ></v-text-field>
                           </v-col>
@@ -167,6 +167,9 @@ export default {
         },
       ],
       loading: true,
+      brandError: {
+        name: [],
+      }
     };
   },
 
@@ -263,6 +266,9 @@ export default {
 
     save() {
       this.$v.$touch();
+      this.brandError = {
+        name: [],
+      };
 
       if (!this.$v.$error) {
         this.disabled = true;
@@ -283,6 +289,16 @@ export default {
                 );
                 this.showAlert();
                 this.close();
+              }
+              else
+              { 
+                let errors = response.data;
+                let errorNames = Object.keys(response.data);
+
+                errorNames.forEach(value => {
+                  this.brandError[value].push(errors[value]);
+                });
+                
               }
 
               this.disabled = false;
@@ -307,6 +323,16 @@ export default {
                 //push recently added data from database
                 this.brands.push(response.data.brand);
               }
+              else
+              { 
+                let errors = response.data;
+                let errorNames = Object.keys(response.data);
+
+                errorNames.forEach(value => {
+                  this.brandError[value].push(errors[value]);
+                });
+                
+              }
               this.disabled = false;
             },
             (error) => {
@@ -321,6 +347,9 @@ export default {
     clear() {
       this.$v.$reset();
       this.editedBrand.name = "";
+      this.brandError = {
+        name: []
+      }
     },
     
     isUnauthorized(error) {
