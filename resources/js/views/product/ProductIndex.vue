@@ -21,8 +21,32 @@
               <v-icon class="mr-1" small> mdi-microsoft-excel </v-icon>
               Export
             </v-btn>
+            <!-- <export-excel
+              class="btn btn-default pa-0 ma-0"
+              :data="products"
+              :fields="json_fields"
+              worksheet="My Worksheet"
+              name="products.xls"
+              v-if="userPermissions.product_export"
+            >
+              <v-btn
+                color="success"
+                small
+                v-if="userPermissions.product_export"
+                @click="alert()"
+              >
+                <v-icon class="mr-1" small> mdi-microsoft-excel </v-icon>
+                export
+              </v-btn>
+            </export-excel> -->
           </div>
-          <div><v-divider vertical class="ml-2 mr-2"></v-divider></div>
+          <div>
+            <v-divider
+              vertical
+              class="ml-2 mr-2"
+              v-if="userPermissions.product_clear_list"
+            ></v-divider>
+          </div>
           <div>
             <v-btn
               color="error"
@@ -157,7 +181,7 @@
             </template>
           </v-card-title>
           <v-data-table
-            :headers="headers"
+            :headers="tableHeaders"
             :items="filteredProducts"
             :search="search"
             :loading="loading"
@@ -257,6 +281,12 @@ export default {
       loading: true,
       user: "",
       search_branch: "",
+      json_fields: {
+        "BRAND": "brand.name",
+        "MODEL": "model",
+        "SERIAL": "serial",
+        "QUANTITY": " ",
+      },
     };
   },
 
@@ -269,6 +299,7 @@ export default {
           this.products = response.data.products;
           this.brands = response.data.brands;
           this.branches = response.data.branches;
+          this.branches.unshift({ id:0, name: "ALL" });
           this.editedItem.branch_id = this.user.branch_id;
           this.search_branch = this.user.branch_id;
           this.loading = false;
@@ -439,6 +470,10 @@ export default {
                       let i = this.products.indexOf(value);
                       this.products.splice(i, 1);
                     }
+                    else if(this.search_branch === 0)
+                    {
+                      this.products = [];
+                    }
                   });
 
                   this.$swal({
@@ -490,7 +525,7 @@ export default {
     exportData() {
       if (this.filteredProducts.length) {
         window.open(
-          location.origin + "/api/product/export/" + this.user.branch_id,
+          location.origin + "/api/product/export/" + this.search_branch,
           "_blank"
         );
       } else {
@@ -564,12 +599,32 @@ export default {
       let products = [];
 
       this.products.forEach((value) => {
-        if (value.branch_id === this.search_branch) {
+        if(this.search_branch === 0) {
           products.push(value);
         }
+        else if (value.branch_id === this.search_branch) {
+          products.push(value);
+        }
+       
       });
 
       return products;
+    },
+    tableHeaders() {
+      let headers = [];
+
+      this.headers.forEach(value => {
+        headers.push(value);
+      });
+
+      // remove Actions column if user is not permitted
+      if(!this.userPermissions.product_edit && !this.userPermissions.product_delete)
+      {
+        headers.splice(5, 1);
+      }
+
+      return headers;
+
     },
     ...mapState("userRolesPermissions", ["userRoles", "userPermissions"]),
   },

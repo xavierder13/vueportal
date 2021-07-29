@@ -9,4 +9,10 @@ class Branch extends Model
 
     protected $fillable = ['code', 'name'];
 
+    public function employees()
+    {
+        return $this->hasMany('App\Employee', 'branch_id', 'id');
+        //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
+    }
+
 }

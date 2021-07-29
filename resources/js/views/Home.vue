@@ -61,7 +61,7 @@
             </v-list-item-content>
           </v-list-item>
         </v-list-group>
-        <v-list-group no-action>
+        <v-list-group no-action v-if="userPermissions.product_list || userPermissions.product_create">
           <!-- List Group Icon-->
           <v-icon slot="prependIcon">mdi-barcode-scan</v-icon>
           <!-- List Group Title -->
@@ -71,12 +71,12 @@
             </v-list-item-content>
           </template>
           <!-- List Group Items -->
-          <v-list-item link to="/product/index">
+          <v-list-item link to="/product/index" v-if="userPermissions.product_list">
             <v-list-item-content>
               <v-list-item-title>Product Lists</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
-          <v-list-item link to="/scan_product">
+          <v-list-item link to="/scan_product" v-if="userPermissions.product_create">
             <v-list-item-content>
               <v-list-item-title>Scan Product</v-list-item-title>
             </v-list-item-content>

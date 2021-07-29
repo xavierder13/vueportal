@@ -202,7 +202,12 @@
             >
               Save
             </v-btn>
-            <v-btn color="#E0E0E0" to="/product/index" class="mb-4">
+            <v-btn
+              color="#E0E0E0"
+              to="/product/index"
+              class="mb-4"
+              @click="clear()"
+            >
               Cancel
             </v-btn>
           </v-card-actions>
@@ -299,26 +304,29 @@ export default {
     },
 
     async save() {
-      
       // if scanMode is Normal Mode
       if (!this.switch1) {
         this.$v.$touch();
         await this.products.push(this.editedItem);
       }
 
-      this.productsEmpty = await this.products.length ? false : true;
+      this.productsEmpty = (await this.products.length) ? false : true;
+
+      // validate if multi products
+      if(this.switch1)
+      {
+        await this.validateProductFields();
+      }
       
-      await this.validateProductFields();
 
       if (!this.$v.$error && !this.productsEmpty && !this.productsHasError) {
         this.disabled = true;
         this.overlay = true;
 
         const data = { products: this.products };
-        
+
         axios.post("/api/product/store", data).then(
           (response) => {
- 
             if (response.data.success) {
               // send data to Sockot.IO Server
               // this.$socket.emit("sendData", { action: "product-create" });
@@ -360,7 +368,7 @@ export default {
       this.editedItem = Object.assign({}, this.defaultItem);
       this.products = [];
       this.productsEmpty = false;
-      this.productsHasError = false; 
+      this.productsHasError = false;
     },
 
     getFieldValue(index, fieldName, value) {
@@ -379,15 +387,12 @@ export default {
         let fields = Object.keys(value);
         fields.forEach((val, i) => {
           // if field is empty
-          if(!this.products[index][val])
-          {
+          if (!this.products[index][val]) {
             this.productsHasError = true;
             this.errorFields[index][val] = "This field is required";
           }
-          
-        })
+        });
       });
-
     },
 
     removeRow(item) {
@@ -481,7 +486,6 @@ export default {
       "Bearer " + localStorage.getItem("access_token");
     this.getBrand();
     this.$barcodeScanner.init(this.onBarcodeScanned);
-  
   },
 };
 </script>

@@ -213,6 +213,6 @@ class ProductController extends Controller
 
     public function export($branch_id)
     {   
-        return Excel::download(new ProductsExport, 'products.xls');
+        return Excel::download(new ProductsExport($branch_id), 'products.xls');
     }
 }

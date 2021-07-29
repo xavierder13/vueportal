@@ -112,12 +112,13 @@ Route::group(['prefix' => 'product', 'middleware' => ['auth:api', 'product.maint
         'as' => 'product.delete',
     ]);
 
-    Route::get('/export', [
-        'uses' => 'API\ProductController@export',
-        'as' => 'product.export',
-    ]);
-
 });
+
+// Product Export Route
+Route::get('/product/export/{id}', [
+    'uses' => 'API\ProductController@export',
+    'as' => 'product.export',
+])->middleware(['product.maintenance']);
 
 // Product Routes
 Route::group(['prefix' => 'employee', 'middleware' => ['auth:api', 'employee.maintenance']], function(){
@@ -136,17 +137,12 @@ Route::group(['prefix' => 'employee', 'middleware' => ['auth:api', 'employee.mai
         'as' => 'employee.export'
     ]);
 
-    Route::post('/clear_list/{id}', [
+    Route::post('/clear_employee', [
         'uses' => 'API\EmployeeController@clear_list',
         'as' => 'employee.clear_list'
     ]);
 
 });
-
-Route::get('/product/export/{id}', [
-    'uses' => 'API\ProductController@export',
-    'as' => 'product.export',
-])->middleware('product.maintenance');
 
 //Permissions
 Route::group(['prefix' => 'permission', 'middleware' => ['auth:api', 'permission.maintenance']], function(){

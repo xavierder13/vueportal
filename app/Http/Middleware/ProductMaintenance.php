@@ -46,6 +46,15 @@ class ProductMaintenance
             }
         }
 
+
+        //Product Export
+        if($request->is('api/product/export/*')){
+            // if($user->can('product-export')){
+            //     return $next($request); 
+            // }
+            return $next($request); 
+        }
+
         return abort(401, 'Unauthorized');
     }
 }
