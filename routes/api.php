@@ -127,22 +127,28 @@ Route::group(['prefix' => 'employee', 'middleware' => ['auth:api', 'employee.mai
         'as' => 'employee.index',
     ]);
 
+    Route::get('/list/view/{id}', [
+        'uses' => 'API\EmployeeController@list_view',
+        'as' => 'employee.list.view',
+    ]);
+
     Route::post('/import_employee/{id}', [
         'uses' => 'API\EmployeeController@import_employee',
         'as' => 'employee.import'
     ]);
 
-    Route::post('/export_employee/{id}', [
-        'uses' => 'API\EmployeeController@export_employee',
-        'as' => 'employee.export'
-    ]);
-
-    Route::post('/clear_employee', [
-        'uses' => 'API\EmployeeController@clear_list',
-        'as' => 'employee.clear_list'
+    Route::post('/delete', [
+        'uses' => 'API\EmployeeController@delete',
+        'as' => 'employee.delete'
     ]);
 
 });
+
+// Product Export Route
+Route::get('/employee/export_employee/{id}', [
+    'uses' => 'API\EmployeeController@export_employee',
+    'as' => 'employee.export',
+])->middleware(['employee.maintenance']);
 
 //Permissions
 Route::group(['prefix' => 'permission', 'middleware' => ['auth:api', 'permission.maintenance']], function(){

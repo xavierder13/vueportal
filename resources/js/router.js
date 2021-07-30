@@ -9,7 +9,8 @@ import ProductIndex from './views/product/ProductIndex.vue';
 import ScanProduct from './views/product/ScanProduct.vue';
 import BrandIndex from './views/brand/BrandIndex.vue';
 import BranchIndex from './views/branch/BranchIndex.vue';
-import EmployeeList from './views/employee/EmployeeList.vue';
+import EmployeeIndex from './views/employee/EmployeeIndex.vue';
+import EmployeeListView from './views/employee/EmployeeListView.vue';
 import Permission from './views/permission/PermissionIndex.vue';
 import Role from './views/role/RoleIndex.vue';
 import ActivityLogs from './views/activity_logs/ActivityLogs.vue';
@@ -57,7 +58,12 @@ const routes = [
       {
         path: '/employee/list',
         name: 'employee.list',
-        component: EmployeeList
+        component: EmployeeIndex
+      },
+      {
+        path: '/employee/view/list/:branch_id',
+        name: 'employee.list.view',
+        component: EmployeeListView
       },
       {
         path: '/permission/index',

@@ -19,7 +19,7 @@ class EmployeeMaintenance
         $user = Auth::user();
 
         //Employee Record
-        if($request->is('api/employee/index')){
+        if($request->is('api/employee/index') || $request->is('api/employee/list/view/*')){
             if($user->can('employee-list')){
                 return $next($request); 
             }
@@ -34,13 +34,14 @@ class EmployeeMaintenance
 
         //Employee Export Data
         if($request->is('api/employee/export_employee/*')){
-            if($user->can('employee-list-export')){
-                return $next($request); 
-            }
+            // if($user->can('employee-list-export')){
+            //     return $next($request); 
+            // }
+            return $next($request); 
         }
 
         //Employee Delete All
-        if($request->is('api/employee/clear_list/*')){
+        if($request->is('api/employee/delete')){
             if($user->can('employee-clear-list')){
                 return $next($request); 
             }

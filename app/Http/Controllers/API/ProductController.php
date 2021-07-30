@@ -10,7 +10,7 @@ use App\Branch;
 use DB;
 use Validator;
 use Auth;
-use Maatwebsite\Excel\Facades\Excel;
+use Excel;
 use App\Exports\ProductsExport;
 
 class ProductController extends Controller

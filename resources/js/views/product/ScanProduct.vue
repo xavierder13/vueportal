@@ -204,11 +204,10 @@
             </v-btn>
             <v-btn
               color="#E0E0E0"
-              to="/product/index"
               class="mb-4"
               @click="clear()"
             >
-              Cancel
+              Clear
             </v-btn>
           </v-card-actions>
         </v-card>

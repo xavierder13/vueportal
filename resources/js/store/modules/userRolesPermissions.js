@@ -16,31 +16,46 @@ const state = {
     branch_edit: false,
     branch_delete: false,
     product_list: false,
+    product_list_all: false,
     product_create: false,
     product_edit: false,
     product_delete: false,
     product_clear_list: false,
     product_export: false,
     employee_list: false,
+    employee_list_all: false,
     employee_list_import: false,
+    employee_list_export: false,
     employee_clear_list: false,
     employee_resigned_list: false,
+    employee_resigned_list_all: false,
     employee_resigned_import: false,
+    employee_resigned_export: false,
     employee_resigned_clear_list: false,
     employee_payroll_list: false,
+    employee_payroll_list_all: false,
     employee_payroll_import: false,
+    employee_payroll_export: false,
     employee_payroll_clear_list: false,
     employee_absences_list: false,
+    employee_absences_list_all: false,
     employee_absences_import: false,
+    employee_absences_export: false,
     employee_absences_clear_list: false,
     employee_overtime_list: false,
+    employee_overtime_list_all: false,
     employee_overtime_import: false,
+    employee_overtime_export: false,
     employee_overtime_clear_list: false,
     employee_holiday_pay_list: false,
+    employee_holiday_pay_list_all: false,
     employee_holiday_pay_import: false,
+    employee_holiday_pay_export: false,
     employee_holiday_pay_clear_list: false,
     employee_loans_list: false,
+    employee_loans_list_all: false,
     employee_loans_import: false,
+    employee_loans_export: false,
     employee_loans_clear_list: false,
     role_list: false,
     role_create: false,
@@ -54,6 +69,7 @@ const state = {
   },
   userRoles: {
     administrator: false,
+    hr_admin: false,
   },
 };
 
@@ -79,57 +95,79 @@ const actions = {
 
 const mutations = {
   setUserRoles(state, roles) {
-    state.userRoles.administrator = roles.includes("Administrator");
+
+    let role = state.userRoles;
+
+    role.administrator = roles.includes("Administrator");
+    role.hr_admin = roles.includes("HR Admin");
   },
   setUserPermissions(state, permissions) {
-    state.userPermissions.user_list = permissions.includes("user-list");
-    state.userPermissions.user_create = permissions.includes("user-create");;
-    state.userPermissions.user_edit = permissions.includes("user-edit");
-    state.userPermissions.user_delete = permissions.includes("user-delete");
-    state.userPermissions.brand_list = permissions.includes("brand-list");
-    state.userPermissions.brand_create = permissions.includes("brand-create");;
-    state.userPermissions.brand_edit = permissions.includes("brand-edit");
-    state.userPermissions.brand_delete = permissions.includes("brand-delete");
-    state.userPermissions.branch_list = permissions.includes("branch-list");
-    state.userPermissions.branch_create = permissions.includes("branch-create");;
-    state.userPermissions.branch_edit = permissions.includes("branch-edit");
-    state.userPermissions.branch_delete = permissions.includes("branch-delete");
-    state.userPermissions.product_list = permissions.includes("product-list");
-    state.userPermissions.product_create = permissions.includes("product-create");;
-    state.userPermissions.product_edit = permissions.includes("product-edit");
-    state.userPermissions.product_delete = permissions.includes("product-delete");
-    state.userPermissions.product_export = permissions.includes("product-export");
-    state.userPermissions.product_clear_list = permissions.includes("product-clear-list");
-    state.userPermissions.employee_list = permissions.includes("employee-list");
-    state.userPermissions.employee_list_import = permissions.includes("employee-list-import");
-    state.userPermissions.employee_clear_list = permissions.includes("employee-clear-list");
-    state.userPermissions.employee_resigned_list = permissions.includes("employee-resigned-list");
-    state.userPermissions.employee_resigned_import = permissions.includes("employee-resigned-import");
-    state.userPermissions.employee_resigned_clear_list = permissions.includes("employee-resigned-clear-list");
-    state.userPermissions.employee_payroll_list = permissions.includes("employee-payroll-list");
-    state.userPermissions.employee_payroll_import = permissions.includes("employee-payroll-import");
-    state.userPermissions.employee_payroll_clear_list = permissions.includes("employee-payroll-clear-list");
-    state.userPermissions.employee_absences_list = permissions.includes("employee-absences-list");
-    state.userPermissions.employee_absences_import = permissions.includes("employee-absences-import");
-    state.userPermissions.employee_absences_clear_list = permissions.includes("employee-absences-clear-list");
-    state.userPermissions.employee_overtime_list = permissions.includes("employee-overtime-list");
-    state.userPermissions.employee_overtime_import = permissions.includes("employee-overtime-import");
-    state.userPermissions.employee_overtime_clear_list = permissions.includes("employee-overtime-clear-list");
-    state.userPermissions.employee_holiday_pay_list = permissions.includes("employee-holiday-pay-list");
-    state.userPermissions.employee_holiday_pay_import = permissions.includes("employee-holiday-pay-import");
-    state.userPermissions.employee_holiday_pay_clear_list = permissions.includes("employee-holiday-pay-clear-list");
-    state.userPermissions.employee_loans_list = permissions.includes("employee-loans-list");
-    state.userPermissions.employee_loans_import = permissions.includes("employee-loans-import");
-    state.userPermissions.employee_loans_clear_list = permissions.includes("employee-loans-clear-list");
-    state.userPermissions.permission_list = permissions.includes("permission-list");
-    state.userPermissions.permission_create = permissions.includes("permission-create");
-    state.userPermissions.permission_edit = permissions.includes("permission-edit");
-    state.userPermissions.permission_delete = permissions.includes("permission-delete");
-    state.userPermissions.role_list = permissions.includes("role-list");
-    state.userPermissions.role_create = permissions.includes("role-create");
-    state.userPermissions.role_edit = permissions.includes("role-edit");
-    state.userPermissions.role_delete = permissions.includes("role-delete");
-    state.userPermissions.activity_logs = permissions.includes("activity-logs");
+
+    let permission = state.userPermissions;
+
+    permission.user_list = permissions.includes("user-list");
+    permission.user_create = permissions.includes("user-create");;
+    permission.user_edit = permissions.includes("user-edit");
+    permission.user_delete = permissions.includes("user-delete");
+    permission.brand_list = permissions.includes("brand-list");
+    permission.brand_create = permissions.includes("brand-create");;
+    permission.brand_edit = permissions.includes("brand-edit");
+    permission.brand_delete = permissions.includes("brand-delete");
+    permission.branch_list = permissions.includes("branch-list");
+    permission.branch_create = permissions.includes("branch-create");;
+    permission.branch_edit = permissions.includes("branch-edit");
+    permission.branch_delete = permissions.includes("branch-delete");
+    permission.product_list = permissions.includes("product-list");
+    permission.product_list_all = permissions.includes("product-list-all");
+    permission.product_create = permissions.includes("product-create");;
+    permission.product_edit = permissions.includes("product-edit");
+    permission.product_delete = permissions.includes("product-delete");
+    permission.product_export = permissions.includes("product-export");
+    permission.product_clear_list = permissions.includes("product-clear-list");
+    permission.employee_list = permissions.includes("employee-list");
+    permission.employee_list_all = permissions.includes("employee-list-all");
+    permission.employee_list_import = permissions.includes("employee-list-import");
+    permission.employee_list_export = permissions.includes("employee-list-export");
+    permission.employee_clear_list = permissions.includes("employee-clear-list");
+    permission.employee_resigned_list = permissions.includes("employee-resigned-list");
+    permission.employee_resigned_list_all = permissions.includes("employee-resigned-list-all");
+    permission.employee_resigned_import = permissions.includes("employee-resigned-import");
+    permission.employee_resigned_export = permissions.includes("employee-resigned-export");
+    permission.employee_resigned_clear_list = permissions.includes("employee-resigned-clear-list");
+    permission.employee_payroll_list = permissions.includes("employee-payroll-list");
+    permission.employee_payroll_list_all = permissions.includes("employee-payroll-list-all");
+    permission.employee_payroll_import = permissions.includes("employee-payroll-import");
+    permission.employee_payroll_export = permissions.includes("employee-payroll-export");
+    permission.employee_payroll_clear_list = permissions.includes("employee-payroll-clear-list");
+    permission.employee_absences_list = permissions.includes("employee-absences-list");
+    permission.employee_absences_list_all = permissions.includes("employee-absences-list-all");
+    permission.employee_absences_import = permissions.includes("employee-absences-import");
+    permission.employee_absences_export = permissions.includes("employee-absences-export");
+    permission.employee_absences_clear_list = permissions.includes("employee-absences-clear-list");
+    permission.employee_overtime_list = permissions.includes("employee-overtime-list");
+    permission.employee_overtime_list_all = permissions.includes("employee-overtime-list-all");
+    permission.employee_overtime_import = permissions.includes("employee-overtime-import");
+    permission.employee_overtime_export = permissions.includes("employee-overtime-export");
+    permission.employee_overtime_clear_list = permissions.includes("employee-overtime-clear-list");
+    permission.employee_holiday_pay_list = permissions.includes("employee-holiday-pay-list");
+    permission.employee_holiday_pay_list_all = permissions.includes("employee-holiday-pay-list-all");
+    permission.employee_holiday_pay_import = permissions.includes("employee-holiday-pay-import");
+    permission.employee_holiday_pay_export = permissions.includes("employee-holiday-pay-export");
+    permission.employee_holiday_pay_clear_list = permissions.includes("employee-holiday-pay-clear-list");
+    permission.employee_loans_list = permissions.includes("employee-loans-list");
+    permission.employee_loans_list_all = permissions.includes("employee-loans-list-all");
+    permission.employee_loans_import = permissions.includes("employee-loans-import");
+    permission.employee_loans_export = permissions.includes("employee-loans-export");
+    permission.employee_loans_clear_list = permissions.includes("employee-loans-clear-list");
+    permission.permission_list = permissions.includes("permission-list");
+    permission.permission_create = permissions.includes("permission-create");
+    permission.permission_edit = permissions.includes("permission-edit");
+    permission.permission_delete = permissions.includes("permission-delete");
+    permission.role_list = permissions.includes("role-list");
+    permission.role_create = permissions.includes("role-create");
+    permission.role_edit = permissions.includes("role-edit");
+    permission.role_delete = permissions.includes("role-delete");
+    permission.activity_logs = permissions.includes("activity-logs");
   },
 
 };

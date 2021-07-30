@@ -11,19 +11,28 @@ use Validator;
 use DB;
 use Excel;
 use App\Imports\EmployeesImport;
+use App\Exports\EmployeesExport;
+
 
 class EmployeeController extends Controller
 {
     public function index()
     {
-        $employees = Employee::with('branch')->get();
+     
         $branches = DB::table('branches')
                       ->leftJoin('employees', 'branches.id', '=', 'employees.branch_id')
-                      ->select('branches.name', DB::raw("DATE_FORMAT(max(employees.created_at), '%m/%d/%Y') as last_upload"))
-                      ->groupBy('branches.name')
+                      ->select('branches.id', 'branches.name', DB::raw("DATE_FORMAT(max(employees.created_at), '%m/%d/%Y') as last_upload"))
+                      ->groupBy('branches.id', 'branches.name')
                       ->get();
 
-        return response()->json(['employees' => $employees, 'branches' => $branches], 200);
+        return response()->json(['branches' => $branches], 200);
+    }
+
+    public function list_view($branch_id)
+    {
+        $employees = Employee::with('branch')->where('branch_id', '=', $branch_id)->get();  
+
+        return response()->json(['employees' => $employees], 200);
     }
 
     public function import_employee(Request $request, $branch_id) 
@@ -221,28 +230,28 @@ class EmployeeController extends Controller
 
     public function export_employee($branch_id)
     {   
-        return Excel::download(new ProductsExport($branch_id), 'products.xls');
+        return Excel::download(new EmployeesExport($branch_id), 'employees.xls');
     }
 
-    public function clear_employee(Request $request)
+    public function delete(Request $request)
     {   
         $branch_id = $request->get('branch_id');
 
-        $products = DB::table('products')
+        $employees = DB::table('employees')
                         ->where(function($query) use ($branch_id){
                             if($branch_id <> 0)
                             {
-                                $query->where('products.branch_id', '=', $branch_id);
+                                $query->where('employees.branch_id', '=', $branch_id);
                             }
                         });
         
-        if(!$products->count('id'))
+        if(!$employees->count('id'))
         {
             return response()->json('No record found', 200);
         }
         else
         {
-            $products->delete();
+            $employees->delete();
         }
 
         return response()->json(['success' => 'Record has been deleted'], 200);
