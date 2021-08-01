@@ -62,24 +62,32 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
-  
+        
         $rules = [
-            'products.*.branch_id.required' => 'This field is required',
-            'products.*.branch_id.integer' => 'Branch must be an integer',
-            'products.*.brand_id.required' => 'This field is required',
-            'products.*.brand_id.integer' => 'Brand must be an integer',
-            'products.*.model.required' => 'This field is required',
-            'products.*.serial.required' => 'This field is required',
+            'branch_id.required' => 'This field is required',
+            'branch_id.integer' => 'Branch must be an integer',
+            'brand_id.required' => 'This field is required',
+            'brand_id.integer' => 'Brand must be an integer',
+            'model.required' => 'This field is required',
             'products.required' => 'Please enter product details'
         ];
 
         $valid_fields = [
-            'products.*.branch_id' => 'required|integer',
-            'products.*.brand_id' => 'required|integer',
-            'products.*.model' => 'required',
-            'products.*.serial' => 'required',
-            'products' => 'required'
+            'branch_id' => 'required|integer',
+            'brand_id' => 'required|integer',
+            'model' => 'required',
         ];
+
+        $scan_mode = $request->get('scan_mode');
+
+        if($scan_mode == 'Multiple Scan')
+        {
+            $valid_fields['serials'] = 'required';
+        }
+        else
+        {
+            $valid_fields['serial'] = 'required';
+        }
 
         $validator = Validator::make($request->all(), $valid_fields, $rules);
 
@@ -89,26 +97,60 @@ class ProductController extends Controller
         }
 
         $user = Auth::user();
+        $branch_id = $request->get('branch_id');
+        $brand_id = $request->get('brand_id');
+        $model = $request->get('model');
+        $serials = $request->get('serials');
+        $serial = $request->get('serial');
 
-        $ctr = count($request->get('products'));
-        $products = $request->get('products');
-        for($x=0; $x < $ctr; $x++)
+        // get duplicate products
+        $duplicate_products = Product::where('branch_id', '=', $branch_id)
+                                ->where('brand_id', '=', $brand_id)
+                                ->where('model', '=', $model)
+                                ->where(function($query) use ($serials, $serial){
+                                    $query->whereIn('serial', [$serials])
+                                          ->orWhere('serial', '=', $serial);
+                                })->get();
+         
+        if(count($duplicate_products))
         {
+            return response()->json(['duplicate_products' => $duplicate_products], 200);
+        }
+                                
+        if($scan_mode == 'Multiple Scan')
+        {
+            $ctr = count($serials);
+            
+            for($x=0; $x < $ctr; $x++)
+            {
 
+                $product = new Product();
+                $product->user_id = $user->id;
+                $product->branch_id = $branch_id;
+                $product->brand_id = $brand_id;
+                $product->model = $model;
+                $product->serial = $serials[$x]['serial'];
+                $product->quantity = 1;
+                $product->save();
+
+            }
+        }
+        else
+        {   
             $product = new Product();
             $product->user_id = $user->id;
-            $product->branch_id = $products[$x]['branch_id'];
-            $product->brand_id = $products[$x]['brand_id'];
-            $product->model = $products[$x]['model'];
-            $product->serial = $products[$x]['serial'];
+            $product->branch_id = $branch_id;
+            $product->brand_id = $brand_id;
+            $product->model = $model;
+            $product->serial = $serial;
             $product->quantity = 1;
             $product->save();
-
         }
+        
 
         return response()->json(['success' => 'Record has successfully added'], 200);
     }
-
+    
     public function edit($product_id)
     {
         $product_id = $request->get('product_id');

@@ -188,12 +188,7 @@
             loading-text="Loading... Please wait"
             v-if="userPermissions.product_list"
           >
-            <template v-slot:item.brand="{ item }">
-              {{ item.brand.name }}
-            </template>
-            <template v-slot:item.branch="{ item }">
-              {{ item.branch.name }}
-            </template>
+
             <template v-slot:item.actions="{ item }">
               <v-icon
                 small
@@ -240,10 +235,10 @@ export default {
     return {
       search: "",
       headers: [
-        { text: "Brand", value: "brand" },
+        { text: "Brand", value: "brand.name" },
         { text: "Model", value: "model" },
         { text: "Serial", value: "serial" },
-        { text: "Branch", value: "branch" },
+        { text: "Branch", value: "branch.name" },
         { text: "Date Created", value: "date_created" },
         { text: "Actions", value: "actions", sortable: false },
       ],
@@ -303,6 +298,8 @@ export default {
           this.editedItem.branch_id = this.user.branch_id;
           this.search_branch = this.user.branch_id;
           this.loading = false;
+
+          console.log(this.products);
         },
         (error) => {
           this.isUnauthorized(error);
