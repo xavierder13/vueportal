@@ -103,12 +103,32 @@ class ProductController extends Controller
         $serials = $request->get('serials');
         $serial = $request->get('serial');
 
-        // get duplicate products
+        $duplicate_serials = [];
+       
+        foreach($serials as $index => $value)
+        {
+            foreach($serials as $i => $val)
+            {
+                if($value['serial'] == $val['serial'] && $index <> $i)
+                {   
+                    $duplicate_serials[]  = $val['serial'];
+                }
+            }
+        }
+
+        // return error if there are duplicate serials from request
+        if(count($duplicate_serials))
+        {
+            return response()->json(['duplicate_serials' => $duplicate_serials], 200);
+        }
+        
+
+        // get duplicate products from database
         $duplicate_products = Product::where('branch_id', '=', $branch_id)
                                 ->where('brand_id', '=', $brand_id)
                                 ->where('model', '=', $model)
                                 ->where(function($query) use ($serials, $serial){
-                                    $query->whereIn('serial', [$serials])
+                                    $query->whereIn('serial', $serials)
                                           ->orWhere('serial', '=', $serial);
                                 })->get();
          
@@ -131,7 +151,7 @@ class ProductController extends Controller
                 $product->model = $model;
                 $product->serial = $serials[$x]['serial'];
                 $product->quantity = 1;
-                $product->save();
+                // $product->save();
 
             }
         }
@@ -144,7 +164,7 @@ class ProductController extends Controller
             $product->model = $model;
             $product->serial = $serial;
             $product->quantity = 1;
-            $product->save();
+            // $product->save();
         }
         
 

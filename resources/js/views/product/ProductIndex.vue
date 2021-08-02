@@ -462,10 +462,16 @@ export default {
                   // send data to Sockot.IO Server
                   // this.$socket.emit("sendData", { action: "product-create" });
 
-                  this.products.forEach((value, index) => {
-                    if (value.branch_id === this.search_branch) {
-                      let i = this.products.indexOf(value);
-                      this.products.splice(i, 1);
+                  let products = this.products;
+
+                  // clear products array
+                  this.products = []
+
+                  products.forEach((value, index) => {
+                    
+                    // push products to array where except deleted data
+                    if (value.branch_id != this.search_branch) {
+                      this.products.push(value);
                     }
                     else if(this.search_branch === 0)
                     {

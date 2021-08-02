@@ -48,8 +48,13 @@
                   label="Brand"
                   required
                   :error-messages="brandErrors"
-                  @input="$v.editedItem.brand_id.$touch()"
-                  @blur="$v.editedItem.brand_id.$touch()"
+                  @input="
+                    $v.editedItem.brand_id.$touch() + (fieldsActive = true)
+                  "
+                  @blur="
+                    $v.editedItem.brand_id.$touch() + (fieldsActive = false)
+                  "
+                  @focus="fieldsActive = true"
                 >
                 </v-autocomplete>
               </v-col>
@@ -62,8 +67,9 @@
                   v-model="editedItem.model"
                   required
                   :error-messages="modelErrors"
-                  @input="$v.editedItem.model.$touch()"
-                  @blur="$v.editedItem.model.$touch()"
+                  @input="$v.editedItem.model.$touch() + (fieldsActive = true)"
+                  @blur="$v.editedItem.model.$touch() + (fieldsActive = false)"
+                  @focus="fieldsActive = true"
                 ></v-text-field>
               </v-col>
             </v-row>
@@ -77,8 +83,13 @@
                   label="Branch"
                   required
                   :error-messages="branchErrors"
-                  @input="$v.editedItem.branch_id.$touch()"
-                  @blur="$v.editedItem.branch_id.$touch()"
+                  @input="
+                    $v.editedItem.branch_id.$touch() + (fieldsActive = true)
+                  "
+                  @blur="
+                    $v.editedItem.branch_id.$touch() + (fieldsActive = false)
+                  "
+                  @focus="fieldsActive = true"
                   v-if="user.id === 1"
                 >
                 </v-autocomplete>
@@ -101,38 +112,39 @@
             <v-row v-if="switch1">
               <v-col class="mt-0 mb-0 pt-0 pb-0">
                 <v-simple-table dense>
-                  <thead>
+                  <thead class="grey darken-1" >
                     <tr>
-                      <th width="10px">#</th>
-                      <th>Serial</th>
-                      <!-- <th class="text-left">Model</th>
-                        <th class="text-left">Brand</th>
-                        <th class="text-left" v-if="user.id === 1">Branch</th> -->
-                      <th width="20px"></th>
+                      <th  class="white--text " width="10px">#</th>
+                      <th class="white--text ">Serial</th>
+                      <th width="10px"></th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr
                       v-for="(field, index) in serials"
                       :key="index"
-                      :class="errorFields[index].serial ? 'error--text' : ''"
+                      :class="
+                        errorFields[index].serial
+                          ? 'white--text  red darken-1'
+                          : ''
+                      "
                     >
-                      <td>{{ index + 1 }}</td>
                       <td>
-                        <!-- <v-text-field
-                          dense
-                          name="serial"
-                          v-model="field.serial"
-                          readonly
-                        ></v-text-field> -->
+                        {{ index + 1 }}
+                      </td>
+                      <td>
                         <span>{{ field.serial }}</span>
                       </td>
                       <td>
                         <v-btn
                           dense
-                          dark
                           x-small
-                          color="red"
+                          :color="
+                            errorFields[index].serial
+                              ? 'white red--text'
+                              : 'red white--text'
+                          "
+                          class="ma-1"
                           @click="removeRow(field)"
                         >
                           <v-icon dark> mdi-minus </v-icon>
@@ -185,7 +197,7 @@ import {
   sameAs,
 } from "vuelidate/lib/validators";
 import { mapState } from "vuex";
-
+import goTo from "vuetify/lib/services/goto";
 export default {
   mixins: [validationMixin],
 
@@ -241,6 +253,7 @@ export default {
       serialsEmpty: false,
       serialsHasError: false,
       serialExists: false,
+      fieldsActive: false,
     };
   },
 
@@ -267,18 +280,18 @@ export default {
       });
     },
 
-    save() {
+    async save() {
       this.$v.$touch();
 
       // if scanMode is Multiple
       if (this.switch1) {
-        this.serialsEmpty = this.serials.length ? false : true;
-        this.editedItem.serials = this.serials;
+        this.serialsEmpty = await this.serials.length ? false : true;
+        this.editedItem.serials = await this.serials;
 
-        this.validateMultiSerial();
+        await this.validateMultiSerial();
       }
 
-      this.editedItem.scan_mode = this.scanMode;
+      this.editedItem.scan_mode = await this.scanMode;
 
       // alert('Error Fields: ' + this.$v.$error + '. ' + 'Serials empty: ' + this.serialsEmpty );
 
@@ -288,7 +301,7 @@ export default {
 
         const data = this.editedItem;
 
-        axios.post("/api/product/store", data).then(
+        await axios.post("/api/product/store", data).then(
           (response) => {
             console.log(response.data);
             if (response.data.success) {
@@ -300,9 +313,20 @@ export default {
             } else if (response.data.duplicate_products) {
               let products = response.data.duplicate_products;
 
-              this.serials.forEach((value, index) => {
-                products.forEach((val, i) => {
+              products.forEach((value, index) => {
+                this.serials.forEach((val, i) => {
                   if (value.serial == val.serial) {
+                    this.errorFields[i].serial = "Duplicate Serial";
+                    this.serialExists = true;
+                  }
+                });
+              });
+            } else if (response.data.duplicate_serials) {
+              let serials = response.data.duplicate_serials;
+
+              serials.forEach((value, index) => {
+                this.serials.forEach((val, i) => {
+                  if (value == val.serial) {
                     this.errorFields[i].serial = "Duplicate Serial";
                     this.serialExists = true;
                   }
@@ -324,7 +348,7 @@ export default {
     },
 
     async validateMultiSerial() {
-      this.serialExists = false;
+      this.serialExists = await false;
 
       // refresh error messages for every index
       await this.serials.forEach((value, index) => {
@@ -353,7 +377,7 @@ export default {
     },
 
     async removeRow(item) {
-      const index = this.serials.indexOf(item);
+      const index = await this.serials.indexOf(item);
 
       //Delete rows on the object serials
       await this.serials.splice(index, 1);
@@ -370,19 +394,34 @@ export default {
 
     // Create callback function to receive barcode when the scanner is already done
     onBarcodeScanned(barcode) {
-      if (this.switch1) {
-        this.serials.push({
-          serial: barcode,
-        });
+      // if form field is not active then push barcode data
+      if (!this.fieldsActive) {
 
-        this.errorFields.push({
-          serial: "",
-        });
+        this.serialsEmpty = false;
+        
+        if (this.switch1) {
+          this.serials.push({
+            serial: barcode,
+          });
 
-        this.validateMultiSerial();
-      } else {
-        this.editedItem.serial = barcode;
-        this.serialExists = false;
+          this.errorFields.push({
+            serial: "",
+          });
+
+          this.validateMultiSerial();
+
+          // auto scroll down
+          goTo(9999, {
+            duration: 1000,
+            offset: 500,
+            easing: "easeInOutCubic",
+          });
+          
+        } else {
+          this.editedItem.serial = barcode;
+          this.serialExists = false;
+        }
+        
       }
 
       // do something...
@@ -441,6 +480,7 @@ export default {
 
       return isRequired;
     },
+
     ...mapState("auth", ["user"]),
   },
   created() {
