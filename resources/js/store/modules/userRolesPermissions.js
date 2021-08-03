@@ -12,6 +12,11 @@ const state = {
     brand_edit: false,
     brand_delete: false,
     branch_list: false,
+    product_category_list: false,
+    product_category_create: false,
+    product_category_edit: false,
+    product_category_delete: false,
+    branch_list: false,
     branch_create: false,
     branch_edit: false,
     branch_delete: false,
@@ -106,15 +111,19 @@ const mutations = {
     let permission = state.userPermissions;
 
     permission.user_list = permissions.includes("user-list");
-    permission.user_create = permissions.includes("user-create");;
+    permission.user_create = permissions.includes("user-create");
     permission.user_edit = permissions.includes("user-edit");
     permission.user_delete = permissions.includes("user-delete");
     permission.brand_list = permissions.includes("brand-list");
-    permission.brand_create = permissions.includes("brand-create");;
+    permission.brand_create = permissions.includes("brand-create");
     permission.brand_edit = permissions.includes("brand-edit");
     permission.brand_delete = permissions.includes("brand-delete");
+    permission.product_category_list = permissions.includes("product-category-list");
+    permission.product_category_create = permissions.includes("product-category-create");
+    permission.product_category_edit = permissions.includes("product-category-edit");
+    permission.product_category_delete = permissions.includes("product-category-delete");
     permission.branch_list = permissions.includes("branch-list");
-    permission.branch_create = permissions.includes("branch-create");;
+    permission.branch_create = permissions.includes("branch-create");
     permission.branch_edit = permissions.includes("branch-edit");
     permission.branch_delete = permissions.includes("branch-delete");
     permission.product_list = permissions.includes("product-list");

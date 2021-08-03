@@ -70,6 +70,7 @@ class Kernel extends HttpKernel
         'permission.maintenance' => \App\Http\Middleware\PermissionMaintenance::class,
         'role.maintenance' => \App\Http\Middleware\RoleMaintenance::class,
         'product.maintenance' => \App\Http\Middleware\ProductMaintenance::class,
+        'product_category.maintenance' => \App\Http\Middleware\ProductCategoryMaintenance::class,
         'activity.logs' => \App\Http\Middleware\ActivityLogs::class,
     ];
 }

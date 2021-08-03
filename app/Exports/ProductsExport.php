@@ -32,6 +32,9 @@ class ProductsExport implements FromCollection, WithHeadings
                               $query->where('products.branch_id', '=', $branch_id);
                           }
                       })
+                      ->orderBy('brands.name', 'Asc')
+                      ->orderBy('products.model', 'Asc')
+                      ->orderBy('products.serial', 'Asc')
                       ->get();
         return $products;
     }

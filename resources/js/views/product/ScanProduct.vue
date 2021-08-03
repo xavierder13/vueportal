@@ -55,6 +55,7 @@
                     $v.editedItem.brand_id.$touch() + (fieldsActive = false)
                   "
                   @focus="fieldsActive = true"
+                  @change="clearSerialExistStatus()"
                 >
                 </v-autocomplete>
               </v-col>
@@ -67,7 +68,7 @@
                   v-model="editedItem.model"
                   required
                   :error-messages="modelErrors"
-                  @input="$v.editedItem.model.$touch() + (fieldsActive = true)"
+                  @input="$v.editedItem.model.$touch() + (fieldsActive = true) + clearSerialExistStatus()"
                   @blur="$v.editedItem.model.$touch() + (fieldsActive = false)"
                   @focus="fieldsActive = true"
                 ></v-text-field>
@@ -90,6 +91,7 @@
                     $v.editedItem.branch_id.$touch() + (fieldsActive = false)
                   "
                   @focus="fieldsActive = true"
+                  @change="clearSerialExistStatus()"
                   v-if="user.id === 1"
                 >
                 </v-autocomplete>
@@ -112,10 +114,10 @@
             <v-row v-if="switch1">
               <v-col class="mt-0 mb-0 pt-0 pb-0">
                 <v-simple-table dense>
-                  <thead class="grey darken-1" >
+                  <thead class="grey darken-1">
                     <tr>
-                      <th  class="white--text " width="10px">#</th>
-                      <th class="white--text ">Serial</th>
+                      <th class="white--text" width="10px">#</th>
+                      <th class="white--text">Serial</th>
                       <th width="10px"></th>
                     </tr>
                   </thead>
@@ -124,7 +126,8 @@
                       v-for="(field, index) in serials"
                       :key="index"
                       :class="
-                        errorFields[index].serial
+                        errorFields[index].serial.duplicate ||
+                        errorFields[index].serial.exist
                           ? 'white--text  red darken-1'
                           : ''
                       "
@@ -140,7 +143,8 @@
                           dense
                           x-small
                           :color="
-                            errorFields[index].serial
+                            errorFields[index].serial.duplicate ||
+                            errorFields[index].serial.exist
                               ? 'white red--text'
                               : 'red white--text'
                           "
@@ -160,11 +164,11 @@
                 <span class="v-messages error--text">Please enter serials</span>
               </v-col>
             </v-row>
-            <v-row v-if="serialExists">
+            <v-row v-if="serialExists || serialHasDuplicate">
               <v-col>
-                <span class="v-messages error--text"
-                  >There are duplicate serials</span
-                >
+                <span class="v-messages error--text">{{
+                  multiSerialErrors
+                }}</span>
               </v-col>
             </v-row>
           </v-card-text>
@@ -251,8 +255,9 @@ export default {
       errorFields: [],
       switch1: false,
       serialsEmpty: false,
-      serialsHasError: false,
+
       serialExists: false,
+      serialHasDuplicate: false,
       fieldsActive: false,
     };
   },
@@ -285,7 +290,7 @@ export default {
 
       // if scanMode is Multiple
       if (this.switch1) {
-        this.serialsEmpty = await this.serials.length ? false : true;
+        this.serialsEmpty = (await this.serials.length) ? false : true;
         this.editedItem.serials = await this.serials;
 
         await this.validateMultiSerial();
@@ -293,9 +298,12 @@ export default {
 
       this.editedItem.scan_mode = await this.scanMode;
 
-      // alert('Error Fields: ' + this.$v.$error + '. ' + 'Serials empty: ' + this.serialsEmpty );
-
-      if (!this.$v.$error && !this.serialsEmpty && !this.serialExists) {
+      if (
+        !this.$v.$error &&
+        !this.serialsEmpty &&
+        !this.serialExists &&
+        !this.serialHasDuplicate
+      ) {
         this.disabled = true;
         this.overlay = true;
 
@@ -303,21 +311,23 @@ export default {
 
         await axios.post("/api/product/store", data).then(
           (response) => {
-            console.log(response.data);
             if (response.data.success) {
               // send data to Sockot.IO Server
               // this.$socket.emit("sendData", { action: "product-create" });
 
               this.showAlert();
               this.clear();
-            } else if (response.data.duplicate_products) {
-              let products = response.data.duplicate_products;
+            } else if (response.data.existing_products) {
+
+              let products = response.data.existing_products;
+
+              this.serialExists = true;
 
               products.forEach((value, index) => {
                 this.serials.forEach((val, i) => {
+
                   if (value.serial == val.serial) {
-                    this.errorFields[i].serial = "Duplicate Serial";
-                    this.serialExists = true;
+                    this.errorFields[i].serial.exist = true;
                   }
                 });
               });
@@ -327,8 +337,8 @@ export default {
               serials.forEach((value, index) => {
                 this.serials.forEach((val, i) => {
                   if (value == val.serial) {
-                    this.errorFields[i].serial = "Duplicate Serial";
-                    this.serialExists = true;
+                    this.errorFields[i].serial.duplicate = true;
+                    this.serialHasDuplicate = true;
                   }
                 });
               });
@@ -348,20 +358,36 @@ export default {
     },
 
     async validateMultiSerial() {
+      this.serialHasDuplicate = await false;
       this.serialExists = await false;
+
+      // set serialExists to false
+      await this.errorFields.forEach((value, index) => {
+        if (value.serial.exist) {
+          this.serialExists = true;
+        }
+      });
 
       // refresh error messages for every index
       await this.serials.forEach((value, index) => {
-        this.errorFields[index].serial = "";
+        this.errorFields[index].serial.duplicate = false;
       });
 
       await this.serials.forEach((value, index) => {
         this.serials.forEach((val, i) => {
           if (value.serial == val.serial && index != i) {
-            this.errorFields[i].serial = "Duplicate Serial";
+            this.errorFields[i].serial.duplicate = true;
             this.serialExists = true;
           }
         });
+      });
+    },
+
+    clearSerialExistStatus() {
+      let errorFields = this.errorFields
+      this.serialExists = false;
+      errorFields.forEach((value, index) => {
+        this.errorFields[index].serial.exist = false;
       });
     },
 
@@ -370,8 +396,8 @@ export default {
       this.editedItem = Object.assign({}, this.defaultItem);
       this.editedItem.branch_id = this.user.branch_id;
       this.serialsEmpty = false;
-      this.serialsHasError = false;
       this.serialExists = false;
+      this.serialHasDuplicate = false;
       this.serials = [];
       this.errorFields = [];
     },
@@ -381,7 +407,7 @@ export default {
 
       //Delete rows on the object serials
       await this.serials.splice(index, 1);
-
+      await this.errorFields.splice(index, 1);
       await this.validateMultiSerial();
     },
 
@@ -396,16 +422,15 @@ export default {
     onBarcodeScanned(barcode) {
       // if form field is not active then push barcode data
       if (!this.fieldsActive) {
-
         this.serialsEmpty = false;
-        
+
         if (this.switch1) {
           this.serials.push({
             serial: barcode,
           });
 
           this.errorFields.push({
-            serial: "",
+            serial: { duplicate: false, exist: false },
           });
 
           this.validateMultiSerial();
@@ -416,12 +441,10 @@ export default {
             offset: 500,
             easing: "easeInOutCubic",
           });
-          
         } else {
           this.editedItem.serial = barcode;
           this.serialExists = false;
         }
-        
       }
 
       // do something...
@@ -455,6 +478,28 @@ export default {
       }
 
       return errors;
+    },
+
+    multiSerialErrors() {
+      let serialExists = false;
+      let serialHasDuplicate = false;
+
+      this.errorFields.forEach((value, index) => {
+        if (value.serial.duplicate) {
+          serialHasDuplicate = true;
+        }
+        if (value.serial.exist) {
+          serialExists = true;
+        }
+      });
+
+      if (serialExists && serialHasDuplicate) {
+        return "There are duplicate and existing serials";
+      } else if (serialExists) {
+        return "There are existing serials";
+      } else if (serialHasDuplicate) {
+        return "There are duplicate serials";
+      }
     },
     branchErrors() {
       const errors = [];

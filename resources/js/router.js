@@ -8,6 +8,7 @@ import UserCreate from './views/user/UserCreate.vue';
 import ProductIndex from './views/product/ProductIndex.vue';
 import ScanProduct from './views/product/ScanProduct.vue';
 import BrandIndex from './views/brand/BrandIndex.vue';
+import ProductCategoryIndex from './views/product_category/ProductCategoryIndex.vue';
 import BranchIndex from './views/branch/BranchIndex.vue';
 import EmployeeIndex from './views/employee/EmployeeIndex.vue';
 import EmployeeListView from './views/employee/EmployeeListView.vue';
@@ -49,6 +50,11 @@ const routes = [
         path: '/brand/index',
         name: 'brand.index',
         component: BrandIndex
+      },
+      {
+        path: '/product_category/index',
+        name: 'product_category.index',
+        component: ProductCategoryIndex
       },
       {
         path: '/branch/index',

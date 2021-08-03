@@ -299,7 +299,6 @@ export default {
           this.search_branch = this.user.branch_id;
           this.loading = false;
 
-          console.log(this.products);
         },
         (error) => {
           this.isUnauthorized(error);

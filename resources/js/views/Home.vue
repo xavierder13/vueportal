@@ -55,13 +55,20 @@
               <v-list-item-title>User Record</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
-          <v-list-item link to="/user/create" v-if="userPermissions.user_create">
+          <v-list-item
+            link
+            to="/user/create"
+            v-if="userPermissions.user_create"
+          >
             <v-list-item-content>
               <v-list-item-title>Create New</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
         </v-list-group>
-        <v-list-group no-action v-if="userPermissions.product_list || userPermissions.product_create">
+        <v-list-group
+          no-action
+          v-if="userPermissions.product_list || userPermissions.product_create"
+        >
           <!-- List Group Icon-->
           <v-icon slot="prependIcon">mdi-barcode-scan</v-icon>
           <!-- List Group Title -->
@@ -71,26 +78,36 @@
             </v-list-item-content>
           </template>
           <!-- List Group Items -->
-          <v-list-item link to="/product/index" v-if="userPermissions.product_list">
+          <v-list-item
+            link
+            to="/product/index"
+            v-if="userPermissions.product_list"
+          >
             <v-list-item-content>
               <v-list-item-title>Product Lists</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
-          <v-list-item link to="/scan_product" v-if="userPermissions.product_create">
+          <v-list-item
+            link
+            to="/scan_product"
+            v-if="userPermissions.product_create"
+          >
             <v-list-item-content>
               <v-list-item-title>Scan Product</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
         </v-list-group>
-        <v-list-group 
+        <v-list-group
           no-action
-          v-if="userPermissions.employee_list || 
-                userPermissions.employee_resigned_list || 
-                userPermissions.employee_payroll_list || 
-                userPermissions.employee_absences_list ||
-                userPermissions.employee_overtime_list ||
-                userPermissions.employee_holiday_pay_list ||
-                userPermissions.employee_loans_list"
+          v-if="
+            userPermissions.employee_list ||
+            userPermissions.employee_resigned_list ||
+            userPermissions.employee_payroll_list ||
+            userPermissions.employee_absences_list ||
+            userPermissions.employee_overtime_list ||
+            userPermissions.employee_holiday_pay_list ||
+            userPermissions.employee_loans_list
+          "
         >
           <!-- List Group Icon-->
           <v-icon slot="prependIcon">mdi-account-multiple</v-icon>
@@ -101,37 +118,65 @@
             </v-list-item-content>
           </template>
           <!-- List Group Items -->
-          <v-list-item link to="/employee/list" v-if="userPermissions.employee_list">
+          <v-list-item
+            link
+            to="/employee/list"
+            v-if="userPermissions.employee_list"
+          >
             <v-list-item-content>
               <v-list-item-title>Employee Lists</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
-          <v-list-item link to="/employee/resigned/list" v-if="userPermissions.employee_resigned_list">
+          <v-list-item
+            link
+            to="/employee/resigned/list"
+            v-if="userPermissions.employee_resigned_list"
+          >
             <v-list-item-content>
               <v-list-item-title>Resigned</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
-          <v-list-item link to="/employee/payroll/list" v-if="userPermissions.employee_payroll_list">
+          <v-list-item
+            link
+            to="/employee/payroll/list"
+            v-if="userPermissions.employee_payroll_list"
+          >
             <v-list-item-content>
               <v-list-item-title>Payroll</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
-          <v-list-item link to="/employee/absences/list" v-if="userPermissions.employee_absences_list">
+          <v-list-item
+            link
+            to="/employee/absences/list"
+            v-if="userPermissions.employee_absences_list"
+          >
             <v-list-item-content>
               <v-list-item-title>Absences</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
-          <v-list-item link to="/employee/overtime/list" v-if="userPermissions.employee_overtime_list">
+          <v-list-item
+            link
+            to="/employee/overtime/list"
+            v-if="userPermissions.employee_overtime_list"
+          >
             <v-list-item-content>
               <v-list-item-title>Overtime</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
-          <v-list-item link to="/employee/holiday_pay/list" v-if="userPermissions.employee_holiday_pay_list">
+          <v-list-item
+            link
+            to="/employee/holiday_pay/list"
+            v-if="userPermissions.employee_holiday_pay_list"
+          >
             <v-list-item-content>
               <v-list-item-title>Holiday Pay</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
-          <v-list-item link to="/employee/loans/list" v-if="userPermissions.employee_loans_list">
+          <v-list-item
+            link
+            to="/employee/loans/list"
+            v-if="userPermissions.employee_loans_list"
+          >
             <v-list-item-content>
               <v-list-item-title>Loans</v-list-item-title>
             </v-list-item-content>
@@ -142,6 +187,8 @@
           v-if="
             userPermissions.brand_list ||
             userPermissions.brand_create ||
+            userPermissions.product_category_list ||
+            userPermissions.product_category_create ||
             userPermissions.branch_list ||
             userPermissions.branch_create ||
             userPermissions.role_list ||
@@ -159,17 +206,41 @@
             </v-list-item-content>
           </template>
           <!-- List Group Items -->
-          <v-list-item link to="/brand/index">
+          <v-list-item
+            link
+            to="/brand/index"
+            v-if="userPermissions.brand_list || userPermissions.brand_create"
+          >
             <v-list-item-content>
               <v-list-item-title>Brand</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
-          <v-list-item link to="/branch/index">
+          <v-list-item
+            link
+            to="/product_category/index"
+            v-if="
+              userPermissions.product_category_list ||
+              userPermissions.product_category_create
+            "
+          >
+            <v-list-item-content>
+              <v-list-item-title>Product Category</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
+            to="/branch/index"
+            v-if="userPermissions.branch_list || userPermissions.branch_create"
+          >
             <v-list-item-content>
               <v-list-item-title>Branch</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
-          <v-list-item link to="/role/index" v-if="userPermissions.role_list">
+          <v-list-item
+            link
+            to="/role/index"
+            v-if="userPermissions.role_list || userPermissions.role_create"
+          >
             <v-list-item-content>
               <v-list-item-title>Role</v-list-item-title>
             </v-list-item-content>
@@ -184,7 +255,11 @@
             </v-list-item-content>
           </v-list-item>
         </v-list-group>
-        <v-list-item link to="/activity_logs" v-if="userPermissions.activity_logs">
+        <v-list-item
+          link
+          to="/activity_logs"
+          v-if="userPermissions.activity_logs"
+        >
           <v-list-item-icon>
             <v-icon>mdi-history</v-icon>
           </v-list-item-icon>

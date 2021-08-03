@@ -14,14 +14,12 @@ import store from './store';
 
 // Vue.use(VueSocketio, 'http://localhost:4000');
 Vue.use(excel);
-Vue.use(Vuetify);   
+Vue.use(Vuetify);
 Vue.use(VuetifyMask);
 Vue.use(Vuelidate);
 Vue.use(VueSweetalert2);
-   
-Vue.use(VueBarcodeScanner, {
-    sensitivity: 300 // default is 100
-})
+
+Vue.use(VueBarcodeScanner, { sensitivity: 300, })
 
 const app = new Vue({
     vuetify: Vuetify,

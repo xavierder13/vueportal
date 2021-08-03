@@ -237,6 +237,35 @@ Route::group(['prefix' => 'brand', 'middleware' => ['auth:api', 'brand.maintenan
 
 });
 
+// Product Category Routes
+Route::group(['prefix' => 'product_category', 'middleware' => ['auth:api', 'product_category.maintenance']], function(){
+    Route::get('/index', [
+        'uses' => 'API\ProductCategoryController@index',
+        'as' => 'product_category.index',
+    ]);
+    Route::get('/create', [
+        'uses' => 'API\ProductCategoryController@create',
+        'as' => 'product_category.create',
+    ]);
+    Route::post('/store', [
+        'uses' => 'API\ProductCategoryController@store',
+        'as' => 'product_category.store',
+    ]);
+    Route::post('/edit', [
+        'uses' => 'API\ProductCategoryController@edit',
+        'as' => 'product_category.edit',
+    ]);
+    Route::post('/update/{id}', [
+        'uses' => 'API\ProductCategoryController@update',
+        'as' => 'product_category.update',
+    ]);
+    Route::post('/delete', [
+        'uses' => 'API\ProductCategoryController@delete',
+        'as' => 'product_category.delete',
+    ]);
+
+});
+
 // Branch Routes
 Route::group(['prefix' => 'branch', 'middleware' => ['auth:api', 'branch.maintenance']], function(){
     Route::get('/index', [
