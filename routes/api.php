@@ -120,7 +120,50 @@ Route::get('/product/export/{id}', [
     'as' => 'product.export',
 ])->middleware(['product.maintenance']);
 
-// Product Routes
+// Inventory Reconciliation Route
+Route::group(['prefix' => 'inventory_reconciliation', 'middleware' => ['auth:api', 'inventory_reconciliation.maintenance']], function(){
+    Route::get('/index', [
+        'uses' => 'API\InventoryReconciliationController@index',
+        'as' => 'inventory_reconciliation.index',
+    ]);
+
+    Route::get('/create', [
+        'uses' => 'API\InventoryReconciliationController@create',
+        'as' => 'inventory_reconciliation.create',
+    ]);
+
+    Route::post('/store', [
+        'uses' => 'API\InventoryReconciliationController@store',
+        'as' => 'inventory_reconciliation.store',
+    ]);
+
+    Route::get('/edit/{id}', [
+        'uses' => 'API\InventoryReconciliationController@edit',
+        'as' => 'inventory_reconciliation.edit',
+    ]);
+
+    Route::post('/update/{id}', [
+        'uses' => 'API\InventoryReconciliationController@update',
+        'as' => 'inventory_reconciliation.update',
+    ]);
+
+    Route::post('/delete', [
+        'uses' => 'API\InventoryReconciliationController@delete',
+        'as' => 'inventory_reconciliation.delete',
+    ]);
+
+    Route::get('/view/{id}', [
+        'uses' => 'API\InventoryReconciliationController@view',
+        'as' => 'inventory_reconciliation.view',
+    ]);
+
+    Route::post('/import/{id}', [
+        'uses' => 'API\InventoryReconciliationController@import',
+        'as' => 'inventory_reconciliation.import',
+    ]);
+});
+
+// Employee Routes
 Route::group(['prefix' => 'employee', 'middleware' => ['auth:api', 'employee.maintenance']], function(){
     Route::get('/index', [
         'uses' => 'API\EmployeeController@index',
@@ -144,7 +187,7 @@ Route::group(['prefix' => 'employee', 'middleware' => ['auth:api', 'employee.mai
 
 });
 
-// Product Export Route
+// Employee Export Route
 Route::get('/employee/export_employee/{id}', [
     'uses' => 'API\EmployeeController@export_employee',
     'as' => 'employee.export',

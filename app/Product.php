@@ -8,8 +8,11 @@ class Product extends Model
 {   
 
     protected $fillable = [
+        'branch_id',
+        'user_id',
         'brand_id',
         'model',
+        'product_category_id',
         'serial',
         'quantity'
     ];
@@ -29,6 +32,12 @@ class Product extends Model
     public function user()
     {
         return $this->hasOne('App\User', 'id', 'user_id');
+        //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
+    }
+
+    public function product_category()
+    {
+        return $this->hasOne('App\ProductCategory', 'id', 'product_category_id');
         //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
     }
 }

@@ -71,6 +71,7 @@ class Kernel extends HttpKernel
         'role.maintenance' => \App\Http\Middleware\RoleMaintenance::class,
         'product.maintenance' => \App\Http\Middleware\ProductMaintenance::class,
         'product_category.maintenance' => \App\Http\Middleware\ProductCategoryMaintenance::class,
+        'inventory_reconciliation.maintenance' => \App\Http\Middleware\InventoryReconciliationMaintenance::class,
         'activity.logs' => \App\Http\Middleware\ActivityLogs::class,
     ];
 }

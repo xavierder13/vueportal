@@ -74,10 +74,19 @@
           <!-- List Group Title -->
           <template v-slot:activator>
             <v-list-item-content>
-              <v-list-item-title>Product</v-list-item-title>
+              <v-list-item-title>Inventory</v-list-item-title>
             </v-list-item-content>
           </template>
           <!-- List Group Items -->
+          <v-list-item
+            link
+            to="/inventory/reconciliation"
+            v-if="userPermissions.inventory_recon_list"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Reconciliation</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
           <v-list-item
             link
             to="/product/index"
@@ -255,7 +264,7 @@
             </v-list-item-content>
           </v-list-item>
         </v-list-group>
-        <v-list-item
+        <!-- <v-list-item
           link
           to="/activity_logs"
           v-if="userPermissions.activity_logs"
@@ -264,7 +273,7 @@
             <v-icon>mdi-history</v-icon>
           </v-list-item-icon>
           <v-list-item-title>Activity Logs</v-list-item-title>
-        </v-list-item>
+        </v-list-item> -->
       </v-list>
     </v-navigation-drawer>
     <v-overlay :absolute="absolute" :value="overlay">

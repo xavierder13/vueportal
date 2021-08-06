@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Product;
+use App\ProductCategory;
 use App\Brand;
 use App\Branch;
 use DB;
@@ -22,27 +23,28 @@ class ProductController extends Controller
         $products = Product::with('brand')
                            ->with('branch')
                            ->with('user')
+                           ->with('product_category')
+                           ->where(function($query) use ($user) {
+
+                                // if user is not administrator or has not permission to view all product list
+                                if(!$user->can('product-list-all'))
+                                {
+                                    $query->where('branch_id', '=', $user->branch_id);
+                                }
+                           })
                            ->select(DB::raw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_created"))
                            ->get();
 
-        // if auth is not admin then filter per branch
-        if($user->id !== 1)
-        {
-            $products = Product::with('brand')
-                               ->with('branch')
-                               ->with('user')
-                               ->where('branch_id' ,'=' ,$user->branch_id )
-                               ->select(DB::raw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_created"))
-                               ->get();
-        }
 
         $brands = Brand::all();
         $branches = Branch::all();
+        $product_categories = ProductCategory::all();
         
         return response()->json([
             'products' => $products, 
             'brands' => $brands,
             'branches' => $branches,
+            'product_categories' => $product_categories,
             'user' => $user,
         ], 200);
     }
@@ -52,8 +54,10 @@ class ProductController extends Controller
         $user = Auth::user();
         $brands = Brand::all();
         $branches = Branch::all();
+        $product_categories = ProductCategory::all();
 
         return response()->json([
+            'product_categories' => $product_categories,
             'brands' => $brands,
             'branches' => $branches,
             'user' => $user,
@@ -64,11 +68,13 @@ class ProductController extends Controller
     {
         
         $rules = [
-            'branch_id.required' => 'This field is required',
+            'branch_id.required' => 'Branch is required',
             'branch_id.integer' => 'Branch must be an integer',
-            'brand_id.required' => 'This field is required',
+            'brand_id.required' => 'Brand field is required',
             'brand_id.integer' => 'Brand must be an integer',
             'model.required' => 'This field is required',
+            'product_category_id.required' => 'Product Category field is required',
+            'product_category_id.integer' => 'Product Category must be an integer',
             'products.required' => 'Please enter product details'
         ];
 
@@ -76,6 +82,7 @@ class ProductController extends Controller
             'branch_id' => 'required|integer',
             'brand_id' => 'required|integer',
             'model' => 'required',
+            'product_category_id' => 'required|integer',
         ];
 
         $scan_mode = $request->get('scan_mode');
@@ -100,6 +107,7 @@ class ProductController extends Controller
         $branch_id = $request->get('branch_id');
         $brand_id = $request->get('brand_id');
         $model = $request->get('model');
+        $product_category_id = $request->get('product_category_id');
         $serials = [];
         $serial = $request->get('serial');
 
@@ -128,7 +136,6 @@ class ProductController extends Controller
             return response()->json(['duplicate_serials' => $duplicate_serials], 200);
         }
         
-
         // get existing products from database
         $existing_products = Product::where('branch_id', '=', $branch_id)
                                 ->where('brand_id', '=', $brand_id)
@@ -155,6 +162,7 @@ class ProductController extends Controller
                 $product->branch_id = $branch_id;
                 $product->brand_id = $brand_id;
                 $product->model = $model;
+                $product->product_category_id = $product_category_id;
                 $product->serial = $serials[$x]['serial'];
                 $product->quantity = 1;
                 $product->save();
@@ -168,6 +176,7 @@ class ProductController extends Controller
             $product->branch_id = $branch_id;
             $product->brand_id = $brand_id;
             $product->model = $model;
+            $product->product_category_id = $product_category_id;
             $product->serial = $serial;
             $product->quantity = 1;
             $product->save();
@@ -198,16 +207,21 @@ class ProductController extends Controller
     public function update(Request $request, $product_id)
     {
         $rules = [
-            'brand_id.required' => 'Brand is required',
+            'branch_id.required' => 'Branch is required',
+            'branch_id.integer' => 'Branch must be an integer',
+            'brand_id.required' => 'Brand field is required',
             'brand_id.integer' => 'Brand must be an integer',
-            'model.required' => 'Model is required',
-            'serial.required' => 'Serial Number is required',
+            'model.required' => 'This field is required',
+            'product_category_id.required' => 'Product Category field is required',
+            'product_category_id.integer' => 'Product Category must be an integer',
+            'products.required' => 'Please enter product details'
         ];
 
         $valid_fields = [
+            'branch_id' => 'required|integer',
             'brand_id' => 'required|integer',
             'model' => 'required',
-            'serial' => 'required',
+            'product_category_id' => 'required|integer',
         ];
 
         $validator = Validator::make($request->all(), $valid_fields, $rules);
@@ -217,8 +231,14 @@ class ProductController extends Controller
             return response()->json($validator->errors(), 200);
         }
 
+
         $user = Auth::user();
         $branch_id = $request->get('branch_id');
+        $brand_id = $request->get('brand_id');
+        $model = $request->get('model');
+        $product_category_id = $request->get('product_category_id');
+        $serials = [];
+        $serial = $request->get('serial');
 
         // if auth is not admin then filter per branch
         if($user->id !== 1)
@@ -226,11 +246,29 @@ class ProductController extends Controller
             $branch_id = $user->branch_id;
         }
 
+        // get existing products from database
+        $existing_products = Product::where('branch_id', '=', $branch_id)
+                                ->where('brand_id', '=', $brand_id)
+                                ->where('model', '=', $model)
+                                ->where(function($query) use ($serials, $serial){
+                                    $query->whereIn('serial', $serials)
+                                          ->orWhere('serial', '=', $serial);
+                                
+                                })
+                                ->where('id', '<>', $product_id)
+                                ->get();
+         
+        if(count($existing_products))
+        {
+            return response()->json(['existing_products' => $existing_products], 200);
+        }
+
         $product = Product::find($product_id);
         $product->branch_id = $branch_id;
-        $product->brand_id = $request->get('brand_id');
-        $product->model = $request->get('model');
-        $product->serial = $request->get('serial');
+        $product->brand_id = $brand_id;
+        $product->model = $model;
+        $product->product_category_id = $product_category_id;
+        $product->serial = $serial;
         $product->quantity = 1;
         $product->save();
 
@@ -247,8 +285,10 @@ class ProductController extends Controller
     {   
         
         if($request->get('clear_list'))
-        {
-            $products = DB::table('products')->where('branch_id', '=', $request->get('branch_id'));
+        {   
+            
+            $products = DB::table('products')
+                      ->where('branch_id', '=', $request->get('branch_id'));
             
             if(!$products->count('id'))
             {

@@ -5,8 +5,9 @@ import Login from './auth/Login.vue';
 import Dashboard from './views/dashboard/Dashboard.vue';
 import UserIndex from './views/user/UserIndex.vue';
 import UserCreate from './views/user/UserCreate.vue';
-import ProductIndex from './views/product/ProductIndex.vue';
-import ScanProduct from './views/product/ScanProduct.vue';
+import ProductIndex from './views/inventory/ProductIndex.vue';
+import ScanProduct from './views/inventory/ScanProduct.vue';
+import InventoryReconciliation from './views/inventory/InventoryReconciliation.vue';
 import BrandIndex from './views/brand/BrandIndex.vue';
 import ProductCategoryIndex from './views/product_category/ProductCategoryIndex.vue';
 import BranchIndex from './views/branch/BranchIndex.vue';
@@ -45,6 +46,11 @@ const routes = [
         path: '/scan_product',
         name: 'scan.product',
         component: ScanProduct
+      },
+      {
+        path: '/inventory/reconciliation',
+        name: 'inventory.reconciliation',
+        component: InventoryReconciliation
       },
       {
         path: '/brand/index',

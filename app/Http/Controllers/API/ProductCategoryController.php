@@ -26,8 +26,8 @@ class ProductCategoryController extends Controller
     {   
         
         $rules = [
-            'name.required' => 'Please enter brand',
-            'name.unique' => 'Brand already exists'
+            'name.required' => 'Please enter product category',
+            'name.unique' => 'Product Category already exists'
         ];
 
         $validator = Validator::make($request->all(),[
@@ -44,13 +44,13 @@ class ProductCategoryController extends Controller
         $product_category->active = $request->get('active');
         $product_category->save();
 
-        return response()->json(['success' => 'Record has successfully added', 'brand' => $product_category], 200);
+        return response()->json(['success' => 'Record has successfully added', 'product_category' => $product_category], 200);
     }
 
 
     public function edit(Request $request)
     {   
-        $product_category_id = $request->get('brand_id');
+        $product_category_id = $request->get('product_category_id');
 
         $product_category = ProductCategory::find($product_category_id);
 
@@ -60,8 +60,7 @@ class ProductCategoryController extends Controller
             return abort(404, 'Not Found');
         }
         
-        // return view('pages.service.edit', compact('service'));
-        return response()->json(['brand' => $product_category], 200);
+        return response()->json(['product_category' => $product_category], 200);
 
     }
 
@@ -70,8 +69,8 @@ class ProductCategoryController extends Controller
     {   
 
         $rules = [
-            'name.required' => 'Please enter brand',
-            'name.unique' => 'Brand already exists'
+            'name.required' => 'Please enter product category',
+            'name.unique' => 'Product Category already exists'
         ];
 
         $validator = Validator::make($request->all(),[
@@ -98,14 +97,14 @@ class ProductCategoryController extends Controller
 
         return response()->json([
             'success' => 'Record has been updated',
-            'brand' => $product_category]
+            'product_category' => $product_category]
         );
     }
 
 
     public function delete(Request $request)
     {   
-        $product_category_id = $request->get('brand_id');
+        $product_category_id = $request->get('product_category_id');
         $product_category = ProductCategory::find($product_category_id);
         
         //if record is empty then display error page

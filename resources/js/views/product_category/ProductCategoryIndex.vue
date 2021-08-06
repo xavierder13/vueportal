@@ -11,14 +11,14 @@
         </v-breadcrumbs>
         <v-card>
           <v-card-title>
-            Brand Lists
+            Product Category Lists
             <v-spacer></v-spacer>
             <v-text-field
               v-model="search"
               append-icon="mdi-magnify"
               label="Search"
               single-line
-              v-if="userPermissions.brand_list"
+              v-if="userPermissions.product_category_list"
             ></v-text-field>
             <template>
               <v-toolbar flat>
@@ -29,7 +29,7 @@
                   dark
                   class="mb-2"
                   @click="clear() + (dialog = true)"
-                  v-if="userPermissions.brand_create"
+                  v-if="userPermissions.product_category_create"
                 >
                   <v-icon>mdi-plus</v-icon>
                 </v-btn>
@@ -44,13 +44,13 @@
                         <v-row>
                           <v-col class="mt-0 mb-0 pt-0 pb-0">
                             <v-text-field
-                              name="brand"
-                              v-model="editedBrand.name"
-                              label="Brand"
+                              name="product_category"
+                              v-model="editedItem.name"
+                              label="Product Category"
                               required
-                              :error-messages="brandErrors + brandError.name"
-                              @input="$v.editedBrand.name.$touch() + (brandError.name = [])"
-                              @blur="$v.editedBrand.name.$touch()"
+                              :error-messages="product_categoryErrors + product_categoryError.name"
+                              @input="$v.editedItem.name.$touch() + (product_categoryError.name = [])"
+                              @blur="$v.editedItem.name.$touch()"
                             ></v-text-field>
                           </v-col>
                         </v-row>
@@ -87,19 +87,19 @@
           
           <v-data-table
             :headers="headers"
-            :items="brands"
+            :items="product_categories"
             :search="search"
             :loading="loading"
             loading-text="Loading... Please wait"
-            v-if="userPermissions.brand_list"
+            v-if="userPermissions.product_category_list"
           >
             <template v-slot:item.actions="{ item }">
               <v-icon
                 small
                 class="mr-2"
                 color="green"
-                @click="editBrand(item)"
-                v-if="userPermissions.brand_edit"
+                @click="editProductCategory(item)"
+                v-if="userPermissions.product_category_edit"
               >
                 mdi-pencil
               </v-icon>
@@ -107,7 +107,7 @@
                 small
                 color="red"
                 @click="showConfirmAlert(item)"
-                v-if="userPermissions.brand_delete"
+                v-if="userPermissions.product_category_delete"
               >
                 mdi-delete
               </v-icon>
@@ -130,7 +130,7 @@ export default {
   mixins: [validationMixin],
 
   validations: {
-    editedBrand: {
+    editedItem: {
       name: { required },
     },
   },
@@ -138,16 +138,16 @@ export default {
     return {
       search: "",
       headers: [
-        { text: "Brand", value: "name" },
+        { text: "Product Category", value: "name" },
         { text: "Active", value: "active" },
         { text: "Actions", value: "actions", sortable: false },
       ],
       switch1: true,
       disabled: false,
       dialog: false,
-      brands: [],
+      product_categories: [],
       editedIndex: -1,
-      editedBrand: {
+      editedItem: {
         name: "",
         active: "Y",
       },
@@ -162,23 +162,23 @@ export default {
           link: "/",
         },
         {
-          text: "Brand Lists",
+          text: "Product Category Lists",
           disabled: true,
         },
       ],
       loading: true,
-      brandError: {
+      product_categoryError: {
         name: [],
       }
     };
   },
 
   methods: {
-    getBrand() {
+    getProductCategory() {
       this.loading = true;
-      axios.get("/api/brand/index").then(
+      axios.get("/api/product_category/index").then(
         (response) => {
-          this.brands = response.data.brands;
+          this.product_categories = response.data.product_categories;
           this.loading = false;
         },
         (error) => {
@@ -187,20 +187,20 @@ export default {
       );
     },
 
-    editBrand(item) {
-      this.editedIndex = this.brands.indexOf(item);
-      this.editedBrand = Object.assign({}, item);
+    editProductCategory(item) {
+      this.editedIndex = this.product_categories.indexOf(item);
+      this.editedItem = Object.assign({}, item);
       this.dialog = true;
     },
 
-    deleteBrand(brand_id) {
-      const data = { brand_id: brand_id };
+    deleteProductCategory(product_category_id) {
+      const data = { product_category_id: product_category_id };
       this.loading = true;
-      axios.post("/api/brand/delete", data).then(
+      axios.post("/api/product_category/delete", data).then(
         (response) => {
           if (response.data.success) {
             // send data to Sockot.IO Server
-            // this.$socket.emit("sendData", { action: "brand-delete" });
+            // this.$socket.emit("sendData", { action: "product-category-delete" });
           }
           this.loading = false;
         },
@@ -235,14 +235,14 @@ export default {
         if (result.value) {
           // <-- if confirmed
 
-          const brand_id = item.id;
-          const index = this.brands.indexOf(item);
+          const product_category_id = item.id;
+          const index = this.product_categories.indexOf(item);
 
-          //Call delete Brand function
-          this.deleteBrand(brand_id);
+          //Call delete Product Category function
+          this.deleteProductCategory(product_category_id);
 
-          //Remove item from array brands
-          this.brands.splice(index, 1);
+          //Remove item from array product_categories
+          this.product_categories.splice(index, 1);
 
           this.$swal({
             position: "center",
@@ -259,14 +259,14 @@ export default {
       this.dialog = false;
       this.clear();
       this.$nextTick(() => {
-        this.editedBrand = Object.assign({}, this.defaultItem);
+        this.editedItem = Object.assign({}, this.defaultItem);
         this.editedIndex = -1;
       });
     },
 
     save() {
       this.$v.$touch();
-      this.brandError = {
+      this.product_categoryError = {
         name: [],
       };
 
@@ -274,18 +274,18 @@ export default {
         this.disabled = true;
 
         if (this.editedIndex > -1) {
-          const data = this.editedBrand;
-          const brand_id = this.editedBrand.id;
+          const data = this.editedItem;
+          const product_category_id = this.editedItem.id;
 
-          axios.post("/api/brand/update/" + brand_id, data).then(
+          axios.post("/api/product_category/update/" + product_category_id, data).then(
             (response) => {
               if (response.data.success) {
                 // send data to Sockot.IO Server
-                // this.$socket.emit("sendData", { action: "brand-edit" });
+                // this.$socket.emit("sendData", { action: "product-category-edit" });
 
                 Object.assign(
-                  this.brands[this.editedIndex],
-                  this.editedBrand
+                  this.product_categories[this.editedIndex],
+                  this.editedItem
                 );
                 this.showAlert();
                 this.close();
@@ -296,7 +296,7 @@ export default {
                 let errorNames = Object.keys(response.data);
 
                 errorNames.forEach(value => {
-                  this.brandError[value].push(errors[value]);
+                  this.product_categoryError[value].push(errors[value]);
                 });
                 
               }
@@ -309,19 +309,19 @@ export default {
             }
           );
         } else {
-          const data = this.editedBrand;
+          const data = this.editedItem;
 
-          axios.post("/api/brand/store", data).then(
+          axios.post("/api/product_category/store", data).then(
             (response) => {
               if (response.data.success) {
                 // send data to Sockot.IO Server
-                // this.$socket.emit("sendData", { action: "brand-create" });
+                // this.$socket.emit("sendData", { action: "product-category-create" });
 
                 this.showAlert();
                 this.close();
 
                 //push recently added data from database
-                this.brands.push(response.data.brand);
+                this.product_categories.push(response.data.product_categories);
               }
               else
               { 
@@ -329,7 +329,7 @@ export default {
                 let errorNames = Object.keys(response.data);
 
                 errorNames.forEach(value => {
-                  this.brandError[value].push(errors[value]);
+                  this.product_categoryError[value].push(errors[value]);
                 });
                 
               }
@@ -346,8 +346,8 @@ export default {
 
     clear() {
       this.$v.$reset();
-      this.editedBrand.name = "";
-      this.brandError = {
+      this.editedItem.name = "";
+      this.product_categoryError = {
         name: []
       }
     },
@@ -364,32 +364,32 @@ export default {
       this.$options.sockets.sendData = (data) => {
         let action = data.action;
         if (
-          action == "brand-create" ||
-          action == "brand-edit" ||
-          action == "brand-delete"
+          action == "product-category-create" ||
+          action == "product-category-edit" ||
+          action == "product-category-delete"
         ) {
-          this.getBrand();
+          this.getProductCategory();
         }
       };
     },
   },
   computed: {
     formTitle() {
-      return this.editedIndex === -1 ? "New Brand" : "Edit Brand";
+      return this.editedIndex === -1 ? "New Product Category" : "Edit Product Category";
     },
-    brandErrors() {
+    product_categoryErrors() {
       const errors = [];
-      if (!this.$v.editedBrand.name.$dirty) return errors;
-      !this.$v.editedBrand.name.required &&
-        errors.push("Brand is required.");
+      if (!this.$v.editedItem.name.$dirty) return errors;
+      !this.$v.editedItem.name.required &&
+        errors.push("Product Category is required.");
       return errors;
     },
     activeStatus() {
       if (this.switch1) {
-        this.editedBrand.active = "Y";
+        this.editedItem.active = "Y";
         return " Active";
       } else {
-        this.editedBrand.active = "N";
+        this.editedItem.active = "N";
         return " Inactive";
       }
     },
@@ -398,7 +398,7 @@ export default {
   mounted() {
     axios.defaults.headers.common["Authorization"] =
       "Bearer " + localStorage.getItem("access_token");
-    this.getBrand();
+    this.getProductCategory();
     // this.websocket();
   },
 };

@@ -78,7 +78,7 @@
           <v-dialog v-model="dialog_import" max-width="500px" persistent>
             <v-card>
               <v-card-title class="mb-0 pb-0">
-                <span class="headline">Import Projects</span>
+                <span class="headline">Import Data</span>
               </v-card-title>
               <v-divider></v-divider>
               <v-card-text>
@@ -239,7 +239,7 @@ export default {
         },
         {
           text: "View",
-          disabled: false,
+          disabled: true,
         },
       ],
       loading: true,
