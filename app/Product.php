@@ -14,7 +14,9 @@ class Product extends Model
         'model',
         'product_category_id',
         'serial',
-        'quantity'
+        'quantity',
+        'inventory_type',
+        'inventory_group',
     ];
 
     public function brand()
