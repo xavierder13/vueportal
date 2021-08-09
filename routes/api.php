@@ -161,6 +161,16 @@ Route::group(['prefix' => 'inventory_reconciliation', 'middleware' => ['auth:api
         'uses' => 'API\InventoryReconciliationController@import',
         'as' => 'inventory_reconciliation.import',
     ]);
+
+    Route::post('/unreconcile/list', [
+        'uses' => 'API\InventoryReconciliationController@unreconcile_list',
+        'as' => 'inventory_reconciliation.unreconcile_list',
+    ]);
+
+    Route::post('/reconcile', [
+        'uses' => 'API\InventoryReconciliationController@reconcile',
+        'as' => 'inventory_reconciliation.reconcile',
+    ]);
 });
 
 // Employee Routes

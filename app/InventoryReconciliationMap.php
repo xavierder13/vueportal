@@ -8,28 +8,14 @@ class InventoryReconciliationMap extends Model
 {
     protected $fillable = [
         'inventory_recon_id',
-        'branch_id',
         'user_id',
-        'brand_id',
+        'brand',
         'model',
-        'product_category_id',
+        'product_category',
         'serial',
         'quantity',
         'inventory_type',
-        'inventory_group',
     ];
-
-    public function brand()
-    {
-        return $this->hasOne('App\Brand', 'id', 'brand_id');
-        //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
-    }
-
-    public function branch()
-    {
-        return $this->hasOne('App\Branch', 'id', 'branch_id');
-        //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
-    }
 
     public function user()
     {
@@ -37,9 +23,4 @@ class InventoryReconciliationMap extends Model
         //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
     }
 
-    public function product_category()
-    {
-        return $this->hasOne('App\ProductCategory', 'id', 'product_category_id');
-        //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
-    }
 }

@@ -17,13 +17,12 @@ class CreateInventoryReconciliationMapsTable extends Migration
             $table->id();
             $table->integer('inventory_recon_id');
             $table->integer('user_id');
-            $table->integer('brand_id');
+            $table->string('brand');
             $table->string('model');
-            $table->integer('product_category_id');
+            $table->string('product_category')->nullable();
             $table->string('serial');
             $table->integer('quantity')->nullable();
             $table->string('inventory_type');
-            $table->string('inventory_group');
             $table->timestamps();
         });
     }

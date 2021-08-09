@@ -12,8 +12,28 @@
         <div class="d-flex justify-content-end mb-3">
           <div>
             <v-btn
-              color="success"
+              color="primary"
               class="ml-4"
+              small
+              @click="getUnreconciled()"
+              v-if="userPermissions.product_reconcile"
+            >
+              <v-icon class="mr-1" small> mdi-import </v-icon>
+              Reconcile
+            </v-btn>
+          </div>
+          <div>
+            <v-divider
+              vertical
+              class="ml-2"
+              v-if="userPermissions.product_export"
+            ></v-divider>
+          </div>
+
+          <div>
+            <v-btn
+              color="success"
+              class="ml-2"
               small
               @click="exportData()"
               v-if="userPermissions.product_export"
@@ -77,7 +97,6 @@
               v-if="user.id === 1 || userPermissions.product_list_all"
             >
             </v-autocomplete>
-            <v-spacer></v-spacer>
             <template>
               <v-toolbar flat>
                 <v-spacer></v-spacer>
@@ -145,7 +164,8 @@
                               :error-messages="product_categoryErrors"
                               @input="
                                 $v.editedItem.product_category_id.$touch() +
-                                  (serialExists = false) + selectedProductCategory()
+                                  (serialExists = false) +
+                                  selectedProductCategory()
                               "
                               @blur="$v.editedItem.product_category_id.$touch()"
                             >
@@ -198,6 +218,86 @@
                         :disabled="disabled"
                       >
                         Save
+                      </v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-dialog>
+
+                <v-dialog
+                  v-model="dialog_unreconcile"
+                  max-width="1000px"
+                  persistent
+                >
+                  <v-card>
+                    <v-card-title>
+                      <span class="headline">Unreconciled Inventories</span>
+                      <v-spacer></v-spacer>
+                      <v-text-field
+                        v-model="search_unreconciled"
+                        append-icon="mdi-magnify"
+                        label="Search"
+                        single-line
+                      ></v-text-field>
+                      <v-spacer></v-spacer>
+                      <v-autocomplete
+                        v-model="inventory_group"
+                        :items="inventory_groups"
+                        item-text="name"
+                        item-value="name"
+                        label="Inventory Group"
+                        v-if="user.id === 1"
+                      >
+                      </v-autocomplete>
+                    </v-card-title>
+                    <v-divider></v-divider>
+                    <v-card-text>
+                      <v-container>
+                        <v-row v-if="user.id === 1"> </v-row>
+                        <v-row>
+                          <v-col>
+                            <v-data-table
+                              :headers="unreconciled_headers"
+                              :items="filteredUnreconciled"
+                              :search="search_unreconciled"
+                              :loading="loading"
+                              loading-text="Loading... Please wait"
+                            >
+                              <template v-slot:item.status="{ item }">
+                                <v-chip
+                                  :color="
+                                    item.status == 'unreconciled'
+                                      ? 'red white--text'
+                                      : 'success'
+                                  "
+                                >
+                                  {{ item.status }}
+                                </v-chip>
+                              </template>
+                              <template v-slot:item.actions="{ item }">
+                                <v-btn
+                                  x-small
+                                  class="mr-2"
+                                  color="primary"
+                                  @click="reconcileProducts(item)"
+                                >
+                                <v-icon x-small class="mr-2"> mdi-file </v-icon>
+                                Reconcile
+                                </v-btn>
+                                
+                              </template>
+                            </v-data-table>
+                          </v-col>
+                        </v-row>
+                      </v-container>
+                    </v-card-text>
+                    <v-card-actions>
+                      <v-spacer></v-spacer>
+                      <v-btn
+                        color="#E0E0E0"
+                        @click="dialog_unreconcile = false"
+                        class="mb-4 mr-4"
+                      >
+                        Cancel
                       </v-btn>
                     </v-card-actions>
                   </v-card>
@@ -268,8 +368,15 @@ export default {
         { text: "Date Created", value: "date_created" },
         { text: "Actions", value: "actions", sortable: false },
       ],
+      unreconciled_headers: [
+        { text: "Branch", value: "branch.name" },
+        { text: "Date Created", value: "date_created" },
+        { text: "Status", value: "status" },
+        { text: "Actions", value: "actions", sortable: false },
+      ],
       disabled: false,
       dialog: false,
+      dialog_unreconcile: false,
       products: [],
       brands: [],
       branches: [],
@@ -310,6 +417,10 @@ export default {
         QUANTITY: " ",
       },
       serialExists: false,
+      inventory_groups: [{ name: "Admin-Branch" }, { name: "Audit-Branch" }],
+      inventory_group: "Admin-Branch",
+      unreconcile_list: [],
+      search_unreconciled: "",
     };
   },
 
@@ -319,7 +430,7 @@ export default {
       axios.get("/api/product/index").then(
         (response) => {
           let data = response.data;
-
+          console.log(data);
           this.user = data.user;
           this.products = data.products;
           this.brands = data.brands;
@@ -329,8 +440,6 @@ export default {
           this.editedItem.branch_id = this.user.branch_id;
           this.search_branch = this.user.branch_id;
           this.loading = false;
-
-          console.log(response.data);
         },
         (error) => {
           this.isUnauthorized(error);
@@ -432,7 +541,7 @@ export default {
                 // this.$socket.emit("sendData", { action: "product-edit" });
 
                 Object.assign(this.products[this.editedIndex], this.editedItem);
- 
+
                 this.showAlert();
                 this.close();
               } else if (response.data.existing_products) {
@@ -577,14 +686,30 @@ export default {
     selectedProductCategory() {
       let product_category = {};
 
-      this.product_categories.forEach(value => {
-        if(this.editedItem.product_category_id == value.id)
-        {
+      this.product_categories.forEach((value) => {
+        if (this.editedItem.product_category_id == value.id) {
           product_category = value;
         }
       });
 
       this.editedItem.product_category = product_category;
+    },
+
+    getUnreconciled() {
+      this.dialog_unreconcile = true;
+      let data = { branch_id: this.search_branch };
+      axios.post("/api/inventory_reconciliation/unreconcile/list", data).then(
+        (response) => {
+          console.log(response.data);
+          this.unreconcile_list = response.data.unreconcile_list;
+        },
+        (error) => {
+          console.log(error);
+        }
+      );
+    },
+    reconcileProducts(item) {
+      console.log(item);
     },
     websocket() {
       // Socket.IO fetch data
@@ -665,6 +790,19 @@ export default {
       });
 
       return products;
+    },
+    filteredUnreconciled() {
+      let unreconciled = [];
+
+      this.unreconcile_list.forEach((value, index) => {
+        if (value.inventory_group === this.inventory_group) {
+          unreconciled.push(value);
+        }
+      });
+
+      console.log(unreconciled);
+
+      return unreconciled;
     },
     tableHeaders() {
       let headers = [];

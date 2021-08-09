@@ -18,9 +18,23 @@ class InventoryReconciliationMaintenance
     {
         $user = Auth::user();
 
-        //Product Record
-        if($request->is('api/inventory_reconciliation/index')){
+        //Inventory Reconciliation Record
+        if($request->is('api/inventory_reconciliation/index') || $request->is('api/inventory_reconciliation/view/*')){
             if($user->can('inventory-recon-list')){
+                return $next($request); 
+            }
+        }
+
+        //Inventory Reconciliation Import
+        if($request->is('api/inventory_reconciliation/import/*')){
+            if($user->can('inventory-recon-create')){
+                return $next($request); 
+            }
+        }
+
+        //Product Reconcile for Branch user
+        if($request->is('api/inventory_reconciliation/reconcile') || $request->is('api/inventory_reconciliation/unreconcile/list')){
+            if($user->can('product-reconcile')){
                 return $next($request); 
             }
         }

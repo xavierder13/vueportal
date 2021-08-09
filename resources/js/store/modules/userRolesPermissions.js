@@ -26,6 +26,7 @@ const state = {
     product_edit: false,
     product_delete: false,
     product_clear_list: false,
+    product_reconcile: false,
     product_export: false,
     inventory_recon_list: false,
     inventory_recon_list_all: false,
@@ -148,6 +149,7 @@ const mutations = {
     permission.product_delete = permissions.includes("product-delete");
     permission.product_export = permissions.includes("product-export");
     permission.product_clear_list = permissions.includes("product-clear-list");
+    permission.product_reconcile = permissions.includes("product-reconcile");
 
     // INVENTORY RECONCILIATION RECORD MAINTENANCE PERMISSIONS
     permission.inventory_recon_list = permissions.includes("inventory-recon-list");

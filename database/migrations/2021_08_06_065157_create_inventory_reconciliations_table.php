@@ -19,6 +19,7 @@ class CreateInventoryReconciliationsTable extends Migration
             $table->integer('user_id');
             $table->date('date_reconciled')->nullable();
             $table->string('status');
+            $table->string('inventory_group');
             $table->timestamps();
         });
     }

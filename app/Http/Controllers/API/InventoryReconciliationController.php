@@ -9,6 +9,7 @@ use App\ProductCategory;
 use App\Brand;
 use App\Branch;
 use App\InventoryReconciliation;
+use App\InventoryReconciliationMap;
 use DB;
 use Validator;
 use Auth;
@@ -32,8 +33,16 @@ class InventoryReconciliationController extends Controller
         ], 200);
     }
 
-    public function import_employee(Request $request, $branch_id) 
+    public function view($inventory_recon_id)
     {   
+        $inventory_reconciliation = InventoryReconciliationMap::where('inventory_recon_id', '=', $inventory_recon_id)->get();
+
+        return response()->json(['inventory_reconciliation' => $inventory_reconciliation], 200);
+    }
+
+    public function import(Request $request, $branch_id) 
+    {   
+        $user = Auth::user();
 
         try {
             $file_extension = '';
@@ -65,33 +74,13 @@ class InventoryReconciliationController extends Controller
             if ($request->file('file')) {
                     
                 // $array = Excel::toArray(new ProjectsImport, $request->file('file'));
-                $collection = Excel::toCollection(new InventoryReconMapImport($params), $request->file('file'))[0];
+                $collection = Excel::toCollection(new InventoryReconMapImport(''), $request->file('file'))[0];
                 $ctr_collection = count($collection);
                 $columns = [
-                    'employee_code',
-                    'last_name',
-                    'first_name',
-                    'middle_name',
-                    'birth_date',
-                    'address',
-                    'contact',
-                    'email',
-                    'class',
-                    'rank',
-                    'department',
-                    'cost_center_code',
-                    'job_description',
-                    'date_employed',
-                    'gender',
-                    'civil_status',
-                    'tax_status',
-                    'tin_no',
-                    'tax_branch_code',
-                    'pagibig_no',
-                    'philhealth_no',
-                    'sss_no',
-                    'time_schedule',
-                    'restday',
+                    'brand',
+                    'model',
+                    'product_category',
+                    'serial',
                 ]; 
 
                 $collection_errors = [];
@@ -135,55 +124,17 @@ class InventoryReconciliationController extends Controller
                     } 
 
                     $rules = [
-                        '*.employee_code.required' => 'Employee Code is required',
-                        '*.last_name.required' => 'Lastname is required',
-                        '*.first_name.required' => 'Firstname is required',
-                        '*.birth_date.required' => 'Birth Date is required',
-                        '*.birth_date.date_format' => 'Invalid date. Format: (YYYY-MM-DD)',
-                        '*.address.required' => 'Address is required',
-                        '*.contact.required' => 'Contact is required',
-                        '*.rank.required' => 'Rank is required',
-                        '*.department.required' => 'Department is required',
-                        '*.cost_center_code.required' => 'Cost Center Code is required',
-                        '*.job_description.required' => 'Job Description is required',
-                        '*.date_employed.required' => 'Date Employed is required',
-                        '*.date_employed.date_format' => 'Invalid date. Format: (YYYY-MM-DD)',
-                        '*.gender.required' => 'Gender is required',
-                        '*.civil_status.required' => 'Civil Status is required',
-                        '*.tax_status.required' => 'Tax Status is required',
-                        '*.tin_no.required' => 'TIN No. is required',
-                        '*.tax_branch_code.required' => 'Tax Branch Code is required',
-                        '*.pagibig_no.required' => 'Pag-IBIG No. is required',
-                        '*.philhealth_no.required' => 'PhilHealth No. is required',
-                        '*.sss_no.required' => 'SSS No. is required',
-                        '*.time_schedule.required' => 'Time Schedule is required',
-                        '*.restday.required' => 'Rest Day is required',
+                        '*.brand_.required' => 'Brand is required',
+                        '*.model.required' => 'Model is required',
+                        '*.product_category.required' => 'Product Category is required',
+                        '*.serial.required' => 'Serial is required',
                     ];
             
                     $valid_fields = [
-                        '*.employee_code' => 'required',
-                        '*.last_name' => 'required',
-                        '*.first_name' => 'required',
-                        '*.birth_date' => 'required|date_format:Y-m-d',
-                        '*.address' => 'required',
-                        '*.contact' => 'required',
-                        '*.email' => 'required',
-                        '*.class' => 'required',
-                        '*.rank' => 'required',
-                        '*.department' => 'required',
-                        '*.cost_center_code' => 'required',
-                        '*.job_description' => 'required',
-                        '*.date_employed' => 'required|date_format:Y-m-d',
-                        '*.gender' => 'required',
-                        '*.civil_status' => 'required',
-                        '*.tax_status' => 'required',
-                        '*.tin_no' => 'required',
-                        '*.tax_branch_code' => 'required',
-                        '*.pagibig_no' => 'required',
-                        '*.philhealth_no' => 'required',
-                        '*.sss_no' => 'required',
-                        '*.time_schedule' => 'required',
-                        '*.restday' => 'required',
+                        '*.brand' => 'required',
+                        '*.model' => 'required|',
+                        '*.product_category' => 'required',
+                        '*.serial' => 'required',
                     ];
                     
                     $validator = Validator::make($fields, $valid_fields, $rules);  
@@ -207,6 +158,28 @@ class InventoryReconciliationController extends Controller
                 }
                 else
                 {   
+                    $inventory_group = 'Admin-Branch';
+
+                    if($user->id !== 1 && $user->can('inventory-audit'))
+                    {
+                        $inventory_group = 'Audit-Branch';
+                    }
+
+                    $inventory_reconciliation = new InventoryReconciliation();
+                    $inventory_reconciliation->branch_id = $branch_id;
+                    $inventory_reconciliation->user_id = $user->id;
+                    $inventory_reconciliation->date_reconciled = null;
+                    $inventory_reconciliation->status = 'unreconciled';
+                    $inventory_reconciliation->inventory_group = $inventory_group;
+                    $inventory_reconciliation->save();
+
+                    $params = [
+                        'inventory_group' => $inventory_group,
+                        'inventory_type' => 'SAP',
+                        'inventory_recon_id' =>  $inventory_reconciliation->id,
+                        'user_id' => $user->id,
+                    ];
+
                     // import excel file
                     Excel::import(new InventoryReconMapImport($params), $path);
                 }
@@ -223,5 +196,36 @@ class InventoryReconciliationController extends Controller
             return response()->json(['error' => $e->getMessage()], 200);
         }
         
+    }
+
+    public function unreconcile_list(Request $request)
+    {   
+        $user = Auth::user();
+        $branch_id = $request->get('branch_id');
+        $inventory_group = 'Admin-Branch';
+
+        if($user->id !== 1 && $user->can('inventory-audit'))
+        {
+            $inventory_group = 'Audit-Branch';
+        }
+
+        $unreconcile_list = InventoryReconciliation::with('branch')
+                                                   ->where('branch_id', '=', $branch_id)
+                                                   ->where('status', '=', 'unreconciled')
+                                                   ->where(function($query) use ($inventory_group, $user) {
+                                                        if($user->id !== 1)
+                                                        {
+                                                            $query->where('inventory_group', '=', $inventory_group);
+                                                        }
+                                                   })
+                                                   ->select(DB::raw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_created"))
+                                                   ->get();
+
+        return response()->json(['unreconcile_list' => $unreconcile_list], 200);
+    }
+
+    public function reconcile(Request $requests) 
+    {
+
     }
 }

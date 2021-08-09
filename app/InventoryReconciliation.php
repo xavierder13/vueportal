@@ -10,7 +10,8 @@ class InventoryReconciliation extends Model
         'branch_id',
         'user_id',
         'date_reconciled',
-        'status'
+        'status',
+        'inventory_group',
     ];
 
     public function branch()

@@ -325,7 +325,9 @@ export default {
       });
     },
 
-    viewReconcilation(item) {},
+    viewReconciliation(item) {
+      this.$router.push({ name: 'inventory.reconciliation.view', params: { inventory_recon_id: item.id } });
+    },
 
     clear() {
       this.$v.$reset();
