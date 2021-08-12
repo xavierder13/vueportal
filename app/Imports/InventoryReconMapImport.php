@@ -40,7 +40,6 @@ class InventoryReconMapImport implements ToModel
                 'product_category' => @$row[2],
                 'serial' => @$row[3],
                 'quantity' => 1,
-    
             ]);
         }
 

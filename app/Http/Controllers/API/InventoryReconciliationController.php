@@ -24,6 +24,26 @@ class InventoryReconciliationController extends Controller
         $branches = Branch::all();
         $inventory_reconciliations = InventoryReconciliation::with('user')
                                         ->with('branch')
+                                        ->where(function($query) use ($user) {
+                                            if($user->id !== 1)
+                                            {
+                                                // if user has role then get all Inventory Reconciliation with inventory_group = 'Audit-Branch'
+                                                if($user->hasRole('Audit Admin'))
+                                                {
+                                                    $query->where('inventory_group', '=', 'Audit-Branch');
+                                                }
+                                                //if user has role then get all Inventory Reconciliation with inventory_group = 'Admin-Branch'
+                                                else if($user->hasRole('Inventory Admin'))
+                                                {
+                                                    $query->where('inventory_group', '=', 'Admin-Branch');
+                                                }
+                                                // if user has role Inventory Branch then show record with branch_id = user's branch
+                                                else if($user->hasRole('Inventory Branch'))
+                                                {
+                                                    $query->where('branch_id', '=', $user->branch_id);
+                                                }
+                                            }
+                                        })
                                         ->select(DB::raw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_created, DATE_FORMAT(date_reconciled, '%m/%d/%Y') as date_reconciled"))
                                         ->get();
 
@@ -36,13 +56,114 @@ class InventoryReconciliationController extends Controller
     public function view($inventory_recon_id)
     {   
         $inventory_reconciliation = InventoryReconciliationMap::where('inventory_recon_id', '=', $inventory_recon_id)->get();
+        $product_distinct = InventoryReconciliationMap::distinct()
+                                                      ->where('inventory_recon_id', '=', $inventory_recon_id)
+                                                      ->get(['brand', 'model']);
+        $sap_inventory = $inventory_reconciliation->where('inventory_type', '=', 'SAP');
+        $physical_inventory = $inventory_reconciliation->where('inventory_type', '=', 'Physical');
 
-        return response()->json(['inventory_reconciliation' => $inventory_reconciliation], 200);
+        $products = [];
+        $sap_discrepancy = [];
+        $sap_has_serial = false;
+        $physical_discrepancy = [];
+        $physical_has_serial = false;
+        $ctr1 = 0;
+        $ctr2 = 0;
+
+        foreach ($product_distinct as $key => $product) {
+            $sap_discrepancy = [];
+            $physical_discrepancy = [];
+            $ctr1 = 0;
+            $ctr2 = 0;
+
+            // SAP product inventory
+            foreach ($sap_inventory as $index => $sap) {
+                
+                // count all products per brand and model
+                if(strtoupper($product['brand']) == strtoupper($sap['brand']) && strtoupper($product['model']) == strtoupper($sap['model']))
+                {
+                    $ctr1++;
+
+                    $sap_has_serial = false;
+                    // get discrepancy based from SAP vs Physical 
+                    foreach ($physical_inventory as $i => $physical) {
+                        
+                        if(strtoupper($sap['brand']) == strtoupper($physical['brand']) && 
+                           strtoupper($sap['model']) == strtoupper($physical['model']) && 
+                           $sap['serial'] == $physical['serial'])
+                        {
+                            $sap_has_serial = true;
+                        }
+        
+                    }
+
+                    // if this product is not in Physical Inventory then get the serial discrepancy
+                    if(!$sap_has_serial)
+                    {
+                        $sap_discrepancy[] = $sap['serial'];
+                    }
+                }
+            
+            }
+            
+            // Physical product inventory
+            foreach ($physical_inventory as $key => $physical) {
+                
+                // count all items per brand and model
+                if(strtoupper($product['brand']) == strtoupper($physical['brand']) && 
+                   strtoupper($product['model']) == strtoupper($physical['model']))
+                {
+                    $ctr2++;
+
+                    $physical_has_serial = false;
+
+                    // get discrepancy based from Physical vs SAP 
+                    foreach ($sap_inventory as $i => $sap) {
+                        
+                        if(strtoupper($sap['brand']) == strtoupper($physical['brand']) && 
+                           strtoupper($sap['model']) == strtoupper($physical['model']) && 
+                           $sap['serial'] == $physical['serial'])
+                        {
+                            $physical_has_serial = true;
+                        }
+        
+                    }
+
+                    // if this product is not in SAP Inventory then get the serial discrepancy
+                    if(!$physical_has_serial)
+                    {
+                        $physical_discrepancy[] = $physical['serial'];
+                    }
+                }
+
+            }
+
+            $products[] = [
+                'brand' => $product['brand'],
+                'model' => $product['model'],
+                'sap_qty' => $ctr1,
+                'physical_qty' => $ctr2,
+                'qty_diff' => $ctr1 - $ctr2,
+                'sap_discrepancy' => join(', ', $sap_discrepancy),
+                'physical_discrepancy' => join(', ', $physical_discrepancy ),
+            ];
+
+        }
+        
+        return response()->json([
+            'inventory_reconciliation' => $inventory_reconciliation, 
+            'sap_inventory' => $sap_inventory, 
+            'physical_inventory' => $physical_inventory,
+            'products' => $products,
+
+        ], 200);
     }
 
-    public function import(Request $request, $branch_id) 
+    public function import(Request $request) 
     {   
         $user = Auth::user();
+        $branch_id = $request->get('branch_id');
+        $inventory_group = $request->get('inventory_group');
 
         try {
             $file_extension = '';
@@ -158,12 +279,6 @@ class InventoryReconciliationController extends Controller
                 }
                 else
                 {   
-                    $inventory_group = 'Admin-Branch';
-
-                    if($user->id !== 1 && $user->can('inventory-audit'))
-                    {
-                        $inventory_group = 'Audit-Branch';
-                    }
 
                     $inventory_reconciliation = new InventoryReconciliation();
                     $inventory_reconciliation->branch_id = $branch_id;
@@ -202,12 +317,7 @@ class InventoryReconciliationController extends Controller
     {   
         $user = Auth::user();
         $branch_id = $request->get('branch_id');
-        $inventory_group = 'Admin-Branch';
-
-        if($user->id !== 1 && $user->can('inventory-audit'))
-        {
-            $inventory_group = 'Audit-Branch';
-        }
+        $inventory_group = $request->get('inventory_group');
 
         $unreconcile_list = InventoryReconciliation::with('branch')
                                                    ->where('branch_id', '=', $branch_id)
@@ -224,8 +334,72 @@ class InventoryReconciliationController extends Controller
         return response()->json(['unreconcile_list' => $unreconcile_list], 200);
     }
 
-    public function reconcile(Request $requests) 
-    {
+    public function reconcile(Request $request) 
+    {         
 
-    }
+        $user = Auth::user();
+        $products = $request->get('products');
+        $inventory_recon_id = $request->get('inventory_recon_id');
+        $inventory_group = 'Admin-Branch';
+
+        $rules = [
+            'inventory_recon_id.required' => 'Inventory Reconciliation ID is required',
+            'inventory_recon_id.integer' => 'Inventory Reconciliation ID must be an integer',
+            'products.*.brand_.required' => 'Brand is required',
+            'products.*.model.required' => 'Model is required',
+            'products.*.product_category.required' => 'Product Category is required',
+            'products.*.serial.required' => 'Serial is required',
+        ];
+
+        $valid_fields = [
+            'inventory_recon_id' => 'required|integer',
+            'products.*.brand' => 'required',
+            'products.*.model' => 'required',
+            'products.*.product_category' => 'required',
+            'products.*.serial' => 'required',
+        ];
+        
+        $validator = Validator::make($request->all(), $valid_fields, $rules);  
+
+        if($validator->fails())
+        {
+            return response()->json($validator->errors(), 200);
+        }
+
+        // scan for duplicate data
+        foreach ($products as $key => $product) {
+            $product = InventoryReconciliationMap::where('inventory_type', '=', 'Physical')
+                                                 ->where('brand', '=', $product['brand']['name'])
+                                                 ->where('model', '=', $product['model'])
+                                                 ->where('product_category', '=', $product['product_category']['name'])
+                                                 ->where('serial', '=', $product['serial'])
+                                                 ->where('inventory_recon_id', '=', $inventory_recon_id)
+                                                 ->get();
+            if(count($product))
+            {   
+                return response()->json(['duplicate' => 'Product exists'], 200);
+            }
+        }
+        
+        foreach ($products as $key => $product) {
+
+            $inventory_recon_map = new InventoryReconciliationMap();
+            $inventory_recon_map->inventory_recon_id = $inventory_recon_id;
+            $inventory_recon_map->user_id = $user->id;
+            $inventory_recon_map->inventory_type = 'Physical';
+            $inventory_recon_map->brand = $product['brand']['name'];
+            $inventory_recon_map->model = $product['model'];
+            $inventory_recon_map->product_category = $product['product_category']['name'];
+            $inventory_recon_map->serial = $product['serial'];
+            $inventory_recon_map->quantity = 1;
+            $inventory_recon_map->save();
+        }
+
+        $inventory_reconciliation = InventoryReconciliation::find($inventory_recon_id);
+        $inventory_reconciliation->status = 'reconciled';
+        $inventory_reconciliation->save();
+        
+        return response()->json(['success' => 'Record has been saved'], 200);
+        
+    }   
 }

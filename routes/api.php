@@ -157,7 +157,7 @@ Route::group(['prefix' => 'inventory_reconciliation', 'middleware' => ['auth:api
         'as' => 'inventory_reconciliation.view',
     ]);
 
-    Route::post('/import/{id}', [
+    Route::post('/import', [
         'uses' => 'API\InventoryReconciliationController@import',
         'as' => 'inventory_reconciliation.import',
     ]);

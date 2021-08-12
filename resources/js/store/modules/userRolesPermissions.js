@@ -82,6 +82,10 @@ const state = {
   userRoles: {
     administrator: false,
     hr_admin: false,
+    inventory_admin: false,
+    inventory_branch: false,
+    audit_admin: false,
+    mss: false,
   },
 };
 
@@ -112,6 +116,10 @@ const mutations = {
 
     role.administrator = roles.includes("Administrator");
     role.hr_admin = roles.includes("HR Admin");
+    role.inventory_admin = roles.includes("Inventory Admin");
+    role.inventory_branch = roles.includes("Inventory Branch");
+    role.audit_admin = roles.includes("Audit Admin");
+    role.mss = roles.includes("MSS");
   },
   setUserPermissions(state, permissions) {
 

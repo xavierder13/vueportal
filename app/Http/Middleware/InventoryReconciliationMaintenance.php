@@ -26,7 +26,7 @@ class InventoryReconciliationMaintenance
         }
 
         //Inventory Reconciliation Import
-        if($request->is('api/inventory_reconciliation/import/*')){
+        if($request->is('api/inventory_reconciliation/import')){
             if($user->can('inventory-recon-create')){
                 return $next($request); 
             }

@@ -28,12 +28,21 @@
               single-line
             ></v-text-field>
             <v-spacer></v-spacer>
+            <v-autocomplete
+              v-model="inventory_group"
+              :items="inventory_groups"
+              item-text="name"
+              item-value="name"
+              label="Inventory Group"
+              v-if="user.id === 1"
+            >
+            </v-autocomplete>
             <v-spacer></v-spacer>
           </v-card-title>
 
           <v-data-table
             :headers="headers"
-            :items="inventory_reconciliations"
+            :items="filteredInventory"
             :search="search"
             :loading="loading"
             loading-text="Loading... Please wait"
@@ -61,7 +70,7 @@
                 small
                 color="red"
                 @click="showConfirmAlert(item)"
-                v-if="userPermissions.product_delete"
+                v-if="userPermissions.inventory_recon_delete"
               >
                 mdi-delete
               </v-icon>
@@ -200,7 +209,7 @@ export default {
 
   validations: {
     file: { required },
-    branch_id: { required }
+    branch_id: { required },
   },
   data() {
     return {
@@ -240,6 +249,8 @@ export default {
       dialog_error_list: false,
       errors_array: [],
       branch_id: "",
+      inventory_groups: [{ name: "Admin-Branch" }, { name: "Audit-Branch" }],
+      inventory_group: "Admin-Branch",
     };
   },
 
@@ -248,10 +259,6 @@ export default {
       this.loading = true;
       axios.get("/api/inventory_reconciliation/index").then(
         (response) => {
-          // if user has no permission to view overall list
-          // if (!this.userPermissions.employee_list_all && this.user.branch_id != this.branch_id) {
-          //   this.$router.push({ name: "unauthorize" });
-          // }
           this.inventory_reconciliations =
             response.data.inventory_reconciliations;
           this.branches = response.data.branches;
@@ -326,7 +333,10 @@ export default {
     },
 
     viewReconciliation(item) {
-      this.$router.push({ name: 'inventory.reconciliation.view', params: { inventory_recon_id: item.id } });
+      this.$router.push({
+        name: "inventory.reconciliation.view",
+        params: { inventory_recon_id: item.id },
+      });
     },
 
     clear() {
@@ -343,8 +353,7 @@ export default {
 
     importExcel() {
       this.dialog_import = true;
-      this.file = [];
-      this.$v.$reset();
+      this.clear();
     },
 
     uploadFile() {
@@ -358,18 +367,16 @@ export default {
         let formData = new FormData();
 
         formData.append("file", this.file);
+        formData.append("inventory_group", this.inventory_group);
+        formData.append("branch_id", this.branch_id);
 
         axios
-          .post(
-            "api/inventory_reconciliation/import/" + this.branch_id,
-            formData,
-            {
-              headers: {
-                Authorization: "Bearer " + localStorage.getItem("access_token"),
-                "Content-Type": "multipart/form-data",
-              },
-            }
-          )
+          .post("api/inventory_reconciliation/import", formData, {
+            headers: {
+              Authorization: "Bearer " + localStorage.getItem("access_token"),
+              "Content-Type": "multipart/form-data",
+            },
+          })
           .then(
             (response) => {
               this.errors_array = [];
@@ -451,6 +458,29 @@ export default {
     },
   },
   computed: {
+    filteredInventory() {
+      let inventory = [];
+
+      if (this.user.id !== 1) {
+        // if user has role Audit Admin
+        if (this.userRoles.audit_admin) {
+          this.inventory_group = "Audit-Branch";
+        }
+        // if user has role Inventory Admin
+        else if (this.userRoles.inventory_admin) {
+          this.inventory_group = "Admin-Branch";
+        }
+      }
+
+      this.inventory_reconciliations.forEach((value, index) => {
+        if (value.inventory_group === this.inventory_group) {
+          inventory.push(value);
+        }
+      });
+
+      return inventory;
+    },
+    
     fileErrors() {
       const errors = [];
       if (!this.$v.file.$dirty) return errors;
@@ -466,8 +496,7 @@ export default {
     branchErrors() {
       const errors = [];
       if (!this.$v.branch_id.$dirty) return errors;
-      !this.$v.branch_id.required &&
-        errors.push("Branch is required.");
+      !this.$v.branch_id.required && errors.push("Branch is required.");
       return errors;
     },
     ...mapState("auth", ["user"]),
@@ -479,7 +508,6 @@ export default {
       "Bearer " + localStorage.getItem("access_token");
 
     this.getInventory();
-
     // this.websocket();
   },
 };

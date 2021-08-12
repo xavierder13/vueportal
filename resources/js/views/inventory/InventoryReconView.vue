@@ -69,14 +69,34 @@
             ></v-text-field>
             <v-spacer></v-spacer>
           </v-card-title>
-          <v-data-table
-            :headers="tableHeaders"
-            :items="products"
-            :search="search"
-            :loading="loading"
-            loading-text="Loading... Please wait"
-          >
-          </v-data-table>
+
+          <v-simple-table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Brand</th>
+                <th>Model</th>
+                <th>SAP Qty</th>
+                <th>Branch Qty</th>
+                <th>Diff.</th>
+                <th>SAP Serial Discrepancy</th>
+                <th>Branch Serial Discrepancy</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(item, index) in products">
+                <td>{{ index + 1 }}</td>
+                <td>{{ item.brand }}</td>
+                <td>{{ item.model }}</td>
+                <td>{{ item.sap_qty }}</td>
+                <td>{{ item.physical_qty }}</td>
+                <td> <v-chip x-small :color="item.qty_diff > 0 ? 'success' : 'red white--text'" v-if="item.qty_diff != 0">{{ item.qty_diff }}</v-chip> </td>
+                <td class="text-success"> {{ item.sap_discrepancy }}</td>
+                <td class="text-danger">{{ item.physical_discrepancy }}</td>
+                <td></td>
+              </tr>
+            </tbody>
+          </v-simple-table>
         </v-card>
       </v-main>
     </div>
@@ -137,7 +157,7 @@ export default {
           link: "/",
         },
         {
-          text: "Product Lists",
+          text: " INVENTORY RECONCILIATIONS ",
           disabled: false,
           link: "/inventory/reconciliation",
         },
@@ -164,17 +184,18 @@ export default {
     getProduct() {
       this.loading = true;
       let inventory_recon_id = this.$route.params.inventory_recon_id;
-      axios.get("/api/inventory_reconciliation/view/" + inventory_recon_id).then(
-        (response) => {
-       
-          this.products = response.data.inventory_reconciliation;
-             console.log(this.products );
-          this.loading = false;
-        },
-        (error) => {
-          this.isUnauthorized(error);
-        }
-      );
+      axios
+        .get("/api/inventory_reconciliation/view/" + inventory_recon_id)
+        .then(
+          (response) => {
+            this.products = response.data.products;
+            console.log(response.data);
+            this.loading = false;
+          },
+          (error) => {
+            this.isUnauthorized(error);
+          }
+        );
     },
 
     editProduct(item) {
@@ -271,7 +292,7 @@ export default {
                 // this.$socket.emit("sendData", { action: "product-edit" });
 
                 Object.assign(this.products[this.editedIndex], this.editedItem);
- 
+
                 this.showAlert();
                 this.close();
               } else if (response.data.existing_products) {
@@ -416,9 +437,8 @@ export default {
     selectedProductCategory() {
       let product_category = {};
 
-      this.product_categories.forEach(value => {
-        if(this.editedItem.product_category_id == value.id)
-        {
+      this.product_categories.forEach((value) => {
+        if (this.editedItem.product_category_id == value.id) {
           product_category = value;
         }
       });
@@ -504,23 +524,6 @@ export default {
       });
 
       return products;
-    },
-    tableHeaders() {
-      let headers = [];
-
-      this.headers.forEach((value) => {
-        headers.push(value);
-      });
-
-      // remove Actions column if user is not permitted
-      if (
-        !this.userPermissions.product_edit &&
-        !this.userPermissions.product_delete
-      ) {
-        headers.splice(5, 1);
-      }
-
-      return headers;
     },
     ...mapState("userRolesPermissions", ["userRoles", "userPermissions"]),
   },

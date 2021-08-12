@@ -67,7 +67,12 @@
         </v-list-group>
         <v-list-group
           no-action
-          v-if="userPermissions.product_list || userPermissions.product_create"
+          v-if="
+            userPermissions.product_list ||
+            userPermissions.product_create ||
+            userPermissions.inventory_recon_list ||
+            userPermissions.inventory_recon_create
+          "
         >
           <!-- List Group Icon-->
           <v-icon slot="prependIcon">mdi-barcode-scan</v-icon>

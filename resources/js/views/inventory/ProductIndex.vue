@@ -11,72 +11,72 @@
         </v-breadcrumbs>
         <div class="d-flex justify-content-end mb-3">
           <div>
-            <v-btn
-              color="primary"
-              class="ml-4"
-              small
-              @click="getUnreconciled()"
-              v-if="userPermissions.product_reconcile"
-            >
-              <v-icon class="mr-1" small> mdi-import </v-icon>
-              Reconcile
-            </v-btn>
-          </div>
-          <div>
-            <v-divider
-              vertical
-              class="ml-2"
-              v-if="userPermissions.product_export"
-            ></v-divider>
-          </div>
-
-          <div>
-            <v-btn
-              color="success"
-              class="ml-2"
-              small
-              @click="exportData()"
-              v-if="userPermissions.product_export"
-            >
-              <v-icon class="mr-1" small> mdi-microsoft-excel </v-icon>
-              Export
-            </v-btn>
-            <!-- <export-excel
-              class="btn btn-default pa-0 ma-0"
-              :data="products"
-              :fields="json_fields"
-              worksheet="My Worksheet"
-              name="products.xls"
-              v-if="userPermissions.product_export"
-            >
-              <v-btn
-                color="success"
-                small
-                v-if="userPermissions.product_export"
-                @click="alert()"
-              >
-                <v-icon class="mr-1" small> mdi-microsoft-excel </v-icon>
-                export
-              </v-btn>
-            </export-excel> -->
-          </div>
-          <div>
-            <v-divider
-              vertical
-              class="ml-2 mr-2"
-              v-if="userPermissions.product_clear_list"
-            ></v-divider>
-          </div>
-          <div>
-            <v-btn
-              color="error"
-              small
-              @click="clearList()"
-              v-if="userPermissions.product_clear_list"
-              ><v-icon class="mr-1" small> mdi-delete </v-icon>clear list</v-btn
-            >
+            <v-menu offset-y>
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn small v-bind="attrs" v-on="on" color="primary">
+                  Actions
+                  <v-icon small> mdi-menu-down </v-icon>
+                </v-btn>
+              </template>
+              <v-list class="pa-1">
+                <v-list-item
+                  class="ma-0 pa-0"
+                  style="min-height: 25px"
+                  v-if="userPermissions.product_reconcile"
+                >
+                  <v-list-item-title>
+                    <v-btn
+                      class="ma-2"
+                      color="primary"
+                      width="120px"
+                      small
+                      @click="getUnreconciled()"
+                    >
+                      <v-icon class="mr-1" small> mdi-import </v-icon>
+                      Reconcile
+                    </v-btn>
+                  </v-list-item-title>
+                </v-list-item>
+                <v-list-item
+                  class="ma-0 pa-0"
+                  style="min-height: 25px"
+                  v-if="userPermissions.product_export"
+                >
+                  <v-list-item-title>
+                    <v-btn
+                      class="ma-2"
+                      color="success"
+                      width="120px"
+                      small
+                      @click="exportData()"
+                    >
+                      <v-icon class="mr-1" small> mdi-microsoft-excel </v-icon>
+                      Export
+                    </v-btn>
+                  </v-list-item-title>
+                </v-list-item>
+                <v-list-item
+                  class="ma-0 pa-0"
+                  style="min-height: 25px"
+                  v-if="userPermissions.product_clear_list"
+                >
+                  <v-list-item-title>
+                    <v-btn
+                      class="ma-2"
+                      color="error"
+                      width="120px"
+                      small
+                      @click="clearList()"
+                      ><v-icon class="mr-1" small> mdi-delete </v-icon>clear
+                      list</v-btn
+                    >
+                  </v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-menu>
           </div>
         </div>
+
         <v-card>
           <v-card-title>
             Product Lists
@@ -259,7 +259,7 @@
                               :headers="unreconciled_headers"
                               :items="filteredUnreconciled"
                               :search="search_unreconciled"
-                              :loading="loading"
+                              :loading="loading_unreconcile"
                               loading-text="Loading... Please wait"
                             >
                               <template v-slot:item.status="{ item }">
@@ -280,10 +280,11 @@
                                   color="primary"
                                   @click="reconcileProducts(item)"
                                 >
-                                <v-icon x-small class="mr-2"> mdi-file </v-icon>
-                                Reconcile
+                                  <v-icon x-small class="mr-1">
+                                    mdi-file
+                                  </v-icon>
+                                  Reconcile
                                 </v-btn>
-                                
                               </template>
                             </v-data-table>
                           </v-col>
@@ -294,7 +295,9 @@
                       <v-spacer></v-spacer>
                       <v-btn
                         color="#E0E0E0"
-                        @click="dialog_unreconcile = false"
+                        @click="
+                          (dialog_unreconcile = false) + (loading = false)
+                        "
                         class="mb-4 mr-4"
                       >
                         Cancel
@@ -408,6 +411,7 @@ export default {
         },
       ],
       loading: true,
+      loading_unreconcile: true,
       user: "",
       search_branch: "",
       json_fields: {
@@ -430,7 +434,7 @@ export default {
       axios.get("/api/product/index").then(
         (response) => {
           let data = response.data;
-          console.log(data);
+
           this.user = data.user;
           this.products = data.products;
           this.brands = data.brands;
@@ -696,20 +700,79 @@ export default {
     },
 
     getUnreconciled() {
-      this.dialog_unreconcile = true;
-      let data = { branch_id: this.search_branch };
-      axios.post("/api/inventory_reconciliation/unreconcile/list", data).then(
-        (response) => {
-          console.log(response.data);
-          this.unreconcile_list = response.data.unreconcile_list;
-        },
-        (error) => {
-          console.log(error);
-        }
-      );
+      if (this.filteredProducts.length) {
+        this.loading_unreconcile = true;
+        this.dialog_unreconcile = true;
+
+        let data = {
+          branch_id: this.search_branch,
+          inventory_group: this.inventory_group,
+        };
+
+        axios.post("/api/inventory_reconciliation/unreconcile/list", data).then(
+          (response) => {
+            this.unreconcile_list = response.data.unreconcile_list;
+            this.loading_unreconcile = false;
+          },
+          (error) => {
+            console.log(error);
+          }
+        );
+      } else {
+        this.$swal({
+          position: "center",
+          icon: "warning",
+          title: "Nothing to reconcile",
+          showConfirmButton: false,
+          timer: 2500,
+        });
+      }
     },
     reconcileProducts(item) {
-      console.log(item);
+      this.$swal({
+        title: "Reconcile Products",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "primary",
+        cancelButtonColor: "#6c757d",
+        confirmButtonText: "Proceed",
+      }).then((result) => {
+        // <--
+
+        if (result.value) {
+          // <-- if confirmed
+
+          let data = {
+            inventory_recon_id: item.id,
+            products: this.filteredProducts,
+            inventory_group: this.inventory_group,
+          };
+
+          axios.post("api/inventory_reconciliation/reconcile", data).then(
+            (response) => {
+              if (response.data.success) {
+                // send data to Sockot.IO Server
+                // this.$socket.emit("sendData", { action: "product-reconcile" });
+
+                let index = this.unreconcile_list.indexOf(item);
+                this.unreconcile_list.splice(index, 1);
+
+                this.$swal({
+                  position: "center",
+                  icon: "success",
+                  title: "Record has been cleared",
+                  showConfirmButton: false,
+                  timer: 2500,
+                });
+              }
+            },
+            (error) => {
+              this.isUnauthorized(error);
+            }
+          );
+        }
+      });
     },
     websocket() {
       // Socket.IO fetch data
@@ -794,13 +857,22 @@ export default {
     filteredUnreconciled() {
       let unreconciled = [];
 
+      if (this.user.id !== 1) {
+        // if user has role Audit Admin
+        if (this.userRoles.audit_admin) {
+          this.inventory_group = "Audit-Branch";
+        }
+        // if user has role Inventory Admin
+        else if (this.userRoles.inventory_admin) {
+          this.inventory_group = "Admin-Branch";
+        }
+      }
+
       this.unreconcile_list.forEach((value, index) => {
         if (value.inventory_group === this.inventory_group) {
           unreconciled.push(value);
         }
       });
-
-      console.log(unreconciled);
 
       return unreconciled;
     },
@@ -821,6 +893,7 @@ export default {
 
       return headers;
     },
+  
     ...mapState("userRolesPermissions", ["userRoles", "userPermissions"]),
   },
   created() {
@@ -831,10 +904,11 @@ export default {
     // Remove listener when component is destroyed
     this.$barcodeScanner.destroy();
   },
-  mounted() {
+  async mounted() {
     axios.defaults.headers.common["Authorization"] =
       "Bearer " + localStorage.getItem("access_token");
-    this.getProduct();
+    await this.getProduct();
+    await this.inventoryGroup;
     this.$barcodeScanner.init(this.onBarcodeScanned);
     // this.websocket();
   },

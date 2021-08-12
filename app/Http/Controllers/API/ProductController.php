@@ -24,14 +24,7 @@ class ProductController extends Controller
                            ->with('branch')
                            ->with('user')
                            ->with('product_category')
-                           ->where(function($query) use ($user) {
-
-                                // if user is not administrator or has not permission to view all product list
-                                if(!$user->can('product-list-all'))
-                                {
-                                    $query->where('branch_id', '=', $user->branch_id);
-                                }
-                           })
+                           ->where('user_id', '=', $user->id)
                            ->select(DB::raw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_created"))
                            ->get();
 

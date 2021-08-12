@@ -128,7 +128,7 @@
                   "
                   @focus="fieldsActive = true"
                   @change="clearSerialExistStatus()"
-                  v-if="user.id === 1"
+                  v-if="user.id === 1 || userRoles.audit_admin"
                 >
                 </v-autocomplete>
               </v-col>
@@ -556,8 +556,8 @@ export default {
 
       return isRequired;
     },
-
     ...mapState("auth", ["user"]),
+    ...mapState("userRolesPermissions", ["userRoles", "userPermissions"]),
   },
   created() {
     // Add barcode scan listener and pass the callback function
@@ -572,7 +572,6 @@ export default {
       "Bearer " + localStorage.getItem("access_token");
     this.getProductOptions();
     this.$barcodeScanner.init(this.onBarcodeScanned);
-    this.editedItem.serial = 1233456567
   },
 };
 </script>
