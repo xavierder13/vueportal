@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import auth from './modules/auth';
-import userRolesPermissions from './modules/userRolesPermissions.js';
+import userRolesPermissions from './modules/userRolesPermissions';
 
 Vue.use(Vuex);
 

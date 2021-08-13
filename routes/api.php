@@ -162,6 +162,11 @@ Route::group(['prefix' => 'inventory_reconciliation', 'middleware' => ['auth:api
         'as' => 'inventory_reconciliation.import',
     ]);
 
+    Route::post('/export', [
+        'uses' => 'API\InventoryReconciliationController@export',
+        'as' => 'inventory_reconciliation.export',
+    ]);
+
     Route::post('/unreconcile/list', [
         'uses' => 'API\InventoryReconciliationController@unreconcile_list',
         'as' => 'inventory_reconciliation.unreconcile_list',

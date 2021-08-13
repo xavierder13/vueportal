@@ -39,6 +39,13 @@ class InventoryReconciliationMaintenance
             }
         }
 
+        //Inventory Reconciliation Delete
+        if($request->is('api/inventory_reconciliation/delete')){
+            if($user->can('inventory-recon-delete')){
+                return $next($request); 
+            }
+        }
+
         return abort(401, 'Unauthorized');
     }
 }

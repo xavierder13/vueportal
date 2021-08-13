@@ -20,6 +20,7 @@ class InventoryReconciliationController extends Controller
 {
     public function index()
     {   
+
         $user = Auth::user();
         $branches = Branch::all();
         $inventory_reconciliations = InventoryReconciliation::with('user')
@@ -55,6 +56,16 @@ class InventoryReconciliationController extends Controller
 
     public function view($inventory_recon_id)
     {   
+        
+
+        $reconciliation = InventoryReconciliation::with('branch')->find($inventory_recon_id);
+        $branch = '';
+        //if record is empty then display error page
+        if($reconciliation)
+        {
+            $branch = $reconciliation->branch->name;
+        }
+        
         $inventory_reconciliation = InventoryReconciliationMap::where('inventory_recon_id', '=', $inventory_recon_id)->get();
         $product_distinct = InventoryReconciliationMap::distinct()
                                                       ->where('inventory_recon_id', '=', $inventory_recon_id)
@@ -155,6 +166,7 @@ class InventoryReconciliationController extends Controller
             'sap_inventory' => $sap_inventory, 
             'physical_inventory' => $physical_inventory,
             'products' => $products,
+            'branch' => $branch,
 
         ], 200);
     }
@@ -401,5 +413,28 @@ class InventoryReconciliationController extends Controller
         
         return response()->json(['success' => 'Record has been saved'], 200);
         
-    }   
+    } 
+    
+    public function delete(Request $request)
+    {   
+        $inventory_recon_id = $request->get('inventory_recon_id');
+        $inventory = InventoryReconciliation::find($inventory_recon_id);
+        
+        //if record is empty then display error page
+        if(empty($inventory->id))
+        {
+            return abort(404, 'Not Found');
+        }
+
+        $inventory->delete();
+
+        InventoryReconciliationMap::where('inventory_recon_id', '=', $inventory_recon_id)->delete();
+
+        return response()->json(['success' => 'Record has been deleted'], 200);
+    }
+
+    public function export()
+    {
+        
+    }
 }

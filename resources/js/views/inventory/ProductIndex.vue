@@ -100,15 +100,6 @@
             <template>
               <v-toolbar flat>
                 <v-spacer></v-spacer>
-                <!-- <v-btn
-                  color="primary"
-                  fab
-                  dark
-                  class="mb-2"
-                  @click="clear() + (dialog = true)"
-                >
-                  <v-icon>mdi-plus</v-icon>
-                </v-btn> -->
                 <v-dialog v-model="dialog" max-width="500px" persistent>
                   <v-card>
                     <v-card-title>
@@ -701,23 +692,36 @@ export default {
 
     getUnreconciled() {
       if (this.filteredProducts.length) {
-        this.loading_unreconcile = true;
-        this.dialog_unreconcile = true;
+        // if Dropdown Branch value is 'ALL'
+        if (this.search_branch == 0) {
+          this.$swal({
+            position: "center",
+            icon: "warning",
+            title: "Please select specific branch!",
+            showConfirmButton: false,
+            timer: 4000,
+          });
+        } else {
+          this.loading_unreconcile = true;
+          this.dialog_unreconcile = true;
 
-        let data = {
-          branch_id: this.search_branch,
-          inventory_group: this.inventory_group,
-        };
+          let data = {
+            branch_id: this.search_branch,
+            inventory_group: this.inventory_group,
+          };
 
-        axios.post("/api/inventory_reconciliation/unreconcile/list", data).then(
-          (response) => {
-            this.unreconcile_list = response.data.unreconcile_list;
-            this.loading_unreconcile = false;
-          },
-          (error) => {
-            console.log(error);
-          }
-        );
+          axios
+            .post("/api/inventory_reconciliation/unreconcile/list", data)
+            .then(
+              (response) => {
+                this.unreconcile_list = response.data.unreconcile_list;
+                this.loading_unreconcile = false;
+              },
+              (error) => {
+                console.log(error);
+              }
+            );
+        }
       } else {
         this.$swal({
           position: "center",
@@ -761,7 +765,7 @@ export default {
                 this.$swal({
                   position: "center",
                   icon: "success",
-                  title: "Record has been cleared",
+                  title: "Inventory has been reconciled",
                   showConfirmButton: false,
                   timer: 2500,
                 });
@@ -893,7 +897,7 @@ export default {
 
       return headers;
     },
-  
+
     ...mapState("userRolesPermissions", ["userRoles", "userPermissions"]),
   },
   created() {

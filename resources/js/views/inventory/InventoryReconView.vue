@@ -11,55 +11,78 @@
         </v-breadcrumbs>
         <div class="d-flex justify-content-end mb-3">
           <div>
-            <v-btn
-              color="success"
-              class="ml-4"
-              small
-              @click="exportData()"
-              v-if="userPermissions.product_export"
-            >
-              <v-icon class="mr-1" small> mdi-microsoft-excel </v-icon>
-              Export
-            </v-btn>
-            <!-- <export-excel
-              class="btn btn-default pa-0 ma-0"
-              :data="products"
-              :fields="json_fields"
-              worksheet="My Worksheet"
-              name="products.xls"
-              v-if="userPermissions.product_export"
-            >
-              <v-btn
-                color="success"
-                small
-                v-if="userPermissions.product_export"
-                @click="alert()"
-              >
-                <v-icon class="mr-1" small> mdi-microsoft-excel </v-icon>
-                export
-              </v-btn>
-            </export-excel> -->
-          </div>
-          <div>
-            <v-divider
-              vertical
-              class="ml-2 mr-2"
-              v-if="userPermissions.product_clear_list"
-            ></v-divider>
-          </div>
-          <div>
-            <v-btn
-              color="error"
-              small
-              @click="clearList()"
-              v-if="userPermissions.product_clear_list"
-              ><v-icon class="mr-1" small> mdi-delete </v-icon>clear list</v-btn
-            >
+            <v-menu offset-y>
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn small v-bind="attrs" v-on="on" color="primary">
+                  Actions
+                  <v-icon small> mdi-menu-down </v-icon>
+                </v-btn>
+              </template>
+              <v-list class="pa-1">
+                <v-list-item class="ma-0 pa-0" style="min-height: 25px">
+                  <v-list-item-title>
+                    <v-btn
+                      class="ma-2"
+                      color="secondary"
+                      small
+                      @click="printPDF()"
+                    >
+                      <v-icon class="mr-1" small> mdi-file-pdf </v-icon>
+                      Print PDF
+                    </v-btn>
+                  </v-list-item-title>
+                </v-list-item>
+                <v-list-item class="ma-0 pa-0" style="min-height: 25px">
+                  <v-list-item-title>
+                    <!-- <v-btn
+                      class="ma-2"
+                      color="success"
+                      width="120px"
+                      small
+                      @click="exportData()"
+                    >
+                      <v-icon class="mr-1" small> mdi-microsoft-excel </v-icon>
+                      Export
+                    </v-btn> -->
+
+                    <export-excel
+                      :data="products"
+                      :fields="json_fields"
+                      type="xls"
+                      :name="branch + '_Reconciliations.xls'"
+                    >
+                      <v-btn class="ma-2" color="success" width="120px" small>
+                        <v-icon class="mr-1" small>
+                          mdi-microsoft-excel
+                        </v-icon>
+                        Export
+                      </v-btn>
+                    </export-excel>
+                  </v-list-item-title>
+                </v-list-item>
+                <v-list-item
+                  class="ma-0 pa-0"
+                  style="min-height: 25px"
+                  v-if="userPermissions.inventory_recon_delete"
+                >
+                  <v-list-item-title>
+                    <v-btn
+                      class="ma-2"
+                      color="error"
+                      width="120px"
+                      small
+                      @click="deleteInventory()"
+                      ><v-icon class="mr-1" small> mdi-delete </v-icon>delete
+                    </v-btn>
+                  </v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-menu>
           </div>
         </div>
         <v-card>
           <v-card-title>
-            Product Lists
+            Inventory Reconciliation - {{ branch }}
             <v-spacer></v-spacer>
             <v-text-field
               v-model="search"
@@ -69,8 +92,31 @@
             ></v-text-field>
             <v-spacer></v-spacer>
           </v-card-title>
-
-          <v-simple-table>
+          <v-data-table
+            :headers="headers"
+            :items="products"
+            :loading="loading"
+            loading-text="Loading... Please wait"
+          >
+            <template v-slot:item.row="{ item, index }">
+              {{ index + 1 }}
+            </template>
+            <template v-slot:item.qty_diff="{ item, index }">
+              <v-chip
+                x-small
+                :color="item.qty_diff > 0 ? 'success' : 'red white--text'"
+                v-if="item.qty_diff != 0"
+                >{{ item.qty_diff }}</v-chip
+              >
+            </template>
+            <template v-slot:item.sap_discrepancy="{ item, index }">
+              <span class="text-success"> {{ item.sap_discrepancy }} </span>
+            </template>
+            <template v-slot:item.physical_discrepancy="{ item, index }">
+              <span class="text-danger"> {{ item.physical_discrepancy }} </span>
+            </template>
+          </v-data-table>
+          <!-- <v-simple-table>
             <thead>
               <tr>
                 <th>#</th>
@@ -90,13 +136,19 @@
                 <td>{{ item.model }}</td>
                 <td>{{ item.sap_qty }}</td>
                 <td>{{ item.physical_qty }}</td>
-                <td> <v-chip x-small :color="item.qty_diff > 0 ? 'success' : 'red white--text'" v-if="item.qty_diff != 0">{{ item.qty_diff }}</v-chip> </td>
-                <td class="text-success"> {{ item.sap_discrepancy }}</td>
+                <td>
+                  <v-chip
+                    x-small
+                    :color="item.qty_diff > 0 ? 'success' : 'red white--text'"
+                    v-if="item.qty_diff != 0"
+                    >{{ item.qty_diff }}</v-chip
+                  >
+                </td>
+                <td class="text-success">{{ item.sap_discrepancy }}</td>
                 <td class="text-danger">{{ item.physical_discrepancy }}</td>
-                <td></td>
               </tr>
             </tbody>
-          </v-simple-table>
+          </v-simple-table> -->
         </v-card>
       </v-main>
     </div>
@@ -124,10 +176,14 @@ export default {
     return {
       search: "",
       headers: [
+        { text: "#", value: "row" },
         { text: "Brand", value: "brand" },
         { text: "Model", value: "model" },
-        { text: "Product Category", value: "product_category" },
-        { text: "Serial", value: "serial" },
+        { text: "SAP Qty", value: "sap_qty" },
+        { text: "Branch Qty", value: "physical_qty" },
+        { text: "Diff.", value: "qty_diff" },
+        { text: "SAP Discrepancy", value: "sap_discrepancy" },
+        { text: "Branch Discrepancy", value: "physical_discrepancy" },
       ],
       disabled: false,
       dialog: false,
@@ -170,13 +226,16 @@ export default {
       user: "",
       search_branch: "",
       json_fields: {
-        BRAND: "brand",
-        MODEL: "model",
-        SERIAL: "serial",
-        PRODUCT_CATEGORY: "product_category",
-        QUANTITY: " ",
+        "Brand": "brand",
+        "Model": "model",
+        "SAP Qty": "sap_qty",
+        "Branch Qty": "physical_qty",
+        "Diff.": "qty_diff",
+        "SAP Discrepancy": "sap_discrepancy",
+        "Branch Discrepancy": "physical_discrepancy"
       },
       serialExists: false,
+      branch: "",
     };
   },
 
@@ -189,7 +248,7 @@ export default {
         .then(
           (response) => {
             this.products = response.data.products;
-            console.log(response.data);
+            this.branch = response.data.branch;
             this.loading = false;
           },
           (error) => {
@@ -204,138 +263,8 @@ export default {
       this.dialog = true;
     },
 
-    deleteProduct(product_id) {
-      const data = { product_id: product_id };
-      this.loading = true;
-      axios.post("/api/product/delete", data).then(
-        (response) => {
-          if (response.data.success) {
-            // send data to Sockot.IO Server
-            // this.$socket.emit("sendData", { action: "product-delete" });
-          }
-          this.loading = false;
-        },
-        (error) => {
-          this.isUnauthorized(error);
-        }
-      );
-    },
-
-    showAlert() {
-      this.$swal({
-        position: "center",
-        icon: "success",
-        title: "Record has been saved",
-        showConfirmButton: false,
-        timer: 2500,
-      });
-    },
-
-    showConfirmAlert(item) {
-      this.$swal({
-        title: "Are you sure?",
-        text: "You won't be able to revert this!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#d33",
-        cancelButtonColor: "#6c757d",
-        confirmButtonText: "Delete record!",
-      }).then((result) => {
-        // <--
-
-        if (result.value) {
-          // <-- if confirmed
-
-          const product_id = item.id;
-          const index = this.products.indexOf(item);
-
-          //Call delete Product function
-          this.deleteProduct(product_id);
-
-          //Remove item from array products
-          this.products.splice(index, 1);
-
-          this.$swal({
-            position: "center",
-            icon: "success",
-            title: "Record has been deleted",
-            showConfirmButton: false,
-            timer: 2500,
-          });
-        }
-      });
-    },
-
-    close() {
-      this.dialog = false;
-      this.clear();
-      this.$nextTick(() => {
-        this.editedItem = Object.assign({}, this.defaultItem);
-        this.editedIndex = -1;
-      });
-    },
-
-    save() {
-      this.$v.$touch();
-
-      if (!this.$v.$error) {
-        this.disabled = true;
-
-        if (this.editedIndex > -1) {
-          const data = this.editedItem;
-          const product_id = this.editedItem.id;
-
-          axios.post("/api/product/update/" + product_id, data).then(
-            (response) => {
-              if (response.data.success) {
-                // send data to Sockot.IO Server
-                // this.$socket.emit("sendData", { action: "product-edit" });
-
-                Object.assign(this.products[this.editedIndex], this.editedItem);
-
-                this.showAlert();
-                this.close();
-              } else if (response.data.existing_products) {
-                this.serialExists = true;
-              }
-
-              this.disabled = false;
-            },
-            (error) => {
-              this.isUnauthorized(error);
-              this.disabled = false;
-            }
-          );
-        } else {
-          const data = this.editedItem;
-
-          axios.post("/api/product/store", data).then(
-            (response) => {
-              if (response.data.success) {
-                // send data to Sockot.IO Server
-                // this.$socket.emit("sendData", { action: "product-create" });
-
-                this.showAlert();
-                this.close();
-
-                //push recently added data from database
-                this.products.push(response.data.product);
-              } else if (response.data.existing_products) {
-                this.serialExists = true;
-              }
-              this.disabled = false;
-            },
-            (error) => {
-              this.isUnauthorized(error);
-              this.disabled = false;
-            }
-          );
-        }
-      }
-    },
-
-    clearList() {
-      if (this.filteredProducts.length) {
+    deleteInventory() {
+      if (this.products.length) {
         this.$swal({
           title: "Are you sure?",
           text: "You won't be able to revert this!",
@@ -343,51 +272,31 @@ export default {
           showCancelButton: true,
           confirmButtonColor: "#d33",
           cancelButtonColor: "#6c757d",
-          confirmButtonText: "Clear List!",
+          confirmButtonText: "Delete record!",
         }).then((result) => {
           // <--
 
           if (result.value) {
             // <-- if confirmed
 
-            let data = { branch_id: this.search_branch, clear_list: true };
-
-            axios.post("api/product/delete", data).then(
+            const data = {
+              inventory_recon_id: this.$route.params.inventory_recon_id,
+            };
+            this.loading = true;
+            axios.post("/api/inventory_reconciliation/delete", data).then(
               (response) => {
                 if (response.data.success) {
-                  // send data to Sockot.IO Server
-                  // this.$socket.emit("sendData", { action: "product-create" });
-
-                  let products = this.products;
-
-                  // clear products array
-                  this.products = [];
-
-                  products.forEach((value, index) => {
-                    // push products to array where except deleted data
-                    if (value.branch_id != this.search_branch) {
-                      this.products.push(value);
-                    } else if (this.search_branch === 0) {
-                      this.products = [];
-                    }
-                  });
-
                   this.$swal({
                     position: "center",
                     icon: "success",
-                    title: "Record has been cleared",
+                    title: "Record has been deleted",
                     showConfirmButton: false,
                     timer: 2500,
                   });
-                } else {
-                  this.$swal({
-                    position: "center",
-                    icon: "warning",
-                    title: "No record found",
-                    showConfirmButton: false,
-                    timer: 2500,
-                  });
+
+                  this.$router.push({ name: "inventory.reconciliation" });
                 }
+                this.loading = false;
               },
               (error) => {
                 this.isUnauthorized(error);
@@ -406,6 +315,25 @@ export default {
       }
     },
 
+    showAlert() {
+      this.$swal({
+        position: "center",
+        icon: "success",
+        title: "Record has been saved",
+        showConfirmButton: false,
+        timer: 2500,
+      });
+    },
+
+    close() {
+      this.dialog = false;
+      this.clear();
+      this.$nextTick(() => {
+        this.editedItem = Object.assign({}, this.defaultItem);
+        this.editedIndex = -1;
+      });
+    },
+
     clear() {
       this.$v.$reset();
       this.editedItem = Object.assign({}, this.defaultItem);
@@ -418,12 +346,9 @@ export default {
         this.$router.push({ name: "unauthorize" });
       }
     },
-    exportData() {
-      if (this.filteredProducts.length) {
-        window.open(
-          location.origin + "/api/product/export/" + this.search_branch,
-          "_blank"
-        );
+
+    printPDF() {
+      if (this.products.length) {
       } else {
         this.$swal({
           position: "center",
@@ -434,17 +359,19 @@ export default {
         });
       }
     },
-    selectedProductCategory() {
-      let product_category = {};
-
-      this.product_categories.forEach((value) => {
-        if (this.editedItem.product_category_id == value.id) {
-          product_category = value;
-        }
-      });
-
-      this.editedItem.product_category = product_category;
+    exportData() {
+      if (this.products.length) {
+      } else {
+        this.$swal({
+          position: "center",
+          icon: "warning",
+          title: "No record found",
+          showConfirmButton: false,
+          timer: 2500,
+        });
+      }
     },
+
     websocket() {
       // Socket.IO fetch data
       this.$options.sockets.sendData = (data) => {
@@ -459,72 +386,8 @@ export default {
         }
       };
     },
-    // Create callback function to receive barcode when the scanner is already done
-    onBarcodeScanned(barcode) {
-      // console.log(barcode);
-      this.serialExists = false;
-      this.editedItem.serial = barcode;
-      // do something...
-    },
-    // Reset to the last barcode before hitting enter (whatever anything in the input box)
-    resetBarcode() {
-      let barcode = this.$barcodeScanner.getPreviousCode();
-      // do something...
-    },
   },
   computed: {
-    formTitle() {
-      return this.editedIndex === -1 ? "New Product" : "Edit Product";
-    },
-    brandErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.brand_id.$dirty) return errors;
-      !this.$v.editedItem.brand_id.required &&
-        errors.push("Brand is required.");
-      return errors;
-    },
-    modelErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.model.$dirty) return errors;
-      !this.$v.editedItem.model.required && errors.push("Model is required.");
-      return errors;
-    },
-    product_categoryErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.product_category_id.$dirty) return errors;
-      !this.$v.editedItem.product_category_id.required &&
-        errors.push("Product Category is required.");
-      return errors;
-    },
-    serialErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.serial.$dirty) return errors;
-      !this.$v.editedItem.serial.required && errors.push("Serial is required.");
-      if (this.serialExists) {
-        errors.push("Serial exists");
-      }
-      return errors;
-    },
-    branchErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.branch_id.$dirty) return errors;
-      !this.$v.editedItem.branch_id.required &&
-        errors.push("Branch is required.");
-      return errors;
-    },
-    filteredProducts() {
-      let products = [];
-
-      this.products.forEach((value) => {
-        if (this.search_branch === 0) {
-          products.push(value);
-        } else if (value.branch_id === this.search_branch) {
-          products.push(value);
-        }
-      });
-
-      return products;
-    },
     ...mapState("userRolesPermissions", ["userRoles", "userPermissions"]),
   },
   created() {

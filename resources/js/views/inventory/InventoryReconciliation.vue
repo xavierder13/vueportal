@@ -10,7 +10,7 @@
           </template>
         </v-breadcrumbs>
         <div class="d-flex justify-content-end mb-3">
-          <div>
+          <div v-if="userPermissions.inventory_recon_create">
             <v-btn color="primary" class="ml-4" small @click="importExcel()">
               <v-icon class="mr-1" small> mdi-import </v-icon>
               Import
@@ -58,6 +58,9 @@
               </v-chip>
             </template>
             <template v-slot:item.actions="{ item }">
+              <v-icon class="mr-2" color="secondary" small @click="printPDF()">
+                mdi-file-pdf
+              </v-icon>
               <v-icon
                 small
                 class="mr-2"
@@ -313,13 +316,13 @@ export default {
           // <-- if confirmed
 
           const inventory_recon_id = item.id;
-          const index = this.inventories.indexOf(item);
+          const index = this.inventory_reconciliations.indexOf(item);
 
           //Call delete Product function
           this.deleteInventory(inventory_recon_id);
 
           //Remove item from array inventories
-          this.inventories.splice(index, 1);
+          this.inventory_reconciliations.splice(index, 1);
 
           this.$swal({
             position: "center",
@@ -480,7 +483,7 @@ export default {
 
       return inventory;
     },
-    
+
     fileErrors() {
       const errors = [];
       if (!this.$v.file.$dirty) return errors;
