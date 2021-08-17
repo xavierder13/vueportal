@@ -57,19 +57,18 @@ class InventoryReconciliationController extends Controller
     public function view($inventory_recon_id)
     {   
         
-
         $reconciliation = InventoryReconciliation::with('branch')->find($inventory_recon_id);
         $branch = '';
         //if record is empty then display error page
         if($reconciliation)
         {
-            $branch = $reconciliation->branch->name;
+            $branch = $reconciliation->branch;
         }
         
         $inventory_reconciliation = InventoryReconciliationMap::where('inventory_recon_id', '=', $inventory_recon_id)->get();
         $product_distinct = InventoryReconciliationMap::distinct()
                                                       ->where('inventory_recon_id', '=', $inventory_recon_id)
-                                                      ->get(['brand', 'model']);
+                                                      ->get(['brand', 'model', 'product_category']);
         $sap_inventory = $inventory_reconciliation->where('inventory_type', '=', 'SAP');
         $physical_inventory = $inventory_reconciliation->where('inventory_type', '=', 'Physical');
 
@@ -91,7 +90,9 @@ class InventoryReconciliationController extends Controller
             foreach ($sap_inventory as $index => $sap) {
                 
                 // count all products per brand and model
-                if(strtoupper($product['brand']) == strtoupper($sap['brand']) && strtoupper($product['model']) == strtoupper($sap['model']))
+                if(strtoupper($product['brand']) == strtoupper($sap['brand']) && 
+                   strtoupper($product['model']) == strtoupper($sap['model'])  && 
+                   strtoupper($product['product_category']) == strtoupper($sap['product_category']))
                 {
                     $ctr1++;
 
@@ -101,6 +102,7 @@ class InventoryReconciliationController extends Controller
                         
                         if(strtoupper($sap['brand']) == strtoupper($physical['brand']) && 
                            strtoupper($sap['model']) == strtoupper($physical['model']) && 
+                           strtoupper($sap['product_category']) == strtoupper($physical['product_category']) &&
                            $sap['serial'] == $physical['serial'])
                         {
                             $sap_has_serial = true;
@@ -122,7 +124,8 @@ class InventoryReconciliationController extends Controller
                 
                 // count all items per brand and model
                 if(strtoupper($product['brand']) == strtoupper($physical['brand']) && 
-                   strtoupper($product['model']) == strtoupper($physical['model']))
+                   strtoupper($product['model']) == strtoupper($physical['model']) &&
+                   strtoupper($product['product_category']) == strtoupper($physical['product_category']))
                 {
                     $ctr2++;
 
@@ -133,6 +136,7 @@ class InventoryReconciliationController extends Controller
                         
                         if(strtoupper($sap['brand']) == strtoupper($physical['brand']) && 
                            strtoupper($sap['model']) == strtoupper($physical['model']) && 
+                           strtoupper($sap['product_category']) == strtoupper($physical['product_category']) &&
                            $sap['serial'] == $physical['serial'])
                         {
                             $physical_has_serial = true;
@@ -152,6 +156,7 @@ class InventoryReconciliationController extends Controller
             $products[] = [
                 'brand' => $product['brand'],
                 'model' => $product['model'],
+                'product_category' => $product['product_category'],
                 'sap_qty' => $ctr1,
                 'physical_qty' => $ctr2,
                 'qty_diff' => $ctr1 - $ctr2,
@@ -166,7 +171,8 @@ class InventoryReconciliationController extends Controller
             'sap_inventory' => $sap_inventory, 
             'physical_inventory' => $physical_inventory,
             'products' => $products,
-            'branch' => $branch,
+            'branch' => $branch->name,
+            'branch_code' => $branch->code,
 
         ], 200);
     }

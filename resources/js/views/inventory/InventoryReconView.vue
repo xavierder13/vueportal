@@ -97,6 +97,7 @@
             :items="products"
             :loading="loading"
             loading-text="Loading... Please wait"
+            id="invty-recon-table"
           >
             <template v-slot:item.row="{ item, index }">
               {{ index + 1 }}
@@ -156,22 +157,11 @@
 </template>
 <script>
 import axios from "axios";
-import { validationMixin } from "vuelidate";
-import { required, maxLength, email } from "vuelidate/lib/validators";
 import { mapState } from "vuex";
+import { jsPDF } from "jspdf";
+import "jspdf-autotable";
 
 export default {
-  mixins: [validationMixin],
-
-  validations: {
-    editedItem: {
-      branch_id: { required },
-      brand_id: { required },
-      model: { required },
-      product_category_id: { required },
-      serial: { required },
-    },
-  },
   data() {
     return {
       search: "",
@@ -179,6 +169,7 @@ export default {
         { text: "#", value: "row" },
         { text: "Brand", value: "brand" },
         { text: "Model", value: "model" },
+        { text: "Product Category", value: "product_category" },
         { text: "SAP Qty", value: "sap_qty" },
         { text: "Branch Qty", value: "physical_qty" },
         { text: "Diff.", value: "qty_diff" },
@@ -191,21 +182,6 @@ export default {
       brands: [],
       branches: [],
       product_categories: [],
-      editedIndex: -1,
-      editedItem: {
-        branch_id: "",
-        brand: "",
-        brand_id: "",
-        model: "",
-        serial: "",
-      },
-      defaultItem: {
-        branch_id: "",
-        brand: "",
-        brand_id: "",
-        model: "",
-        serial: "",
-      },
       items: [
         {
           text: "Home",
@@ -226,16 +202,18 @@ export default {
       user: "",
       search_branch: "",
       json_fields: {
-        "Brand": "brand",
-        "Model": "model",
+        Brand: "brand",
+        Model: "model",
+        "Product Category": "product_category",
         "SAP Qty": "sap_qty",
         "Branch Qty": "physical_qty",
         "Diff.": "qty_diff",
         "SAP Discrepancy": "sap_discrepancy",
-        "Branch Discrepancy": "physical_discrepancy"
+        "Branch Discrepancy": "physical_discrepancy",
       },
       serialExists: false,
       branch: "",
+      branch_code: "",
     };
   },
 
@@ -249,18 +227,13 @@ export default {
           (response) => {
             this.products = response.data.products;
             this.branch = response.data.branch;
+            this.branch_code = response.data.branch_code;
             this.loading = false;
           },
           (error) => {
             this.isUnauthorized(error);
           }
         );
-    },
-
-    editProduct(item) {
-      this.editedIndex = this.products.indexOf(item);
-      this.editedItem = Object.assign({}, item);
-      this.dialog = true;
     },
 
     deleteInventory() {
@@ -349,6 +322,225 @@ export default {
 
     printPDF() {
       if (this.products.length) {
+        const doc = new jsPDF({
+          orientation: "portrait",
+          unit: "px",
+          format: "letter",
+        });
+
+        let d = new Date();
+        let months = [
+          "January",
+          "February",
+          "March",
+          "April",
+          "May",
+          "June",
+          "July",
+          "August",
+          "September",
+          "October",
+          "November",
+          "December",
+        ];
+        let thisMonth = months[d.getMonth()];
+        let lastMonth = months[d.getMonth() - 1];
+        let gMonth = d.getMonth() + 1;
+        let gDate = d.getDate();
+        let gFYear = d.getFullYear();
+
+        let header = "ADDESSA CORPORATION";
+        let invtymemo = "INVTY MEMO#";
+        let date = "Date:";
+        let to = "To:";
+        let from = "From:";
+
+        let invtymemo_value = this.branch_code + "-" + gFYear + "-" + gMonth;
+        let date_value = thisMonth + " " + gDate + "," + gFYear;
+        let to_value =
+          "{{ $branch->bm_oic ? strtoupper($branch->bm_oic) : 'NONE' }}";
+        let to_position = "BM/OIC";
+        let from_value = "Admin-Inventory Department";
+
+        let beneath_table =
+          "Please verify, reconcile and coordinate to admin for the reconciliation of the discrepancies within Two (2) days upon the receipt of this Memo.";
+        let beneath_from = "Physical Inventory Report for the month of";
+        let beneath_from_value = lastMonth + " " + gFYear;
+        let date_submitted = "Date Submitted:";
+        let date_submitted_value = "{{ $upload_date }}";
+
+        let before_table =
+          "We have reconciled your Physical Inventory Count Report versus SAP Report and we found out the following unreconciled items:";
+
+        doc.setFontSize(7);
+        doc.text(invtymemo_value, 80, 30);
+
+        doc.setFontSize(7);
+        doc.text(date_value, 80, 40);
+
+        doc.setFontSize(7);
+        doc.text('xavierder', 80, 55);
+        doc.text(to_position, 80, 60);
+
+        doc.setFontSize(7);
+        doc.text(from_value, 80, 75);
+
+        doc.setFontSize(7);
+        doc.text(before_table, 80, 118);
+
+        doc.setFontSize(8);
+        doc.setFont("bold");
+        doc.text(header, 200, 16);
+
+        doc.setFontSize(7);
+        doc.setFont("bold");
+        doc.text(invtymemo, 30, 30);
+
+        doc.setFontSize(7);
+        doc.setFont("bold");
+        doc.text(date, 30, 40);
+
+        doc.setFontSize(7);
+        doc.setFont("bold");
+        doc.text(to, 30, 55);
+
+        doc.setFontSize(7);
+        doc.setFont("bold");
+        doc.text(from, 30, 75);
+
+        doc.line(30, 80, 425, 80); // horizontal line
+
+        doc.setFontSize(7);
+        doc.setFont("bold");
+        doc.text(beneath_from, 30, 88);
+
+        doc.setFontSize(7);
+        doc.setFont("bold");
+        doc.text(beneath_from_value, 380, 88);
+
+        doc.setFontSize(7);
+        doc.setFont("bold");
+        doc.text(date_submitted, 30, 97);
+
+        doc.setFontSize(7);
+        doc.setFont("bold");
+        doc.text(date_submitted_value, 380, 97);
+
+        let elem = document.getElementById("invty-recon-table", true);
+
+        // let tbl = $('#invty-recon-table').clone();
+        // tbl.find('thead tr:nth-child(1)').remove();
+        // let res = doc.autoTableHtmlToJson(tbl.get(0));
+        // let res = doc.autoTableHtmlToJson(elem);
+        // console.log(res);
+        let table_header = [
+          "#",
+          "Brand",
+          "Model",
+          "Product Category",
+          "SAP Qty",
+          "Branch Qty",
+          "Diff.",
+          "SAP Discrepancy",
+          "Branch Discrepancy",
+        ];
+
+        let table_data = [
+          [
+            "#",
+            "Brand",
+            "Model",
+            "Product Category",
+            "SAP Qty",
+            "Branch Qty",
+            "Diff.",
+            "SAP Discrepancy",
+            "Branch Discrepancy",
+          ],
+        ];
+
+        doc.autoTable(table_header, this.tableData, {
+          startY: 130,
+          theme: "grid",
+          styles: {
+            overflow: "linebreak",
+            fontSize: 7,
+            fillColor: [255, 255, 255],
+            textColor: [0, 0, 0],
+            lineColor: [0, 0, 0],
+            lineWidth: 0.1,
+          },
+        });
+
+        doc.setFontSize(7);
+        doc.setFont("normal");
+        doc.text(beneath_table, 80, doc.lastAutoTable.finalY + 15);
+
+        let prepared_by = "Prepared by:";
+        let prepared_by_value =
+          "{{ strtoupper(Auth::user()->first_name) }} {{ strtoupper(Auth::user()->last_name) }}";
+        let prepared_by_position = "{{ Auth::user()->position }} ";
+
+        let verified_by = "Verified by:";
+        let verified_by_value = "GERALD SUNIGA";
+        let verified_by_position = "Inventory Section Head";
+        let verified_by_value_2 = "MARIEL QUITALEG";
+        let verified_by_position_2 = "Inventory & Warehousing Manager";
+
+        let noted_by = "Noted by:";
+        let noted_by_value = "RAFAEL V. SORIANO";
+        let noted_by_position = "General Manager";
+        let noted_by_value_2 = "MS. SONIA DELA CRUZ";
+        let noted_by_position_2 = "Vice President";
+
+        // PREPARED BY
+        doc.setFontSize(7);
+        doc.setFont("normal");
+        doc.text(prepared_by, 30, doc.autoTableEndPosY() + 40);
+
+        doc.setFont("bold");
+        doc.text(prepared_by_value, 80, doc.lastAutoTable.finalY + 40);
+
+        doc.setFont("normal");
+        doc.text(prepared_by_position, 80, doc.lastAutoTable.finalY + 45);
+
+        // VERIFIED BY
+        doc.setFontSize(7);
+        doc.setFont("normal");
+        doc.text(verified_by, 30, doc.lastAutoTable.finalY + 60);
+
+        doc.setFont("bold");
+        doc.text(verified_by_value, 80, doc.lastAutoTable.finalY + 60);
+
+        doc.setFont("normal");
+        doc.text(verified_by_position, 80, doc.lastAutoTable.finalY + 65);
+
+        doc.setFont("bold");
+        doc.text(verified_by_value_2, 180, doc.lastAutoTable.finalY + 60);
+
+        doc.setFont("normal");
+        doc.text(verified_by_position_2, 180, doc.lastAutoTable.finalY + 65);
+
+        // VERIFIED BY
+        doc.setFontSize(7);
+        doc.setFont("normal");
+        doc.text(noted_by, 30, doc.lastAutoTable.finalY + 80);
+
+        doc.setFont("bold");
+        doc.text(noted_by_value, 80, doc.lastAutoTable.finalY + 80);
+
+        doc.setFont("normal");
+        doc.text(noted_by_position, 80, doc.lastAutoTable.finalY + 85);
+
+        doc.setFont("bold");
+        doc.text(noted_by_value_2, 180, doc.lastAutoTable.finalY + 80);
+
+        doc.setFont("normal");
+        doc.text(noted_by_position_2, 180, doc.lastAutoTable.finalY + 85);
+
+        doc.output("dataurlnewwindow");
+
+        doc.save("inventory.pdf");
       } else {
         this.$swal({
           position: "center",
@@ -388,21 +580,31 @@ export default {
     },
   },
   computed: {
+    tableData() {
+      let table_data = [];
+      this.products.forEach((value, index) => {
+        table_data.push([
+          index + 1,
+          value.brand,
+          value.model,
+          value.product_category,
+          value.sap_qty,
+          value.physical_qty,
+          value.sap_diff,
+          value.sap_discrepancy,
+          value.physical_discrepancy,
+        ]);
+      });
+
+      return table_data;
+    },
     ...mapState("userRolesPermissions", ["userRoles", "userPermissions"]),
   },
-  created() {
-    // Add barcode scan listener and pass the callback function
-    this.$barcodeScanner.init(this.onBarcodeScanned);
-  },
-  destroyed() {
-    // Remove listener when component is destroyed
-    this.$barcodeScanner.destroy();
-  },
+
   mounted() {
     axios.defaults.headers.common["Authorization"] =
       "Bearer " + localStorage.getItem("access_token");
     this.getProduct();
-    this.$barcodeScanner.init(this.onBarcodeScanned);
     // this.websocket();
   },
 };
