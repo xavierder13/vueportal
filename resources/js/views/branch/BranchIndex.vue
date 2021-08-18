@@ -59,11 +59,20 @@
                             <v-text-field
                               name="branch"
                               v-model="editedBranch.name"
-                              label="Branch"
+                              label="Branch Name"
                               required
                               :error-messages="branchErrors + branchError.name"
                               @input="$v.editedBranch.name.$touch() + (branchError.name = [])"
                               @blur="$v.editedBranch.name.$touch()"
+                            ></v-text-field>
+                          </v-col>
+                        </v-row>
+                        <v-row>
+                          <v-col class="mt-0 mb-0 pt-0 pb-0">
+                            <v-text-field
+                              name="branch"
+                              v-model="editedBranch.bm_oic"
+                              label="BM/OIC"
                             ></v-text-field>
                           </v-col>
                         </v-row>
@@ -146,6 +155,7 @@ export default {
       headers: [
         { text: "Branch", value: "name" },
         { text: "Branch Code", value: "code" },
+        { text: "BM/OIC", value: "bm_oic" },
         { text: "Actions", value: "actions", sortable: false },
       ],
       switch1: true,
@@ -156,10 +166,12 @@ export default {
       editedBranch: {
         name: "",
         code: "",
+        bm_oic: "",
       },
       defaultItem: {
         name: "",
         code: "",
+        bm_oic: "",
       },
       items: [
         {

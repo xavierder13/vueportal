@@ -13,6 +13,7 @@ use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use App\User;
 use App\Branch;
+use App\Position;
 use Spatie\Activitylog\Models\Activity;
 
 
@@ -23,10 +24,18 @@ class UserController extends Controller
         $users = User::with('roles')
                      ->with('roles.permissions')
                      ->with('branch')
+                     ->with('position')
                      ->get();
         $roles = Role::with('permissions')->orderBy('id', 'Asc')->get();
         $branches = Branch::all();
-        return response()->json(['users' => $users, 'roles' => $roles, 'branches' => $branches], 200);
+        $positions = Position::all();
+
+        return response()->json([
+            'users' => $users, 
+            'roles' => $roles, 
+            'branches' => $branches,
+            'positions' => $positions,
+        ], 200);
     }
 
     public function create() 
@@ -51,6 +60,7 @@ class UserController extends Controller
             'confirm_password.required' => 'Confirm Password is required',
             'branch_id.required' => 'Branch is required',
             'branch_id.integer' => 'Branch must be an integer',
+            'position_id.integer' => 'Position must be an integer',
         ];
 
         $valid_fields = [
@@ -59,6 +69,7 @@ class UserController extends Controller
             'password' => 'required|string|min:8|same:confirm_password',
             'confirm_password' => 'required',
             'branch_id' => 'required|integer',
+            'position_id' => 'nullable|integer',
         ];
 
         $validator = Validator::make($request->all(), $valid_fields, $rules);
@@ -73,6 +84,7 @@ class UserController extends Controller
         $user->email = $request->get('email');
         $user->password = Hash::make($request->get('password'));
         $user->branch_id = $request->get('branch_id');
+        $user->position_id = $request->get('position_id');
         $user->active = $request->get('active');
         $user->save();
 
@@ -81,6 +93,7 @@ class UserController extends Controller
         $user = User::with('roles')
                     ->with('roles.permissions')
                     ->with('branch')
+                    ->with('position')
                     ->where('id', '=', $user->id)->first();
 
         return response()->json(['success' => 'Record has successfully added', 'user' => $user], 200);
@@ -89,11 +102,7 @@ class UserController extends Controller
     public function edit($user_id)
     {
         $user = User::find($user_id);
-        $service_signatories = DB::table('service_signatories')
-                                ->join('services', 'service_signatories.serviceid', '=', 'services.id')
-                                ->select(DB::raw('services.*'))
-                                ->where('userid', $user_id)
-                                ->get();
+       
         //if record is empty then display error page
         if(empty($user->id))
         {
@@ -104,7 +113,6 @@ class UserController extends Controller
         
         return response()->json([
             'user' => $user,
-            'service_signatories' => $service_signatories
         ], 200);
 
     }
@@ -117,6 +125,7 @@ class UserController extends Controller
             'name.required' => 'Please enter name',
             'branch_id.required' => 'Branch is required',
             'branch_id.integer' => 'Branch must be an integer',
+            'position_id.integer' => 'Position must be an integer',
             'password.required' => 'Password is required',
             'password.min' => 'Password must be atleast 8 characters',
             'password.same' => 'Password and Confirm Password did not match',
@@ -126,6 +135,7 @@ class UserController extends Controller
         $valid_fields = [
             'name' => 'required|string|max:255',
             'branch_id' => 'required|integer',
+            'position_id' => 'nullable|integer',
         ];
 
         if($request->get('password') || $request->get('confirm_password'))
@@ -156,6 +166,7 @@ class UserController extends Controller
             $user->password = Hash::make($request->get('password'));
         }
         $user->branch_id = $request->get('branch_id');
+        $user->position_id = $request->get('position_id');
         $user->active = $request->get('active');
 
         $user->save();
@@ -167,6 +178,7 @@ class UserController extends Controller
         $user = User::with('roles')
                     ->with('roles.permissions')
                     ->with('branch')
+                    ->with('position')
                     ->where('id', '=', $user_id)->first();
         
         $user_roles = $user->roles->pluck('name')->all();

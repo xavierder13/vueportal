@@ -15,6 +15,7 @@ use Validator;
 use Auth;
 use Excel;
 use App\Imports\InventoryReconMapImport;
+use Carbon\Carbon;
 
 class InventoryReconciliationController extends Controller
 {
@@ -57,12 +58,15 @@ class InventoryReconciliationController extends Controller
     public function view($inventory_recon_id)
     {   
         
-        $reconciliation = InventoryReconciliation::with('branch')->find($inventory_recon_id);
-        $branch = '';
-        //if record is empty then display error page
+        $reconciliation = InventoryReconciliation::with('branch')
+                                                 ->with('user')
+                                                 ->with('user.position')
+                                                 ->find($inventory_recon_id);
+        $date_reconciled = '';
+
         if($reconciliation)
         {
-            $branch = $reconciliation->branch;
+            $date_reconciled = Carbon::parse($reconciliation->updated_at)->format('m-d-y');
         }
         
         $inventory_reconciliation = InventoryReconciliationMap::where('inventory_recon_id', '=', $inventory_recon_id)->get();
@@ -171,8 +175,8 @@ class InventoryReconciliationController extends Controller
             'sap_inventory' => $sap_inventory, 
             'physical_inventory' => $physical_inventory,
             'products' => $products,
-            'branch' => $branch->name,
-            'branch_code' => $branch->code,
+            'date_reconciled' => $date_reconciled,
+            'reconciliation' => $reconciliation,
 
         ], 200);
     }

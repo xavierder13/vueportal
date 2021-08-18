@@ -205,6 +205,8 @@
             userPermissions.product_category_create ||
             userPermissions.branch_list ||
             userPermissions.branch_create ||
+            userPermissions.position_list ||
+            userPermissions.position_create ||
             userPermissions.role_list ||
             userPermissions.role_create ||
             userPermissions.permission_list ||
@@ -248,6 +250,15 @@
           >
             <v-list-item-content>
               <v-list-item-title>Branch</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
+            to="/position/index"
+            v-if="userPermissions.position_list || userPermissions.position_create"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Position</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
           <v-list-item

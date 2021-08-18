@@ -45,6 +45,7 @@ class BranchController extends Controller
         $branch = new Branch();
         $branch->name = $request->get('name');
         $branch->code = $request->get('code');
+        $branch->bm_oic = $request->get('bm_oic');
         $branch->save();
 
         return response()->json(['success' => 'Record has successfully added', 'branch' => $branch], 200);
@@ -99,6 +100,7 @@ class BranchController extends Controller
 
         $branch->name = $request->get('name');
         $branch->code = $request->get('code');
+        $branch->bm_oic = $request->get('bm_oic');
         $branch->save();
 
 

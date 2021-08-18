@@ -12,14 +12,17 @@ const state = {
     brand_edit: false,
     brand_delete: false,
     branch_list: false,
+    branch_create: false,
+    branch_edit: false,
+    branch_delete: false,
+    position_list: false,
+    position_create: false,
+    position_edit: false,
+    position_delete: false,
     product_category_list: false,
     product_category_create: false,
     product_category_edit: false,
     product_category_delete: false,
-    branch_list: false,
-    branch_create: false,
-    branch_edit: false,
-    branch_delete: false,
     product_list: false,
     product_list_all: false,
     product_create: false,
@@ -148,6 +151,12 @@ const mutations = {
     permission.branch_create = permissions.includes("branch-create");
     permission.branch_edit = permissions.includes("branch-edit");
     permission.branch_delete = permissions.includes("branch-delete");
+
+    // POSITION RECORD MAINTENANCE PERMISSIONS
+    permission.position_list = permissions.includes("position-list");
+    permission.position_create = permissions.includes("position-create");
+    permission.position_edit = permissions.includes("position-edit");
+    permission.position_delete = permissions.includes("position-delete");
 
     // PRODUCT RECORD MAINTENANCE PERMISSIONS
     permission.product_list = permissions.includes("product-list");

@@ -18,7 +18,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password', 'branch_id', 'active',
+        'name', 'email', 'password', 'branch_id', 'position_id', 'active',
     ];
 
     /**
@@ -42,6 +42,12 @@ class User extends Authenticatable
     public function branch()
     {
         return $this->hasOne('App\Branch', 'id', 'branch_id');
+        //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
+    }
+
+    public function position()
+    {
+        return $this->hasOne('App\Position', 'id', 'position_id');
         //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
     }
  

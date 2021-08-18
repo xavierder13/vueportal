@@ -353,6 +353,35 @@ Route::group(['prefix' => 'branch', 'middleware' => ['auth:api', 'branch.mainten
 
 });
 
+// Position Routes
+Route::group(['prefix' => 'position', 'middleware' => ['auth:api', 'position.maintenance']], function(){
+    Route::get('/index', [
+        'uses' => 'API\PositionController@index',
+        'as' => 'position.index',
+    ]);
+    Route::get('/create', [
+        'uses' => 'API\PositionController@create',
+        'as' => 'position.create',
+    ]);
+    Route::post('/store', [
+        'uses' => 'API\PositionController@store',
+        'as' => 'position.store',
+    ]);
+    Route::post('/edit', [
+        'uses' => 'API\PositionController@edit',
+        'as' => 'position.edit',
+    ]);
+    Route::post('/update/{id}', [
+        'uses' => 'API\PositionController@update',
+        'as' => 'position.update',
+    ]);
+    Route::post('/delete', [
+        'uses' => 'API\PositionController@delete',
+        'as' => 'position.delete',
+    ]);
+
+});
+
 //Activity Logs
 Route::group(['prefix' => 'activity_logs', 'middleware' => ['auth:api', 'activity.logs']], function(){
     Route::get('/index', [

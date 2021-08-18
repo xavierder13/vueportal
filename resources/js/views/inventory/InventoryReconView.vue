@@ -83,6 +83,14 @@
         <v-card>
           <v-card-title>
             Inventory Reconciliation - {{ branch }}
+            <v-chip
+              :color="
+                status == 'unreconciled' ? 'red white--text' : 'success'
+              "
+              class="ml-2"
+            >
+              {{ status }}
+            </v-chip>
             <v-spacer></v-spacer>
             <v-text-field
               v-model="search"
@@ -214,6 +222,11 @@ export default {
       serialExists: false,
       branch: "",
       branch_code: "",
+      date_reconciled: "",
+      status: "",
+      bm_oic: "",
+      prepared_by: "",
+      prepared_by_position: "",
     };
   },
 
@@ -225,10 +238,18 @@ export default {
         .get("/api/inventory_reconciliation/view/" + inventory_recon_id)
         .then(
           (response) => {
-            this.products = response.data.products;
-            this.branch = response.data.branch;
-            this.branch_code = response.data.branch_code;
+            let data = response.data;
+            let reconciliation = data.reconciliation;
+            this.products = data.products;
+            this.branch = reconciliation.branch.name;
+            this.branch_code = reconciliation.branch.code;
+            this.date_reconciled = data.date_reconciled;
+            this.status = reconciliation.status;
+            this.bm_oic = reconciliation.branch.bm_oic;
+            this.prepared_by = reconciliation.user.name;
+            this.prepared_by_position = reconciliation.user.position ? reconciliation.user.position.name : '  ';
             this.loading = false;
+            
           },
           (error) => {
             this.isUnauthorized(error);
@@ -367,7 +388,7 @@ export default {
         let beneath_from = "Physical Inventory Report for the month of";
         let beneath_from_value = lastMonth + " " + gFYear;
         let date_submitted = "Date Submitted:";
-        let date_submitted_value = "{{ $upload_date }}";
+        let date_submitted_value = this.date_reconciled;
 
         let before_table =
           "We have reconciled your Physical Inventory Count Report versus SAP Report and we found out the following unreconciled items:";
@@ -379,7 +400,7 @@ export default {
         doc.text(date_value, 80, 40);
 
         doc.setFontSize(7);
-        doc.text('xavierder', 80, 55);
+        doc.text(this.bm_oic, 80, 55);
         doc.text(to_position, 80, 60);
 
         doc.setFontSize(7);
@@ -389,41 +410,41 @@ export default {
         doc.text(before_table, 80, 118);
 
         doc.setFontSize(8);
-        doc.setFont("bold");
+        doc.setFont("","bold");
         doc.text(header, 200, 16);
 
         doc.setFontSize(7);
-        doc.setFont("bold");
+        doc.setFont("", "bold");
         doc.text(invtymemo, 30, 30);
 
         doc.setFontSize(7);
-        doc.setFont("bold");
+        doc.setFont("", "bold");
         doc.text(date, 30, 40);
 
         doc.setFontSize(7);
-        doc.setFont("bold");
+        doc.setFont("", "bold");
         doc.text(to, 30, 55);
 
         doc.setFontSize(7);
-        doc.setFont("bold");
+        doc.setFont("", "bold");
         doc.text(from, 30, 75);
 
         doc.line(30, 80, 425, 80); // horizontal line
 
         doc.setFontSize(7);
-        doc.setFont("bold");
+        doc.setFont("", "bold");
         doc.text(beneath_from, 30, 88);
 
         doc.setFontSize(7);
-        doc.setFont("bold");
+        doc.setFont("", "bold");
         doc.text(beneath_from_value, 380, 88);
 
         doc.setFontSize(7);
-        doc.setFont("bold");
+        doc.setFont("", "bold");
         doc.text(date_submitted, 30, 97);
 
         doc.setFontSize(7);
-        doc.setFont("bold");
+        doc.setFont("", "bold");
         doc.text(date_submitted_value, 380, 97);
 
         let elem = document.getElementById("invty-recon-table", true);
@@ -477,9 +498,8 @@ export default {
         doc.text(beneath_table, 80, doc.lastAutoTable.finalY + 15);
 
         let prepared_by = "Prepared by:";
-        let prepared_by_value =
-          "{{ strtoupper(Auth::user()->first_name) }} {{ strtoupper(Auth::user()->last_name) }}";
-        let prepared_by_position = "{{ Auth::user()->position }} ";
+        let prepared_by_value = this.prepared_by;
+        let prepared_by_position = this.prepared_by_position;
 
         let verified_by = "Verified by:";
         let verified_by_value = "GERALD SUNIGA";
@@ -498,7 +518,7 @@ export default {
         doc.setFont("normal");
         doc.text(prepared_by, 30, doc.autoTableEndPosY() + 40);
 
-        doc.setFont("bold");
+        doc.setFont("", "bold");
         doc.text(prepared_by_value, 80, doc.lastAutoTable.finalY + 40);
 
         doc.setFont("normal");
@@ -509,13 +529,13 @@ export default {
         doc.setFont("normal");
         doc.text(verified_by, 30, doc.lastAutoTable.finalY + 60);
 
-        doc.setFont("bold");
+        doc.setFont("", "bold");
         doc.text(verified_by_value, 80, doc.lastAutoTable.finalY + 60);
 
         doc.setFont("normal");
         doc.text(verified_by_position, 80, doc.lastAutoTable.finalY + 65);
 
-        doc.setFont("bold");
+        doc.setFont("", "bold");
         doc.text(verified_by_value_2, 180, doc.lastAutoTable.finalY + 60);
 
         doc.setFont("normal");
@@ -526,13 +546,13 @@ export default {
         doc.setFont("normal");
         doc.text(noted_by, 30, doc.lastAutoTable.finalY + 80);
 
-        doc.setFont("bold");
+        doc.setFont("", "bold");
         doc.text(noted_by_value, 80, doc.lastAutoTable.finalY + 80);
 
         doc.setFont("normal");
         doc.text(noted_by_position, 80, doc.lastAutoTable.finalY + 85);
 
-        doc.setFont("bold");
+        doc.setFont("", "bold");
         doc.text(noted_by_value_2, 180, doc.lastAutoTable.finalY + 80);
 
         doc.setFont("normal");
@@ -590,7 +610,7 @@ export default {
           value.product_category,
           value.sap_qty,
           value.physical_qty,
-          value.sap_diff,
+          value.qty_diff,
           value.sap_discrepancy,
           value.physical_discrepancy,
         ]);

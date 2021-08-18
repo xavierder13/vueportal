@@ -158,6 +158,18 @@
                           </v-col>
                         </v-row>
                         <v-row>
+                          <v-col class="mt-0 mb-0 pt-0 pb-0">
+                            <v-autocomplete
+                              v-model="editedItem.position_id"
+                              :items="positions"
+                              item-text="name"
+                              item-value="id"
+                              label="Position"
+                            >
+                            </v-autocomplete>
+                          </v-col>
+                        </v-row>
+                        <v-row>
                           <v-col cols="2" class="mt-0 mb-0 pt-0 pb-0">
                             <v-switch
                               v-model="switch1"
@@ -270,9 +282,6 @@
                 </v-chip>
               </span>
             </template>
-            <template v-slot:item.branch="{ item }">
-              {{ item.branch.name }}
-            </template>
             <template v-slot:item.actions="{ item }">
               <v-icon
                 small
@@ -352,7 +361,8 @@ export default {
         { text: "Full Name", value: "name" },
         { text: "E-mail", value: "email" },
         { text: "Active", value: "active" },
-        { text: "Branch", value: "branch" },
+        { text: "Branch", value: "branch.name" },
+        { text: "Position", value: "position.name" },
         { text: "Last Login", value: "last_login" },
         { text: "Roles", value: "roles" },
         { text: "Actions", value: "actions", sortable: false },
@@ -364,6 +374,7 @@ export default {
       dialogPermission: false,
       users: [],
       branches: [],
+      positions: [],
       roles: [],
       roles_permissions: [],
       editedIndex: -1,
@@ -371,6 +382,7 @@ export default {
         name: "",
         email: "",
         roles: [],
+        branch_id: "",
         active: "Y",
       },
       defaultItem: {
@@ -379,6 +391,7 @@ export default {
         password: "",
         confirm_password: "",
         roles: [],
+        branch_id: "",
         active: "Y",
       },
       password: "",
@@ -400,10 +413,13 @@ export default {
       this.loading = true;
       axios.get("/api/user/index").then(
         (response) => {
-          this.users = response.data.users;
-          this.roles = response.data.roles;
-          this.branches = response.data.branches;
+          let data = response.data;
+          this.users = data.users;
+          this.roles = data.roles;
+          this.branches = data.branches;
+          this.positions = data.positions;
           this.loading = false;
+
         },
         (error) => {
           this.isUnauthorized(error);

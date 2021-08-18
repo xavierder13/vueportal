@@ -15,7 +15,7 @@
               color="success"
               small
               @click="exportData()"
-              v-if="userPermissions.employee_list_export && user.id === 1"
+              v-if="userPermissions.employee_list_export && userPermissions.employee_list_all"
             >
               <v-icon class="mr-1" small> mdi-microsoft-excel </v-icon>
               Export All Data
