@@ -56,7 +56,9 @@
                   :error-messages="passwordErrors + userError.password"
                   label="Password"
                   required
-                  @input="$v.editedItem.password.$touch() + (userError.password = [])"
+                  @input="
+                    $v.editedItem.password.$touch() + (userError.password = [])
+                  "
                   @blur="$v.editedItem.password.$touch()"
                   type="password"
                   :readonly="editedItem.id == 1 ? true : false"
@@ -68,10 +70,15 @@
                 <v-text-field
                   name="confirm_password"
                   v-model="editedItem.confirm_password"
-                  :error-messages="confirm_passwordErrors + userError.confirm_password"
+                  :error-messages="
+                    confirm_passwordErrors + userError.confirm_password
+                  "
                   label="Confirm Password"
                   required
-                  @input="$v.editedItem.confirm_password.$touch() + (userError.confirm_password = [])"
+                  @input="
+                    $v.editedItem.confirm_password.$touch() +
+                      (userError.confirm_password = [])
+                  "
                   @blur="$v.editedItem.confirm_password.$touch()"
                   type="password"
                 ></v-text-field>
@@ -111,8 +118,23 @@
                   label="Branch"
                   required
                   :error-messages="branchErrors + userError.branch_id"
-                  @input="$v.editedItem.branch_id.$touch() + (userError.branch_id = [])"
+                  @input="
+                    $v.editedItem.branch_id.$touch() +
+                      (userError.branch_id = [])
+                  "
                   @blur="$v.editedItem.branch_id.$touch()"
+                >
+                </v-autocomplete>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col cols="4" class="mt-0 mb-0 pt-0 pb-0">
+                <v-autocomplete
+                  v-model="editedItem.position_id"
+                  :items="positions"
+                  item-text="name"
+                  item-value="id"
+                  label="Position"
                 >
                 </v-autocomplete>
               </v-col>
@@ -193,6 +215,7 @@ export default {
         roles: [],
         active: "Y",
         branch_id: "",
+        position_id: "",
       },
       defaultItem: {
         name: "",
@@ -202,6 +225,7 @@ export default {
         roles: [],
         active: "Y",
         branch_id: "",
+        position_id: "",
       },
       userError: {
         name: [],
@@ -209,6 +233,7 @@ export default {
         password: [],
         confirm_password: [],
         branch_id: [],
+        position_id: [],
       },
     };
   },
@@ -217,8 +242,11 @@ export default {
     getRole() {
       axios.get("/api/user/create").then(
         (response) => {
-          this.roles = response.data.roles;
-          this.branches = response.data.branches;
+          let data = response.data;
+
+          this.roles = data.roles;
+          this.branches = data.branches;
+          this.positions = data.positions;
         },
         (error) => {
           this.isUnauthorized(error);
@@ -263,8 +291,7 @@ export default {
 
               //push recently added data from database
               this.users.push(response.data.user);
-            } 
-            else {
+            } else {
               let errors = response.data;
               let errorNames = Object.keys(response.data);
 

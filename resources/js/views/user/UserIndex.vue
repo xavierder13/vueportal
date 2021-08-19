@@ -403,7 +403,8 @@ export default {
         email: [],
         password: [],
         confirm_password: [],
-        branch_id: []
+        branch_id: [],
+        position_id: [],
       }
     };
   },

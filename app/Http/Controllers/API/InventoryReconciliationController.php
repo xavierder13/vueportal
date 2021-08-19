@@ -55,7 +55,7 @@ class InventoryReconciliationController extends Controller
         ], 200);
     }
 
-    public function view($inventory_recon_id)
+    public function discrepancy($inventory_recon_id)
     {   
         
         $reconciliation = InventoryReconciliation::with('branch')
@@ -72,6 +72,9 @@ class InventoryReconciliationController extends Controller
         $inventory_reconciliation = InventoryReconciliationMap::where('inventory_recon_id', '=', $inventory_recon_id)->get();
         $product_distinct = InventoryReconciliationMap::distinct()
                                                       ->where('inventory_recon_id', '=', $inventory_recon_id)
+                                                      ->orderBy('brand', 'ASC')
+                                                      ->orderBy('model', 'ASC')
+                                                      ->orderBy('product_category', 'ASC')
                                                       ->get(['brand', 'model', 'product_category']);
         $sap_inventory = $inventory_reconciliation->where('inventory_type', '=', 'SAP');
         $physical_inventory = $inventory_reconciliation->where('inventory_type', '=', 'Physical');
@@ -166,6 +169,87 @@ class InventoryReconciliationController extends Controller
                 'qty_diff' => $ctr1 - $ctr2,
                 'sap_discrepancy' => join(', ', $sap_discrepancy),
                 'physical_discrepancy' => join(', ', $physical_discrepancy ),
+            ];
+
+        }
+        
+        return response()->json([
+            'inventory_reconciliation' => $inventory_reconciliation, 
+            'sap_inventory' => $sap_inventory, 
+            'physical_inventory' => $physical_inventory,
+            'products' => $products,
+            'date_reconciled' => $date_reconciled,
+            'reconciliation' => $reconciliation,
+
+        ], 200);
+    }
+
+    public function breakdown($inventory_recon_id)
+    {   
+        
+        $reconciliation = InventoryReconciliation::with('branch')
+                                                 ->with('user')
+                                                 ->with('user.position')
+                                                 ->find($inventory_recon_id);
+        $date_reconciled = '';
+
+        if($reconciliation)
+        {
+            $date_reconciled = Carbon::parse($reconciliation->updated_at)->format('m-d-y');
+        }
+        
+        $inventory_reconciliation = InventoryReconciliationMap::where('inventory_recon_id', '=', $inventory_recon_id)->get();
+        $product_distinct = InventoryReconciliationMap::distinct()
+                                                      ->where('inventory_recon_id', '=', $inventory_recon_id)
+                                                      ->orderBy('brand', 'ASC')
+                                                      ->orderBy('model', 'ASC')
+                                                      ->orderBy('product_category', 'ASC')
+                                                      ->orderBy('serial', 'ASC')
+                                                      ->get(['brand', 'model', 'product_category', 'serial']);
+        $sap_inventory = $inventory_reconciliation->where('inventory_type', '=', 'SAP');
+        $physical_inventory = $inventory_reconciliation->where('inventory_type', '=', 'Physical');
+
+        $products = [];
+        $sap_has_serial = false;
+        $physical_has_serial = false;
+
+        foreach ($product_distinct as $key => $product) {
+
+            $sap_has_serial = false;
+            $physical_has_serial = false;
+
+            // SAP product inventory
+            foreach ($sap_inventory as $index => $sap) {
+                
+                if(strtoupper($product['brand']) == strtoupper($sap['brand']) && 
+                   strtoupper($product['model']) == strtoupper($sap['model'])  && 
+                   strtoupper($product['product_category']) == strtoupper($sap['product_category']) &&
+                   strtoupper($product['serial']) == strtoupper($sap['serial']))
+                {
+                    $sap_has_serial = true;
+                }
+            
+            }
+            
+            // Physical product inventory
+            foreach ($physical_inventory as $key => $physical) {
+                
+                if(strtoupper($product['brand']) == strtoupper($physical['brand']) && 
+                   strtoupper($product['model']) == strtoupper($physical['model']) &&
+                   strtoupper($product['product_category']) == strtoupper($physical['product_category']) &&
+                   strtoupper($product['serial']) == strtoupper($physical['serial']))
+                {   
+                    $physical_has_serial = true;
+                }
+
+            }
+
+            $products[] = [
+                'brand' => $product['brand'],
+                'model' => $product['model'],
+                'product_category' => $product['product_category'],
+                'sap_serial' => $sap_has_serial ? $product['serial'] : '---',
+                'physical_serial' => $physical_has_serial ? $product['serial'] : '---',
             ];
 
         }
@@ -419,6 +503,7 @@ class InventoryReconciliationController extends Controller
 
         $inventory_reconciliation = InventoryReconciliation::find($inventory_recon_id);
         $inventory_reconciliation->status = 'reconciled';
+        $inventory_reconciliation->date_reconciled = Carbon::now()->format('Y-m-d');
         $inventory_reconciliation->save();
         
         return response()->json(['success' => 'Record has been saved'], 200);

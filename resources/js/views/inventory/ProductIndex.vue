@@ -261,7 +261,7 @@
                                       : 'success'
                                   "
                                 >
-                                  {{ item.status }}
+                                  {{ item.status.toUpperCase() }}
                                 </v-chip>
                               </template>
                               <template v-slot:item.actions="{ item }">
@@ -766,6 +766,14 @@ export default {
                   position: "center",
                   icon: "success",
                   title: "Inventory has been reconciled",
+                  showConfirmButton: false,
+                  timer: 2500,
+                });
+              } else if (response.data.duplicate) {
+                this.$swal({
+                  position: "center",
+                  icon: "warning",
+                  title: "Products already exist",
                   showConfirmButton: false,
                   timer: 2500,
                 });

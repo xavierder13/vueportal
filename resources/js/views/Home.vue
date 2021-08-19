@@ -255,7 +255,9 @@
           <v-list-item
             link
             to="/position/index"
-            v-if="userPermissions.position_list || userPermissions.position_create"
+            v-if="
+              userPermissions.position_list || userPermissions.position_create
+            "
           >
             <v-list-item-content>
               <v-list-item-title>Position</v-list-item-title>
@@ -302,8 +304,18 @@
     </v-overlay>
     <!-- Content -->
     <router-view />
+    <v-footer padless dense dark app>
+      <v-col class="text-center" cols="12">
+        Copyright © {{ new Date().getFullYear() }} —
+        <strong> ADDESSA CORPORATION</strong>
+      </v-col>
+    </v-footer>
   </v-app>
 </template>
+
+<style>
+  html { overflow-y: auto } /* show scrollbar when overflow */
+</style>
 
 <script>
 import axios from "axios";

@@ -68,7 +68,11 @@
                   v-model="editedItem.model"
                   required
                   :error-messages="modelErrors"
-                  @input="$v.editedItem.model.$touch() + (fieldsActive = true) + clearSerialExistStatus()"
+                  @input="
+                    $v.editedItem.model.$touch() +
+                      (fieldsActive = true) +
+                      clearSerialExistStatus()
+                  "
                   @blur="$v.editedItem.model.$touch() + (fieldsActive = false)"
                   @focus="fieldsActive = true"
                 ></v-text-field>
@@ -85,10 +89,12 @@
                   required
                   :error-messages="product_categoryErrors"
                   @input="
-                    $v.editedItem.product_category_id.$touch() + (fieldsActive = true)
+                    $v.editedItem.product_category_id.$touch() +
+                      (fieldsActive = true)
                   "
                   @blur="
-                    $v.editedItem.product_category_id.$touch() + (fieldsActive = false)
+                    $v.editedItem.product_category_id.$touch() +
+                      (fieldsActive = false)
                   "
                   @focus="fieldsActive = true"
                   @change="clearSerialExistStatus()"
@@ -133,7 +139,7 @@
                 </v-autocomplete>
               </v-col>
             </v-row>
-            
+
             <v-row v-if="switch1">
               <v-col class="mt-0 mb-0 pt-0 pb-0">
                 <v-simple-table dense>
@@ -184,14 +190,21 @@
             </v-row>
             <v-row v-if="serialsEmpty">
               <v-col>
-                <span class="v-messages error--text">Please enter serials</span>
+                <!-- <span class="v-messages error--text">Please enter serials</span> -->
+                <v-alert dense outlined type="error">
+                  Please enter serials
+                </v-alert>
               </v-col>
             </v-row>
+
             <v-row v-if="serialExists || serialHasDuplicate">
               <v-col>
-                <span class="v-messages error--text">{{
+                <!-- <span class="v-messages error--text">{{
                   multiSerialErrors
-                }}</span>
+                }}</span> -->
+                <v-alert dense outlined type="error">
+                  {{ multiSerialErrors }}
+                </v-alert>
               </v-col>
             </v-row>
           </v-card-text>
@@ -343,14 +356,12 @@ export default {
               this.showAlert();
               this.clear();
             } else if (response.data.existing_products) {
-
               let products = response.data.existing_products;
 
               this.serialExists = true;
 
               products.forEach((value, index) => {
                 this.serials.forEach((val, i) => {
-
                   if (value.serial == val.serial) {
                     this.errorFields[i].serial.exist = true;
                   }
@@ -409,7 +420,7 @@ export default {
     },
 
     clearSerialExistStatus() {
-      let errorFields = this.errorFields
+      let errorFields = this.errorFields;
       this.serialExists = false;
       errorFields.forEach((value, index) => {
         this.errorFields[index].serial.exist = false;
@@ -497,7 +508,8 @@ export default {
     product_categoryErrors() {
       const errors = [];
       if (!this.$v.editedItem.product_category_id.$dirty) return errors;
-      !this.$v.editedItem.product_category_id.required && errors.push("Product Category is required.");
+      !this.$v.editedItem.product_category_id.required &&
+        errors.push("Product Category is required.");
       return errors;
     },
     serialErrors() {

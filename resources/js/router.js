@@ -8,7 +8,8 @@ import UserCreate from './views/user/UserCreate.vue';
 import ProductIndex from './views/inventory/ProductIndex.vue';
 import ScanProduct from './views/inventory/ScanProduct.vue';
 import InventoryReconciliation from './views/inventory/InventoryReconciliation.vue';
-import InventoryReconView from './views/inventory/InventoryReconView.vue';
+import InventoryDiscrepancy from './views/inventory/InventoryDiscrepancy.vue';
+import InventoryBreakdown from './views/inventory/InventoryBreakdown.vue';
 import BrandIndex from './views/brand/BrandIndex.vue';
 import PositionIndex from './views/position/PositionIndex.vue';
 import ProductCategoryIndex from './views/product_category/ProductCategoryIndex.vue';
@@ -55,9 +56,14 @@ const routes = [
         component: InventoryReconciliation
       },
       {
-        path: '/inventory/view/reconciliation/:inventory_recon_id',
-        name: 'inventory.reconciliation.view',
-        component: InventoryReconView
+        path: '/inventory/discrepancy/reconciliation/:inventory_recon_id',
+        name: 'inventory.reconciliation.discrepancy',
+        component: InventoryDiscrepancy
+      },
+      {
+        path: '/inventory/breakdown/reconciliation/:inventory_recon_id',
+        name: 'inventory.reconciliation.breakdown',
+        component: InventoryBreakdown
       },
       {
         path: '/brand/index',

@@ -42,7 +42,13 @@ class UserController extends Controller
     {
         $roles = Role::with('permissions')->orderBy('id', 'Asc')->get();
         $branches = Branch::all();
-        return response()->json(['roles' => $roles, 'branches' => $branches], 200);
+        $positions = Position::all();
+
+        return response()->json([
+            'roles' => $roles, 
+            'branches' => $branches,
+            'positions' => $positions,
+        ], 200);
     }
 
     public function store(Request $request)

@@ -152,9 +152,13 @@ Route::group(['prefix' => 'inventory_reconciliation', 'middleware' => ['auth:api
         'as' => 'inventory_reconciliation.delete',
     ]);
 
-    Route::get('/view/{id}', [
-        'uses' => 'API\InventoryReconciliationController@view',
-        'as' => 'inventory_reconciliation.view',
+    Route::get('/discrepancy/{id}', [
+        'uses' => 'API\InventoryReconciliationController@discrepancy',
+        'as' => 'inventory_reconciliation.discrepancy',
+    ]);
+    Route::get('/breakdown/{id}', [
+        'uses' => 'API\InventoryReconciliationController@breakdown',
+        'as' => 'inventory_reconciliation.breakdown',
     ]);
 
     Route::post('/import', [

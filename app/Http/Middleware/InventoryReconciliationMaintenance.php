@@ -19,7 +19,9 @@ class InventoryReconciliationMaintenance
         $user = Auth::user();
 
         //Inventory Reconciliation Record
-        if($request->is('api/inventory_reconciliation/index') || $request->is('api/inventory_reconciliation/view/*')){
+        if($request->is('api/inventory_reconciliation/index') || 
+           $request->is('api/inventory_reconciliation/discrepancy/*') ||
+           $request->is('api/inventory_reconciliation/breakdown/*')){
             if($user->can('inventory-recon-list')){
                 return $next($request); 
             }
