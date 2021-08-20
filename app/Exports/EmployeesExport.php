@@ -49,7 +49,13 @@ class EmployeesExport implements FromCollection, WithHeadings
                                 'employees.philhealth_no',
                                 'employees.sss_no',
                                 'employees.time_schedule',
-                                'employees.restday')
+                                'employees.restday',
+                                'employees.educ_attain',
+                                'employees.school_attended',
+                                'employees.course',
+                                DB::raw("CONCAT(CAST((TIMESTAMPDIFF(DAY, employees.date_employed, date_format(NOW(),'%Y-%m-%d')) / 365) AS UNSIGNED), ' years(s) ',
+                                        CAST(((TIMESTAMPDIFF(DAY, employees.date_employed, date_format(NOW(),'%Y-%m-%d')) % 365) / 30) AS UNSIGNED), ' month(s) ',
+                                        ((TIMESTAMPDIFF(DAY, employees.date_employed, date_format(NOW(),'%Y-%m-%d')) % 365) % 30), ' day(s)')  as length_of_service"))
                       ->where(function($query) use ($branch_id){
                           if($branch_id <> 0)
                           {
@@ -88,6 +94,10 @@ class EmployeesExport implements FromCollection, WithHeadings
             'SSS NO.',	
             'TIME SCHEDULE',	
             'RESTDAY',
+            'EDUCATIONAL ATTAINMENT',
+            'SCHOOL ATTENDED',
+            'COURSE',
+            'LENGTH OF SERVICE'
 																							
         ];
     }

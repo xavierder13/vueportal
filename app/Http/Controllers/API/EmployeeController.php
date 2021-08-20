@@ -30,7 +30,15 @@ class EmployeeController extends Controller
 
     public function list_view($branch_id)
     {
-        $employees = Employee::with('branch')->where('branch_id', '=', $branch_id)->get();  
+        $employees = Employee::with('branch')
+                             ->where('branch_id', '=', $branch_id)
+                             ->select(DB::raw("*, 
+                                                CONCAT(CAST((TIMESTAMPDIFF(DAY, date_employed, date_format(NOW(),'%Y-%m-%d')) / 365) AS UNSIGNED), ' years(s) ',
+                                                CAST(((TIMESTAMPDIFF(DAY, date_employed, date_format(NOW(),'%Y-%m-%d')) % 365) / 30) AS UNSIGNED), ' month(s) ',
+                                                ((TIMESTAMPDIFF(DAY, date_employed, date_format(NOW(),'%Y-%m-%d')) % 365) % 30), ' day(s)')  as length_of_service"
+                                            )
+                                    )
+                             ->get();  
 
         return response()->json(['employees' => $employees], 200);
     }
@@ -95,6 +103,9 @@ class EmployeeController extends Controller
                     'sss_no',
                     'time_schedule',
                     'restday',
+                    'educ_attain',
+                    'school_attended',
+                    'course'
                 ]; 
 
                 $collection_errors = [];
@@ -109,7 +120,7 @@ class EmployeeController extends Controller
                 }
                 elseif($ctr_collection > 1)
                 {   
-
+               
                     for($x=0; $ctr_collection > $x; $x++)
                     {   
                         for($y=0; count($collection[$x]) > $y; $y++)
@@ -161,6 +172,9 @@ class EmployeeController extends Controller
                         '*.sss_no.required' => 'SSS No. is required',
                         '*.time_schedule.required' => 'Time Schedule is required',
                         '*.restday.required' => 'Rest Day is required',
+                        '*.educ_attain.required' => 'Educational Attainment is required',
+                        '*.school_attended.required' => 'School Attended is required',
+                        '*.course.required' => 'Course is required',
                     ];
             
                     $valid_fields = [
@@ -187,6 +201,9 @@ class EmployeeController extends Controller
                         '*.sss_no' => 'required',
                         '*.time_schedule' => 'required',
                         '*.restday' => 'required',
+                        '*.educ_attain' => 'required',
+                        '*.school_attended' => 'required',
+                        '*.course' => 'required',
                     ];
                     
                     $validator = Validator::make($fields, $valid_fields, $rules);  

@@ -153,6 +153,7 @@
                               :error-messages="branchErrors + userError.branch_id"
                               @input="$v.editedItem.branch_id.$touch() + (userError.branch_id = [])"
                               @blur="$v.editedItem.branch_id.$touch()"
+                              :readonly="editedItem.id == 1 ? true : false"
                             >
                             </v-autocomplete>
                           </v-col>
@@ -165,6 +166,7 @@
                               item-text="name"
                               item-value="id"
                               label="Position"
+                              :readonly="editedItem.id == 1 ? true : false"
                             >
                             </v-autocomplete>
                           </v-col>

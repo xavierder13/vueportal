@@ -55,6 +55,9 @@ class EmployeesImport implements ToModel
                 'sss_no' => @$row[21],
                 'time_schedule' => @$row[22],
                 'restday' => @$row[23],
+                'educ_attain' => @$row[24],
+                'school_attended' => @$row[25],
+                'course' => @$row[26],
             ]);
         }
 

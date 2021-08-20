@@ -220,6 +220,10 @@ export default {
         { text: "SSS #", value: "sss_no" },
         { text: "Time Schedule", value: "time_schedule" },
         { text: "Restday", value: "restday" },
+        { text: "Educ. Attainment", value: "educ_attain" },
+        { text: "School Attended", value: "school_attended" },
+        { text: "Course", value: "course" },
+        { text: "Length of Service", value: "length_of_service" },
         // { text: "Actions", value: "actions", sortable: false },
       ],
       disabled: false,
@@ -252,8 +256,25 @@ export default {
       dialog_import: false,
       dialog_error_list: false,
       errors_array: [],
-      branch_id : '',
+      branch_id: "",
     };
+  },
+
+  watch: {
+    userIsLoaded: {
+      handler() {
+        if (this.userIsLoaded && this.userRolesPermissionsIsLoaded) {
+          this.getEmployee();
+        }
+      },
+    },
+    userRolesPermissionsIsLoaded: {
+      handler() {
+        if (this.userIsLoaded && this.userRolesPermissionsIsLoaded) {
+          this.getEmployee();
+        }
+      },
+    },
   },
 
   methods: {
@@ -261,9 +282,12 @@ export default {
       this.loading = true;
       axios.get("/api/employee/list/view/" + this.branch_id).then(
         (response) => {
-
           // if user has no permission to view overall list
-          if (!this.userPermissions.employee_list_all && this.user.branch_id != this.branch_id) {
+          console.log(response.data);
+          if (
+            !this.userPermissions.employee_list_all &&
+            this.user.branch_id != this.branch_id
+          ) {
             this.$router.push({ name: "unauthorize" });
           }
 
@@ -272,6 +296,7 @@ export default {
         },
         (error) => {
           this.isUnauthorized(error);
+          console.log(error);
         }
       );
     },
@@ -331,6 +356,7 @@ export default {
               },
               (error) => {
                 this.isUnauthorized(error);
+                console.log(error);
               }
             );
           }
@@ -378,16 +404,12 @@ export default {
         formData.append("file", this.file);
 
         axios
-          .post(
-            "api/employee/import_employee/" + this.branch_id,
-            formData,
-            {
-              headers: {
-                Authorization: "Bearer " + localStorage.getItem("access_token"),
-                "Content-Type": "multipart/form-data",
-              },
-            }
-          )
+          .post("api/employee/import_employee/" + this.branch_id, formData, {
+            headers: {
+              Authorization: "Bearer " + localStorage.getItem("access_token"),
+              "Content-Type": "multipart/form-data",
+            },
+          })
           .then(
             (response) => {
               this.errors_array = [];
@@ -421,17 +443,16 @@ export default {
                   row = value.split(".")[0];
                   col = value.split(".")[1];
                   errors[value].forEach((val, i) => {
-                    this.errors_array.push(
-                      "Error on Index: <label class='text-info'>" +
-                        row +
-                        "</label>; Column: <label class='text-primary'>" +
-                        col +
-                        "</label>; Msg: <label class='text-danger'>" +
-                        val +
-                        "</label>; Value: <label class='text-success'>" +
-                        field_values[row][col] +
-                        "</label>"
-                    );
+                    this.errors_array[index] =
+                      "Error on row: <label class='text-info'>" +
+                      (parseInt(row) + 1) +
+                      "</label>; Column: <label class='text-primary'>" +
+                      col +
+                      "</label>; Msg: <label class='text-danger'>" +
+                      val +
+                      "</label>; Value: <label class='text-success'>" +
+                      field_values[row][col] +
+                      "</label>";
                   });
                 });
 
@@ -444,10 +465,13 @@ export default {
 
               this.uploadDisabled = false;
               this.uploading = false;
+
+              console.log(response.data);
             },
             (error) => {
               this.isUnauthorized(error);
               this.uploadDisabled = false;
+              console.log(error);
             }
           );
       }
@@ -486,7 +510,6 @@ export default {
     },
   },
   computed: {
-
     fileErrors() {
       const errors = [];
       if (!this.$v.file.$dirty) return errors;
@@ -499,17 +522,23 @@ export default {
     imported_file_errors() {
       return this.errors_array.sort();
     },
-    ...mapState("auth", ["user"]),
-    ...mapState("userRolesPermissions", ["userRoles", "userPermissions"]),
+    ...mapState("auth", ["user", "userIsLoaded"]),
+    ...mapState("userRolesPermissions", [
+      "userRoles",
+      "userPermissions",
+      "userRolesPermissionsIsLoaded",
+    ]),
   },
 
-  async mounted() {
+  mounted() {
     axios.defaults.headers.common["Authorization"] =
       "Bearer " + localStorage.getItem("access_token");
-    this.branch_id = await this.$route.params.branch_id;
+    this.branch_id = this.$route.params.branch_id;
 
-    await this.getEmployee();
-    
+    if (this.userIsLoaded && this.userRolesPermissionsIsLoaded) {
+      this.getEmployee();
+    }
+
     // this.websocket();
   },
 };

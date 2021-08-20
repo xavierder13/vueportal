@@ -32,6 +32,9 @@ class Employee extends Model
         'sss_no',
         'time_schedule',
         'restday',
+        'educ_attain',
+        'school_attended',
+        'course'
     ];
 
     public function branch()

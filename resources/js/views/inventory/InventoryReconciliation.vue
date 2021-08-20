@@ -496,8 +496,8 @@ export default {
                   col = value.split(".")[1];
                   errors[value].forEach((val, i) => {
                     this.errors_array.push(
-                      "Error on Index: <label class='text-info'>" +
-                        row +
+                      "Error on row: <label class='text-info'>" +
+                        (parseInt(row) + 1) +
                         "</label>; Column: <label class='text-primary'>" +
                         col +
                         "</label>; Msg: <label class='text-danger'>" +

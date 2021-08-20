@@ -90,6 +90,7 @@ const state = {
     audit_admin: false,
     mss: false,
   },
+  userRolesPermissionsIsLoaded: false,
 };
 
 const getters = {};
@@ -239,6 +240,10 @@ const mutations = {
 
     // ACTIVITY LOG PERMISSIONS
     permission.activity_logs = permissions.includes("activity-logs");
+
+    // set true if user roles and permissions value successfully assigned
+    state.userRolesPermissionsIsLoaded = true;
+
   },
 
 };
