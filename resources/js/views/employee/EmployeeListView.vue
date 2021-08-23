@@ -11,44 +11,69 @@
         </v-breadcrumbs>
         <div class="d-flex justify-content-end mb-3">
           <div>
-            <v-btn
-              color="primary"
-              class="ml-4"
-              small
-              @click="importExcel()"
-              v-if="userPermissions.employee_list_import"
-            >
-              <v-icon class="mr-1" small> mdi-import </v-icon>
-              Import
-            </v-btn>
-          </div>
-          <div>
-            <v-divider
-              vertical
-              class="ml-2 mr-2"
-              v-if="userPermissions.employee_list_export"
-            ></v-divider>
-          </div>
-          <div>
-            <v-btn
-              color="success"
-              small
-              @click="exportData()"
-              v-if="userPermissions.employee_list_export"
-            >
-              <v-icon class="mr-1" small> mdi-microsoft-excel </v-icon>
-              Export
-            </v-btn>
-          </div>
-          <div><v-divider vertical class="ml-2 mr-2"></v-divider></div>
-          <div>
-            <v-btn
-              color="error"
-              small
-              @click="clearList()"
-              v-if="userPermissions.employee_clear_list"
-              ><v-icon class="mr-1" small> mdi-delete </v-icon>clear list</v-btn
-            >
+            <v-menu offset-y>
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn small v-bind="attrs" v-on="on" color="primary">
+                  Actions
+                  <v-icon small> mdi-menu-down </v-icon>
+                </v-btn>
+              </template>
+              <v-list class="pa-1">
+                <v-list-item
+                  class="ma-0 pa-0"
+                  style="min-height: 25px"
+                  v-if="userPermissions.employee_list_import"
+                >
+                  <v-list-item-title>
+                    <v-btn
+                      color="primary"
+                      class="ma-2"
+                      width="120px"
+                      small
+                      @click="importExcel()"
+                    >
+                      <v-icon class="mr-1" small> mdi-import </v-icon>
+                      Import
+                    </v-btn>
+                  </v-list-item-title>
+                </v-list-item>
+                <v-list-item
+                  class="ma-0 pa-0"
+                  style="min-height: 25px"
+                  v-if="userPermissions.employee_list_export"
+                >
+                  <v-list-item-title>
+                    <v-btn
+                      color="success"
+                      class="ma-2"
+                      width="120px"
+                      small
+                      @click="exportData()"
+                    >
+                      <v-icon class="mr-1" small> mdi-microsoft-excel </v-icon>
+                      Export
+                    </v-btn>
+                  </v-list-item-title>
+                </v-list-item>
+                <v-list-item
+                  class="ma-0 pa-0"
+                  style="min-height: 25px"
+                  v-if="userPermissions.employee_clear_list"
+                >
+                  <v-list-item-title>
+                    <v-btn
+                      color="error"
+                      class="ma-2"
+                      width="120px"
+                      small
+                      @click="clearList()"
+                      ><v-icon class="mr-1" small> mdi-delete </v-icon>clear
+                      list</v-btn
+                    >
+                  </v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-menu>
           </div>
         </div>
         <v-card>
@@ -283,7 +308,7 @@ export default {
       axios.get("/api/employee/list/view/" + this.branch_id).then(
         (response) => {
           // if user has no permission to view overall list
-          console.log(response.data);
+
           if (
             !this.userPermissions.employee_list_all &&
             this.user.branch_id != this.branch_id

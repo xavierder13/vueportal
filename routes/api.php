@@ -357,6 +357,35 @@ Route::group(['prefix' => 'branch', 'middleware' => ['auth:api', 'branch.mainten
 
 });
 
+// Company Routes
+Route::group(['prefix' => 'company', 'middleware' => ['auth:api', 'company.maintenance']], function(){
+    Route::get('/index', [
+        'uses' => 'API\CompanyController@index',
+        'as' => 'company.index',
+    ]);
+    Route::get('/create', [
+        'uses' => 'API\CompanyController@create',
+        'as' => 'company.create',
+    ]);
+    Route::post('/store', [
+        'uses' => 'API\CompanyController@store',
+        'as' => 'company.store',
+    ]);
+    Route::post('/edit', [
+        'uses' => 'API\CompanyController@edit',
+        'as' => 'company.edit',
+    ]);
+    Route::post('/update/{id}', [
+        'uses' => 'API\CompanyController@update',
+        'as' => 'company.update',
+    ]);
+    Route::post('/delete', [
+        'uses' => 'API\CompanyController@delete',
+        'as' => 'company.delete',
+    ]);
+
+});
+
 // Position Routes
 Route::group(['prefix' => 'position', 'middleware' => ['auth:api', 'position.maintenance']], function(){
     Route::get('/index', [

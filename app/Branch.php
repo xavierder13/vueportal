@@ -15,4 +15,10 @@ class Branch extends Model
         //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
     }
 
+    public function company()
+    {
+        return $this->hasOne('App\Company', 'id', 'company_id');
+        //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
+    }
+
 }

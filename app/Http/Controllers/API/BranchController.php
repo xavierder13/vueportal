@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Branch;
+use App\Company;
 use Validator;
 use DB;
 
@@ -12,8 +13,9 @@ class BranchController extends Controller
 {
     public function index()
     {       
-        $branches = Branch::all();
-        return response()->json(['branches' => $branches], 200);
+        $branches = Branch::with('company')->get();
+        $companies = Company::all();
+        return response()->json(['branches' => $branches, 'companies' => $companies], 200);
     }
 
     public function create()
@@ -29,12 +31,16 @@ class BranchController extends Controller
             'name.required' => 'Please enter branch',
             'name.unique' => 'Branch already exists',
             'code.required' => 'Please enter branch code',
-            'code.unique' => 'Branch Code already exists'
+            'code.unique' => 'Branch Code already exists',
+            'company_id.required' => 'Please enter company',
+            'company_id.integer' => 'Company must be an integer',
         ];
 
         $validator = Validator::make($request->all(),[
             'name' => 'required|unique:branches,name',
             'code' => 'required|unique:branches,code',
+            'company_id' => 'required|integer',
+
         ], $rules);
 
         if($validator->fails())
@@ -46,6 +52,7 @@ class BranchController extends Controller
         $branch->name = $request->get('name');
         $branch->code = $request->get('code');
         $branch->bm_oic = $request->get('bm_oic');
+        $branch->company_id = $request->get('company_id');
         $branch->save();
 
         return response()->json(['success' => 'Record has successfully added', 'branch' => $branch], 200);
@@ -57,7 +64,7 @@ class BranchController extends Controller
         $branch_id = $request->get('branch_id');
 
         $branch = Branch::find($branch_id);
-
+        
         //if record is empty then display error page
         if(empty($branch->id))
         {
@@ -77,12 +84,15 @@ class BranchController extends Controller
             'name.required' => 'Please enter branch',
             'name.unique' => 'Branch already exists',
             'code.required' => 'Please enter branch code',
-            'code.unique' => 'Branch Code already exists'
+            'code.unique' => 'Branch Code already exists',
+            'company_id.required' => 'Please enter company',
+            'company_id.integer' => 'Company must be an integer',
         ];
 
         $validator = Validator::make($request->all(),[
             'name' => 'required|unique:branches,name,'.$branch_id,
-            'code' => 'required|unique:branches,code,'.$branch_id
+            'code' => 'required|unique:branches,code,'.$branch_id,
+            'company_id' => 'required|integer',
         ], $rules);
 
         if($validator->fails())
@@ -101,6 +111,7 @@ class BranchController extends Controller
         $branch->name = $request->get('name');
         $branch->code = $request->get('code');
         $branch->bm_oic = $request->get('bm_oic');
+        $branch->company_id = $request->get('company_id');
         $branch->save();
 
 

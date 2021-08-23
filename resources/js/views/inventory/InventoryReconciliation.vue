@@ -265,7 +265,7 @@ export default {
         { text: "Status", value: "status" },
         { text: "Date Created", value: "date_created" },
         { text: "Date Reconciled", value: "date_reconciled" },
-        { text: "Actions", value: "actions", sortable: false },
+        { text: "Actions", value: "actions", sortable: false, width: "150px"},
       ],
       disabled: false,
       dialog: false,

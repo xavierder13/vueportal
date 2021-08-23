@@ -45,12 +45,17 @@
                           <v-col class="mt-0 mb-0 pt-0 pb-0">
                             <v-text-field
                               name="branch_code"
-                              v-model="editedBranch.code"
+                              v-model="editedItem.code"
                               label="Branch Code"
                               required
-                              :error-messages="branchCodeErrors + branchError.code"
-                              @input="$v.editedBranch.code.$touch() + (branchError.code = [])"
-                              @blur="$v.editedBranch.code.$touch()"
+                              :error-messages="
+                                branchCodeErrors + branchError.code
+                              "
+                              @input="
+                                $v.editedItem.code.$touch() +
+                                  (branchError.code = [])
+                              "
+                              @blur="$v.editedItem.code.$touch()"
                             ></v-text-field>
                           </v-col>
                         </v-row>
@@ -58,12 +63,15 @@
                           <v-col class="mt-0 mb-0 pt-0 pb-0">
                             <v-text-field
                               name="branch"
-                              v-model="editedBranch.name"
+                              v-model="editedItem.name"
                               label="Branch Name"
                               required
                               :error-messages="branchErrors + branchError.name"
-                              @input="$v.editedBranch.name.$touch() + (branchError.name = [])"
-                              @blur="$v.editedBranch.name.$touch()"
+                              @input="
+                                $v.editedItem.name.$touch() +
+                                  (branchError.name = [])
+                              "
+                              @blur="$v.editedItem.name.$touch()"
                             ></v-text-field>
                           </v-col>
                         </v-row>
@@ -71,9 +79,25 @@
                           <v-col class="mt-0 mb-0 pt-0 pb-0">
                             <v-text-field
                               name="branch"
-                              v-model="editedBranch.bm_oic"
+                              v-model="editedItem.bm_oic"
                               label="BM/OIC"
                             ></v-text-field>
+                          </v-col>
+                        </v-row>
+                        <v-row>
+                          <v-col class="mt-0 mb-0 pt-0 pb-0">
+                            <v-autocomplete
+                              v-model="editedItem.company_id"
+                              :items="companies"
+                              item-text="name"
+                              item-value="id"
+                              label="Company"
+                              required
+                              :error-messages="companyErrors"
+                              @input="$v.editedItem.company_id.$touch()"
+                              @blur="$v.editedItem.company_id.$touch()"
+                            >
+                            </v-autocomplete>
                           </v-col>
                         </v-row>
                       </v-container>
@@ -98,7 +122,7 @@
               </v-toolbar>
             </template>
           </v-card-title>
-          
+
           <v-data-table
             :headers="headers"
             :items="branches"
@@ -133,20 +157,19 @@
   </div>
 </template>
 <script>
-
 import axios from "axios";
 import { validationMixin } from "vuelidate";
 import { required, maxLength, email } from "vuelidate/lib/validators";
 import { mapState } from "vuex";
 
 export default {
-
   mixins: [validationMixin],
 
   validations: {
-    editedBranch: {
+    editedItem: {
       code: { required },
       name: { required },
+      company_id: { required },
     },
   },
   data() {
@@ -156,21 +179,25 @@ export default {
         { text: "Branch", value: "name" },
         { text: "Branch Code", value: "code" },
         { text: "BM/OIC", value: "bm_oic" },
-        { text: "Actions", value: "actions", sortable: false },
+        { text: "Company", value: "company.name" },
+        { text: "Actions", value: "actions", sortable: false, width: "80px" },
       ],
       switch1: true,
       disabled: false,
       dialog: false,
       branches: [],
+      companies: [],
       editedIndex: -1,
-      editedBranch: {
+      editedItem: {
         name: "",
         code: "",
+        company_id: "",
         bm_oic: "",
       },
       defaultItem: {
         name: "",
         code: "",
+        company_id: "",
         bm_oic: "",
       },
       items: [
@@ -187,8 +214,8 @@ export default {
       loading: true,
       branchError: {
         name: [],
-        code: []
-      }
+        code: [],
+      },
     };
   },
 
@@ -198,6 +225,7 @@ export default {
       axios.get("/api/branch/index").then(
         (response) => {
           this.branches = response.data.branches;
+          this.companies = response.data.companies;
           this.loading = false;
         },
         (error) => {
@@ -208,7 +236,7 @@ export default {
 
     editBranch(item) {
       this.editedIndex = this.branches.indexOf(item);
-      this.editedBranch = Object.assign({}, item);
+      this.editedItem = Object.assign({}, item);
       this.dialog = true;
     },
 
@@ -278,7 +306,7 @@ export default {
       this.dialog = false;
       this.clear();
       this.$nextTick(() => {
-        this.editedBranch = Object.assign({}, this.defaultItem);
+        this.editedItem = Object.assign({}, this.defaultItem);
         this.editedIndex = -1;
       });
     },
@@ -287,15 +315,15 @@ export default {
       this.$v.$touch();
       this.branchError = {
         code: [],
-        name: []
+        name: [],
       };
 
       if (!this.$v.$error) {
         this.disabled = true;
 
         if (this.editedIndex > -1) {
-          const data = this.editedBranch;
-          const branch_id = this.editedBranch.id;
+          const data = this.editedItem;
+          const branch_id = this.editedItem.id;
 
           axios.post("/api/branch/update/" + branch_id, data).then(
             (response) => {
@@ -303,19 +331,14 @@ export default {
                 // send data to Sockot.IO Server
                 // this.$socket.emit("sendData", { action: "branch-edit" });
 
-                Object.assign(
-                  this.branches[this.editedIndex],
-                  this.editedBranch
-                );
+                Object.assign(this.branches[this.editedIndex], this.editedItem);
                 this.showAlert();
                 this.close();
-              }
-              else
-              {
+              } else {
                 let errors = response.data;
                 let errorNames = Object.keys(response.data);
 
-                errorNames.forEach(value => {
+                errorNames.forEach((value) => {
                   this.branchError[value].push(errors[value]);
                 });
               }
@@ -328,11 +351,10 @@ export default {
             }
           );
         } else {
-          const data = this.editedBranch;
+          const data = this.editedItem;
 
           axios.post("/api/branch/store", data).then(
             (response) => {
- 
               if (response.data.success) {
                 // send data to Sockot.IO Server
                 // this.$socket.emit("sendData", { action: "branch-create" });
@@ -342,13 +364,11 @@ export default {
 
                 //push recently added data from database
                 this.branches.push(response.data.branch);
-              }
-              else
-              {
+              } else {
                 let errors = response.data;
                 let errorNames = Object.keys(response.data);
 
-                errorNames.forEach(value => {
+                errorNames.forEach((value) => {
                   this.branchError[value].push(errors[value]);
                 });
               }
@@ -365,13 +385,13 @@ export default {
 
     clear() {
       this.$v.$reset();
-      this.editedBranch.name = "";
+      this.editedItem.name = "";
       this.branchError = {
         code: [],
-        name: []
-      }
+        name: [],
+      };
     },
-   
+
     isUnauthorized(error) {
       // if unauthenticated (401)
       if (error.response.status == "401") {
@@ -395,22 +415,37 @@ export default {
       };
     },
   },
+  watch: {
+    "editedItem.company_id"() {
+      this.companies.forEach((value) => {
+        if (this.editedItem.company_id === value.id) {
+          this.editedItem.company = value;
+        }
+      });
+    },
+  },
   computed: {
     formTitle() {
       return this.editedIndex === -1 ? "New Branch" : "Edit Branch";
     },
     branchErrors() {
       const errors = [];
-      if (!this.$v.editedBranch.name.$dirty) return errors;
-      !this.$v.editedBranch.name.required &&
-        errors.push("Branch is required.");
+      if (!this.$v.editedItem.name.$dirty) return errors;
+      !this.$v.editedItem.name.required && errors.push("Branch is required.");
       return errors;
     },
     branchCodeErrors() {
       const errors = [];
-      if (!this.$v.editedBranch.code.$dirty) return errors;
-      !this.$v.editedBranch.code.required &&
+      if (!this.$v.editedItem.code.$dirty) return errors;
+      !this.$v.editedItem.code.required &&
         errors.push("Branch Code is required.");
+      return errors;
+    },
+    companyErrors() {
+      const errors = [];
+      if (!this.$v.editedItem.company_id.$dirty) return errors;
+      !this.$v.editedItem.company_id.required &&
+        errors.push("Company is required.");
       return errors;
     },
     ...mapState("userRolesPermissions", ["userRoles", "userPermissions"]),

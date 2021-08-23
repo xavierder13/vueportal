@@ -254,6 +254,15 @@
           </v-list-item>
           <v-list-item
             link
+            to="/company/index"
+            v-if="userPermissions.company_list || userPermissions.company_create"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Company</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
             to="/position/index"
             v-if="
               userPermissions.position_list || userPermissions.position_create

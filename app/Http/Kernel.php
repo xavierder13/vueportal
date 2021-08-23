@@ -66,6 +66,7 @@ class Kernel extends HttpKernel
         'product.maintenance' => \App\Http\Middleware\ProductMaintenance::class,
         'brand.maintenance' => \App\Http\Middleware\BrandMaintenance::class,
         'branch.maintenance' => \App\Http\Middleware\BranchMaintenance::class,
+        'company.maintenance' => \App\Http\Middleware\CompanyMaintenance::class,
         'position.maintenance' => \App\Http\Middleware\PositionMaintenance::class,
         'employee.maintenance' => \App\Http\Middleware\EmployeeMaintenance::class,
         'permission.maintenance' => \App\Http\Middleware\PermissionMaintenance::class,

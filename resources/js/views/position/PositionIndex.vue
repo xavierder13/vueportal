@@ -131,7 +131,7 @@ export default {
       search: "",
       headers: [
         { text: "Position", value: "name" },
-        { text: "Actions", value: "actions", sortable: false },
+        { text: "Actions", value: "actions", sortable: false, width: "80px" },
       ],
       switch1: true,
       disabled: false,

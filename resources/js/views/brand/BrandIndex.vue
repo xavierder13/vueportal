@@ -140,7 +140,7 @@ export default {
       headers: [
         { text: "Brand", value: "name" },
         { text: "Active", value: "active" },
-        { text: "Actions", value: "actions", sortable: false },
+        { text: "Actions", value: "actions", sortable: false, width: "80px" },
       ],
       switch1: true,
       disabled: false,

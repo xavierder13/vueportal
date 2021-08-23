@@ -77,7 +77,7 @@ export default {
       headers: [
         { text: "Branch", value: "name" },
         { text: "Last Uploaded", value: "last_upload" },
-        { text: "Actions", value: "actions", sortable: false },
+        { text: "Actions", value: "actions", sortable: false, width: "120px" },
       ],
       disabled: false,
       dialog: false,
@@ -105,7 +105,6 @@ export default {
         (response) => {
           this.branches = response.data.branches;
           this.loading = false;
-          console.log(response.data);
         },
         (error) => {
           this.isUnauthorized(error);

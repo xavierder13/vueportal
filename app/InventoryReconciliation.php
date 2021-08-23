@@ -26,7 +26,7 @@ class InventoryReconciliation extends Model
         //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
     }
 
-    public function inventory_recon_map()
+    public function inventory_recon_maps()
     {
         return $this->hasMany('App\InventoryReconciliationMap', 'inventory_recon_id', 'id');
         //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )

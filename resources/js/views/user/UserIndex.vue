@@ -57,7 +57,10 @@
                               v-model="editedItem.name"
                               :error-messages="nameErrors + userError.name"
                               label="Full Name"
-                              @input="$v.editedItem.name.$touch() + (userError.name = [])"
+                              @input="
+                                $v.editedItem.name.$touch() +
+                                  (userError.name = [])
+                              "
                               @blur="$v.editedItem.name.$touch()"
                               :readonly="editedItem.id == 1 ? true : false"
                             ></v-text-field>
@@ -70,7 +73,10 @@
                               v-model="editedItem.email"
                               :error-messages="emailErrors + userError.email"
                               label="E-mail"
-                              @input="$v.editedItem.email.$touch() + (userError.email = [])"
+                              @input="
+                                $v.editedItem.email.$touch() +
+                                  (userError.email = [])
+                              "
                               @blur="$v.editedItem.email.$touch()"
                               :readonly="
                                 emailReadonly || editedItem.id == 1
@@ -85,10 +91,14 @@
                             <v-text-field
                               name="password"
                               v-model="password"
-                              :error-messages="passwordErrors + userError.password"
+                              :error-messages="
+                                passwordErrors + userError.password
+                              "
                               label="Password"
                               required
-                              @input="$v.password.$touch() + (userError.password = [])"
+                              @input="
+                                $v.password.$touch() + (userError.password = [])
+                              "
                               @blur="$v.password.$touch() + dummyPassword"
                               @keyup="passwordChange()"
                               @focus="onFocus()"
@@ -102,10 +112,16 @@
                             <v-text-field
                               name="confirm_password"
                               v-model="confirm_password"
-                              :error-messages="confirm_passwordErrors + userError.confirm_password"
+                              :error-messages="
+                                confirm_passwordErrors +
+                                userError.confirm_password
+                              "
                               label="Confirm Password"
                               required
-                              @input="$v.confirm_password.$touch() + (userError.confirm_password = [])"
+                              @input="
+                                $v.confirm_password.$touch() +
+                                  (userError.confirm_password = [])
+                              "
                               @blur="
                                 $v.confirm_password.$touch() + dummyPassword
                               "
@@ -150,8 +166,13 @@
                               item-value="id"
                               label="Branch"
                               required
-                              :error-messages="branchErrors + userError.branch_id"
-                              @input="$v.editedItem.branch_id.$touch() + (userError.branch_id = [])"
+                              :error-messages="
+                                branchErrors + userError.branch_id
+                              "
+                              @input="
+                                $v.editedItem.branch_id.$touch() +
+                                  (userError.branch_id = [])
+                              "
                               @blur="$v.editedItem.branch_id.$touch()"
                               :readonly="editedItem.id == 1 ? true : false"
                             >
@@ -209,37 +230,55 @@
                     <v-card-title class="mb-0 pb-0">
                       <span class="headline">Roles</span>
                       <v-spacer></v-spacer>
-                      <v-icon @click="dialogPermission = false"
-                        >mdi-close</v-icon
-                      >
+                      <v-text-field
+                        v-model="search_roles_permissions"
+                        append-icon="mdi-magnify"
+                        label="Search"
+                        single-line
+                      ></v-text-field>
+                      <v-spacer></v-spacer>
+
+                      <v-icon @click="closeRolesBreakdown()">mdi-close</v-icon>
                     </v-card-title>
-                    <v-divider></v-divider>
                     <v-card-text>
                       <v-container>
-                        <v-row>
-                          <v-col class="mt-0 mb-0 pt-0 pb-0">
-                            <v-expansion-panels>
-                              <v-expansion-panel
-                                v-for="(role, i) in roles_permissions"
-                                :key="i"
+                        <v-data-table
+                          :headers="roles_permissions_headers"
+                          :items="rolesBreakdown"
+                          :search="search_roles_permissions"
+                          :loading="loading"
+                          item-key="index"
+                          group-by="role"
+                          class="elevation-1"
+                          :expanded.sync="expanded"
+                          loading-text="Loading... Please wait"
+                          fixed-header
+                        >
+                          <template
+                            v-slot:group.header="{
+                              items,
+                              headers,
+                              toggle,
+                              isOpen,
+                            }"
+                          >
+                            <td :colspan="headers.length">
+                              <v-btn
+                                @click="toggle"
+                                small
+                                icon
+                                :ref="items"
+                                :data-open="isOpen"
                               >
-                                <v-expansion-panel-header>
-                                  {{ role.name }}
-                                </v-expansion-panel-header>
-                                <v-expansion-panel-content>
-                                  <v-chip
-                                    color="secondary"
-                                    v-for="(permission, i) in role.permissions"
-                                    :key="i"
-                                    class="ma-1"
-                                  >
-                                    {{ permission.name }}
-                                  </v-chip>
-                                </v-expansion-panel-content>
-                              </v-expansion-panel>
-                            </v-expansion-panels>
-                          </v-col>
-                        </v-row>
+                                <v-icon v-if="isOpen">mdi-chevron-up</v-icon>
+                                <v-icon v-else>mdi-chevron-down</v-icon>
+                              </v-btn>
+                              <v-chip color="secondary">
+                                <strong>{{ items[0].role }}</strong>
+                              </v-chip>
+                            </td>
+                          </template>
+                        </v-data-table>
                       </v-container>
                     </v-card-text>
                     <v-card-actions>
@@ -264,7 +303,7 @@
                   small
                   color="secondary"
                   v-if="key == 0"
-                  @click="viewRoles(item.roles)"
+                  @click="viewRolesBreakdown(item.roles)"
                 >
                   {{ role.name }}
                 </v-chip>
@@ -272,7 +311,7 @@
                 <v-chip
                   small
                   v-if="key == 0 && item.roles.length > 1"
-                  @click="viewRoles(item.roles)"
+                  @click="viewRolesBreakdown(item.roles)"
                 >
                   {{ "+" }}
                   {{
@@ -318,7 +357,6 @@
   </div>
 </template>
 <script>
-
 import axios from "axios";
 import { validationMixin } from "vuelidate";
 import {
@@ -328,10 +366,9 @@ import {
   minLength,
   sameAs,
 } from "vuelidate/lib/validators";
-import { mapState } from 'vuex';  
+import { mapState } from "vuex";
 
 export default {
-
   mixins: [validationMixin],
 
   validations: {
@@ -359,6 +396,7 @@ export default {
         },
       ],
       search: "",
+      search_roles_permissions: "",
       headers: [
         { text: "Full Name", value: "name" },
         { text: "E-mail", value: "email" },
@@ -367,8 +405,13 @@ export default {
         { text: "Position", value: "position.name" },
         { text: "Last Login", value: "last_login" },
         { text: "Roles", value: "roles" },
-        { text: "Actions", value: "actions", sortable: false },
+        { text: "Actions", value: "actions", sortable: false, width: "80px"},
       ],
+      roles_permissions_headers: [
+        { text: "Role", value: "role" },
+        { text: "Permission", value: "permission" },
+      ],
+      expanded: [],
       switch1: true,
       disabled: false,
       emailReadonly: false,
@@ -407,7 +450,7 @@ export default {
         confirm_password: [],
         branch_id: [],
         position_id: [],
-      }
+      },
     };
   },
 
@@ -422,7 +465,6 @@ export default {
           this.branches = data.branches;
           this.positions = data.positions;
           this.loading = false;
-
         },
         (error) => {
           this.isUnauthorized(error);
@@ -521,7 +563,7 @@ export default {
         email: [],
         password: [],
         confirm_password: [],
-        branch_id: []
+        branch_id: [],
       };
 
       if (!this.$v.$error) {
@@ -559,13 +601,11 @@ export default {
                 Object.assign(this.users[this.editedIndex], response.data.user);
                 this.showAlert();
                 this.close();
-              }
-              else
-              {
+              } else {
                 let errors = response.data;
                 let errorNames = Object.keys(response.data);
 
-                errorNames.forEach(value => {
+                errorNames.forEach((value) => {
                   this.userError[value].push(errors[value]);
                 });
               }
@@ -593,16 +633,14 @@ export default {
 
                 this.showAlert();
                 this.close();
-       
+
                 //push recently added data from database
                 this.users.push(response.data.user);
-              }
-              else
-              {
+              } else {
                 let errors = response.data;
                 let errorNames = Object.keys(response.data);
 
-                errorNames.forEach(value => {
+                errorNames.forEach((value) => {
                   this.userError[value].push(errors[value]);
                 });
               }
@@ -633,7 +671,7 @@ export default {
         email: [],
         password: [],
         confirm_password: [],
-        branch_id: []
+        branch_id: [],
       };
     },
     onFocus() {
@@ -651,9 +689,13 @@ export default {
         this.passwordHasChanged = false;
       }
     },
-    viewRoles(roles) {
+    viewRolesBreakdown(roles) {
       this.dialogPermission = true;
       this.roles_permissions = roles;
+    },
+    closeRolesBreakdown() {
+      this.dialogPermission = false;
+      this.search_roles_permissions = "";
     },
 
     isUnauthorized(error) {
@@ -662,7 +704,7 @@ export default {
         this.$router.push({ name: "unauthorize" });
       }
     },
-    
+
     websocket() {
       // Socket.IO fetch data
       this.$options.sockets.sendData = (data) => {
@@ -739,8 +781,25 @@ export default {
     branchErrors() {
       const errors = [];
       if (!this.$v.editedItem.branch_id.$dirty) return errors;
-      !this.$v.editedItem.branch_id.required && errors.push("Branch is required.");
+      !this.$v.editedItem.branch_id.required &&
+        errors.push("Branch is required.");
       return errors;
+    },
+    rolesBreakdown() {
+      let roles_permissions = [];
+      let index = 0;
+      this.roles_permissions.forEach((value) => {
+        value.permissions.forEach((val) => {
+          roles_permissions.push({
+            index: index,
+            role: value.name,
+            permission: val.name,
+          });
+          index++;
+        });
+      });
+
+      return roles_permissions;
     },
     ...mapState("userRolesPermissions", ["userRoles", "userPermissions"]),
   },

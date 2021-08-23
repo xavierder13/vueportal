@@ -130,7 +130,7 @@ export default {
       search: "",
       headers: [
         { text: "Permission", value: "name" },
-        { text: "Actions", value: "actions", sortable: false },
+        { text: "Actions", value: "actions", sortable: false, width: "80px" },
       ],
       disabled: false,
       dialog: false,

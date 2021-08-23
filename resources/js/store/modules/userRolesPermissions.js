@@ -15,6 +15,10 @@ const state = {
     branch_create: false,
     branch_edit: false,
     branch_delete: false,
+    company_list: false,
+    company_create: false,
+    company_edit: false,
+    company_delete: false,
     position_list: false,
     position_create: false,
     position_edit: false,
@@ -152,6 +156,12 @@ const mutations = {
     permission.branch_create = permissions.includes("branch-create");
     permission.branch_edit = permissions.includes("branch-edit");
     permission.branch_delete = permissions.includes("branch-delete");
+
+    // COMPANY RECORD MAINTENANCE PERMISSIONS
+    permission.company_list = permissions.includes("company-list");
+    permission.company_create = permissions.includes("company-create");
+    permission.company_edit = permissions.includes("company-edit");
+    permission.company_delete = permissions.includes("company-delete");
 
     // POSITION RECORD MAINTENANCE PERMISSIONS
     permission.position_list = permissions.includes("position-list");
