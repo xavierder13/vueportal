@@ -25,6 +25,27 @@ class EmployeeMaintenance
             }
         }
 
+        //Employee Create
+        if($request->is('api/employee/create') || $request->is('api/employee/store')){
+            if($user->can('employee-create')){
+                return $next($request); 
+            }
+        }
+
+        //Employee Edit
+        if($request->is('api/employee/edit/*') || $request->is('api/employee/update/*')){
+            if($user->can('employee-edit')){
+                return $next($request); 
+            }
+        }
+
+        //Employee Delete
+        if($request->is('api/employee/delete')){
+            if($user->can('employee-delete')){
+                return $next($request); 
+            }
+        }
+
         //Employee Import Data
         if($request->is('api/employee/import_employee/*')){
             if($user->can('employee-list-import')){

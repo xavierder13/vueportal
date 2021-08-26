@@ -32,7 +32,7 @@ class EmployeeController extends Controller
     {
         $employees = Employee::with('branch')
                              ->where('branch_id', '=', $branch_id)
-                             ->select(DB::raw("*, 
+                             ->select(DB::raw("*, DATE_FORMAT(dob, '%m/%d/%Y') as birth_date, DATE_FORMAT(date_employed, '%m/%d/%Y') as date_employed, 
                                                 CONCAT(CAST((TIMESTAMPDIFF(DAY, date_employed, date_format(NOW(),'%Y-%m-%d')) / 365) AS UNSIGNED), ' years(s) ',
                                                 CAST(((TIMESTAMPDIFF(DAY, date_employed, date_format(NOW(),'%Y-%m-%d')) % 365) / 30) AS UNSIGNED), ' month(s) ',
                                                 ((TIMESTAMPDIFF(DAY, date_employed, date_format(NOW(),'%Y-%m-%d')) % 365) % 30), ' day(s)')  as length_of_service"
@@ -42,6 +42,232 @@ class EmployeeController extends Controller
 
         return response()->json(['employees' => $employees], 200);
     }
+
+    public function create()
+    {
+
+    }
+
+    public function store(Request $request)
+    { 
+        $rules = [
+            'branch_id.required' => 'Branch is required',
+            'branch_id.integer' => 'Branch must be an integer',
+            'employee_code.required' => 'Employee Code is required',
+            'last_name.required' => 'Lastname is required',
+            'first_name.required' => 'Firstname is required',
+            'birth_date.required' => 'Birth Date is required',
+            'birth_date.date_format' => 'Invalid date. Format: (YYYY-MM-DD)',
+            'address.required' => 'Address is required',
+            'contact.required' => 'Contact is required',
+            'rank.required' => 'Rank is required',
+            'department.required' => 'Department is required',
+            'cost_center_code.required' => 'Cost Center Code is required',
+            'job_description.required' => 'Job Description is required',
+            'date_employed.required' => 'Date Employed is required',
+            'date_employed.date_format' => 'Invalid date. Format: (YYYY-MM-DD)',
+            'gender.required' => 'Gender is required',
+            'civil_status.required' => 'Civil Status is required',
+            'tax_status.required' => 'Tax Status is required',
+            'tin_no.required' => 'TIN No. is required',
+            'tax_branch_code.required' => 'Tax Branch Code is required',
+            'pagibig_no.required' => 'Pag-IBIG No. is required',
+            'philhealth_no.required' => 'PhilHealth No. is required',
+            'sss_no.required' => 'SSS No. is required',
+            'time_schedule.required' => 'Time Schedule is required',
+            'restday.required' => 'Rest Day is required',
+            'educ_attain.required' => 'Educational Attainment is required',
+            'school_attended.required' => 'School Attended is required',
+            'course.required' => 'Course is required',
+        ];
+
+        $valid_fields = [
+            'branch_id' => 'required|integer',
+            'employee_code' => 'required',
+            'last_name' => 'required',
+            'first_name' => 'required',
+            'birth_date' => 'required|date_format:Y-m-d',
+            'address' => 'required',
+            'contact' => 'required',
+            'email' => 'required',
+            'class' => 'required',
+            'rank' => 'required',
+            'department' => 'required',
+            'cost_center_code' => 'required',
+            'job_description' => 'required',
+            'date_employed' => 'required|date_format:Y-m-d',
+            'gender' => 'required',
+            'civil_status' => 'required',
+            'tax_status' => 'required',
+            'tin_no' => 'required',
+            'tax_branch_code' => 'required',
+            'pagibig_no' => 'required',
+            'philhealth_no' => 'required',
+            'sss_no' => 'required',
+            'time_schedule' => 'required',
+            'restday' => 'required',
+            'educ_attain' => 'required',
+            'school_attended' => 'required',
+            'course' => 'required',
+        ];
+        
+        $validator = Validator::make($request->all(), $valid_fields, $rules);  
+
+        if($validator->fails())
+        {
+            return response()->json($validator->errors(), 200);
+        }
+
+        $employee = new Employee();
+        $employee->branch_id = $request->get('branch_id');
+        $employee->employee_code = $request->get('employee_code');
+        $employee->last_name = $request->get('last_name');
+        $employee->first_name = $request->get('first_name');
+        $employee->dob = $request->get('birth_date');
+        $employee->address = $request->get('address');
+        $employee->contact = $request->get('contact');
+        $employee->email = $request->get('email');
+        $employee->class = $request->get('class');
+        $employee->rank = $request->get('rank');
+        $employee->department = $request->get('department');
+        $employee->cost_center_code = $request->get('cost_center_code');
+        $employee->job_description = $request->get('job_description');
+        $employee->date_employed = $request->get('date_employed');
+        $employee->gender = $request->get('gender');
+        $employee->civil_status = $request->get('civil_status');
+        $employee->tax_status = $request->get('tax_status');
+        $employee->tin_no = $request->get('tin_no');
+        $employee->tax_branch_code = $request->get('tax_branch_code');
+        $employee->pagibig_no = $request->get('pagibig_no');
+        $employee->philhealth_no = $request->get('philhealth_no');
+        $employee->sss_no = $request->get('sss_no');
+        $employee->time_schedule = $request->get('time_schedule');
+        $employee->restday = $request->get('restday');
+        $employee->educ_attain = $request->get('educ_attain');
+        $employee->school_attended = $request->get('school_attended');
+        $employee->course = $request->get('course');
+        $employee->save();
+
+        return response()->json(['success' => 'Record has successfully added', 'employee' => $employee], 200);
+
+    }
+
+    public function edit($employee_id)
+    {
+        $employee = Employee::find($employee_id);
+       
+        //if record is empty then display error page
+        if(empty($employee->id))
+        {
+            return abort(404, 'Not Found');
+        }
+        
+        return response()->json([
+            'employee' => $employee,
+        ], 200);
+
+    }
+
+    public function update(Request $request, $employee_id)
+    {  
+        $rules = [
+            'employee_code.required' => 'Employee Code is required',
+            'last_name.required' => 'Lastname is required',
+            'first_name.required' => 'Firstname is required',
+            'birth_date.required' => 'Birth Date is required',
+            'birth_date.date_format' => 'Invalid date. Format: (YYYY-MM-DD)',
+            'address.required' => 'Address is required',
+            'contact.required' => 'Contact is required',
+            'rank.required' => 'Rank is required',
+            'department.required' => 'Department is required',
+            'cost_center_code.required' => 'Cost Center Code is required',
+            'job_description.required' => 'Job Description is required',
+            'date_employed.required' => 'Date Employed is required',
+            'date_employed.date_format' => 'Invalid date. Format: (YYYY-MM-DD)',
+            'gender.required' => 'Gender is required',
+            'civil_status.required' => 'Civil Status is required',
+            'tax_status.required' => 'Tax Status is required',
+            'tin_no.required' => 'TIN No. is required',
+            'tax_branch_code.required' => 'Tax Branch Code is required',
+            'pagibig_no.required' => 'Pag-IBIG No. is required',
+            'philhealth_no.required' => 'PhilHealth No. is required',
+            'sss_no.required' => 'SSS No. is required',
+            'time_schedule.required' => 'Time Schedule is required',
+            'restday.required' => 'Rest Day is required',
+            'educ_attain.required' => 'Educational Attainment is required',
+            'school_attended.required' => 'School Attended is required',
+            'course.required' => 'Course is required',
+        ];
+
+        $valid_fields = [
+            'employee_code' => 'required',
+            'last_name' => 'required',
+            'first_name' => 'required',
+            'birth_date' => 'required|date_format:Y-m-d',
+            'address' => 'required',
+            'contact' => 'required',
+            'email' => 'required',
+            'class' => 'required',
+            'rank' => 'required',
+            'department' => 'required',
+            'cost_center_code' => 'required',
+            'job_description' => 'required',
+            'date_employed' => 'required|date_format:Y-m-d',
+            'gender' => 'required',
+            'civil_status' => 'required',
+            'tax_status' => 'required',
+            'tin_no' => 'required',
+            'tax_branch_code' => 'required',
+            'pagibig_no' => 'required',
+            'philhealth_no' => 'required',
+            'sss_no' => 'required',
+            'time_schedule' => 'required',
+            'restday' => 'required',
+            'educ_attain' => 'required',
+            'school_attended' => 'required',
+            'course' => 'required',
+        ];
+        
+        $validator = Validator::make($fields, $valid_fields, $rules);  
+
+        if($validator->fails())
+        {
+            return response()->json($validator->errors(), 200);
+        }
+
+        $employee = Employee::find($employee_id);
+        $employee->employee_code = $request->get('employee_code');
+        $employee->last_name = $request->get('last_name');
+        $employee->first_name = $request->get('first_name');
+        $employee->dob = $request->get('birth_date');
+        $employee->address = $request->get('address');
+        $employee->contact = $request->get('contact');
+        $employee->email = $request->get('email');
+        $employee->class = $request->get('class');
+        $employee->rank = $request->get('rank');
+        $employee->department = $request->get('department');
+        $employee->cost_center_code = $request->get('cost_center_code');
+        $employee->job_description = $request->get('job_description');
+        $employee->date_employed = $request->get('date_employed');
+        $employee->gender = $request->get('gender');
+        $employee->civil_status = $request->get('civil_status');
+        $employee->tax_status = $request->get('tax_status');
+        $employee->tin_no = $request->get('tin_no');
+        $employee->tax_branch_code = $request->get('tax_branch_code');
+        $employee->pagibig_no = $request->get('pagibig_no');
+        $employee->philhealth_no = $request->get('philhealth_no');
+        $employee->sss_no = $request->get('sss_no');
+        $employee->time_schedule = $request->get('time_schedule');
+        $employee->restday = $request->get('restday');
+        $employee->educ_attain = $request->get('educ_attain');
+        $employee->school_attended = $request->get('school_attended');
+        $employee->course = $request->get('course');
+        $employee->save();
+
+
+        return response()->json(['success' => 'Record has been updated'], 200);
+    } 
+
 
     public function import_employee(Request $request, $branch_id) 
     {   
@@ -252,6 +478,7 @@ class EmployeeController extends Controller
 
     public function delete(Request $request)
     {   
+        
         $branch_id = $request->get('branch_id');
 
         $employees = DB::table('employees')
@@ -262,13 +489,34 @@ class EmployeeController extends Controller
                             }
                         });
         
-        if(!$employees->count('id'))
-        {
-            return response()->json('No record found', 200);
+        if($request->get('clear_list'))
+        {   
+            
+            $employees = DB::table('employees')
+                      ->where('branch_id', '=', $request->get('branch_id'));
+            
+            if(!$employees->count('id'))
+            {
+                return response()->json('No record found', 200);
+            }
+            else
+            {
+                $employees->delete();
+            }
+
         }
         else
         {
-            $employees->delete();
+            
+            $employee = Employee::find($request->get('employee_id'));
+
+            //if record is empty then display error page
+            if(empty($employee->id))
+            {
+                return abort(404, 'Not Found');
+            }
+
+            $employee->delete();
         }
 
         return response()->json(['success' => 'Record has been deleted'], 200);

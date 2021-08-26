@@ -23,6 +23,10 @@ const state = {
     position_create: false,
     position_edit: false,
     position_delete: false,
+    department_list: false,
+    department_create: false,
+    department_edit: false,
+    department_delete: false,
     product_category_list: false,
     product_category_create: false,
     product_category_edit: false,
@@ -43,6 +47,9 @@ const state = {
     inventory_recon_audit: false,
     employee_list: false,
     employee_list_all: false,
+    employee_create: false,
+    employee_edit: false,
+    employee_delete: false,
     employee_list_import: false,
     employee_list_export: false,
     employee_clear_list: false,
@@ -169,10 +176,16 @@ const mutations = {
     permission.position_edit = permissions.includes("position-edit");
     permission.position_delete = permissions.includes("position-delete");
 
+    // DEPARTMENT RECORD MAINTENANCE PERMISSIONS
+    permission.department_list = permissions.includes("department-list");
+    permission.department_create = permissions.includes("department-create");
+    permission.department_edit = permissions.includes("department-edit");
+    permission.department_delete = permissions.includes("department-delete");
+
     // PRODUCT RECORD MAINTENANCE PERMISSIONS
     permission.product_list = permissions.includes("product-list");
     permission.product_list_all = permissions.includes("product-list-all");
-    permission.product_create = permissions.includes("product-create");;
+    permission.product_create = permissions.includes("product-create");
     permission.product_edit = permissions.includes("product-edit");
     permission.product_delete = permissions.includes("product-delete");
     permission.product_export = permissions.includes("product-export");
@@ -182,7 +195,7 @@ const mutations = {
     // INVENTORY RECONCILIATION RECORD MAINTENANCE PERMISSIONS
     permission.inventory_recon_list = permissions.includes("inventory-recon-list");
     permission.inventory_recon_list_all = permissions.includes("inventory-recon-list-all");
-    permission.inventory_recon_create = permissions.includes("inventory-recon-create");;
+    permission.inventory_recon_create = permissions.includes("inventory-recon-create");
     permission.inventory_recon_edit = permissions.includes("inventory-recon-edit");
     permission.inventory_recon_delete = permissions.includes("inventory-recon-delete");
     permission.inventory_recon_audit = permissions.includes("inventory-recon-audit");
@@ -190,6 +203,9 @@ const mutations = {
     // EMPLOYEE RECORD MAINTENANCE PERMISSIONS
     permission.employee_list = permissions.includes("employee-list");
     permission.employee_list_all = permissions.includes("employee-list-all");
+    permission.employee_create = permissions.includes("employee-create");
+    permission.employee_edit = permissions.includes("employee-edit");
+    permission.employee_delete = permissions.includes("employee-delete");
     permission.employee_list_import = permissions.includes("employee-list-import");
     permission.employee_list_export = permissions.includes("employee-list-export");
     permission.employee_clear_list = permissions.includes("employee-clear-list");

@@ -274,6 +274,17 @@
           </v-list-item>
           <v-list-item
             link
+            to="/department/index"
+            v-if="
+              userPermissions.department_list || userPermissions.department_create
+            "
+          >
+            <v-list-item-content>
+              <v-list-item-title>Department</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
             to="/role/index"
             v-if="userPermissions.role_list || userPermissions.role_create"
           >

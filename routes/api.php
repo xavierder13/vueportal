@@ -194,6 +194,26 @@ Route::group(['prefix' => 'employee', 'middleware' => ['auth:api', 'employee.mai
         'as' => 'employee.list.view',
     ]);
 
+    Route::get('/create', [
+        'uses' => 'API\EmployeeController@create',
+        'as' => 'employee.create',
+    ]);
+
+    Route::post('/store', [
+        'uses' => 'API\EmployeeController@store',
+        'as' => 'employee.store',
+    ]);
+
+    Route::get('/edit/{id}', [
+        'uses' => 'API\EmployeeController@edit',
+        'as' => 'employee.edit',
+    ]);
+
+    Route::post('/update/{id}', [
+        'uses' => 'API\EmployeeController@update',
+        'as' => 'employee.update',
+    ]);
+
     Route::post('/import_employee/{id}', [
         'uses' => 'API\EmployeeController@import_employee',
         'as' => 'employee.import'
@@ -411,6 +431,35 @@ Route::group(['prefix' => 'position', 'middleware' => ['auth:api', 'position.mai
     Route::post('/delete', [
         'uses' => 'API\PositionController@delete',
         'as' => 'position.delete',
+    ]);
+
+});
+
+// Department Routes
+Route::group(['prefix' => 'department', 'middleware' => ['auth:api', 'department.maintenance']], function(){
+    Route::get('/index', [
+        'uses' => 'API\DepartmentController@index',
+        'as' => 'department.index',
+    ]);
+    Route::get('/create', [
+        'uses' => 'API\DepartmentController@create',
+        'as' => 'department.create',
+    ]);
+    Route::post('/store', [
+        'uses' => 'API\DepartmentController@store',
+        'as' => 'department.store',
+    ]);
+    Route::post('/edit', [
+        'uses' => 'API\DepartmentController@edit',
+        'as' => 'department.edit',
+    ]);
+    Route::post('/update/{id}', [
+        'uses' => 'API\DepartmentController@update',
+        'as' => 'department.update',
+    ]);
+    Route::post('/delete', [
+        'uses' => 'API\DepartmentController@delete',
+        'as' => 'department.delete',
     ]);
 
 });

@@ -113,8 +113,7 @@
             <template v-slot:item.qty_diff="{ item, index }">
               <v-chip
                 x-small
-                :color="item.qty_diff > 0 ? 'success' : 'red white--text'"
-                v-if="item.qty_diff != 0"
+                :color="item.qty_diff === 0 ? '': item.qty_diff > 0 ? 'success' : 'red white--text'"
                 >{{ item.qty_diff }}</v-chip
               >
             </template>
