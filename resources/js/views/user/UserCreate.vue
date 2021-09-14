@@ -204,6 +204,7 @@ export default {
       disabled: false,
       users: [],
       branches: [],
+      positions: [],
       roles: [],
       roles_permissions: [],
       editedIndex: -1,

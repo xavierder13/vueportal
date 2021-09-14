@@ -526,6 +526,9 @@
                         label="File input"
                         prepend-icon="mdi-paperclip"
                         required
+                        :error-messages="fileErrors"
+                        @change="$v.file.$touch() + (fileIsEmpty = false)"
+                        @blur="$v.file.$touch()"
                         
                       >
                         <template v-slot:selection="{ text }">

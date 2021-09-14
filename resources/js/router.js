@@ -18,6 +18,7 @@ import BranchIndex from './views/branch/BranchIndex.vue';
 import CompanyIndex from './views/company/CompanyIndex.vue';
 import EmployeeIndex from './views/employee/EmployeeIndex.vue';
 import EmployeeListView from './views/employee/EmployeeListView.vue';
+import Gallery from './views/training_tutorial/Gallery.vue';
 import Permission from './views/permission/PermissionIndex.vue';
 import Role from './views/role/RoleIndex.vue';
 import ActivityLogs from './views/activity_logs/ActivityLogs.vue';
@@ -106,6 +107,11 @@ const routes = [
         path: '/employee/view/list/:branch_id',
         name: 'employee.list.view',
         component: EmployeeListView
+      },
+      {
+        path: '/training/gallery',
+        name: 'training.gallery',
+        component: Gallery
       },
       {
         path: '/permission/index',

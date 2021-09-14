@@ -198,6 +198,36 @@
         </v-list-group>
         <v-list-group
           no-action
+        >
+          <!-- List Group Icon-->
+          <v-icon slot="prependIcon">mdi-folder-multiple-outline</v-icon>
+          <!-- List Group Title -->
+          <template v-slot:activator>
+            <v-list-item-content>
+              <v-list-item-title>Training</v-list-item-title>
+            </v-list-item-content>
+          </template>
+          <!-- List Group Items -->
+          <v-list-item
+            link
+            to="/training/gallery"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Video Tutorials</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
+            to="/"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Files</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+
+        </v-list-group>
+        <v-list-group
+          no-action
           v-if="
             userPermissions.brand_list ||
             userPermissions.brand_create ||
@@ -255,7 +285,9 @@
           <v-list-item
             link
             to="/company/index"
-            v-if="userPermissions.company_list || userPermissions.company_create"
+            v-if="
+              userPermissions.company_list || userPermissions.company_create
+            "
           >
             <v-list-item-content>
               <v-list-item-title>Company</v-list-item-title>
@@ -276,7 +308,8 @@
             link
             to="/department/index"
             v-if="
-              userPermissions.department_list || userPermissions.department_create
+              userPermissions.department_list ||
+              userPermissions.department_create
             "
           >
             <v-list-item-content>
@@ -334,7 +367,9 @@
 </template>
 
 <style>
-  html { overflow-y: auto } /* show scrollbar when overflow */
+html {
+  overflow-y: auto;
+} /* show scrollbar when overflow */
 </style>
 
 <script>

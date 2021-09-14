@@ -232,6 +232,13 @@ Route::get('/employee/export_employee/{id}', [
     'as' => 'employee.export',
 ])->middleware(['employee.maintenance']);
 
+Route::group(['prefix' => 'training', 'middleware' => ['auth:api']], function(){
+    Route::post('/upload/video', [
+        'uses' => 'API\TrainingController@upload',
+        'as' => 'training.upload.video'
+    ]);
+});
+
 //Permissions
 Route::group(['prefix' => 'permission', 'middleware' => ['auth:api', 'permission.maintenance']], function(){
     Route::get('/index', [
