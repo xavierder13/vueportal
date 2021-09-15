@@ -15,6 +15,12 @@ class CreateTrainingFilesTable extends Migration
     {
         Schema::create('training_files', function (Blueprint $table) {
             $table->id();
+            $table->integer('user_id');
+            $table->string('file_name');
+            $table->string('file_path');
+            $table->string('file_type');
+            $table->string('title');
+            $table->string('description');
             $table->timestamps();
         });
     }

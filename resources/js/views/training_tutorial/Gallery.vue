@@ -65,88 +65,34 @@
           <v-divider></v-divider>
           <v-card-text class="">
             <v-row>
-              <v-col cols="3">
-                <v-card>
-                  <v-img src="/img/film-colored.png" class="ml-4 mr-4"></v-img>
+              <template v-for="(item, index) in videos">
+                <v-col cols="3">
+                  <v-card>
+                    <v-img
+                      src="/img/film-colored.png"
+                      class="ml-4 mr-4"
+                    ></v-img>
 
-                  <v-card-title class="justify-center">
-                    MSS Training Tutorials
-                  </v-card-title>
-                  <v-card-actions class="justify-center">
-                    <v-btn
-                      rounded
-                      class="primary mb-2 pa-4"
-                      @click="playVideo()"
-                    >
-                      <v-icon class="mr-1">mdi-play-circle</v-icon> Play
-                      Video</v-btn
-                    >
-                  </v-card-actions>
-                </v-card>
-              </v-col>
-              <v-col cols="3">
-                <v-card>
-                  <v-img src="/img/film-colored.png" class="ml-4 mr-4"></v-img>
-
-                  <v-card-title class="justify-center">
-                    MSS Training Tutorials
-                  </v-card-title>
-                  <v-card-actions class="justify-center">
-                    <v-btn rounded class="primary mb-2 pa-4">
-                      <v-icon class="mr-1">mdi-play-circle</v-icon> Play
-                      Video</v-btn
-                    >
-                  </v-card-actions>
-                </v-card>
-              </v-col>
-              <v-col cols="3">
-                <v-card>
-                  <v-img src="/img/film-colored.png" class="ml-4 mr-4"></v-img>
-
-                  <v-card-title class="justify-center">
-                    MSS Training Tutorials
-                  </v-card-title>
-                  <v-card-actions class="justify-center">
-                    <v-btn rounded class="primary mb-2 pa-4">
-                      <v-icon class="mr-1">mdi-play-circle</v-icon> Play
-                      Video</v-btn
-                    >
-                  </v-card-actions>
-                </v-card>
-              </v-col>
-              <v-col cols="3">
-                <v-card>
-                  <v-img src="/img/film-colored.png" class="ml-4 mr-4"></v-img>
-                  <v-card-title class="justify-center">
-                    {{ 'MSS SAP BUSINESS ONE Training Tutorials'.length > 20 ? 'MSS SAP BUSINESS ONE Training Tutorials'.substr(0, 17) + '...' : 'MSS SAP BUSINESS ONE Training Tutorials'}}
-                  </v-card-title>
-                  <v-card-actions class="justify-center">
-                    <v-btn rounded class="primary mb-2 pa-4">
-                      <v-icon class="mr-1">mdi-play-circle</v-icon> Play
-                      Video</v-btn
-                    >
-                  </v-card-actions>
-                </v-card>
-              </v-col>
-              <v-col cols="3">
-                <v-card>
-                  <v-img src="/img/film-colored.png" class="ml-4 mr-4"></v-img>
-
-                  <v-card-title class="justify-center">
-                    MSS Training Tutorials
-                  </v-card-title>
-                  <v-card-actions class="justify-center">
-                    <v-btn rounded class="primary mb-2 pa-4">
-                      <v-icon class="mr-1">mdi-play-circle</v-icon> Play
-                      Video</v-btn
-                    >
-                  </v-card-actions>
-                </v-card>
-              </v-col>
+                    <v-card-title class="justify-center">
+                      {{ item.title }}
+                    </v-card-title>
+                    <v-card-actions class="justify-center">
+                      <v-btn
+                        rounded
+                        class="primary mb-2 pa-4"
+                        @click="playVideo(item)"
+                      >
+                        <v-icon class="mr-1">mdi-play-circle</v-icon> Play
+                        Video</v-btn
+                      >
+                    </v-card-actions>
+                  </v-card>
+                </v-col>
+              </template>
             </v-row>
           </v-card-text>
         </v-card>
-        <v-dialog v-model="dialog_import" max-width="500px" persistent>
+        <v-dialog v-model="dialog_upload" max-width="500px" persistent>
           <v-card>
             <v-card-title class="mb-0 pb-0">
               <span class="headline">Upload Video</span>
@@ -174,6 +120,54 @@
                     </v-file-input>
                   </v-col>
                 </v-row>
+                <v-row>
+                  <v-col class="mt-0 mb-0 pt-0 pb-0">
+                    <v-text-field
+                      name="title"
+                      v-model="title"
+                      :error-messages="titleErrors"
+                      label="Video Title"
+                      @input="$v.title.$touch()"
+                      @blur="$v.title.$touch()"
+                    ></v-text-field>
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <v-col class="mt-0 mb-0 pt-0 pb-0">
+                    <v-textarea
+                      rows="3"
+                      label="Description"
+                      v-model="description"
+                    ></v-textarea>
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <v-col>
+                    <v-autocomplete
+                      v-model="permitted_positions"
+                      :items="positions"
+                      item-text="name"
+                      item-value="id"
+                      label="Permitted Positions"
+                      multiple
+                      chips
+                      :error-messages="permittedPositionsErrors"
+                      @input="$v.permitted_positions.$touch()"
+                      @blur="$v.permitted_positions.$touch()"
+                    >
+                      <template v-slot:selection="data">
+                        <v-chip
+                          color="secondary"
+                          v-bind="data.attrs"
+                          :input-value="data.selected"
+                          @click="data.select"
+                        >
+                          {{ data.item.name }}
+                        </v-chip>
+                      </template>
+                    </v-autocomplete>
+                  </v-col>
+                </v-row>
                 <v-row
                   class="fill-height"
                   align-content="center"
@@ -198,7 +192,7 @@
               <v-spacer></v-spacer>
               <v-btn
                 color="#E0E0E0"
-                @click="dialog_import = false"
+                @click="(dialog_upload = false) + clear()"
                 class="mb-4"
               >
                 Cancel
@@ -214,22 +208,22 @@
             </v-card-actions>
           </v-card>
         </v-dialog>
-        <v-dialog v-model="dialog_video" max-width="1100px" persistent>
+        <v-dialog v-model="dialog_video" max-width="1050px" persistent>
           <v-card>
-            <v-card-title>
-              <span class="headline">Sample Video</span>
+            <v-card-title class="secondary white--text">
+              <span class="headline">{{ video_title }}</span>
               <v-spacer></v-spacer>
-              <v-icon @click="closeVideo()"> mdi-close </v-icon>
+              <v-icon @click="closeVideo()" class="white--text">
+                mdi-close-circle
+              </v-icon>
             </v-card-title>
-            <v-card-text>
+            <v-card-text class="mt-4">
               <v-row>
                 <v-col class="text-center">
                   <Media
                     :kind="'video'"
                     :isMuted="false"
-                    :src="[
-                      '/wysiwyg/2021-09-14/1631583904MOVIES 2020 Full MOVIE Action Movie 2021 Full Movie English Action Movies 2021 45.mp4',
-                    ]"
+                    :src="[video_src]"
                     poster="/img/video-play.jpg"
                     :autoplay="autoplay"
                     :controls="true"
@@ -259,6 +253,8 @@ export default {
   },
   validations: {
     file: { required },
+    title: { required },
+    permitted_positions: { required },
   },
   data() {
     return {
@@ -289,15 +285,36 @@ export default {
       fileIsInvalid: false,
       uploadDisabled: false,
       uploading: false,
-      dialog_import: false,
+      dialog_upload: false,
       dialog_video: false,
       search: "",
       autoplay: false,
+      title: "",
+      description: "",
+      videos: [],
+      positions: [],
+      permitted_positions: "",
+      video_src: "",
+      video_title: "",
     };
   },
   methods: {
+    getVideos() {
+      axios.get("api/training/videos").then(
+        (response) => {
+          this.videos = response.data.videos;
+          this.positions = response.data.positions;
+          
+        },
+        (error) => {
+          this.isUnauthorized(error);
+          console.log(error);
+        }
+      );
+    },
+
     uploadFile() {
-      this.dialog_import = true;
+      this.dialog_upload = true;
       this.file = [];
       this.$v.$reset();
     },
@@ -312,6 +329,9 @@ export default {
         let formData = new FormData();
 
         formData.append("file", this.file);
+        formData.append("title", this.title);
+        formData.append("description", this.description);
+        formData.append("permitted_positions", this.permitted_positions);
 
         axios
           .post("api/training/upload/video", formData, {
@@ -333,10 +353,10 @@ export default {
                   showConfirmButton: false,
                   timer: 2500,
                 });
-                this.$v.$reset();
-                this.dialog_import = false;
-                this.file = [];
-                this.fileIsEmpty = false;
+
+                this.clear();
+                this.dialog_upload = false;
+                this.getVideos();
               } else {
                 this.fileIsInvalid = true;
               }
@@ -354,13 +374,27 @@ export default {
           );
       }
     },
-    playVideo() {
+    clear() {
+      this.$v.$reset();
+      this.dialog_upload = false;
+      this.file = [];
+      this.fileIsEmpty = false;
+      this.title = "";
+      this.description = "";
+      this.permitted_positions = "";
+    },
+    playVideo(item) {
+      let video_src = item.file_path + "/" + item.file_name;
+      this.video_src = video_src;
+      this.video_title = item.title;
       this.autoplay = true;
       this.dialog_video = true;
     },
     closeVideo() {
       this.autoplay = false;
       this.dialog_video = false;
+      this.video_src = "";
+      this.video_title = "";
     },
     isUnauthorized(error) {
       // if unauthenticated (401)
@@ -378,6 +412,19 @@ export default {
       this.fileIsInvalid && errors.push("File type must be 'mp4'.");
       return errors;
     },
+    titleErrors() {
+      const errors = [];
+      if (!this.$v.title.$dirty) return errors;
+      !this.$v.title.required && errors.push("Title is required.");
+      return errors;
+    },
+    permittedPositionsErrors() {
+      const errors = [];
+      if (!this.$v.permitted_positions.$dirty) return errors;
+      !this.$v.permitted_positions.required &&
+        errors.push("Permitted Positions is required.");
+      return errors;
+    },
     ...mapState("auth", ["user", "userIsLoaded"]),
     ...mapState("userRolesPermissions", [
       "userRoles",
@@ -385,6 +432,10 @@ export default {
       "userRolesPermissionsIsLoaded",
     ]),
   },
-  mounted() {},
+  mounted() {
+    axios.defaults.headers.common["Authorization"] =
+      "Bearer " + localStorage.getItem("access_token");
+    this.getVideos();
+  },
 };
 </script>
