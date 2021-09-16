@@ -19,7 +19,7 @@
         </v-breadcrumbs>
         <div class="d-flex justify-content-end mb-3">
           <div>
-            <v-menu offset-y>
+            <v-menu offset-y v-if="userPermissions.file_create">
               <template v-slot:activator="{ on, attrs }">
                 <v-btn small v-bind="attrs" v-on="on" color="primary">
                   Actions
@@ -30,7 +30,7 @@
                 <v-list-item
                   class="ma-0 pa-0"
                   style="min-height: 25px"
-                  v-if="userPermissions.employee_list_import"
+                  v-if="userPermissions.file_create"
                 >
                   <v-list-item-title>
                     <v-btn
@@ -51,7 +51,7 @@
         </div>
         <v-card>
           <v-card-title class="mb-0 pb-0">
-            Video Tutorials
+            Videos
             <v-spacer></v-spacer>
             <v-text-field
               v-model="search"
@@ -64,8 +64,13 @@
           </v-card-title>
           <v-divider></v-divider>
           <v-card-text class="">
+            <v-row v-if="!filteredVideos.length && loaded">
+              <v-col class="text-center">
+                <h4>No Record Found</h4>
+              </v-col>
+            </v-row>
             <v-row>
-              <template v-for="(item, index) in videos">
+              <template v-for="(item, index) in filteredVideos">
                 <v-col cols="3">
                   <v-card>
                     <v-img
@@ -76,15 +81,51 @@
                     <v-card-title class="justify-center">
                       {{ item.title }}
                     </v-card-title>
-                    <v-card-actions class="justify-center">
+                    <v-card-actions class="justify-center grey lighten-3">
                       <v-btn
                         rounded
-                        class="primary mb-2 pa-4"
+                        class="primary pa-4"
                         @click="playVideo(item)"
+                        v-if="user.id !== 1 ? user.id !== item.user_id : false"
                       >
                         <v-icon class="mr-1">mdi-play-circle</v-icon> Play
                         Video</v-btn
                       >
+                      <!-- <v-spacer></v-spacer> -->
+                      <v-btn
+                        @click="playVideo(item)"
+                        icon
+                        v-if="
+                          user.id !== 1
+                            ? user.id === item.user_id &&
+                              (userPermissions.file_edit ||
+                                userPermissions.file_delete)
+                            : true
+                        "
+                      >
+                        <v-icon color="primary">mdi-play-circle</v-icon>
+                      </v-btn>
+                      <v-btn
+                        icon
+                        v-if="
+                          userPermissions.file_edit &&
+                          (user.id !== 1 ? user.id === item.user_id : true)
+                        "
+                        @click="editVideo(item)"
+                      >
+                        <v-icon color="success">mdi-pencil</v-icon>
+                      </v-btn>
+
+                      <v-btn
+                        icon
+                        v-if="
+                          userPermissions.file_delete &&
+                          (user.id !== 1 ? user.id === item.user_id : true)
+                        "
+                        @click="showConfirmAlert(item)"
+                      >
+                        <v-icon color="red">mdi-delete</v-icon>
+                      </v-btn>
                     </v-card-actions>
                   </v-card>
                 </v-col>
@@ -95,12 +136,12 @@
         <v-dialog v-model="dialog_upload" max-width="500px" persistent>
           <v-card>
             <v-card-title class="mb-0 pb-0">
-              <span class="headline">Upload Video</span>
+              <span class="headline"> {{ formTitle }} </span>
             </v-card-title>
             <v-divider></v-divider>
             <v-card-text>
               <v-container>
-                <v-row>
+                <v-row v-if="editedIndex === -1">
                   <v-col class="mt-0 mb-0 pt-0 pb-0">
                     <v-file-input
                       v-model="file"
@@ -124,11 +165,11 @@
                   <v-col class="mt-0 mb-0 pt-0 pb-0">
                     <v-text-field
                       name="title"
-                      v-model="title"
+                      v-model="editedItem.title"
                       :error-messages="titleErrors"
                       label="Video Title"
-                      @input="$v.title.$touch()"
-                      @blur="$v.title.$touch()"
+                      @input="$v.editedItem.title.$touch()"
+                      @blur="$v.editedItem.title.$touch()"
                     ></v-text-field>
                   </v-col>
                 </v-row>
@@ -137,14 +178,14 @@
                     <v-textarea
                       rows="3"
                       label="Description"
-                      v-model="description"
+                      v-model="editedItem.description"
                     ></v-textarea>
                   </v-col>
                 </v-row>
                 <v-row>
                   <v-col>
                     <v-autocomplete
-                      v-model="permitted_positions"
+                      v-model="editedItem.permitted_positions"
                       :items="positions"
                       item-text="name"
                       item-value="id"
@@ -152,8 +193,8 @@
                       multiple
                       chips
                       :error-messages="permittedPositionsErrors"
-                      @input="$v.permitted_positions.$touch()"
-                      @blur="$v.permitted_positions.$touch()"
+                      @input="$v.editedItem.permitted_positions.$touch()"
+                      @blur="$v.editedItem.permitted_positions.$touch()"
                     >
                       <template v-slot:selection="data">
                         <v-chip
@@ -203,7 +244,7 @@
                 @click="save()"
                 :disabled="uploadDisabled"
               >
-                Upload
+                {{ editedIndex === -1 ? "Upload" : "Update" }}
               </v-btn>
             </v-card-actions>
           </v-card>
@@ -228,7 +269,7 @@
                     :autoplay="autoplay"
                     :controls="true"
                     :ref="'fish'"
-                    :style="{ width: '1000px' }"
+                    :style="{ width: '1000px', height: '500px' }"
                   >
                   </Media>
                 </v-col>
@@ -252,9 +293,11 @@ export default {
     Media,
   },
   validations: {
+    editedItem: {
+      title: { required },
+      permitted_positions: { required },
+    },
     file: { required },
-    title: { required },
-    permitted_positions: { required },
   },
   data() {
     return {
@@ -296,6 +339,18 @@ export default {
       permitted_positions: "",
       video_src: "",
       video_title: "",
+      loaded: false,
+      editedIndex: -1,
+      editedItem: {
+        title: "",
+        description: "",
+        permitted_positions: "",
+      },
+      defaultItem: {
+        title: "",
+        description: "",
+        permitted_positions: "",
+      },
     };
   },
   methods: {
@@ -304,7 +359,8 @@ export default {
         (response) => {
           this.videos = response.data.videos;
           this.positions = response.data.positions;
-          
+          this.loaded = true;
+          console.log(response.data);
         },
         (error) => {
           this.isUnauthorized(error);
@@ -319,69 +375,203 @@ export default {
       this.$v.$reset();
     },
     save() {
-      this.$v.$touch();
+      if (this.editedIndex === -1) {
+        this.$v.$touch();
+      } else {
+        this.$v.editedItem.$touch();
+      }
+
       this.fileIsEmpty = false;
       this.fileIsInvalid = false;
 
-      if (!this.$v.file.$error) {
-        this.uploadDisabled = true;
-        this.uploading = true;
-        let formData = new FormData();
+      if (this.editedIndex === -1) {
+        this.$v.$touch();
+        if (!this.$v.$error) {
+          this.uploadDisabled = true;
+          this.uploading = true;
+          let formData = new FormData();
 
-        formData.append("file", this.file);
-        formData.append("title", this.title);
-        formData.append("description", this.description);
-        formData.append("permitted_positions", this.permitted_positions);
-
-        axios
-          .post("api/training/upload/video", formData, {
-            headers: {
-              Authorization: "Bearer " + localStorage.getItem("access_token"),
-              "Content-Type": "multipart/form-data",
-            },
-          })
-          .then(
-            (response) => {
-              if (response.data.success) {
-                // send data to Socket.IO Server
-                // this.$socket.emit("sendData", { action: "import-project" });
-
-                this.$swal({
-                  position: "center",
-                  icon: "success",
-                  title: "Record has been uploaded",
-                  showConfirmButton: false,
-                  timer: 2500,
-                });
-
-                this.clear();
-                this.dialog_upload = false;
-                this.getVideos();
-              } else {
-                this.fileIsInvalid = true;
-              }
-
-              this.uploadDisabled = false;
-              this.uploading = false;
-
-              console.log(response.data);
-            },
-            (error) => {
-              this.isUnauthorized(error);
-              this.uploadDisabled = false;
-              console.log(error);
-            }
+          formData.append("file", this.file);
+          formData.append("title", this.editedItem.title);
+          formData.append("description", this.editedItem.description);
+          formData.append(
+            "permitted_positions",
+            this.editedItem.permitted_positions
           );
+
+          axios
+            .post("api/training/file/upload", formData, {
+              headers: {
+                Authorization: "Bearer " + localStorage.getItem("access_token"),
+                "Content-Type": "multipart/form-data",
+              },
+            })
+            .then(
+              (response) => {
+                if (response.data.success) {
+                  // send data to Socket.IO Server
+                  // this.$socket.emit("sendData", { action: "import-project" });
+
+                  this.$swal({
+                    position: "center",
+                    icon: "success",
+                    title: "Record has been uploaded",
+                    showConfirmButton: false,
+                    timer: 2500,
+                  });
+
+                  this.clear();
+                  this.dialog_upload = false;
+                  this.getVideos();
+                } else {
+                  this.fileIsInvalid = true;
+                }
+
+                this.uploadDisabled = false;
+                this.uploading = false;
+
+                console.log(response.data);
+              },
+              (error) => {
+                this.isUnauthorized(error);
+                this.uploadDisabled = false;
+                console.log(error);
+              }
+            );
+        }
+      } else {
+        if (!this.$v.$error) {
+          let formData = new FormData();
+
+          formData.append("title", this.editedItem.title);
+          formData.append("description", this.editedItem.description);
+          formData.append(
+            "permitted_positions",
+            this.editedItem.permitted_positions
+          );
+
+          const training_file_id = this.editedItem.id;
+
+          axios
+            .post("api/training/file/update/" + training_file_id, formData, {
+              headers: {
+                Authorization: "Bearer " + localStorage.getItem("access_token"),
+                "Content-Type": "multipart/form-data",
+              },
+            })
+            .then(
+              (response) => {
+                if (response.data.success) {
+                  // send data to Socket.IO Server
+                  // this.$socket.emit("sendData", { action: "import-project" });
+
+                  this.$swal({
+                    position: "center",
+                    icon: "success",
+                    title: "Record has been updated",
+                    showConfirmButton: false,
+                    timer: 2500,
+                  });
+
+                  Object.assign(
+                    this.videos[this.editedIndex],
+                    response.data.video_details
+                  );
+
+                  this.clear();
+                  this.dialog_upload = false;
+                  // this.getVideos();
+                }
+              },
+              (error) => {
+                this.isUnauthorized(error);
+                console.log(error);
+              }
+            );
+        }
       }
+    },
+    showAlert() {
+      this.$swal({
+        position: "center",
+        icon: "success",
+        title: "Record has been saved",
+        showConfirmButton: false,
+        timer: 2500,
+      });
+    },
+
+    showConfirmAlert(item) {
+      this.$swal({
+        title: "Are you sure?",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#6c757d",
+        confirmButtonText: "Delete record!",
+      }).then((result) => {
+        // <--
+
+        if (result.value) {
+          // <-- if confirmed
+
+          const training_file_id = item.id;
+          const index = this.videos.indexOf(item);
+
+          //Call delete Training file function
+          this.deleteVideo(training_file_id);
+
+          //Remove item from array companies
+          this.videos.splice(index, 1);
+
+          this.$swal({
+            position: "center",
+            icon: "success",
+            title: "Record has been deleted",
+            showConfirmButton: false,
+            timer: 2500,
+          });
+        }
+      });
+    },
+
+    editVideo(item) {
+      this.editedIndex = this.videos.indexOf(item);
+      this.editedItem = Object.assign({}, item);
+      this.dialog_upload = true;
+
+      let permitted_positions = [];
+
+      item.file_has_permissions.forEach((value) => {
+        permitted_positions.push(value.position_id);
+      });
+
+      this.editedItem.permitted_positions = permitted_positions;
+    },
+
+    deleteVideo(training_file_id) {
+      const data = { training_file_id: training_file_id };
+
+      axios.post("/api/training/file/delete", data).then(
+        (response) => {
+          if (response.data.success) {
+            // send data to Sockot.IO Server
+            // this.$socket.emit("sendData", { action: "employee-delete" });
+          }
+        },
+        (error) => {
+          this.isUnauthorized(error);
+        }
+      );
     },
     clear() {
       this.$v.$reset();
       this.dialog_upload = false;
-      this.file = [];
       this.fileIsEmpty = false;
-      this.title = "";
-      this.description = "";
-      this.permitted_positions = "";
+      this.editedItem = Object.assign({}, this.defaultItem);
+      this.editedIndex = -1;
+      this.file = [];
     },
     playVideo(item) {
       let video_src = item.file_path + "/" + item.file_name;
@@ -404,6 +594,21 @@ export default {
     },
   },
   computed: {
+    formTitle() {
+      return this.editedIndex === -1 ? "Upload Video" : "Edit Video Details";
+    },
+    filteredVideos() {
+      if (this.search) {
+        return this.videos.filter((item) => {
+          return this.search
+            .toLowerCase()
+            .split(" ")
+            .every((v) => item.title.toLowerCase().includes(v));
+        });
+      } else {
+        return this.videos;
+      }
+    },
     fileErrors() {
       const errors = [];
       if (!this.$v.file.$dirty) return errors;
@@ -414,14 +619,14 @@ export default {
     },
     titleErrors() {
       const errors = [];
-      if (!this.$v.title.$dirty) return errors;
-      !this.$v.title.required && errors.push("Title is required.");
+      if (!this.$v.editedItem.title.$dirty) return errors;
+      !this.$v.editedItem.title.required && errors.push("Title is required.");
       return errors;
     },
     permittedPositionsErrors() {
       const errors = [];
-      if (!this.$v.permitted_positions.$dirty) return errors;
-      !this.$v.permitted_positions.required &&
+      if (!this.$v.editedItem.permitted_positions.$dirty) return errors;
+      !this.$v.editedItem.permitted_positions.required &&
         errors.push("Permitted Positions is required.");
       return errors;
     },

@@ -198,6 +198,7 @@
         </v-list-group>
         <v-list-group
           no-action
+          v-if="userPermissions.file_list || userPermissions.file_create"
         >
           <!-- List Group Icon-->
           <v-icon slot="prependIcon">mdi-folder-multiple-outline</v-icon>
@@ -208,23 +209,16 @@
             </v-list-item-content>
           </template>
           <!-- List Group Items -->
-          <v-list-item
-            link
-            to="/training/gallery"
-          >
+          <v-list-item link to="/training/gallery">
             <v-list-item-content>
               <v-list-item-title>Video Tutorials</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
-          <v-list-item
-            link
-            to="/"
-          >
+          <v-list-item link to="/">
             <v-list-item-content>
               <v-list-item-title>Files</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
-
         </v-list-group>
         <v-list-group
           no-action

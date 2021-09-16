@@ -83,6 +83,10 @@ const state = {
     employee_loans_import: false,
     employee_loans_export: false,
     employee_loans_clear_list: false,
+    file_list: false,
+    file_create: false,
+    file_edit: false,
+    file_delete: false,
     role_list: false,
     role_create: false,
     role_edit: false,
@@ -251,6 +255,12 @@ const mutations = {
     permission.employee_loans_import = permissions.includes("employee-loans-import");
     permission.employee_loans_export = permissions.includes("employee-loans-export");
     permission.employee_loans_clear_list = permissions.includes("employee-loans-clear-list");
+
+    // TRAINING FILE RECORD MAINTENANCE PERMISSIONS
+    permission.file_list = permissions.includes("file-list");
+    permission.file_create = permissions.includes("file-create");
+    permission.file_edit = permissions.includes("file-edit");
+    permission.file_delete = permissions.includes("file-delete");
 
     // PERMISSION RECORD MAINTENANCE PERMISSIONS
     permission.permission_list = permissions.includes("permission-list");
