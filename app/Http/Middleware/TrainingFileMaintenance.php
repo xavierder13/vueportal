@@ -46,6 +46,13 @@ class TrainingFileMaintenance
             }
         }
 
+        //File Download
+        if($request->is('api/training/file/download')){
+            
+            return $next($request); 
+            
+        }
+
         return abort(401, 'Unauthorized');
     }
 }

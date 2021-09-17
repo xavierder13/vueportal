@@ -12,6 +12,7 @@ use Validator;
 use DB;
 use Carbon\Carbon;
 use Auth;
+use Response;
 
 class TrainingController extends Controller
 {   
@@ -204,5 +205,13 @@ class TrainingController extends Controller
         unlink($path);
 
         return response()->json(['success' => 'Record has been deleted'], 200);
+    }
+
+    public function download(Request $request)
+    {
+        $file = public_path()."/wysiwyg/2021-09-17/a.pptx";
+        $headers = array('Content-Type: application/pptx',);
+        // return Response::download($file, 'Branch Company.csv', $headers);
+        return response()->download($file, 'a.pptx', $headers);
     }
 }

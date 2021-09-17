@@ -253,7 +253,18 @@ Route::group(['prefix' => 'training', 'middleware' => ['auth:api', 'training_fil
         'uses' => 'API\TrainingController@delete',
         'as' => 'training.file.delete'
     ]);
+
+    // Route::get('/file/download', [
+    //     'uses' => 'API\TrainingController@download',
+    //     'as' => 'training.file.download'
+    // ]);
 });
+
+// File Download Route
+Route::get('/training/file/download', [
+    'uses' => 'API\TrainingController@download',
+    'as' => 'training.file.download',
+])->middleware(['training_file.maintenance']);
 
 //Permissions
 Route::group(['prefix' => 'permission', 'middleware' => ['auth:api', 'permission.maintenance']], function(){

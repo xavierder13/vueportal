@@ -45,6 +45,24 @@
                     </v-btn>
                   </v-list-item-title>
                 </v-list-item>
+                <v-list-item
+                  class="ma-0 pa-0"
+                  style="min-height: 25px"
+                  v-if="userPermissions.file_create"
+                >
+                  <v-list-item-title>
+                    <v-btn
+                      color="primary"
+                      class="ma-2"
+                      width="120px"
+                      small
+                      @click="fileDownload()"
+                    >
+                      <v-icon class="mr-1" small> mdi-download </v-icon>
+                      Download
+                    </v-btn>
+                  </v-list-item-title>
+                </v-list-item>
               </v-list>
             </v-menu>
           </div>
@@ -71,7 +89,7 @@
             </v-row>
             <v-row>
               <template v-for="(item, index) in filteredVideos">
-                <v-col cols="3">
+                <v-col cols="12" sm="6" md="4" lg="3" xl="3">
                   <v-card>
                     <v-img
                       src="/img/film-colored.png"
@@ -79,7 +97,11 @@
                     ></v-img>
 
                     <v-card-title class="justify-center">
-                      {{ item.title }}
+                      {{
+                        item.title.length > 20
+                          ? item.title.substr(0, 17) + "..."
+                          : item.title
+                      }}
                     </v-card-title>
                     <v-card-actions class="justify-center grey lighten-3">
                       <v-btn
@@ -351,6 +373,10 @@ export default {
         description: "",
         permitted_positions: "",
       },
+      window: {
+        width: 0,
+        height: 0,
+      },
     };
   },
   methods: {
@@ -360,13 +386,17 @@ export default {
           this.videos = response.data.videos;
           this.positions = response.data.positions;
           this.loaded = true;
-          console.log(response.data);
         },
         (error) => {
           this.isUnauthorized(error);
           console.log(error);
         }
       );
+    },
+
+    handleResize() {
+      this.window.width = window.innerWidth;
+      this.window.height = window.innerHeight;
     },
 
     uploadFile() {
@@ -382,11 +412,10 @@ export default {
       }
 
       this.fileIsEmpty = false;
-      this.fileIsInvalid = false;
 
       if (this.editedIndex === -1) {
         this.$v.$touch();
-        if (!this.$v.$error) {
+        if (!this.$v.$error && !this.fileIsInvalid) {
           this.uploadDisabled = true;
           this.uploading = true;
           let formData = new FormData();
@@ -430,7 +459,6 @@ export default {
                 this.uploadDisabled = false;
                 this.uploading = false;
 
-                console.log(response.data);
               },
               (error) => {
                 this.isUnauthorized(error);
@@ -586,6 +614,23 @@ export default {
       this.video_src = "";
       this.video_title = "";
     },
+
+    fileDownload() {
+      window.open(location.origin + "/api/training/file/download/", "_blank");
+
+      // axios({
+      //   url: "/api/training/file/download/",
+      //   method: "GET",
+      //   responseType: "blob",
+      // }).then((response) => {
+      //   var fileURL = window.URL.createObjectURL(new Blob([response.data]));
+      //   var fileLink = document.createElement("a");
+      //   fileLink.href = fileURL;
+      //   fileLink.setAttribute("download", "file.pptx");
+      //   document.body.appendChild(fileLink);
+      //   fileLink.click();
+      // });
+    },
     isUnauthorized(error) {
       // if unauthenticated (401)
       if (error.response.status == "401") {
@@ -614,6 +659,24 @@ export default {
       if (!this.$v.file.$dirty) return errors;
       !this.$v.file.required && errors.push("File is required.");
       this.fileIsEmpty && errors.push("File is empty.");
+
+      this.fileIsInvalid = false;
+
+      if (this.file) {
+        let file_type = [];
+        let ctr = 0;
+
+        if (this.file.name) {
+          file_type = this.file.name.split(".");
+          ctr = file_type.length - 1;
+        }
+
+        if (file_type[ctr] != "mp4") {
+          this.fileIsInvalid = true;
+        }
+        
+      }
+
       this.fileIsInvalid && errors.push("File type must be 'mp4'.");
       return errors;
     },
@@ -637,10 +700,15 @@ export default {
       "userRolesPermissionsIsLoaded",
     ]),
   },
+  destroyed() {
+    window.removeEventListener("resize", this.handleResize);
+  },
   mounted() {
     axios.defaults.headers.common["Authorization"] =
       "Bearer " + localStorage.getItem("access_token");
     this.getVideos();
+    window.addEventListener("resize", this.handleResize);
+    this.handleResize();
   },
 };
 </script>
