@@ -97,6 +97,7 @@ class PermissionSeeder extends Seeder
             'file-create',
             'file-edit',
             'file-delete',
+            'user-files',
             'permission-list',
             'permission-create',
             'permission-edit',

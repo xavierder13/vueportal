@@ -16,7 +16,7 @@ use Response;
 
 class TrainingController extends Controller
 {   
-    public function get_videos() {
+    public function files() {
         $user = Auth::user();
         // $videos = TrainingFile::where('file_type', '=', 'mp4')->get();
         // $videos = DB::table('training_files')
@@ -33,31 +33,49 @@ class TrainingController extends Controller
         //             })
         //             ->select(DB::raw('training_files.*'))
         //             ->get();
-        $videos = TrainingFile::where(function($query) use ($user) {
+        $files = TrainingFile::with('file_has_permissions') 
+                              ->where(function($query) use ($user) {
 
-            // if auth is not Administrator
-            if($user->id != 1)
-            {
-                $query->where('training_files.user_id', '=', $user->id)
-                      ->orWhereHas('file_has_permissions', function($query) use ($user) {
+                                    // if auth is not Administrator
+                                    if($user->id != 1)
+                                    {
+                                        $query->where('training_files.user_id', '=', $user->id)
+                                            ->orWhereHas('file_has_permissions', function($query) use ($user) {
 
-                        // if auth is not Administrator
-                        if($user->id != 1)
-                        {
-                            $query->where('position_id', '=', $user->position_id);
-                        }
-            
-                    });
-            }
+                                                // if auth is not Administrator
+                                                if($user->id != 1)
+                                                {
+                                                    $query->where('position_id', '=', $user->position_id);
+                                                }
+                                    
+                                            });
+                                    }
            
-        })
+                                })
+                                ->select(DB::raw('training_files.*'))
+                                ->get();
 
-        ->with('file_has_permissions')
-        ->select(DB::raw('training_files.*'))
-        ->get();
+        return response()->json(['files' => $files], 200);
+    }
+
+    public function user_files() {
+        $user = Auth::user();
+ 
+        $files = TrainingFile::with('file_has_permissions') 
+                              ->where(function($query) use ($user) {
+
+                                    // if auth is not Administrator
+                                    if($user->id != 1)
+                                    {
+                                        $query->where('training_files.user_id', '=', $user->id);    
+                                    }
+           
+                                })
+                                ->select(DB::raw('training_files.*'))
+                                ->get();
 
         $positions = Position::all();
-        return response()->json(['videos' => $videos, 'positions' => $positions], 200);
+        return response()->json(['files' => $files, 'positions' => $positions], 200);
     }
 
     public function file_upload(Request $request)
@@ -78,7 +96,8 @@ class TrainingController extends Controller
                     'permitted_positions' => $request->get('permitted_positions'),
                 ],
                 [
-                    'file' => 'required|in:mp4,',
+                    // 'file' => 'required|in:mp4,',
+                    'file' => 'required',
                     'title' => 'required',
                     'permitted_positions' => 'required',
                 ], 
@@ -208,10 +227,24 @@ class TrainingController extends Controller
     }
 
     public function download(Request $request)
-    {
-        $file = public_path()."/wysiwyg/2021-09-17/a.pptx";
-        $headers = array('Content-Type: application/pptx',);
-        // return Response::download($file, 'Branch Company.csv', $headers);
-        return response()->download($file, 'a.pptx', $headers);
+    {   
+        try {
+
+            $title = $request->get('title'); 
+            $file_path = $request->get('file_path');    
+            $file_name = $request->get('file_name');
+            $file_type = $request->get('file_type');
+
+            $file = public_path() . $file_path . "/" . $file_name;
+            $headers = array('Content-Type: application/' . $file_type,);
+            // return Response::download($file, 'Branch Company.csv', $headers);
+            return response()->download($file, $title . '.' . $file_type, $headers);
+
+        } catch (\Exception $e) {
+            
+            return response()->json(['error' => $e->getMessage()], 200);
+        }
+
+        
     }
 }

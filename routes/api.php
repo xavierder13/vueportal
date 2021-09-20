@@ -234,9 +234,14 @@ Route::get('/employee/export_employee/{id}', [
 
 // Training Files Route
 Route::group(['prefix' => 'training', 'middleware' => ['auth:api', 'training_file.maintenance']], function(){
-    Route::get('/videos', [
-        'uses' => 'API\TrainingController@get_videos',
-        'as' => 'training.videos'
+    Route::get('/files', [
+        'uses' => 'API\TrainingController@files',
+        'as' => 'training.files'
+    ]);
+
+    Route::get('/user_files', [
+        'uses' => 'API\TrainingController@user_files',
+        'as' => 'training.user_files'
     ]);
 
     Route::post('/file/upload', [

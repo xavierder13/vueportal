@@ -18,7 +18,8 @@ import BranchIndex from './views/branch/BranchIndex.vue';
 import CompanyIndex from './views/company/CompanyIndex.vue';
 import EmployeeIndex from './views/employee/EmployeeIndex.vue';
 import EmployeeListView from './views/employee/EmployeeListView.vue';
-import Gallery from './views/training_tutorial/Gallery.vue';
+import MyFiles from './views/training_file/MyFiles.vue';
+import FilesTutorials from './views/training_file/FilesTutorials.vue';
 import Permission from './views/permission/PermissionIndex.vue';
 import Role from './views/role/RoleIndex.vue';
 import ActivityLogs from './views/activity_logs/ActivityLogs.vue';
@@ -109,9 +110,14 @@ const routes = [
         component: EmployeeListView
       },
       {
-        path: '/training/gallery',
-        name: 'training.gallery',
-        component: Gallery
+        path: '/training/my_files',
+        name: 'training.my_files',
+        component: MyFiles
+      },
+      {
+        path: '/training/files_tutorials',
+        name: 'training.files_tutorials',
+        component: FilesTutorials
       },
       {
         path: '/permission/index',

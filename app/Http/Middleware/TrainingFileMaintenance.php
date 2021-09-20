@@ -19,7 +19,7 @@ class TrainingFileMaintenance
         $user = Auth::user();
 
         //File Record
-        if($request->is('api/training/videos')){
+        if($request->is('api/training/files') || $request->is('api/training/user_files')){
             if($user->can('file-list')){
                 return $next($request); 
             }

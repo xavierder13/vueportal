@@ -87,6 +87,7 @@ const state = {
     file_create: false,
     file_edit: false,
     file_delete: false,
+    user_files: false,
     role_list: false,
     role_create: false,
     role_edit: false,
@@ -261,6 +262,7 @@ const mutations = {
     permission.file_create = permissions.includes("file-create");
     permission.file_edit = permissions.includes("file-edit");
     permission.file_delete = permissions.includes("file-delete");
+    permission.user_files = permissions.includes("user-files");
 
     // PERMISSION RECORD MAINTENANCE PERMISSIONS
     permission.permission_list = permissions.includes("permission-list");
