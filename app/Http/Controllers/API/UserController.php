@@ -199,6 +199,56 @@ class UserController extends Controller
         ], 200);
     }
 
+    public function update_profile(Request $request, $user_id)
+    {  
+        $rules = [
+            'name.required' => 'Please enter name',
+            'password.required' => 'Password is required',
+            'password.min' => 'Password must be atleast 8 characters',
+            'password.same' => 'Password and Confirm Password did not match',
+            'confirm_password.required' => 'Confirm Password is required',
+        ];
+
+        $valid_fields = [
+            'name' => 'required|string|max:255',
+        ];
+
+        if($request->get('password') || $request->get('confirm_password'))
+        {
+            $valid_fields['password'] = 'required|string|min:8|same:confirm_password';
+            $valid_fields['confirm_password'] = 'required';
+        }
+
+        $validator = Validator::make($request->all(), $valid_fields, $rules);
+
+        if($validator->fails())
+        {   
+            return response()->json($validator->errors(), 200);
+        }
+
+        $user = User::find($user_id);
+
+        //if record is empty then display error page
+        if(empty($user->id))
+        {
+            return abort(404, 'Not Found');
+        }
+
+        $user->name = $request->get('name');
+        if(!empty($request->get('password')))
+        {
+            $user->password = Hash::make($request->get('password'));
+        }
+        $user->save();
+        
+
+        return response()->json([
+            'success' => 'Record has been updated', 
+            'user' => $user
+        ], 200);
+    }
+
+
     public function delete(Request $request)
     {
         $user = User::find($request->get('user_id'));

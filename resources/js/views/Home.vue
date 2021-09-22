@@ -7,11 +7,56 @@
       </v-btn>
 
       <v-spacer></v-spacer>
-
-      <v-btn @click="logout">
-        <v-icon>mdi-logout </v-icon>
-        Logout
-      </v-btn>
+      <v-menu offset-y :nudge-width="200">
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn small rounded v-bind="attrs" v-on="on" color="grey darken-3">
+            <v-icon> mdi-menu-down </v-icon>
+          </v-btn>
+        </template>
+        <v-card color="grey lighten-3">
+          <v-card-text class="text-center">
+            <v-row>
+              <v-col
+                ><img
+                  src="/img/default-profile.png"
+                  width="120px"
+                  height="100px"
+                  alt="User"
+                  style="border-radius: 50%"
+              /></v-col>
+            </v-row>
+            <v-row>
+              <v-col>
+                <h5 class="text--secondary">
+                  {{ user.name }}
+                </h5>
+                <h6 class="text--disabled">
+                  {{
+                    user.id === 1
+                      ? "Administrator"
+                      : user.position
+                      ? user.position.name
+                      : ""
+                  }}
+                </h6>
+              </v-col>
+            </v-row>
+          </v-card-text>
+          <v-divider class="pa-0 mb-0"></v-divider>
+          <v-card-actions class="grey darken-2 d-flex justify-content-around">
+            <div>
+              <v-btn class="white--text" plain small @click="userProfile()">
+                <v-icon small class="mr-1">mdi-account</v-icon> Profile
+              </v-btn>
+            </div>
+            <div>
+              <v-btn class="white--text" plain small @click="logout">
+                <v-icon small class="mr-1">mdi-logout</v-icon> Logout
+              </v-btn>
+            </div>
+          </v-card-actions>
+        </v-card>
+      </v-menu>
     </v-app-bar>
 
     <!-- Sidebar -->
@@ -198,7 +243,11 @@
         </v-list-group>
         <v-list-group
           no-action
-          v-if="userPermissions.file_list || userPermissions.file_create || userPermissions.user_files"
+          v-if="
+            userPermissions.file_list ||
+            userPermissions.file_create ||
+            userPermissions.user_files
+          "
         >
           <!-- List Group Icon-->
           <v-icon slot="prependIcon">mdi-folder-multiple-outline</v-icon>
@@ -209,12 +258,20 @@
             </v-list-item-content>
           </template>
           <!-- List Group Items -->
-          <v-list-item link to="/training/my_files" v-if="userPermissions.user_files && userPermissions.user_files">
+          <v-list-item
+            link
+            to="/training/my_files"
+            v-if="userPermissions.user_files && userPermissions.user_files"
+          >
             <v-list-item-content>
               <v-list-item-title>My Files</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
-          <v-list-item link to="/training/files_tutorials" v-if="userPermissions.file_list">
+          <v-list-item
+            link
+            to="/training/files_tutorials"
+            v-if="userPermissions.file_list"
+          >
             <v-list-item-content>
               <v-list-item-title>{{ "Files & Tutorials" }}</v-list-item-title>
             </v-list-item-content>
@@ -405,6 +462,10 @@ export default {
           }
         }
       );
+    },
+
+    userProfile() {
+      this.$router.push({ name: "user.profile" }).catch((e) => {});
     },
 
     websocket() {

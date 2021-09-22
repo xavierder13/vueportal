@@ -36,6 +36,7 @@
               ></v-text-field>
               <v-spacer></v-spacer>
               <v-tab-item>
+                <v-divider></v-divider>
                 <v-container fluid>
                   <v-row v-if="!filteredVideos.length && loaded">
                     <v-col class="text-center">

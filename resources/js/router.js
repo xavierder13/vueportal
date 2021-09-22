@@ -5,6 +5,7 @@ import Login from './auth/Login.vue';
 import Dashboard from './views/dashboard/Dashboard.vue';
 import UserIndex from './views/user/UserIndex.vue';
 import UserCreate from './views/user/UserCreate.vue';
+import UserProfile from './views/user/UserProfile.vue';
 import ProductIndex from './views/inventory/ProductIndex.vue';
 import ScanProduct from './views/inventory/ScanProduct.vue';
 import InventoryReconciliation from './views/inventory/InventoryReconciliation.vue';
@@ -43,6 +44,11 @@ const routes = [
         path: '/user/create',
         name: 'user.create',
         component: UserCreate
+      },
+      {
+        path: '/user/profile',
+        name: 'user.profile',
+        component: UserProfile
       },
       {
         path: '/product/index',

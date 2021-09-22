@@ -39,6 +39,11 @@ class UserMaintenance
             }
         }
 
+        //User Profile Edit
+        if($request->is('api/user/update_profile/*')){  
+            return $next($request);  
+        }
+
         //User Delete
         if($request->is('api/user/delete')){
             if($user->can('user-delete')){

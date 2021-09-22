@@ -7,13 +7,14 @@ use Illuminate\Http\Request;
 use Validator;
 use Hash;
 use Auth;
+use App\User;
 use Carbon\Carbon;
 
 class AuthController extends Controller
 {
     public function init()
     {   
-        $user = Auth::user();
+        $user = User::with('branch')->with('position')->find(Auth::id());
         return response()->json(['user' => $user], 200);   
     }
 

@@ -68,6 +68,11 @@ Route::group(['prefix' => 'user', 'middleware' => ['auth:api', 'user.maintenance
         'as' => 'user.update',
     ]);
 
+    Route::post('/update_profile/{id}', [
+        'uses' => 'API\UserController@update_profile',
+        'as' => 'user.update_profile',
+    ]);
+
     Route::post('/delete', [
         'uses' => 'API\UserController@delete',
         'as' => 'user.delete',
