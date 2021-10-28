@@ -33,7 +33,7 @@
               hide-details=""
               inset
               v-model="switch1"
-              @click="clear()"
+              @click="resetFields()"
             ></v-switch>
           </v-card-title>
           <v-divider></v-divider>
@@ -322,6 +322,30 @@ export default {
         timer: 2500,
       });
     },
+    showConfirmAlert(item) {
+      this.$swal({
+        title: "Are you sure?",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#6c757d",
+        confirmButtonText: "Delete record!",
+      }).then((result) => {
+        // <--
+
+        if (result.value) {
+          // <-- if confirmed
+          // this.$swal({
+          //   position: "center",
+          //   icon: "success",
+          //   title: "Record fields has been cleared",
+          //   showConfirmButton: false,
+          //   timer: 2500,
+          // });
+        }
+      });
+    },
 
     async save() {
       this.$v.$touch();
@@ -354,7 +378,7 @@ export default {
               // this.$socket.emit("sendData", { action: "product-create" });
 
               this.showAlert();
-              this.clear();
+              this.resetFields();
             } else if (response.data.existing_products) {
               let products = response.data.existing_products;
 
@@ -428,6 +452,37 @@ export default {
     },
 
     clear() {
+      // if scan mode is multiple
+      if (this.switch1) {
+        this.$swal({
+          title: "Are you sure?",
+          text: "You won't be able to revert this!",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#d33",
+          cancelButtonColor: "#6c757d",
+          confirmButtonText: "Clear fields!",
+        }).then((result) => {
+          // <--
+
+          if (result.value) {
+            // <-- if confirmed
+            // this.$swal({
+            //   position: "center",
+            //   icon: "success",
+            //   title: "Record fields has been cleared",
+            //   showConfirmButton: false,
+            //   timer: 2500,
+            // });
+            this.resetFields();
+          }
+        });
+      } else {
+        this.resetFields();
+      }
+    },
+
+    resetFields() {
       this.$v.$reset();
       this.editedItem = Object.assign({}, this.defaultItem);
       this.editedItem.branch_id = this.user.branch_id;

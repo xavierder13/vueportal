@@ -295,6 +295,7 @@ class BrandSeeder extends Seeder
             "RAINBOW",
             "RAPOO (ANSI)",
             "RB FURNITURE",
+            "REALME",
             "REGAIN",
             "RENAISSANCE",
             "RHINE RIVER",
