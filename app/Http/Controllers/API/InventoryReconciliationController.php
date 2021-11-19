@@ -419,13 +419,13 @@ class InventoryReconciliationController extends Controller
         
     }
 
-    public function unreconcile_list(Request $request)
+    public function unreconciled_list(Request $request)
     {   
         $user = Auth::user();
         $branch_id = $request->get('branch_id');
         $inventory_group = $request->get('inventory_group');
 
-        $unreconcile_list = InventoryReconciliation::with('branch')
+        $unreconciled_list = InventoryReconciliation::with('branch')
                                                    ->where('branch_id', '=', $branch_id)
                                                    ->where('status', '=', 'unreconciled')
                                                    ->where(function($query) use ($inventory_group, $user) {
@@ -437,7 +437,7 @@ class InventoryReconciliationController extends Controller
                                                    ->select(DB::raw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_created"))
                                                    ->get();
 
-        return response()->json(['unreconcile_list' => $unreconcile_list], 200);
+        return response()->json(['unreconciled_list' => $unreconciled_list], 200);
     }
 
     public function reconcile(Request $request) 

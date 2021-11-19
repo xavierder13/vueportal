@@ -498,6 +498,18 @@ export default {
     this.getUser();
     this.userRolesPermissions();
     // this.websocket();
+
+    // axios.get('http://mis.test/api/user/index', {
+    //   headers: {
+    //     Authorization: "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiMzllNmZlYzc5OTEwZGYwZWE5NGJmODJkMGZmYTEyZGUxMWM5MjgyYzdjNjc5MTE0NGMyZjZlMWMyYTI0MjJhMWY5NTJhNzhjNzJkNTMzYWIiLCJpYXQiOjE2MzU5OTMyOTAsIm5iZiI6MTYzNTk5MzI5MCwiZXhwIjoxNjY3NTI5MjkwLCJzdWIiOiIxIiwic2NvcGVzIjpbXX0.XnybzTFSDCAili4bDAw1mXiuobZRnCSi293LcWH9i__fb2JXiXhUGiYxlhS1iVQt1wg3DxqrWfHZpBWOHBBs3Q-MRUcqvIJ37ZG0Q_Q1jUiGT5lwN-CDiPS6uGFayS3AKSXIU0p56lFwM9FWmahI4avW9420Ad7NkNX87Q3nwMBvF0h3Xjy7vf0Et20BqKw06k-xMrLK2OxJnkVmsgtuPZMHykEv-HxgrXohUGnYFWXN_3K-G6FJV0tuGADLEnTPS0CpPBHpqB0Cec0YXxe1grLCf01axxcJJL9_crL2E_Gtq_vM8KH6l8cF1O6v5Cn7yn0mhejAZeVQu9Y1wIh7RVdkgOtDxfYxoE07MQ9m73swz7HnI6VyZDpDqBOEM-Vcdci0Ubs5IDuJPRu7GzFj7Eq-Vfrx8zJ_SX19u_4xs6vKdJoYJLrIea6wvNup4Qt-Kkv0Vux5FYTdIdPOvmmY6uWLpU0FWY7g4QCmAS5U5xJGWx_U-81usvPXlRsF6LGi_tfKcinluqnprLma9YiHqnbds4dC7RjP3eZmQkrip8mJ3AjtbBp79Iqn0aVbEJ3qE8XJITQH3BVdNgsFyNaYUIPb8fUfwolzhkauj3kGSpfgxTVKS0vcDgA2kZfStaP6bPWls8z2U-MYKahTs5K3i1kTCZ4paNLszY_8SN-Q83c", 
+    //     // "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
+    //     //   "Access-Control-Allow-Headers": "Origin, Content-Type, X-Auth-Token"
+    //   }
+    // }).then((response) => {
+    //   console.log(response);
+    // }, (error) => {
+    //   console.log(error);
+    // })
   },
 };
 </script>

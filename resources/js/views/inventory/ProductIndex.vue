@@ -215,7 +215,7 @@
                 </v-dialog>
 
                 <v-dialog
-                  v-model="dialog_unreconcile"
+                  v-model="dialog_unreconciled"
                   max-width="1000px"
                   persistent
                 >
@@ -250,7 +250,7 @@
                               :headers="unreconciled_headers"
                               :items="filteredUnreconciled"
                               :search="search_unreconciled"
-                              :loading="loading_unreconcile"
+                              :loading="loading_unreconciled"
                               loading-text="Loading... Please wait"
                             >
                               <template v-slot:item.status="{ item }">
@@ -287,7 +287,7 @@
                       <v-btn
                         color="#E0E0E0"
                         @click="
-                          (dialog_unreconcile = false) + (loading = false)
+                          (dialog_unreconciled = false) + (loading = false)
                         "
                         class="mb-4 mr-4"
                       >
@@ -370,7 +370,7 @@ export default {
       ],
       disabled: false,
       dialog: false,
-      dialog_unreconcile: false,
+      dialog_unreconciled: false,
       products: [],
       brands: [],
       branches: [],
@@ -402,7 +402,7 @@ export default {
         },
       ],
       loading: true,
-      loading_unreconcile: true,
+      loading_unreconciled: true,
       user: "",
       search_branch: "",
       json_fields: {
@@ -414,7 +414,7 @@ export default {
       serialExists: false,
       inventory_groups: [{ name: "Admin-Branch" }, { name: "Audit-Branch" }],
       inventory_group: "Admin-Branch",
-      unreconcile_list: [],
+      unreconciled_list: [],
       search_unreconciled: "",
     };
   },
@@ -702,8 +702,8 @@ export default {
             timer: 4000,
           });
         } else {
-          this.loading_unreconcile = true;
-          this.dialog_unreconcile = true;
+          this.loading_unreconciled = true;
+          this.dialog_unreconciled = true;
 
           let data = {
             branch_id: this.search_branch,
@@ -714,8 +714,8 @@ export default {
             .post("/api/inventory_reconciliation/unreconcile/list", data)
             .then(
               (response) => {
-                this.unreconcile_list = response.data.unreconcile_list;
-                this.loading_unreconcile = false;
+                this.unreconciled_list = response.data.unreconciled_list;
+                this.loading_unreconciled = false;
               },
               (error) => {
                 console.log(error);
@@ -759,8 +759,8 @@ export default {
                 // send data to Sockot.IO Server
                 // this.$socket.emit("sendData", { action: "product-reconcile" });
 
-                let index = this.unreconcile_list.indexOf(item);
-                this.unreconcile_list.splice(index, 1);
+                let index = this.unreconciled_list.indexOf(item);
+                this.unreconciled_list.splice(index, 1);
 
                 this.$swal({
                   position: "center",
@@ -880,7 +880,7 @@ export default {
         }
       }
 
-      this.unreconcile_list.forEach((value, index) => {
+      this.unreconciled_list.forEach((value, index) => {
         if (value.inventory_group === this.inventory_group) {
           unreconciled.push(value);
         }
@@ -920,7 +920,6 @@ export default {
     axios.defaults.headers.common["Authorization"] =
       "Bearer " + localStorage.getItem("access_token");
     await this.getProduct();
-    await this.inventoryGroup;
     this.$barcodeScanner.init(this.onBarcodeScanned);
     // this.websocket();
   },

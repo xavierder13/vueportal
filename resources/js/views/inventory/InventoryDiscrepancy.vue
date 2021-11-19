@@ -103,6 +103,7 @@
           <v-data-table
             :headers="headers"
             :items="products"
+            :search="search"
             :loading="loading"
             loading-text="Loading... Please wait"
             id="invty-recon-table"

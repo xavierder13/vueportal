@@ -177,8 +177,8 @@ Route::group(['prefix' => 'inventory_reconciliation', 'middleware' => ['auth:api
     ]);
 
     Route::post('/unreconcile/list', [
-        'uses' => 'API\InventoryReconciliationController@unreconcile_list',
-        'as' => 'inventory_reconciliation.unreconcile_list',
+        'uses' => 'API\InventoryReconciliationController@unreconciled_list',
+        'as' => 'inventory_reconciliation.unreconciled_list',
     ]);
 
     Route::post('/reconcile', [
