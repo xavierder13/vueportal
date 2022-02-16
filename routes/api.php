@@ -363,6 +363,35 @@ Route::group(['prefix' => 'brand', 'middleware' => ['auth:api', 'brand.maintenan
 
 });
 
+// Product Model Routes
+Route::group(['prefix' => 'product_model', 'middleware' => ['auth:api', 'product_model.maintenance']], function(){
+    Route::get('/index', [
+        'uses' => 'API\ProductModelController@index',
+        'as' => 'product_model.index',
+    ]);
+    Route::get('/create', [
+        'uses' => 'API\ProductModelController@create',
+        'as' => 'product_model.create',
+    ]);
+    Route::post('/store', [
+        'uses' => 'API\ProductModelController@store',
+        'as' => 'product_model.store',
+    ]);
+    Route::post('/edit', [
+        'uses' => 'API\ProductModelController@edit',
+        'as' => 'product_model.edit',
+    ]);
+    Route::post('/update/{id}', [
+        'uses' => 'API\ProductModelController@update',
+        'as' => 'product_model.update',
+    ]);
+    Route::post('/delete', [
+        'uses' => 'API\ProductModelController@delete',
+        'as' => 'product_model.delete',
+    ]);
+
+});
+
 // Product Category Routes
 Route::group(['prefix' => 'product_category', 'middleware' => ['auth:api', 'product_category.maintenance']], function(){
     Route::get('/index', [

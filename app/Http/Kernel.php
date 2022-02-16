@@ -73,6 +73,7 @@ class Kernel extends HttpKernel
         'permission.maintenance' => \App\Http\Middleware\PermissionMaintenance::class,
         'role.maintenance' => \App\Http\Middleware\RoleMaintenance::class,
         'product.maintenance' => \App\Http\Middleware\ProductMaintenance::class,
+        'product_model.maintenance' => \App\Http\Middleware\ProductModelMaintenance::class,
         'product_category.maintenance' => \App\Http\Middleware\ProductCategoryMaintenance::class,
         'inventory_reconciliation.maintenance' => \App\Http\Middleware\InventoryReconciliationMaintenance::class,
         'training_file.maintenance' => \App\Http\Middleware\TrainingFileMaintenance::class,

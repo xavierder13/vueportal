@@ -474,14 +474,14 @@ class InventoryReconciliationController extends Controller
 
         // scan for duplicate data
         foreach ($products as $key => $product) {
-            $product = InventoryReconciliationMap::where('inventory_type', '=', 'Physical')
+            $inventory_recon_map = InventoryReconciliationMap::where('inventory_type', '=', 'Physical')
                                                  ->where('brand', '=', $product['brand']['name'])
                                                  ->where('model', '=', $product['model'])
                                                  ->where('product_category', '=', $product['product_category']['name'])
                                                  ->where('serial', '=', $product['serial'])
                                                  ->where('inventory_recon_id', '=', $inventory_recon_id)
                                                  ->get();
-            if(count($product))
+            if(count($inventory_recon_map))
             {   
                 return response()->json(['duplicate' => 'Product exists'], 200);
             }

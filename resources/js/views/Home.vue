@@ -284,6 +284,8 @@
             userPermissions.brand_create ||
             userPermissions.product_category_list ||
             userPermissions.product_category_create ||
+            userPermissions.product_model_list ||
+            userPermissions.product_model_create ||
             userPermissions.branch_list ||
             userPermissions.branch_create ||
             userPermissions.position_list ||
@@ -310,6 +312,18 @@
           >
             <v-list-item-content>
               <v-list-item-title>Brand</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
+            to="/product_model/index"
+            v-if="
+              userPermissions.product_model_list ||
+              userPermissions.product_model_create
+            "
+          >
+            <v-list-item-content>
+              <v-list-item-title>Product Model</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
           <v-list-item

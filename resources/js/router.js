@@ -15,6 +15,7 @@ import BrandIndex from './views/brand/BrandIndex.vue';
 import PositionIndex from './views/position/PositionIndex.vue';
 import DepartmentIndex from './views/department/DepartmentIndex.vue';
 import ProductCategoryIndex from './views/product_category/ProductCategoryIndex.vue';
+import ProductModelIndex from './views/product_model/ProductModelIndex.vue';
 import BranchIndex from './views/branch/BranchIndex.vue';
 import CompanyIndex from './views/company/CompanyIndex.vue';
 import EmployeeIndex from './views/employee/EmployeeIndex.vue';
@@ -84,6 +85,11 @@ const routes = [
         path: '/product_category/index',
         name: 'product_category.index',
         component: ProductCategoryIndex
+      },
+      {
+        path: '/product_model/index',
+        name: 'product_model.index',
+        component: ProductModelIndex
       },
       {
         path: '/branch/index',

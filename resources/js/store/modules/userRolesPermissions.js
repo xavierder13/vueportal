@@ -31,6 +31,10 @@ const state = {
     product_category_create: false,
     product_category_edit: false,
     product_category_delete: false,
+    product_model_list: false,
+    product_model_create: false,
+    product_model_edit: false,
+    product_model_delete: false,
     product_list: false,
     product_list_all: false,
     product_create: false,
@@ -157,13 +161,19 @@ const mutations = {
     permission.brand_edit = permissions.includes("brand-edit");
     permission.brand_delete = permissions.includes("brand-delete");
 
-    // PRODUCT RECORD CATEGORY MAINTENANCE PERMISSIONS
+    // PRODUCT CATEGORY RECORD MAINTENANCE PERMISSIONS
     permission.product_category_list = permissions.includes("product-category-list");
     permission.product_category_create = permissions.includes("product-category-create");
     permission.product_category_edit = permissions.includes("product-category-edit");
     permission.product_category_delete = permissions.includes("product-category-delete");
 
-    // BRAND RECORD MAINTENANCE PERMISSIONS
+    // PRODUCT MODEL RECORD MAINTENANCE PERMISSIONS
+    permission.product_model_list = permissions.includes("product-model-list");
+    permission.product_model_create = permissions.includes("product-model-create");
+    permission.product_model_edit = permissions.includes("product-model-edit");
+    permission.product_model_delete = permissions.includes("product-model-delete");
+
+    // BRANCH RECORD MAINTENANCE PERMISSIONS
     permission.branch_list = permissions.includes("branch-list");
     permission.branch_create = permissions.includes("branch-create");
     permission.branch_edit = permissions.includes("branch-edit");

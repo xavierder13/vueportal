@@ -28,7 +28,6 @@ class ProductController extends Controller
                            ->select(DB::raw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_created"))
                            ->get();
 
-
         $brands = Brand::all();
         $branches = Branch::all();
         $product_categories = ProductCategory::all();
