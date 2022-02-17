@@ -12,7 +12,7 @@ class ProductModelController extends Controller
 {
     public function index()
     {       
-        $product_models = ProductModel::all();
+        $product_models = ProductModel::paginate(10);
         return response()->json(['product_models' => $product_models], 200);
     }
 

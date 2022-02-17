@@ -7,12 +7,12 @@ import router from './router';
 import VueSweetalert2 from 'vue-sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
 import excel from 'vue-excel-export';
-import VueSocketio from 'vue-socket.io';
+// import VueSocketio from 'vue-socket.io';
 import VueBarcodeScanner from 'vue-barcode-scanner'
 import store from './store';
 
 
-Vue.use(VueSocketio, 'http://localhost:4000');
+// Vue.use(VueSocketio, 'http://localhost:4000');
 Vue.use(excel);
 Vue.use(Vuetify);
 Vue.use(VuetifyMask);
