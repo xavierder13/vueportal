@@ -10,9 +10,18 @@ use DB;
 
 class ProductModelController extends Controller
 {
-    public function index()
-    {       
-        $product_models = ProductModel::paginate(10);
+    public function index(Request $request)
+    {           
+        
+        $product_models = ProductModel::where( function($query) use($request){
+            if($request->search)
+            {
+                $query->where('name', 'like', '%'.$request->search.'%');
+            }
+        })
+        ->orderBy('name', 'asc')
+        ->paginate($request->items_per_page);
+
         return response()->json(['product_models' => $product_models], 200);
     }
 

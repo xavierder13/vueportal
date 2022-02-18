@@ -60,7 +60,7 @@
                 </v-autocomplete>
               </v-col>
             </v-row>
-            <v-row>
+            <!-- <v-row>
               <v-col class="mt-0 mb-0 pt-0 pb-0">
                 <v-text-field
                   name="model"
@@ -77,7 +77,45 @@
                   @focus="fieldsActive = true"
                 ></v-text-field>
               </v-col>
+            </v-row> -->
+            <v-row>
+              <v-col class="mt-0 mb-0 pt-0 pb-0">
+                <v-autocomplete
+                  :items="product_models"
+                  v-model="editedItem.model"
+                  item-text="name"
+                  item-value="name"
+                  label="Select Model"
+                  :search-input.sync="search"
+                  required
+                  :error-messages="modelErrors"
+                  @input="
+                    $v.editedItem.model.$touch() +
+                      (fieldsActive = true) +
+                      clearSerialExistStatus()
+                  "
+                  @blur="$v.editedItem.model.$touch() + (fieldsActive = false)"
+                  @focus="fieldsActive = true"
+                >
+                  <template v-slot:append-outer>
+                    <v-btn icon @click="searchModel()" color="primary"
+                      ><v-icon>mdi-magnify</v-icon></v-btn
+                    >
+                  </template>
+                  <template v-slot:append-item v-if="page != last_page">
+                    <v-list-item class="ma-0" @click="loadMoreModel()" color="primary">
+                      <v-list-item-content>
+                        <v-list-item-title>LOAD MORE</v-list-item-title>
+                      </v-list-item-content>
+                    </v-list-item>
+                  </template>
+                  <!-- <template v-slot:append-item>
+                    <div v-intersect="endIntersect()" />
+                  </template> -->
+                </v-autocomplete>
+              </v-col>
             </v-row>
+
             <v-row>
               <v-col class="mt-0 mb-0 pt-0 pb-0">
                 <v-autocomplete
@@ -276,7 +314,7 @@ export default {
         brand: "",
         brand_id: "",
         model: "",
-        serial: "",
+        serial: "asddasd",
       },
       defaultItem: {
         branch_id: "",
@@ -288,6 +326,7 @@ export default {
       brands: [],
       branches: [],
       product_categories: [],
+      product_models: [],
       products: [],
       serials: [],
       errorFields: [],
@@ -296,6 +335,11 @@ export default {
       serialExists: false,
       serialHasDuplicate: false,
       fieldsActive: false,
+      last_page: 1,
+      page: 1,
+      pageCount: 0,
+      itemsPerPage: 100,
+      search: "",
     };
   },
 
@@ -312,6 +356,62 @@ export default {
           this.isUnauthorized(error);
         }
       );
+    },
+    getProductModel() {
+      this.loading = true;
+
+      const data = {
+        items_per_page: this.itemsPerPage,
+        search: this.search,
+      };
+      axios.post("/api/product_model/index", data).then(
+        (response) => {
+          // console.log(response);
+          axios
+            .post(
+              response.data.product_models.path + "?page=" + this.page,
+              data
+            )
+            .then(
+              (response) => {
+                console.log(response);
+                let product_models = response.data.product_models.data;
+                this.last_page = response.data.product_models.last_page;
+
+                product_models.forEach((value, index) => {
+                  this.product_models.push(value);
+                });
+
+                this.loading = false;
+              },
+              (error) => {
+                this.isUnauthorized(error);
+              }
+            );
+        },
+        (error) => {
+          this.isUnauthorized(error);
+        }
+      );
+    },
+    searchModel() {
+      this.product_models = [];
+      this.page = 1;
+      this.getProductModel();
+    },
+    // endIntersect(entries, observer, isIntersecting) {
+    //   if (isIntersecting) {
+    //     this.page = this.page + 1;
+    //     this.getProductModel();
+    //   }
+    // },
+    loadMoreModel() {
+      if (this.last_page != this.page) {
+        this.page = this.page + 1;
+        console.log(this.page);
+      }
+
+      this.getProductModel();
     },
     showAlert() {
       this.$swal({
@@ -491,6 +591,9 @@ export default {
       this.serialHasDuplicate = false;
       this.serials = [];
       this.errorFields = [];
+      this.product_models = [];
+      this.page = 1;
+      this.last_page = 1;
     },
 
     async removeRow(item) {

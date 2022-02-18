@@ -19,6 +19,7 @@
               label="Search"
               single-line
               v-if="userPermissions.product_model_list"
+              @click:append="searchModel()"
             ></v-text-field>
             <template>
               <v-toolbar flat>
@@ -134,13 +135,23 @@
                     product_models.total
                   : ""
               }}
-              <v-btn icon class="ml-4" @click="firstPage()" :disabled="firstBtnDisable"
+              <v-btn
+                icon
+                class="ml-4"
+                @click="firstPage()"
+                :disabled="firstBtnDisable"
                 ><v-icon> mdi-chevron-double-left </v-icon></v-btn
               >
-              <v-btn icon class="mr-2" @click="prevPage()" :disabled="prevBtnDisable"
+              <v-btn
+                icon
+                class="mr-2"
+                @click="prevPage()"
+                :disabled="prevBtnDisable"
                 ><v-icon> mdi-chevron-left </v-icon></v-btn
               >
-              <v-btn icon @click="nextPage()" :disabled="lastBtnDisable"><v-icon> mdi-chevron-right </v-icon></v-btn>
+              <v-btn icon @click="nextPage()" :disabled="lastBtnDisable"
+                ><v-icon> mdi-chevron-right </v-icon></v-btn
+              >
               <v-btn icon @click="lastPage()" :disabled="lastBtnDisable"
                 ><v-icon> mdi-chevron-double-right </v-icon></v-btn
               >
@@ -176,9 +187,8 @@ export default {
       page: 1,
       pageCount: 0,
       itemsPerPage: 10,
-      numRowsPerPage: 0,
       footerProps: {
-        "items-per-page-options": [5, 10, 15, 30, 50, 100],
+        "items-per-page-options": [10, 20, 30, 50, 100, 500],
         pagination: {},
         showFirstLastPage: true,
         firstIcon: null,
@@ -219,36 +229,46 @@ export default {
       nextBtnDisable: true,
       firstBtnDisable: true,
       lastBtnDisable: false,
-      modelTotalCount : 0,
+      modelTotalCount: 0,
     };
   },
 
   methods: {
     getProductModel() {
+      this.product_models = {};
       this.loading = true;
-      axios.get("/api/product_model/index").then(
-        (response) => {
-          axios.get(response.data.product_models.path + "?page=" + this.page).then(
-            (response) => {
-              console.log(response);
-              let product_models = response.data.product_models;
-              this.product_models = product_models;
-              this.last_page = product_models.last_page;
-              this.footerProps.pagination = {
-                page: this.page,
-                itemsPerPage: this.itemsPerPage,
-                pageStart: product_models.from - 1,
-                pageStop: product_models.to,
-                pageCount: product_models.last_page,
-                itemsLength: product_models.total,
-              };
 
-              this.loading = false;
-            },
-            (error) => {
-              this.isUnauthorized(error);
-            }
-          );
+      const data = { items_per_page: this.itemsPerPage, search: this.search };
+      axios.post("/api/product_model/index", data).then(
+        (response) => {
+          // console.log(response);
+          axios
+            .post(
+              response.data.product_models.path + "?page=" + this.page,
+              data
+            )
+            .then(
+              (response) => {
+                // console.log(response);
+                let product_models = response.data.product_models;
+                this.product_models = product_models;
+                this.last_page = product_models.last_page;
+
+                this.footerProps.pagination = {
+                  page: this.page,
+                  itemsPerPage: this.itemsPerPage,
+                  pageStart: product_models.from - 1,
+                  pageStop: product_models.to,
+                  pageCount: product_models.last_page,
+                  itemsLength: product_models.total,
+                };
+
+                this.loading = false;
+              },
+              (error) => {
+                this.isUnauthorized(error);
+              }
+            );
         },
         (error) => {
           this.isUnauthorized(error);
@@ -256,17 +276,14 @@ export default {
       );
     },
     nextPage() {
-      if(this.page < this.last_page )
-      {
+      if (this.page < this.last_page) {
         this.page = this.page + 1;
       }
       console.log(this.page);
       this.getProductModel();
     },
-    prevPage()
-    {
-      if(this.page > 1 )
-      {
+    prevPage() {
+      if (this.page > 1) {
         this.page = this.page - 1;
       }
 
@@ -274,18 +291,20 @@ export default {
 
       this.getProductModel();
     },
-    firstPage()
-    {
+    firstPage() {
       this.page = 1;
       this.prevBtnDisable = true;
       this.firstBtnDisable = true;
+
+      this.getProductModel();
     },
 
-    lastPage()
-    {
+    lastPage() {
       this.page = this.last_page;
       this.nexBtnDisable = true;
       this.lastBtnDisable = true;
+
+      this.getProductModel();
     },
 
     editProductModel(item) {
@@ -469,7 +488,17 @@ export default {
         }
       };
     },
-    getItemPerPage() {},
+    getItemPerPage(val) {
+      this.itemsPerPage = val;
+      this.page = 1;
+      this.getProductModel();
+    },
+    searchModel() {
+      this.page = 1;
+      this.firstBtnDisable = true;
+      this.prevBtnDisable = true;
+      this.getProductModel();
+    },
   },
 
   watch: {
@@ -479,15 +508,27 @@ export default {
       this.firstBtnDisable = false;
       this.lastBtnDisable = false;
 
-      if(this.page === 1)
-      {
+      if (this.page === 1) {
         this.prevBtnDisable = true;
         this.firstBtnDisable = true;
       }
 
-      if(this.page === this.last_page)
-      {
+      if (this.page === this.last_page || this.last_page === 1) {
         this.nextBtnDisable = true;
+        this.lastBtnDisable = true;
+      }
+    },
+
+    search() {
+      
+    },
+
+    last_page() {
+      // if last page is equal to 1 then disable prev,next,fist and last button pagination
+      if (this.last_page === 1) {
+        this.prevBtnDisable = true;
+        this.nextBtnDisable = true;
+        this.firstBtnDisable = true;
         this.lastBtnDisable = true;
       }
     },

@@ -365,7 +365,7 @@ Route::group(['prefix' => 'brand', 'middleware' => ['auth:api', 'brand.maintenan
 
 // Product Model Routes
 Route::group(['prefix' => 'product_model', 'middleware' => ['auth:api', 'product_model.maintenance']], function(){
-    Route::get('/index', [
+    Route::post('/index', [
         'uses' => 'API\ProductModelController@index',
         'as' => 'product_model.index',
     ]);
