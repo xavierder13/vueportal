@@ -241,7 +241,7 @@ export default {
       const data = { items_per_page: this.itemsPerPage, search: this.search };
       axios.post("/api/product_model/index", data).then(
         (response) => {
-          // console.log(response);
+
           axios
             .post(
               response.data.product_models.path + "?page=" + this.page,
@@ -249,7 +249,7 @@ export default {
             )
             .then(
               (response) => {
-                // console.log(response);
+          
                 let product_models = response.data.product_models;
                 this.product_models = product_models;
                 this.last_page = product_models.last_page;
@@ -279,16 +279,12 @@ export default {
       if (this.page < this.last_page) {
         this.page = this.page + 1;
       }
-      console.log(this.page);
       this.getProductModel();
     },
     prevPage() {
       if (this.page > 1) {
         this.page = this.page - 1;
       }
-
-      console.log(this.page);
-
       this.getProductModel();
     },
     firstPage() {
@@ -308,7 +304,8 @@ export default {
     },
 
     editProductModel(item) {
-      this.editedIndex = this.product_models.indexOf(item);
+      
+      this.editedIndex = this.product_models.data.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.dialog = true;
     },
@@ -356,13 +353,13 @@ export default {
           // <-- if confirmed
 
           const product_model_id = item.id;
-          const index = this.product_models.indexOf(item);
+          const index = this.product_models.data.indexOf(item);
 
           //Call delete Product Model function
           this.deleteProductModel(product_model_id);
 
           //Remove item from array product_models
-          this.product_models.splice(index, 1);
+          this.product_models.data.splice(index, 1);
 
           this.$swal({
             position: "center",
@@ -406,7 +403,7 @@ export default {
                   // this.$socket.emit("sendData", { action: "product-model-edit" });
 
                   Object.assign(
-                    this.product_models[this.editedIndex],
+                    this.product_models.data[this.editedIndex],
                     this.editedItem
                   );
                   this.showAlert();
@@ -440,7 +437,7 @@ export default {
                 this.close();
 
                 //push recently added data from database
-                this.product_models.push(response.data.product_models);
+                this.product_models.data.push(response.data.product_models);
               } else {
                 let errors = response.data;
                 let errorNames = Object.keys(response.data);

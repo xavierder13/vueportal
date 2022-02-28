@@ -103,9 +103,9 @@
                     >
                   </template>
                   <template v-slot:append-item v-if="page != last_page">
-                    <v-list-item class="ma-0" @click="loadMoreModel()" color="primary">
+                    <v-list-item class="ma-0" @click="loadMoreModel()">
                       <v-list-item-content>
-                        <v-list-item-title>LOAD MORE</v-list-item-title>
+                        <v-list-item-title class="blue--text text--darken-2"> <v-icon class="" color="primary" small>mdi-chevron-down</v-icon> <span class="subtitle-2"> LOAD MORE</span></v-list-item-title>
                       </v-list-item-content>
                     </v-list-item>
                   </template>
@@ -314,7 +314,7 @@ export default {
         brand: "",
         brand_id: "",
         model: "",
-        serial: "asddasd",
+        serial: "",
       },
       defaultItem: {
         branch_id: "",
@@ -340,6 +340,7 @@ export default {
       pageCount: 0,
       itemsPerPage: 100,
       search: "",
+      currSearch: "",
     };
   },
 
@@ -362,9 +363,10 @@ export default {
 
       const data = {
         items_per_page: this.itemsPerPage,
-        search: this.search,
+        search: this.currSearch,
       };
-      axios.post("/api/product_model/index", data).then(
+
+      axios.post("/api/product/search_model", data).then(
         (response) => {
           // console.log(response);
           axios
@@ -395,6 +397,10 @@ export default {
       );
     },
     searchModel() {
+
+      // assign value to upon clicking of search button
+      this.currSearch = this.search; 
+
       this.product_models = [];
       this.page = 1;
       this.getProductModel();
@@ -408,7 +414,6 @@ export default {
     loadMoreModel() {
       if (this.last_page != this.page) {
         this.page = this.page + 1;
-        console.log(this.page);
       }
 
       this.getProductModel();
@@ -594,6 +599,8 @@ export default {
       this.product_models = [];
       this.page = 1;
       this.last_page = 1;
+      this.search = "";
+      this.currSearch = "";
     },
 
     async removeRow(item) {

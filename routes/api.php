@@ -117,6 +117,11 @@ Route::group(['prefix' => 'product', 'middleware' => ['auth:api', 'product.maint
         'as' => 'product.delete',
     ]);
 
+    Route::post('/search_model', [
+        'uses' => 'API\ProductController@search_model',
+        'as' => 'product.search_model',
+    ]);
+
 });
 
 // Product Export Route
@@ -417,6 +422,35 @@ Route::group(['prefix' => 'product_category', 'middleware' => ['auth:api', 'prod
     Route::post('/delete', [
         'uses' => 'API\ProductCategoryController@delete',
         'as' => 'product_category.delete',
+    ]);
+
+});
+
+// Expense Particular Routes
+Route::group(['prefix' => 'expense_particular', 'middleware' => ['auth:api', 'expense_particular.maintenance']], function(){
+    Route::get('/index', [
+        'uses' => 'API\ExpenseParticularController@index',
+        'as' => 'expense_particular.index',
+    ]);
+    Route::get('/create', [
+        'uses' => 'API\ExpenseParticularController@create',
+        'as' => 'expense_particular.create',
+    ]);
+    Route::post('/store', [
+        'uses' => 'API\ExpenseParticularController@store',
+        'as' => 'expense_particular.store',
+    ]);
+    Route::post('/edit', [
+        'uses' => 'API\ExpenseParticularController@edit',
+        'as' => 'expense_particular.edit',
+    ]);
+    Route::post('/update/{id}', [
+        'uses' => 'API\ExpenseParticularController@update',
+        'as' => 'expense_particular.update',
+    ]);
+    Route::post('/delete', [
+        'uses' => 'API\ExpenseParticularController@delete',
+        'as' => 'expense_particular.delete',
     ]);
 
 });

@@ -8,6 +8,7 @@ use App\Product;
 use App\ProductCategory;
 use App\Brand;
 use App\Branch;
+use App\ProductModel;
 use DB;
 use Validator;
 use Auth;
@@ -39,6 +40,21 @@ class ProductController extends Controller
             'product_categories' => $product_categories,
             'user' => $user,
         ], 200);
+    }
+
+    public function search_model(Request $request)
+    {           
+        
+        $product_models = ProductModel::where( function($query) use($request){
+            if($request->search)
+            {
+                $query->where('name', 'like', '%'.$request->search.'%');
+            }
+        })
+        ->orderBy('name', 'asc')
+        ->paginate($request->items_per_page);
+
+        return response()->json(['product_models' => $product_models], 200);
     }
 
     public function create()

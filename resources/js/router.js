@@ -22,6 +22,7 @@ import EmployeeIndex from './views/employee/EmployeeIndex.vue';
 import EmployeeListView from './views/employee/EmployeeListView.vue';
 import MyFiles from './views/training_file/MyFiles.vue';
 import FilesTutorials from './views/training_file/FilesTutorials.vue';
+import ExpenseParticular from './views/tactical_requisition/ExpenseParticular.vue'
 import Permission from './views/permission/PermissionIndex.vue';
 import Role from './views/role/RoleIndex.vue';
 import ActivityLogs from './views/activity_logs/ActivityLogs.vue';
@@ -130,6 +131,11 @@ const routes = [
         path: '/training/files_tutorials',
         name: 'training.files_tutorials',
         component: FilesTutorials
+      },
+      {
+        path: '/tactical_requisition/expense_particular',
+        name: 'expense.particular',
+        component: ExpenseParticular
       },
       {
         path: '/permission/index',

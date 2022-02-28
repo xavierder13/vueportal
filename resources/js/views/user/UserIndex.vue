@@ -807,7 +807,7 @@ export default {
     axios.defaults.headers.common["Authorization"] =
       "Bearer " + localStorage.getItem("access_token");
     this.getUser();
-    this.websocket();
+    // this.websocket();
   },
 };
 </script>

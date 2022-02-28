@@ -26,7 +26,7 @@ class ProductMaintenance
         }
 
         //Product Create
-        if($request->is('api/product/create') || $request->is('api/product/store')){
+        if($request->is('api/product/create') || $request->is('api/product/store') || $request->is('api/product/search_model')){
             if($user->can('product-create')){
                 return $next($request); 
             }

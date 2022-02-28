@@ -92,6 +92,10 @@ const state = {
     file_edit: false,
     file_delete: false,
     user_files: false,
+    expense_particular_list: false,
+    expense_particular_create: false,
+    expense_particular_edit: false,
+    expense_particular_delete: false,
     role_list: false,
     role_create: false,
     role_edit: false,
@@ -273,6 +277,12 @@ const mutations = {
     permission.file_edit = permissions.includes("file-edit");
     permission.file_delete = permissions.includes("file-delete");
     permission.user_files = permissions.includes("user-files");
+
+    // EXPENSE PARTICULAR RECORD MAINTENANCE PERMISSIONS
+    permission.expense_particular_list = permissions.includes("expense-particular-list");
+    permission.expense_particular_create = permissions.includes("expense-particular-create");
+    permission.expense_particular_edit = permissions.includes("expense-particular-edit");
+    permission.expense_particular_delete = permissions.includes("expense-particular-delete");
 
     // PERMISSION RECORD MAINTENANCE PERMISSIONS
     permission.permission_list = permissions.includes("permission-list");
