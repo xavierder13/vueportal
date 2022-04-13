@@ -22,7 +22,10 @@ import EmployeeIndex from './views/employee/EmployeeIndex.vue';
 import EmployeeListView from './views/employee/EmployeeListView.vue';
 import MyFiles from './views/training_file/MyFiles.vue';
 import FilesTutorials from './views/training_file/FilesTutorials.vue';
-import ExpenseParticular from './views/tactical_requisition/ExpenseParticular.vue'
+import TacticalIndex from './views/tactical_requisition/TacticalIndex.vue';
+import TacticalCreate from './views/tactical_requisition/TacticalCreate.vue';
+import MarketingEventIndex from './views/tactical_requisition/marketing_event/Index.vue';
+import MarketingEventCreate from './views/tactical_requisition/marketing_event/Create.vue';
 import Permission from './views/permission/PermissionIndex.vue';
 import Role from './views/role/RoleIndex.vue';
 import ActivityLogs from './views/activity_logs/ActivityLogs.vue';
@@ -133,9 +136,24 @@ const routes = [
         component: FilesTutorials
       },
       {
-        path: '/tactical_requisition/expense_particular',
-        name: 'expense.particular',
-        component: ExpenseParticular
+        path: '/tactical_requisition/index',
+        name: 'tactical.index',
+        component: TacticalIndex
+      },
+      {
+        path: '/tactical_requisition/create',
+        name: 'tactical.create',
+        component: TacticalCreate
+      },
+      {
+        path: '/marketing_event/index',
+        name: 'marketing.event.index',
+        component: MarketingEventIndex
+      },
+      {
+        path: '/marketing_event/create',
+        name: 'marketing.event.create',
+        component: MarketingEventCreate
       },
       {
         path: '/permission/index',

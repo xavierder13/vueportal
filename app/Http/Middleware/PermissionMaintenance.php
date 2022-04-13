@@ -26,7 +26,7 @@ class PermissionMaintenance
         }
 
         //Permission Create
-        if($request->is('api/permission/store') || $request->is('api/permission/store')){
+        if($request->is('api/permission/create') || $request->is('api/permission/store')){
             if($user->can('permission-create')){
                 return $next($request); 
             }

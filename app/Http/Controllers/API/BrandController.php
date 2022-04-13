@@ -26,7 +26,7 @@ class BrandController extends Controller
     {   
         
         $rules = [
-            'name.required' => 'Please enter brand',
+            '*.name.required' => 'Please enter brand',
             'name.unique' => 'Brand already exists'
         ];
 

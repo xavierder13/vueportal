@@ -39,7 +39,7 @@
           <v-divider></v-divider>
           <v-card-text class="pa-6">
             <v-row>
-              <v-col class="mt-0 mb-0 pt-0 pb-0">
+              <v-col class="mt-0 mb-0 pt-0 pb-0" sm="6" md="4" lg="4" xl="4">
                 <v-autocomplete
                   v-model="editedItem.brand_id"
                   :items="brands"
@@ -79,7 +79,7 @@
               </v-col>
             </v-row> -->
             <v-row>
-              <v-col class="mt-0 mb-0 pt-0 pb-0">
+              <v-col class="mt-0 mb-0 pt-0 pb-0" sm="6" md="4" lg="4" xl="4">
                 <v-autocomplete
                   :items="product_models"
                   v-model="editedItem.model"
@@ -105,7 +105,14 @@
                   <template v-slot:append-item v-if="page != last_page">
                     <v-list-item class="ma-0" @click="loadMoreModel()">
                       <v-list-item-content>
-                        <v-list-item-title class="blue--text text--darken-2"> <v-icon class="" color="primary" small>mdi-chevron-down</v-icon> <span class="subtitle-2"> LOAD MORE</span></v-list-item-title>
+                        <v-list-item-title class="blue--text text--darken-2">
+                          <v-icon class="" color="primary" small
+                            >mdi-chevron-down</v-icon
+                          >
+                          <span class="subtitle-2">
+                            LOAD MORE</span
+                          ></v-list-item-title
+                        >
                       </v-list-item-content>
                     </v-list-item>
                   </template>
@@ -117,7 +124,7 @@
             </v-row>
 
             <v-row>
-              <v-col class="mt-0 mb-0 pt-0 pb-0">
+              <v-col class="mt-0 mb-0 pt-0 pb-0" sm="6" md="4" lg="4" xl="4">
                 <v-autocomplete
                   v-model="editedItem.product_category_id"
                   :items="product_categories"
@@ -141,7 +148,7 @@
               </v-col>
             </v-row>
             <v-row v-if="!switch1">
-              <v-col class="mt-0 mb-0 pt-0 pb-0">
+              <v-col class="mt-0 mb-0 pt-0 pb-0" sm="6" md="4" lg="4" xl="4">
                 <v-text-field
                   name="serial"
                   label="Serial"
@@ -155,7 +162,7 @@
               </v-col>
             </v-row>
             <v-row>
-              <v-col class="mt-0 mb-0 pt-0 pb-0">
+              <v-col class="mt-0 mb-0 pt-0 pb-0" sm="6" md="4" lg="4" xl="4">
                 <v-autocomplete
                   v-model="editedItem.branch_id"
                   :items="branches"
@@ -179,55 +186,58 @@
             </v-row>
 
             <v-row v-if="switch1">
-              <v-col class="mt-0 mb-0 pt-0 pb-0">
-                <v-simple-table dense>
-                  <thead class="grey darken-1">
-                    <tr>
-                      <th class="white--text" width="10px">#</th>
-                      <th class="white--text">Serial</th>
-                      <th width="10px"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr
-                      v-for="(field, index) in serials"
-                      :key="index"
-                      :class="
-                        errorFields[index].serial.duplicate ||
-                        errorFields[index].serial.exist
-                          ? 'white--text  red darken-1'
-                          : ''
-                      "
-                    >
-                      <td>
-                        {{ index + 1 }}
-                      </td>
-                      <td>
-                        <span>{{ field.serial }}</span>
-                      </td>
-                      <td>
-                        <v-btn
-                          dense
-                          x-small
-                          :color="
-                            errorFields[index].serial.duplicate ||
-                            errorFields[index].serial.exist
-                              ? 'white red--text'
-                              : 'red white--text'
-                          "
-                          class="ma-1"
-                          @click="removeRow(field)"
-                        >
-                          <v-icon dark> mdi-minus </v-icon>
-                        </v-btn>
-                      </td>
-                    </tr>
-                  </tbody>
-                </v-simple-table>
+              <v-col class="mt-0 mb-0 pt-0 pb-0" sm="6" md="4" lg="4" xl="4">
+                <v-responsive class="overflow-y-auto" max-height="350px" id="serial-table">
+                  <v-simple-table dense class="mt-2">
+                    <thead class="grey darken-1 white--text font-weight-bold">
+                      <tr>
+                        <td width="10px">#</td>
+                        <td>Serial</td>
+                        <td width="10px"></td>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      <tr
+                        v-for="(field, index) in serials"
+                        :key="index"
+                        :class="
+                          errorFields[index].serial.duplicate ||
+                          errorFields[index].serial.exist
+                            ? 'white--text  red darken-1'
+                            : ''
+                        "
+                      >
+                        <td>
+                          {{ index + 1 }}
+                        </td>
+                        <td>
+                          <span>{{ field.serial }}</span>
+                        </td>
+                        <td>
+                          <v-btn
+                            dense
+                            x-small
+                            :color="
+                              errorFields[index].serial.duplicate ||
+                              errorFields[index].serial.exist
+                                ? 'white red--text'
+                                : 'red white--text'
+                            "
+                            class="ma-1"
+                            @click="removeRow(field)"
+                          >
+                            <v-icon dark> mdi-minus </v-icon>
+                          </v-btn>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </v-simple-table>
+                </v-responsive>
               </v-col>
             </v-row>
             <v-row v-if="serialsEmpty">
-              <v-col>
+              <v-col sm="6" md="4" lg="4" xl="4">
                 <!-- <span class="v-messages error--text">Please enter serials</span> -->
                 <v-alert dense outlined type="error">
                   Please enter serials
@@ -236,7 +246,7 @@
             </v-row>
 
             <v-row v-if="serialExists || serialHasDuplicate">
-              <v-col>
+              <v-col sm="6" md="4" lg="4" xl="4">
                 <!-- <span class="v-messages error--text">{{
                   multiSerialErrors
                 }}</span> -->
@@ -397,9 +407,8 @@ export default {
       );
     },
     searchModel() {
-
       // assign value to upon clicking of search button
-      this.currSearch = this.search; 
+      this.currSearch = this.search;
 
       this.product_models = [];
       this.page = 1;
@@ -620,7 +629,7 @@ export default {
     },
 
     // Create callback function to receive barcode when the scanner is already done
-    onBarcodeScanned(barcode) {
+    async onBarcodeScanned(barcode) {
       // if form field is not active then push barcode data
       if (!this.fieldsActive) {
         this.serialsEmpty = false;
@@ -634,14 +643,19 @@ export default {
             serial: { duplicate: false, exist: false },
           });
 
-          this.validateMultiSerial();
+          await this.validateMultiSerial();
 
-          // auto scroll down
-          goTo(9999, {
-            duration: 1000,
-            offset: 500,
-            easing: "easeInOutCubic",
-          });
+          // auto scroll down whole page
+          // goTo(9999, {
+          //   duration: 1000,
+          //   offset: 500,
+          //   easing: "easeInOutCubic",
+          // });
+          
+          // auto scroll down serial-table
+          await this.updateScroll();
+
+          
         } else {
           this.editedItem.serial = barcode;
           this.serialExists = false;
@@ -649,6 +663,11 @@ export default {
       }
 
       // do something...
+    },
+    // auto scroll down when serial is added
+    updateScroll() {
+      var element = document.getElementById("serial-table");
+      element.scrollTop = element.scrollHeight;
     },
     // Reset to the last barcode before hitting enter (whatever anything in the input box)
     resetBarcode() {

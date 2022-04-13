@@ -96,6 +96,14 @@ const state = {
     expense_particular_create: false,
     expense_particular_edit: false,
     expense_particular_delete: false,
+    tactical_requisition_list: false,
+    tactical_requisition_create: false,
+    tactical_requisition_edit: false,
+    tactical_requisition_delete: false,
+    marketing_event_list: false,
+    marketing_event_create: false,
+    marketing_event_edit: false,
+    marketing_event_delete: false,
     role_list: false,
     role_create: false,
     role_edit: false,
@@ -283,6 +291,18 @@ const mutations = {
     permission.expense_particular_create = permissions.includes("expense-particular-create");
     permission.expense_particular_edit = permissions.includes("expense-particular-edit");
     permission.expense_particular_delete = permissions.includes("expense-particular-delete");
+
+    // TACTICAL REQUISITION RECORD MAINTENANCE PERMISSIONS
+    permission.tactical_requisition_list = permissions.includes("tactical-requisition-list");
+    permission.tactical_requisition_create = permissions.includes("tactical-requisition-create");
+    permission.tactical_requisition_edit = permissions.includes("tactical-requisition-edit");
+    permission.tactical_requisition_delete = permissions.includes("tactical-requisition-delete");
+
+    // MARKETING EVENT RECORD MAINTENANCE PERMISSIONS
+    permission.marketing_event_list = permissions.includes("marketing-event-list");
+    permission.marketing_event_create = permissions.includes("marketing-event-create");
+    permission.marketing_event_edit = permissions.includes("marketing-event-edit");
+    permission.marketing_event_delete = permissions.includes("marketing-event-delete");
 
     // PERMISSION RECORD MAINTENANCE PERMISSIONS
     permission.permission_list = permissions.includes("permission-list");

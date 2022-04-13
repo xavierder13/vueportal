@@ -6,11 +6,17 @@ use Illuminate\Database\Eloquent\Model;
 
 class ExpenseParticular extends Model
 {
-    protected $fillable = ['description', 'active'];
+    protected $fillable = ['marketing_event_id', 'description', 'active'];
 
-    // public function product()
-    // {   
-    //     return $this->belongsTo('App\Product', 'product_category_id','id');
-    //     //                 ( <Model>, <id_of_specified_Model>, id_of_this_model>  )
-    // }
+    public function marketing_event()
+    {   
+        return $this->belongsTo('App\ExpenseParticular', 'marketing_event_id','id');
+        //                 ( <Model>, <id_of_specified_Model>, id_of_this_model>  )
+    }
+
+    public function expense_sub_particulars()
+    {
+        return $this->hasMany('App\ExpenseSubParticular', 'expense_particular_id', 'id');
+        //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
+    }
 }

@@ -21,7 +21,6 @@ class ExpenseParticularController extends Controller
         
     }
 
-
     public function store(Request $request)
     {   
         
@@ -104,8 +103,8 @@ class ExpenseParticularController extends Controller
 
     public function delete(Request $request)
     {   
-        $expense_particular_id = $request->get('expense_particular_id');
-        $expense_particular = ExpenseParticular::find($expense_particular_id);
+        $expense_id = $request->get('expense_id');
+        $expense_particular = ExpenseParticular::find($expense_id);
         
         //if record is empty then display error page
         if(empty($expense_particular->id))

@@ -74,7 +74,7 @@
 
       <v-divider></v-divider>
 
-      <v-list>
+      <v-list dense>
         <!-- <v-list-item link to="/dashboard">
           <v-list-item-icon>
             <v-icon>mdi-view-dashboard</v-icon>
@@ -86,17 +86,17 @@
           v-if="userPermissions.user_list || userPermissions.user_create"
         >
           <!-- List Group Icon-->
-          <v-icon slot="prependIcon">mdi-account-arrow-right-outline</v-icon>
+          <!-- <v-icon slot="prependIcon" class="ma-0">mdi-account-arrow-right-outline</v-icon> -->
           <!-- List Group Title -->
           <template v-slot:activator>
             <v-list-item-content>
-              <v-list-item-title>User</v-list-item-title>
+              <v-list-item-title> <v-icon class="mr-4">mdi-account-arrow-right-outline</v-icon> User Management</v-list-item-title>
             </v-list-item-content>
           </template>
           <!-- List Group Items -->
           <v-list-item link to="/user/index" v-if="userPermissions.user_list">
             <v-list-item-content>
-              <v-list-item-title>User Record</v-list-item-title>
+              <v-list-item-title>User Accounts</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
           <v-list-item
@@ -125,11 +125,11 @@
           "
         >
           <!-- List Group Icon-->
-          <v-icon slot="prependIcon">mdi-barcode-scan</v-icon>
+          <!-- <v-icon slot="prependIcon">mdi-barcode-scan</v-icon> -->
           <!-- List Group Title -->
           <template v-slot:activator>
             <v-list-item-content>
-              <v-list-item-title>Inventory</v-list-item-title>
+              <v-list-item-title> <v-icon class="mr-4">mdi-barcode-scan</v-icon> Inventory</v-list-item-title>
             </v-list-item-content>
           </template>
           <!-- List Group Items -->
@@ -207,11 +207,11 @@
           "
         >
           <!-- List Group Icon-->
-          <v-icon slot="prependIcon">mdi-account-multiple</v-icon>
+          <!-- <v-icon slot="prependIcon">mdi-account-multiple</v-icon> -->
           <!-- List Group Title -->
           <template v-slot:activator>
             <v-list-item-content>
-              <v-list-item-title>Employee</v-list-item-title>
+              <v-list-item-title> <v-icon class="mr-4">mdi-account-multiple</v-icon> Employee</v-list-item-title>
             </v-list-item-content>
           </template>
           <!-- List Group Items -->
@@ -288,11 +288,11 @@
           "
         >
           <!-- List Group Icon-->
-          <v-icon slot="prependIcon">mdi-folder-multiple-outline</v-icon>
+          <!-- <v-icon slot="prependIcon">mdi-folder-multiple-outline</v-icon> -->
           <!-- List Group Title -->
           <template v-slot:activator>
             <v-list-item-content>
-              <v-list-item-title>Training</v-list-item-title>
+              <v-list-item-title> <v-icon class="mr-4">mdi-folder-multiple-outline</v-icon> Training</v-list-item-title>
             </v-list-item-content>
           </template>
           <!-- List Group Items -->
@@ -315,13 +315,19 @@
             </v-list-item-content>
           </v-list-item>
         </v-list-group>
-        <v-list-group no-action v-if="userPermissions.expense_particular_list">
+        <v-list-group no-action
+          v-if="
+            userPermissions.tactical_requisition_list ||
+            userPermissions.tactical_requisition_create ||
+            userPermissions.marketing_event_list ||
+            userPermissions.marketing_event_create
+          ">
           <!-- List Group Icon-->
-          <v-icon slot="prependIcon">mdi-file-multiple-outline</v-icon>
+          <!-- <v-icon slot="prependIcon">mdi-file-multiple-outline</v-icon> -->
           <!-- List Group Title -->
           <template v-slot:activator>
             <v-list-item-content>
-              <v-list-item-title>Tactical Req.</v-list-item-title>
+              <v-list-item-title> <v-icon class="mr-4">mdi-file-multiple-outline</v-icon> Tactical Req.</v-list-item-title>
             </v-list-item-content>
           </template>
           <!-- List Group Items -->
@@ -331,18 +337,25 @@
             v-if="userPermissions.tactical_requisition_list"
           >
             <v-list-item-content>
-              <v-list-item-title>List</v-list-item-title>
+              <v-list-item-title>Tactical List</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
           <v-list-item
             link
-            to="/tactical_requisition/expense_particular"
-            v-if="userPermissions.expense_particular_list"
+            to="/tactical_requisition/create"
+            v-if="userPermissions.tactical_requisition_create"
           >
             <v-list-item-content>
-              <v-list-item-title class="subtitle-2"
-                >Expense Particular</v-list-item-title
-              >
+              <v-list-item-title>Create Tactical</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
+            to="/marketing_event/index"
+            v-if="userPermissions.marketing_event_list"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Marketing Event</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
         </v-list-group>
@@ -360,11 +373,11 @@
           "
         >
           <!-- List Group Icon-->
-          <v-icon slot="prependIcon">mdi-cog</v-icon>
+          <!-- <v-icon slot="prependIcon">mdi-cog</v-icon> -->
           <!-- List Group Title -->
           <template v-slot:activator>
             <v-list-item-content>
-              <v-list-item-title>Settings</v-list-item-title>
+              <v-list-item-title> <v-icon class="mr-4">mdi-cog</v-icon> Settings</v-list-item-title>
             </v-list-item-content>
           </template>
           <!-- List Group Items -->
@@ -543,17 +556,6 @@ export default {
     this.userRolesPermissions();
     // this.websocket();
 
-    // axios.get('http://mis.test/api/user/index', {
-    //   headers: {
-    //     Authorization: "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiMzllNmZlYzc5OTEwZGYwZWE5NGJmODJkMGZmYTEyZGUxMWM5MjgyYzdjNjc5MTE0NGMyZjZlMWMyYTI0MjJhMWY5NTJhNzhjNzJkNTMzYWIiLCJpYXQiOjE2MzU5OTMyOTAsIm5iZiI6MTYzNTk5MzI5MCwiZXhwIjoxNjY3NTI5MjkwLCJzdWIiOiIxIiwic2NvcGVzIjpbXX0.XnybzTFSDCAili4bDAw1mXiuobZRnCSi293LcWH9i__fb2JXiXhUGiYxlhS1iVQt1wg3DxqrWfHZpBWOHBBs3Q-MRUcqvIJ37ZG0Q_Q1jUiGT5lwN-CDiPS6uGFayS3AKSXIU0p56lFwM9FWmahI4avW9420Ad7NkNX87Q3nwMBvF0h3Xjy7vf0Et20BqKw06k-xMrLK2OxJnkVmsgtuPZMHykEv-HxgrXohUGnYFWXN_3K-G6FJV0tuGADLEnTPS0CpPBHpqB0Cec0YXxe1grLCf01axxcJJL9_crL2E_Gtq_vM8KH6l8cF1O6v5Cn7yn0mhejAZeVQu9Y1wIh7RVdkgOtDxfYxoE07MQ9m73swz7HnI6VyZDpDqBOEM-Vcdci0Ubs5IDuJPRu7GzFj7Eq-Vfrx8zJ_SX19u_4xs6vKdJoYJLrIea6wvNup4Qt-Kkv0Vux5FYTdIdPOvmmY6uWLpU0FWY7g4QCmAS5U5xJGWx_U-81usvPXlRsF6LGi_tfKcinluqnprLma9YiHqnbds4dC7RjP3eZmQkrip8mJ3AjtbBp79Iqn0aVbEJ3qE8XJITQH3BVdNgsFyNaYUIPb8fUfwolzhkauj3kGSpfgxTVKS0vcDgA2kZfStaP6bPWls8z2U-MYKahTs5K3i1kTCZ4paNLszY_8SN-Q83c",
-    //     // "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
-    //     //   "Access-Control-Allow-Headers": "Origin, Content-Type, X-Auth-Token"
-    //   }
-    // }).then((response) => {
-    //   console.log(response);
-    // }, (error) => {
-    //   console.log(error);
-    // })
   },
 };
 </script>
