@@ -36,32 +36,55 @@
               </v-toolbar>
             </template>
           </v-card-title>
-
-          <v-data-table
-            :headers="headers"
-            :items="treeView"
-            :search="search"
-            :loading="loading"
-            loading-text="Loading... Please wait"
-            v-if="userPermissions.marketing_event_list"
-            class="elevation-1"
-          >
-            <template v-slot:item="{ item, headers }">
-              <tr>
-                <td :colspan="headers.length">
-                  <v-treeview
-                    :items="item.expense_particulars"
-                    hoverable
-                    rounded
+          <v-row>
+            <v-col>
+              <v-treeview
+                :items="filteredElements"
+                :search="search"
+                open-all
+                class="ma-6"
+              >
+                <template v-slot:label="{ item }" class="pa-6">
+                  <v-btn
+                    color="primary"
+                    @click="addItem(item)"
+                    icon
+                    v-if="item.children"
+                    :class="item.field === 'expense_particular' ? 'ml-6' : ''"
                   >
-                   <!-- <template v-slot:label="{ item }">
-                     {{ item.description }}
-                   </template> -->
-                  </v-treeview>
-                </td>
-              </tr>
-            </template>
-          </v-data-table>
+                    <v-icon>mdi-plus-circle</v-icon>
+                  </v-btn>
+                  <v-btn
+                    color="red"
+                    @click="removeItem(item)"
+                    icon
+                    :class="
+                      item.field === 'expense_sub_particular' ? 'ml-16' : ''
+                    "
+                  >
+                    <v-icon class="ma-0 pa-0">mdi-minus-circle</v-icon>
+                  </v-btn>
+                  <span
+                    :class="
+                      item.field === 'event_name'
+                        ? 'h3'
+                        : item.field === 'expense_particular'
+                        ? 'subtitle-1'
+                        : 'subtitle-2'
+                    "
+                  >
+                    {{ item.name }}
+                  </span>
+                  <!-- <span class="subtitle-1" v-if="item.expense_particular">
+                    {{ item.expense_particular }}
+                  </span>
+                  <span class="subtitle-2" v-if="item.sub_particular">
+                    {{ item.sub_particular }}
+                  </span> -->
+                </template>
+              </v-treeview>
+            </v-col>
+          </v-row>
         </v-card>
       </v-main>
     </div>
@@ -97,6 +120,7 @@ export default {
       dialog: false,
       marketing_events: [],
       editedIndex: -1,
+      editedData: "",
       editedItem: {
         description: "",
         active: "Y",
@@ -128,7 +152,6 @@ export default {
       this.loading = true;
       axios.get("/api/marketing_event/index").then(
         (response) => {
-          console.log(response);
           this.marketing_events = response.data.marketing_events;
           this.loading = false;
         },
@@ -144,7 +167,7 @@ export default {
       this.dialog = true;
     },
 
-    deleteExpenseParticular(expense_id) {
+    deleteMarketingEvent(expense_id) {
       const data = { expense_id: expense_id };
       this.loading = true;
       axios.post("/api/marketing_event/delete", data).then(
@@ -190,7 +213,7 @@ export default {
           const index = this.marketing_events.indexOf(item);
 
           //Call delete Brand function
-          this.deleteExpenseParticular(expense_id);
+          this.deleteMarketingEvent(expense_id);
 
           //Remove item from array marketing_events
           this.marketing_events.splice(index, 1);
@@ -289,6 +312,74 @@ export default {
       }
     },
 
+    addItem(item) {
+      let parent_index = item.parent_index;
+      let row_index = -1;
+      let marketing_event = this.marketing_events[parent_index];
+      let expense_particulars;
+      let expense_sub_particulars;
+
+      if (item.row_index > -1) {
+        row_index = item.row_index;
+        expense_particulars = marketing_event.expense_particulars[row_index];
+        expense_sub_particulars = expense_particulars.expense_sub_particulars;
+
+        expense_sub_particulars.push({
+          description: "",
+          newDescription: true,
+        });
+
+      }
+      else{
+        marketing_event.expense_particulars.push({
+          description: "",
+          expense_sub_particulars: [],
+          newDescription: true,
+
+        });
+        console.log(marketing_event);
+      }
+    },
+
+    removeItem() {
+      this.showConfirmAlert();
+    },
+
+    showConfirmAlert(item) {
+      this.$swal({
+        title: "Are you sure?",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#6c757d",
+        confirmButtonText: "Delete record!",
+      }).then((result) => {
+        // <--
+
+        if (result.value) {
+          // <-- if confirmed
+
+          const position_id = item.id;
+          const index = this.positions.indexOf(item);
+
+          //Call delete Position function
+          this.removeItem(position_id);
+
+          //Remove item from array positions
+          this.positions.splice(index, 1);
+
+          this.$swal({
+            position: "center",
+            icon: "success",
+            title: "Record has been deleted",
+            showConfirmButton: false,
+            timer: 2500,
+          });
+        }
+      });
+    },
+
     createMarketingEvent() {
       this.$router.push({ name: "marketing.event.create" });
     },
@@ -320,27 +411,58 @@ export default {
 
       this.marketing_events.forEach((value, index) => {
         marketing_events.push({
+          parent_index: index,
           id: value.id,
-          event_name: value.event_name,
-          expense_particulars: [],
+          name: value.event_name,
+          field: "event_name",
+          children: [],
         });
         value.expense_particulars.forEach((val, i) => {
-          marketing_events[index].expense_particulars.push({
+          marketing_events[index].children.push({
+            parent_index: index,
+            row_index: i,
+            id: val.id,
             name: val.description,
-            children: []
+            field: "expense_particular",
+            children: [],
           });
 
           val.expense_sub_particulars.forEach((v, j) => {
-            marketing_events[index].expense_particulars[i].children.push({
-              name: val.description,
+            marketing_events[index].children[i].children.push({
+              parent_index: index,
+              row_index: i,
+              sub_row_index: j,
+              id: v.id,
+              name: v.description,
+              expense_sub_particular: v.description,
+              field: "expense_sub_particular",
             });
           });
         });
       });
 
-      console.log(marketing_events);
-
       return marketing_events;
+    },
+    filteredElements() {
+      return this.treeView.reduce((acc, curr) => {
+        console.log("curr", curr);
+        console.log("acc", acc);
+        const childrenContain = curr.children.filter((child) => {
+          const index = child.name.toLowerCase().indexOf(this.search) >= 0;
+          console.log("index", index);
+          return index;
+        });
+        console.log("childrenContain", childrenContain);
+        // return childrenContain
+        if (childrenContain.length) {
+          acc.push({
+            ...curr,
+            children: [...childrenContain],
+          });
+        }
+
+        return acc;
+      }, []);
     },
     formTitle() {
       return this.editedIndex === -1

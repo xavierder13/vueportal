@@ -140,12 +140,12 @@ export default {
           link: "/",
         },
         {
-          text: "Expense Particular Lists",
+          text: "Marketing Event Lists",
           disabled: false,
-          link: "/tactical_requisition/expense_particular/index",
+          link: "/marketing_event/index",
         },
         {
-          text: "Create Expense Particular",
+          text: "Create Marketing Event",
           disabled: true,
         },
       ],

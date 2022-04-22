@@ -91,7 +91,7 @@
                       <template v-slot:activator="{ on, attrs }">
                         <v-text-field
                           v-model="computedPeriodFromFormatted"
-                          label="Period From"
+                          label="Date From"
                           prepend-icon="mdi-calendar"
                           readonly
                           v-bind="attrs"
@@ -120,7 +120,7 @@
                       <template v-slot:activator="{ on, attrs }">
                         <v-text-field
                           v-model="computedPeriodToFormatted"
-                          label="Period To"
+                          label="Date To"
                           prepend-icon="mdi-calendar"
                           readonly
                           v-bind="attrs"
@@ -144,7 +144,7 @@
                     <v-autocomplete
                       v-model="hr_from"
                       :items="time_options"
-                      label="From"
+                      label="Time From"
                       required
                       prepend-icon="mdi-clock"
                       :error-messages="hrFromErrors"
@@ -157,7 +157,7 @@
                     <v-autocomplete
                       v-model="hr_to"
                       :items="time_options"
-                      label="To"
+                      label="Time To"
                       required
                       prepend-icon="mdi-clock"
                       :error-messages="hrToErrors"
