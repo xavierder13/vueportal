@@ -19,7 +19,7 @@
         </v-breadcrumbs>
         <v-card>
           <v-card-title class="mb-0 pb-0">
-            <span class="headline">Create User</span>
+            <span class="headline">Create Marketing Event</span>
           </v-card-title>
           <v-divider></v-divider>
           <v-card-text class="pa-6">
@@ -46,7 +46,6 @@
                     v-model="tree"
                     :items="expense_particulars"
                     hoverable
-                    rounded
                   >
                     <template v-slot:prepend="{ item, open }">
                       <v-btn
@@ -156,10 +155,10 @@ export default {
       disabled: false,
 
       editedItem: {
-        name: "",
+        event_name: "",
       },
       defaultItem: {
-        name: "",
+        event_name: "",
       },
       initiallyOpen: ["two"],
       expense_particulars: [{ description: "", children: [], hasError: false }],
@@ -252,8 +251,7 @@ export default {
       let index = this.expense_particulars.indexOf(item);
       let object_names = Object.keys(item);
       let hasChildren = false;
-
-      // this.expense_particulars.splice(index, 1);
+      let ctr = this.expense_particulars.length;
 
       object_names.forEach((value) => {
         if (value === "children") {
@@ -263,7 +261,9 @@ export default {
 
       // if data has children
       if (hasChildren) {
-        this.expense_particulars.splice(index, 1);
+        if (ctr > 1) {
+          this.expense_particulars.splice(index, 1);
+        }
       } else {
         let child_index =
           this.expense_particulars[item.parent_index].children.indexOf(item);
@@ -273,6 +273,15 @@ export default {
           1
         );
       }
+
+      // refresh/update parent_index field for child data
+      this.expense_particulars.forEach((value, index) => {
+        value.children.forEach((val, i) => {
+          this.expense_particulars[index].children[i].parent_index = index;
+        });
+      });
+
+
     },
     validateExpenseParticulars() {
       let hasError = false;
@@ -301,7 +310,7 @@ export default {
       const errors = [];
       if (!this.$v.editedItem.event_name.$dirty) return errors;
       !this.$v.editedItem.event_name.required &&
-        errors.push("Name is required.");
+        errors.push("Event Title is required.");
       return errors;
     },
   },

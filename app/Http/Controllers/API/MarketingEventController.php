@@ -37,7 +37,7 @@ class MarketingEventController extends Controller
     {   
         
         $rules = [
-            'event_names.required' => 'Please enter description',
+            'event_name.required' => 'Please enter description',
             'event_name.unique' => 'Description already exists',
             'expense_particulars.*.description.required' => 'Description is required',
             'expense_particulars.*.children.*.description.required' => 'Description is required',
@@ -90,54 +90,92 @@ class MarketingEventController extends Controller
 
     public function edit(Request $request)
     {   
-        $expense_particular_id = $request->get('expense_particular_id');
+        $marketing_event_id = $request->get('marketing_event_id');
 
-        $expense_particular = ExpenseParticular::find($expense_particular_id);
+        $marketing_event = MarketingEvent::with('expense_particulars')
+                                          ->with('expense_particulars.expense_sub_particulars')
+                                          ->where('id', '=', $marketing_event_id)
+                                          ->first();
 
         //if record is empty then display error page
-        if(empty($expense_particular->id))
+        if(empty($marketing_event->id))
         {
             return abort(404, 'Not Found');
         }
         
-        return response()->json(['expense_particular' => $expense_particular], 200);
+        return response()->json(['marketing_event' => $marketing_event], 200);
 
     }
 
 
-    public function update(Request $request, $expense_particular_id)
+    public function update(Request $request, $marketing_event_id)
     {   
-
+        
         $rules = [
-            'description.required' => 'Please enter description',
-            'description.unique' => 'Description already exists'
+            'event_name.required' => 'Please enter description',
+            'event_name.unique' => 'Description already exists',
+            'expense_particulars.*.description.required' => 'Description is required',
+            'expense_particulars.*.children.*.description.required' => 'Description is required',
         ];
 
-        $validator = Validator::make($request->all(),[
-            'description' => 'required|unique:expense_particulars,description,'.$expense_particular_id
+        $validator = Validator::make($request->all(), [
+            'event_name' => 'required|unique:marketing_events,event_name,'.$marketing_event_id,
+            'expense_particulars.*.description' => 'required',
+            'expense_particulars.*.children.*.description' => 'required',
         ], $rules);
 
         if($validator->fails())
         {
             return response()->json($validator->errors(), 200);
         }
-
-        $expense_particular = ExpenseParticular::find($expense_particular_id);
+        
+        $marketing_event = MarketingEvent::find($marketing_event_id);
 
         //if record is empty then display error page
-        if(empty($expense_particular->id))
+        if(empty($marketing_event->id))
         {
             return abort(404, 'Not Found');
         }
 
-        $expense_particular->description = $request->get('description');
-        $expense_particular->active = $request->get('active');
-        $expense_particular->save();
+        $marketing_event->event_name = $request->get('event_name');
+        $marketing_event->save();
+        
+        $deleted_fields = $request->get('deletedFields');
 
+        // deleted expense particulars
+        foreach ($deleted_fields as $key => $value) {
+
+            if($value['deletedField'] === 'expense_particulars')
+            {
+                $expense_particular = ExpenseParticular::find($value['id']);
+
+                //if record is empty then display error page
+                if(empty($expense_particular->id))
+                {
+                    return abort(404, 'Not Found');
+                }
+
+                $expense_particular->delete();
+
+            }
+
+            if($value['deletedField'] === 'expense_sub_particulars')
+            {
+                $expense_sub_particular = ExpenseSubParticular::find($value['id']);
+
+                //if record is empty then display error page
+                if(empty($expense_sub_particular->id))
+                {
+                    return abort(404, 'Not Found');
+                }
+
+                $expense_sub_particular->delete();
+            }
+        }
 
         return response()->json([
             'success' => 'Record has been updated',
-            'expense_particular' => $expense_particular]
+            'merketing_event' => $marketing_event]
         );
     }
 

@@ -26,6 +26,7 @@ import TacticalIndex from './views/tactical_requisition/TacticalIndex.vue';
 import TacticalCreate from './views/tactical_requisition/TacticalCreate.vue';
 import MarketingEventIndex from './views/tactical_requisition/marketing_event/Index.vue';
 import MarketingEventCreate from './views/tactical_requisition/marketing_event/Create.vue';
+import MarketingEventEdit from './views/tactical_requisition/marketing_event/Edit.vue';
 import Permission from './views/permission/PermissionIndex.vue';
 import Role from './views/role/RoleIndex.vue';
 import ActivityLogs from './views/activity_logs/ActivityLogs.vue';
@@ -154,6 +155,11 @@ const routes = [
         path: '/marketing_event/create',
         name: 'marketing.event.create',
         component: MarketingEventCreate
+      },
+      {
+        path: '/marketing_event/edit/:marketing_event_id',
+        name: 'marketing.event.edit',
+        component: MarketingEventEdit
       },
       {
         path: '/permission/index',

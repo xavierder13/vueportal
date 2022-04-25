@@ -33,7 +33,7 @@ class MarketingEventMaintenance
         }
 
         //Marketing Event Edit
-        if($request->is('api/marketing_event/edit/*') || $request->is('api/marketing_event/update/*')){
+        if($request->is('api/marketing_event/edit') || $request->is('api/marketing_event/update/*')){
             if($user->can('marketing-event-edit')){
                 return $next($request); 
             }

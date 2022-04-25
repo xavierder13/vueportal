@@ -36,7 +36,36 @@
               </v-toolbar>
             </template>
           </v-card-title>
-          <v-row>
+
+          <v-data-table
+            :headers="headers"
+            :items="marketing_events"
+            :search="search"
+            :loading="loading"
+            loading-text="Loading... Please wait"
+            v-if="userPermissions.marketing_event_list"
+          >
+            <template v-slot:item.actions="{ item }">
+              <v-icon
+                small
+                class="mr-2"
+                color="green"
+                @click="editMarketingEvent(item)"
+                v-if="userPermissions.permission_edit"
+              >
+                mdi-pencil
+              </v-icon>
+              <v-icon
+                small
+                color="red"
+                @click="showConfirmAlert(item)"
+                v-if="userPermissions.marketing_event_delete"
+              >
+                mdi-delete
+              </v-icon>
+            </template>
+          </v-data-table>
+          <!-- <v-row>
             <v-col>
               <v-treeview
                 :items="filteredElements"
@@ -75,16 +104,10 @@
                   >
                     {{ item.name }}
                   </span>
-                  <!-- <span class="subtitle-1" v-if="item.expense_particular">
-                    {{ item.expense_particular }}
-                  </span>
-                  <span class="subtitle-2" v-if="item.sub_particular">
-                    {{ item.sub_particular }}
-                  </span> -->
                 </template>
               </v-treeview>
             </v-col>
-          </v-row>
+          </v-row> -->
         </v-card>
       </v-main>
     </div>
@@ -109,8 +132,7 @@ export default {
       search: "",
       headers: [
         // { text: "Event Title", value: "event_name" },
-        { text: "Expense Particulars", value: "expense_particular" },
-        { text: "Expense Sub Particulars", value: "expense_sub_particular" },
+        { text: "Event Title", value: "event_name" },
         { text: "Active", value: "active" },
         { text: "Actions", value: "actions", sortable: false, width: "80px" },
       ],
@@ -153,6 +175,7 @@ export default {
       axios.get("/api/marketing_event/index").then(
         (response) => {
           this.marketing_events = response.data.marketing_events;
+          console.log(response);
           this.loading = false;
         },
         (error) => {
@@ -161,10 +184,11 @@ export default {
       );
     },
 
-    editBrand(item) {
-      this.editedIndex = this.marketing_events.indexOf(item);
-      this.editedItem = Object.assign({}, item);
-      this.dialog = true;
+    editMarketingEvent(item) {
+      this.$router.push({
+        name: "marketing.event.edit",
+        params: { marketing_event_id: item.id }
+      });
     },
 
     deleteMarketingEvent(expense_id) {
@@ -328,14 +352,11 @@ export default {
           description: "",
           newDescription: true,
         });
-
-      }
-      else{
+      } else {
         marketing_event.expense_particulars.push({
           description: "",
           expense_sub_particulars: [],
           newDescription: true,
-
         });
         console.log(marketing_event);
       }
