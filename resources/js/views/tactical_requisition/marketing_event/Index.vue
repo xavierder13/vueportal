@@ -65,49 +65,6 @@
               </v-icon>
             </template>
           </v-data-table>
-          <!-- <v-row>
-            <v-col>
-              <v-treeview
-                :items="filteredElements"
-                :search="search"
-                open-all
-                class="ma-6"
-              >
-                <template v-slot:label="{ item }" class="pa-6">
-                  <v-btn
-                    color="primary"
-                    @click="addItem(item)"
-                    icon
-                    v-if="item.children"
-                    :class="item.field === 'expense_particular' ? 'ml-6' : ''"
-                  >
-                    <v-icon>mdi-plus-circle</v-icon>
-                  </v-btn>
-                  <v-btn
-                    color="red"
-                    @click="removeItem(item)"
-                    icon
-                    :class="
-                      item.field === 'expense_sub_particular' ? 'ml-16' : ''
-                    "
-                  >
-                    <v-icon class="ma-0 pa-0">mdi-minus-circle</v-icon>
-                  </v-btn>
-                  <span
-                    :class="
-                      item.field === 'event_name'
-                        ? 'h3'
-                        : item.field === 'expense_particular'
-                        ? 'subtitle-1'
-                        : 'subtitle-2'
-                    "
-                  >
-                    {{ item.name }}
-                  </span>
-                </template>
-              </v-treeview>
-            </v-col>
-          </v-row> -->
         </v-card>
       </v-main>
     </div>
@@ -136,21 +93,11 @@ export default {
         { text: "Active", value: "active" },
         { text: "Actions", value: "actions", sortable: false, width: "80px" },
       ],
-      expanded: [],
-      switch1: true,
+
       disabled: false,
       dialog: false,
       marketing_events: [],
       editedIndex: -1,
-      editedData: "",
-      editedItem: {
-        description: "",
-        active: "Y",
-      },
-      defaultItem: {
-        description: "",
-        active: "Y",
-      },
       items: [
         {
           text: "Home",
@@ -191,11 +138,12 @@ export default {
       });
     },
 
-    deleteMarketingEvent(expense_id) {
-      const data = { expense_id: expense_id };
+    deleteMarketingEvent(marketing_event_id) {
+      const data = { marketing_event_id: marketing_event_id };
       this.loading = true;
       axios.post("/api/marketing_event/delete", data).then(
         (response) => {
+          console.log(response);
           if (response.data.success) {
             // send data to Sockot.IO Server
             // this.$socket.emit("sendData", { action: "marketing-event-delete" });
@@ -233,11 +181,11 @@ export default {
         if (result.value) {
           // <-- if confirmed
 
-          const expense_id = item.id;
+          const marketing_event_id = item.id;
           const index = this.marketing_events.indexOf(item);
 
           //Call delete Brand function
-          this.deleteMarketingEvent(expense_id);
+          this.deleteMarketingEvent(marketing_event_id);
 
           //Remove item from array marketing_events
           this.marketing_events.splice(index, 1);
@@ -251,89 +199,6 @@ export default {
           });
         }
       });
-    },
-
-    close() {
-      this.dialog = false;
-      this.clear();
-      this.$nextTick(() => {
-        this.editedItem = Object.assign({}, this.defaultItem);
-        this.editedIndex = -1;
-      });
-    },
-
-    save() {
-      this.$v.$touch();
-      this.expenseError = {
-        description: [],
-      };
-
-      if (!this.$v.$error) {
-        this.disabled = true;
-
-        if (this.editedIndex > -1) {
-          const data = this.editedItem;
-          const expense_id = this.editedItem.id;
-
-          axios.post("/api/marketing_event/update/" + expense_id, data).then(
-            (response) => {
-              if (response.data.success) {
-                // send data to Sockot.IO Server
-                // this.$socket.emit("sendData", { action: "marketing-event-edit" });
-
-                Object.assign(
-                  this.marketing_events[this.editedIndex],
-                  this.editedItem
-                );
-                this.showAlert();
-                this.close();
-              } else {
-                let errors = response.data;
-                let errorNames = Object.keys(response.data);
-
-                errorNames.forEach((value) => {
-                  this.expenseError[value].push(errors[value]);
-                });
-              }
-
-              this.disabled = false;
-            },
-            (error) => {
-              this.isUnauthorized(error);
-              this.disabled = false;
-            }
-          );
-        } else {
-          const data = this.editedItem;
-
-          axios.post("/api/marketing_event/store", data).then(
-            (response) => {
-              if (response.data.success) {
-                // send data to Sockot.IO Server
-                // this.$socket.emit("sendData", { action: "marketing-event-create" });
-
-                this.showAlert();
-                this.close();
-
-                //push recently added data from database
-                this.marketing_events.push(response.data.marketing_event);
-              } else {
-                let errors = response.data;
-                let errorNames = Object.keys(response.data);
-
-                errorNames.forEach((value) => {
-                  this.expenseError[value].push(errors[value]);
-                });
-              }
-              this.disabled = false;
-            },
-            (error) => {
-              this.isUnauthorized(error);
-              this.disabled = false;
-            }
-          );
-        }
-      }
     },
 
     addItem(item) {
@@ -360,45 +225,6 @@ export default {
         });
         console.log(marketing_event);
       }
-    },
-
-    removeItem() {
-      this.showConfirmAlert();
-    },
-
-    showConfirmAlert(item) {
-      this.$swal({
-        title: "Are you sure?",
-        text: "You won't be able to revert this!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#d33",
-        cancelButtonColor: "#6c757d",
-        confirmButtonText: "Delete record!",
-      }).then((result) => {
-        // <--
-
-        if (result.value) {
-          // <-- if confirmed
-
-          const position_id = item.id;
-          const index = this.positions.indexOf(item);
-
-          //Call delete Position function
-          this.removeItem(position_id);
-
-          //Remove item from array positions
-          this.positions.splice(index, 1);
-
-          this.$swal({
-            position: "center",
-            icon: "success",
-            title: "Record has been deleted",
-            showConfirmButton: false,
-            timer: 2500,
-          });
-        }
-      });
     },
 
     createMarketingEvent() {
@@ -464,48 +290,7 @@ export default {
 
       return marketing_events;
     },
-    filteredElements() {
-      return this.treeView.reduce((acc, curr) => {
-        console.log("curr", curr);
-        console.log("acc", acc);
-        const childrenContain = curr.children.filter((child) => {
-          const index = child.name.toLowerCase().indexOf(this.search) >= 0;
-          console.log("index", index);
-          return index;
-        });
-        console.log("childrenContain", childrenContain);
-        // return childrenContain
-        if (childrenContain.length) {
-          acc.push({
-            ...curr,
-            children: [...childrenContain],
-          });
-        }
-
-        return acc;
-      }, []);
-    },
-    formTitle() {
-      return this.editedIndex === -1
-        ? "New Expense Particular"
-        : "Edit Expense Particular";
-    },
-    expenseErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.description.$dirty) return errors;
-      !this.$v.editedItem.description.required &&
-        errors.push("Description is required.");
-      return errors;
-    },
-    activeStatus() {
-      if (this.switch1) {
-        this.editedItem.active = "Y";
-        return " Active";
-      } else {
-        this.editedItem.active = "N";
-        return " Inactive";
-      }
-    },
+  
     ...mapState("userRolesPermissions", ["userRoles", "userPermissions"]),
   },
   mounted() {

@@ -20,7 +20,8 @@
 
         <v-card>
           <v-card-title class="mb-0 pb-0">
-            <span class="headline mr-2">TACTICAL REQUISITION</span> <v-chip color="primary" v-if="branch"> {{ user.id }} </v-chip>
+            <span class="headline mr-2">TACTICAL REQUISITION</span>
+            <v-chip color="primary" v-if="branch"> {{ user.id }} </v-chip>
           </v-card-title>
           <v-divider></v-divider>
           <v-card-text class="pa-6">
@@ -43,14 +44,20 @@
             </v-row>
             <v-row>
               <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
-                <v-text-field
-                  name="event_title"
-                  v-model="editedItem.event_title"
-                  :error-messages="eventTitleErrors"
+                <v-autocomplete
+                  v-model="editedItem.marketing_event"
+                  :items="marketing_events"
+                  item-text="event_name"
+                  item-value="id"
                   label="Event Title"
-                  @input="$v.editedItem.event_title.$touch()"
-                  @blur="$v.editedItem.event_title.$touch()"
-                ></v-text-field>
+                  return-object
+                  required
+                  :error-messages="eventTitleErrors"
+                  @input="$v.editedItem.marketing_event.$touch()"
+                  @blur="$v.editedItem.marketing_event.$touch()"
+                  @change="getMarketingEvent()"
+                >
+                </v-autocomplete>
               </v-col>
               <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
                 <v-text-field
@@ -183,11 +190,7 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr
-                      v-for="(
-                        item, index
-                      ) in marketing_events.expense_particulars"
-                    >
+                    <tr v-for="(item, index) in editedItem.expense_particulars">
                       <td class="font-weight-bold">
                         {{ item.description }}
                       </td>
@@ -323,7 +326,7 @@ export default {
   },
   validations: {
     editedItem: {
-      event_title: { required },
+      marketing_event: { required },
       branch_id: { required },
       venue: { required },
       period: { required },
@@ -352,8 +355,9 @@ export default {
       switch1: true,
       disabled: false,
       branches: [],
+      marketing_events: [],
       editedItem: {
-        event_title: "",
+        marketing_event: "",
         branch_id: 1,
         venue: "",
         period: "",
@@ -362,7 +366,7 @@ export default {
         expense_particulars: [],
       },
       defaultItem: {
-        event_title: "",
+        marketing_event: "",
         branch_id: 1,
         venue: "",
         period: "",
@@ -370,59 +374,59 @@ export default {
         operating_hrs: "",
         expense_particulars: [],
       },
-      marketing_events: {
-        event_title: "TENT EXHIBIT",
-        expense_particulars: [
-          {
-            description: "PERMIT & LICENSES",
-            resource_person: "",
-            contact: "",
-            qty: "",
-            unit_cost: "",
-            amount: "",
-          },
-          {
-            description: "ELECTRICAL PERMIT",
-            resource_person: "",
-            contact: "",
-            qty: "",
-            unit_cost: "",
-            amount: "",
-          },
-          {
-            description: "ELECTRICAL CONSUMPTION",
-            resource_person: "",
-            contact: "",
-            qty: "",
-            unit_cost: "",
-            amount: "",
-          },
-          {
-            description: "CAMPAIGN MATS",
-            resource_person: "",
-            contact: "",
-            qty: "",
-            unit_cost: "",
-            amount: "",
-          },
-          {
-            description: "GIVEAWAYS",
-            resource_person: "",
-            contact: "",
-            qty: "",
-            unit_cost: "",
-            amount: "",
-          },
-          {
-            description: "MISCELLANEOUS",
-            resource_person: "",
-            contact: "",
-            qty: "",
-            unit_cost: "",
-            amount: "",
-          },
-        ],
-      },
+      // marketing_events: {
+      //   event_name: "TENT EXHIBIT",
+      //   expense_particulars: [
+      //     {
+      //       description: "PERMIT & LICENSES",
+      //       resource_person: "",
+      //       contact: "",
+      //       qty: "",
+      //       unit_cost: "",
+      //       amount: "",
+      //     },
+      //     {
+      //       description: "ELECTRICAL PERMIT",
+      //       resource_person: "",
+      //       contact: "",
+      //       qty: "",
+      //       unit_cost: "",
+      //       amount: "",
+      //     },
+      //     {
+      //       description: "ELECTRICAL CONSUMPTION",
+      //       resource_person: "",
+      //       contact: "",
+      //       qty: "",
+      //       unit_cost: "",
+      //       amount: "",
+      //     },
+      //     {
+      //       description: "CAMPAIGN MATS",
+      //       resource_person: "",
+      //       contact: "",
+      //       qty: "",
+      //       unit_cost: "",
+      //       amount: "",
+      //     },
+      //     {
+      //       description: "GIVEAWAYS",
+      //       resource_person: "",
+      //       contact: "",
+      //       qty: "",
+      //       unit_cost: "",
+      //       amount: "",
+      //     },
+      //     {
+      //       description: "MISCELLANEOUS",
+      //       resource_person: "",
+      //       contact: "",
+      //       qty: "",
+      //       unit_cost: "",
+      //       amount: "",
+      //     },
+      //   ],
+      // },
       grand_total: "0.00",
       errorFields: [],
       time_options: [],
@@ -451,6 +455,8 @@ export default {
       axios.get("/api/tactical_requisition/create").then(
         (response) => {
           this.branches = response.data.branches;
+          this.marketing_events = response.data.marketing_events;
+          console.log(this.marketing_events);
         },
         (error) => {
           this.isUnauthorized(error);
@@ -458,9 +464,19 @@ export default {
       );
     },
     getMarketingEvent() {
-      let expense_particulars = this.marketing_events.expense_particulars;
+      let expense_particulars = this.editedItem.marketing_event.expense_particulars;
 
       expense_particulars.forEach((value, index) => {
+        this.editedItem.expense_particulars.push({
+          expense_particular_id: value.id,
+          description: value.description,
+          resource_person: "",
+          contact: "",
+          qty: "",
+          unit_cost: "",
+          amount: "",
+        });
+
         this.errorFields.push({
           resource_person: null,
           contact: null,
@@ -527,7 +543,7 @@ export default {
       this.grand_total = 0;
     },
     getFieldValue(item, fieldName) {
-      let expense_particulars = this.marketing_events.expense_particulars;
+      let expense_particulars = this.editedItem.expense_particulars;
       let index = expense_particulars.indexOf(item);
       let expense_particular = expense_particulars[index];
 
@@ -547,7 +563,7 @@ export default {
       }
     },
     computeAmount() {
-      let expense_particulars = this.marketing_events.expense_particulars;
+      let expense_particulars = this.editedItem.expense_particulars;
       let grand_total = 0.0;
       let decimal_length = 2;
 
@@ -593,7 +609,7 @@ export default {
       this.grand_total = grand_total.toFixed(decimal_length);
     },
     validateExpenseParticulars() {
-      let expense_particulars = this.marketing_events.expense_particulars;
+      let expense_particulars = this.editedItem.expense_particulars;
       let object_names = "";
 
       expense_particulars.forEach((value, index) => {
@@ -644,16 +660,15 @@ export default {
   computed: {
     eventTitleErrors() {
       const errors = [];
-      if (!this.$v.editedItem.event_title.$dirty) return errors;
-      !this.$v.editedItem.event_title.required &&
+      if (!this.$v.editedItem.marketing_event.$dirty) return errors;
+      !this.$v.editedItem.marketing_event.required &&
         errors.push("Event Title is required.");
       return errors;
     },
     branchErrors() {
       const errors = [];
       if (!this.$v.branch.$dirty) return errors;
-      !this.$v.branch.required &&
-        errors.push("Branch is required.");
+      !this.$v.branch.required && errors.push("Branch is required.");
       return errors;
     },
     periodErrors() {
@@ -707,14 +722,14 @@ export default {
     branch() {
       this.editedItem.branch_id = this.branch.id;
       // console.log(this.editedItem.branch_id);
-    }
+    },
+
   },
   mounted() {
     axios.defaults.headers.common["Authorization"] =
       "Bearer " + localStorage.getItem("access_token");
 
     this.getTacticalOptions();
-    this.getMarketingEvent();
     this.timeOptions();
   },
 };

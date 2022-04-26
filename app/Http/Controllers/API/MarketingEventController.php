@@ -110,7 +110,7 @@ class MarketingEventController extends Controller
 
     public function update(Request $request, $marketing_event_id)
     {   
-        
+
         $rules = [
             'event_name.required' => 'Please enter description',
             'event_name.unique' => 'Description already exists',
@@ -140,12 +140,75 @@ class MarketingEventController extends Controller
         $marketing_event->event_name = $request->get('event_name');
         $marketing_event->save();
         
-        $deleted_fields = $request->get('deletedFields');
+        $expense_particulars = $request->get('expense_particulars');
+
+        // update expense_particulars and expense_sub_particulars
+        foreach ($expense_particulars as $key => $value) {
+            $expense_particular_id;
+            // if array has id then updated table
+            if(isset($value['id']))
+            {
+                $expense_particular = ExpenseParticular::find($value['id']);
+
+                //if record is empty then display error page
+                if(empty($expense_particular->id))
+                {
+                    return abort(404, 'Not Found');
+                }
+
+                $expense_particular->description = $value['description'];
+                $expense_particular->save();
+
+                $expense_particular_id = $expense_particular->id;
+
+            }
+            // if array has not id then then store the data
+            else
+            {
+                $expense_particular = new ExpenseParticular();
+                $expense_particular->marketing_event_id = $marketing_event_id;
+                $expense_particular->description = $value['description'];
+                $expense_particular->active = 'Y';
+                $expense_particular->save();
+
+                $expense_particular_id = $expense_particular->id;
+            }
+
+            foreach ($value['children'] as $key => $val) {
+                // if array has id then updated table
+                if(isset($val['id']))
+                {   
+                    $expense_sub_particular = ExpenseSubParticular::find($val['id']);
+    
+                    //if record is empty then display error page
+                    if(empty($expense_sub_particular->id))
+                    {
+                        return abort(404, 'Not Found');
+                    }
+
+                    $expense_sub_particular->description = $val['description'];
+                    $expense_sub_particular->save();
+                }
+                // if array has not id then then store the data
+                else
+                {   
+                    $expense_sub_particular = new ExpenseSubParticular();
+                    $expense_sub_particular->expense_particular_id = $expense_particular_id;
+                    $expense_sub_particular->description = $val['description'];
+                    $expense_sub_particular->active = 'Y';
+                    $expense_sub_particular->save();
+                }
+            }
+            
+        }
+
+
+        $deleted_fields = $request->get('deletedRows');
 
         // deleted expense particulars
         foreach ($deleted_fields as $key => $value) {
 
-            if($value['deletedField'] === 'expense_particulars')
+            if($value['deletedRow'] === 'expense_particulars')
             {
                 $expense_particular = ExpenseParticular::find($value['id']);
 
@@ -156,10 +219,13 @@ class MarketingEventController extends Controller
                 }
 
                 $expense_particular->delete();
+                
+                // delete all child data when parent is deleted
+                ExpenseSubParticular::where('expense_particular_id', '=', $value['id'])->delete();
 
             }
 
-            if($value['deletedField'] === 'expense_sub_particulars')
+            if($value['deletedRow'] === 'expense_sub_particulars')
             {
                 $expense_sub_particular = ExpenseSubParticular::find($value['id']);
 
@@ -182,17 +248,23 @@ class MarketingEventController extends Controller
 
     public function delete(Request $request)
     {   
-        $expense_id = $request->get('expense_id');
-        $expense_particular = ExpenseParticular::find($expense_id);
+        $marketing_event_id = $request->get('marketing_event_id');
+        $marketing_event = MarketingEvent::find($marketing_event_id);
         
         //if record is empty then display error page
-        if(empty($expense_particular->id))
+        if(empty($marketing_event->id))
         {
             return abort(404, 'Not Found');
         }
 
-        $expense_particular->delete();
+        $marketing_event->delete();
 
-        return response()->json(['success' => 'Record has been deleted'], 200);
+        $expense_particular = ExpenseParticular::select('id')
+                                               ->where('marketing_event_id', '=', $marketing_event_id)->get();
+
+        ExpenseParticular::where('marketing_event_id', '=', $marketing_event_id)->delete();
+        ExpenseSubParticular::whereIn('expense_particular_id', $expense_particular)->delete();
+        
+        return response()->json(['success' => 'Record has been deleted', $expense_particular], 200);
     }
 }

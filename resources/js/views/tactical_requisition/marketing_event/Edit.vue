@@ -44,6 +44,7 @@
                   <v-treeview
                     v-model="tree"
                     :items="expense_particulars"
+                    open-all
                     hoverable
                   >
                     <template v-slot:prepend="{ item, open }">
@@ -159,7 +160,8 @@ export default {
       expense_particulars: [],
       errorFields: [],
       tree_view: [],
-      deletedFields: [],
+      deletedRows: [],
+      addedRows: [],
     };
   },
 
@@ -174,6 +176,8 @@ export default {
           this.marketing_event = response.data.marketing_event;
           this.editedItem.event_name = this.marketing_event.event_name;
           let expense_particulars = this.marketing_event.expense_particulars;
+
+          this.expense_particulars = [];
 
           expense_particulars.forEach((value, index) => {
             this.expense_particulars.push({
@@ -195,11 +199,7 @@ export default {
                 });
               });
             }
-
-            this.initiallyOpen.push(value.description);
           });
-
-          console.log(this.expense_particulars);
         },
         (error) => {
           this.isUnauthorized(error);
@@ -232,31 +232,33 @@ export default {
         const data = {
           event_name: this.editedItem.event_name,
           expense_particulars: this.expense_particulars,
-          deletedFields: this.deletedFields,
+          deletedRows: this.deletedRows,
         };
 
-        axios.post("/api/marketing_event/update/"+ marketing_event_id, data).then(
-          (response) => {
-            console.log(response);
-            if (response.data.success) {
-              // send data to Sockot.IO Server
-              // this.$socket.emit("sendData", { action: "marketing-event-create" });
+        axios
+          .post("/api/marketing_event/update/" + marketing_event_id, data)
+          .then(
+            (response) => {
+              console.log(response);
+              if (response.data.success) {
+                // send data to Sockot.IO Server
+                // this.$socket.emit("sendData", { action: "marketing-event-create" });
+                this.getMarketingEvent();
+                this.showAlert();
+              } else {
+                let errors = response.data;
+                let errorNames = Object.keys(response.data);
+              }
+              this.overlay = false;
+              this.disabled = false;
+            },
+            (error) => {
+              this.isUnauthorized(error);
 
-              this.showAlert();
-            } else {
-              let errors = response.data;
-              let errorNames = Object.keys(response.data);
+              this.overlay = false;
+              this.disabled = false;
             }
-            this.overlay = false;
-            this.disabled = false;
-          },
-          (error) => {
-            this.isUnauthorized(error);
-
-            this.overlay = false;
-            this.disabled = false;
-          }
-        );
+          );
       }
     },
     clear() {
@@ -279,7 +281,6 @@ export default {
         children: [],
         hasError: false,
       });
-      this.initiallyOpen.push("");
     },
     addSubItem(item) {
       let index = this.expense_particulars.indexOf(item);
@@ -293,7 +294,6 @@ export default {
           hasError: false,
         });
       }
-      this.initiallyOpen.push("");
     },
 
     showConfirmAlert(item) {
@@ -316,7 +316,7 @@ export default {
       let index = this.expense_particulars.indexOf(item);
       let object_names = Object.keys(item);
       let hasChildren = false;
-      let deletedField = "";
+      let deletedRow = "";
       let ctr = this.expense_particulars.length;
 
       object_names.forEach((value) => {
@@ -329,7 +329,7 @@ export default {
       if (hasChildren) {
         if (ctr > 1) {
           this.expense_particulars.splice(index, 1);
-          deletedField = "expense_particulars";
+          deletedRow = "expense_particulars";
         }
       } else {
         let child_index =
@@ -339,15 +339,12 @@ export default {
           child_index,
           1
         );
-        deletedField = "expense_sub_particulars";
+        deletedRow = "expense_sub_particulars";
       }
 
-      console.log(item.id);
-      if(item.id)
-      {
-        this.deletedFields.push({ deletedField: deletedField, id: item.id });
+      if (item.id) {
+        this.deletedRows.push({ deletedRow: deletedRow, id: item.id });
       }
-      
 
       // refresh/update parent_index field for child data
       this.expense_particulars.forEach((value, index) => {
