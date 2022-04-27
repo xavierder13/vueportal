@@ -189,8 +189,8 @@
                       <td>AMOUNT</td>
                     </tr>
                   </thead>
-                  <tbody>
-                    <tr v-for="(item, index) in editedItem.expense_particulars">
+                  <tbody v-for="(item, index) in editedItem.expense_particulars">
+                    <tr v-if="item.description !== 'CAMPAIGN MATS.'">
                       <td class="font-weight-bold">
                         {{ item.description }}
                       </td>
@@ -456,7 +456,6 @@ export default {
         (response) => {
           this.branches = response.data.branches;
           this.marketing_events = response.data.marketing_events;
-          console.log(this.marketing_events);
         },
         (error) => {
           this.isUnauthorized(error);
@@ -464,7 +463,10 @@ export default {
       );
     },
     getMarketingEvent() {
-      let expense_particulars = this.editedItem.marketing_event.expense_particulars;
+      let expense_particulars =
+        this.editedItem.marketing_event.expense_particulars;
+
+      this.editedItem.expense_particulars = [];
 
       expense_particulars.forEach((value, index) => {
         this.editedItem.expense_particulars.push({
@@ -723,7 +725,6 @@ export default {
       this.editedItem.branch_id = this.branch.id;
       // console.log(this.editedItem.branch_id);
     },
-
   },
   mounted() {
     axios.defaults.headers.common["Authorization"] =
