@@ -189,7 +189,9 @@
                       <td>AMOUNT</td>
                     </tr>
                   </thead>
-                  <tbody v-for="(item, index) in editedItem.expense_particulars">
+                  <tbody
+                    v-for="(item, index) in editedItem.expense_particulars"
+                  >
                     <tr v-if="item.description !== 'CAMPAIGN MATS.'">
                       <td class="font-weight-bold">
                         {{ item.description }}
