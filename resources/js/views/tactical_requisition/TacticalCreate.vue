@@ -192,18 +192,21 @@
                   <tbody
                     v-for="(item, index) in editedItem.expense_particulars"
                   >
-                    <tr v-if="item.description !== 'CAMPAIGN MATS.'">
-                      <td class="font-weight-bold">
+                    <tr>
+                      <td class="font-weight-bold border-0">
                         {{ item.description }}
                       </td>
-                      <td>
+                      <td
+                        class="border-0"
+                        v-if="item.expense_sub_particulars.length === 0"
+                      >
                         <v-text-field
                           name="resource_person"
                           v-model="item.resource_person"
                           dense
                           hide-details
                           outlined
-                          @input="getFieldValue(item, 'resource_person')"
+                          @input="getFieldValue(item, '', 'resource_person')"
                           :error-messages="
                             errorFields[index]
                               ? errorFields[index]['resource_person']
@@ -211,14 +214,17 @@
                           "
                         ></v-text-field>
                       </td>
-                      <td>
+                      <td
+                        class="border-0"
+                        v-if="item.expense_sub_particulars.length === 0"
+                      >
                         <v-text-field
                           name="contact"
                           v-model="item.contact"
                           dense
                           hide-details
                           outlined
-                          @input="getFieldValue(item, 'contact')"
+                          @input="getFieldValue(item, '', 'contact')"
                           :error-messages="
                             errorFields[index]
                               ? errorFields[index]['contact']
@@ -226,7 +232,10 @@
                           "
                         ></v-text-field>
                       </td>
-                      <td>
+                      <td
+                        class="border-0"
+                        v-if="item.expense_sub_particulars.length === 0"
+                      >
                         <v-text-field-money
                           class="mb-2 mt-2 pa-0"
                           v-model="item.qty"
@@ -246,11 +255,16 @@
                             precision: 0,
                             empty: null,
                           }"
-                          @input="getFieldValue(item, 'qty') + computeAmount()"
+                          @input="
+                            getFieldValue(item, '', 'qty') + computeAmount()
+                          "
                         >
                         </v-text-field-money>
                       </td>
-                      <td>
+                      <td
+                        class="border-0"
+                        v-if="item.expense_sub_particulars.length === 0"
+                      >
                         <v-text-field-dotnumber
                           class="mb-2 mt-2 pa-0"
                           v-model="item.unit_cost"
@@ -271,13 +285,117 @@
                             empty: null,
                           }"
                           @input="
-                            getFieldValue(item, 'unit_cost') + computeAmount()
+                            getFieldValue(item, '', 'unit_cost') +
+                              computeAmount()
                           "
                         >
                         </v-text-field-dotnumber>
                       </td>
-                      <td class="font-weight-bold">
+                      <td
+                        class="font-weight-bold border-0"
+                        v-if="item.expense_sub_particulars.length === 0"
+                      >
                         {{ !item.amount ? "0.00" : item.amount }}
+                      </td>
+                    </tr>
+                    <tr v-for="(subItem, i) in item.expense_sub_particulars">
+                      <td class="border-0">
+                        <span class="ml-12">{{ subItem.description }}</span>
+                      </td>
+                      <td class="border-0">
+                        <v-text-field
+                          name="resource_person"
+                          v-model="subItem.resource_person"
+                          dense
+                          hide-details
+                          outlined
+                          @input="
+                            getFieldValue(item, subItem, 'resource_person')
+                          "
+                          :error-messages="
+                            errorFields[index]['errorSubFields'][i]
+                              ? errorFields[index]['errorSubFields'][i][
+                                  'resource_person'
+                                ]
+                              : null
+                          "
+                        ></v-text-field>
+                      </td>
+                      <td class="border-0">
+                        <v-text-field
+                          name="contact"
+                          v-model="subItem.contact"
+                          dense
+                          hide-details
+                          outlined
+                          @input="getFieldValue(item, subItem, 'contact')"
+                          :error-messages="
+                            errorFields[index]['errorSubFields'][i]
+                              ? errorFields[index]['errorSubFields'][i][
+                                  'contact'
+                                ]
+                              : null
+                          "
+                        ></v-text-field>
+                      </td>
+                      <td class="border-0">
+                        <v-text-field-money
+                          class="mb-2 mt-2 pa-0"
+                          v-model="subItem.qty"
+                          v-bind:properties="{
+                            name: 'qty',
+                            placeholder: '0',
+                            'hide-details': true,
+                            outlined: true,
+                            dense: true,
+                            error: errorFields[index]['errorSubFields'][i]
+                              ? errorFields[index]['errorSubFields'][i]['qty']
+                              : null,
+                            messages: '',
+                          }"
+                          v-bind:options="{
+                            length: 16,
+                            precision: 0,
+                            empty: null,
+                          }"
+                          @input="
+                            getFieldValue(item, subItem, 'qty') +
+                              computeAmount()
+                          "
+                        >
+                        </v-text-field-money>
+                      </td>
+                      <td class="border-0">
+                        <v-text-field-dotnumber
+                          class="mb-2 mt-2 pa-0"
+                          v-model="subItem.unit_cost"
+                          v-bind:properties="{
+                            name: 'unit_cost',
+                            placeholder: '0.00',
+                            'hide-details': true,
+                            outlined: true,
+                            dense: true,
+                            error: errorFields[index]['errorSubFields'][i]
+                              ? errorFields[index]['errorSubFields'][i][
+                                  'unit_cost'
+                                ]
+                              : null,
+                            messages: '',
+                          }"
+                          v-bind:options="{
+                            length: 11,
+                            precision: 2,
+                            empty: null,
+                          }"
+                          @input="
+                            getFieldValue(item, subItem, 'unit_cost') +
+                              computeAmount()
+                          "
+                        >
+                        </v-text-field-dotnumber>
+                      </td>
+                      <td class="font-weight-bold border-0">
+                        {{ !subItem.amount ? "0.00" : subItem.amount }}
                       </td>
                     </tr>
                   </tbody>
@@ -376,59 +494,6 @@ export default {
         operating_hrs: "",
         expense_particulars: [],
       },
-      // marketing_events: {
-      //   event_name: "TENT EXHIBIT",
-      //   expense_particulars: [
-      //     {
-      //       description: "PERMIT & LICENSES",
-      //       resource_person: "",
-      //       contact: "",
-      //       qty: "",
-      //       unit_cost: "",
-      //       amount: "",
-      //     },
-      //     {
-      //       description: "ELECTRICAL PERMIT",
-      //       resource_person: "",
-      //       contact: "",
-      //       qty: "",
-      //       unit_cost: "",
-      //       amount: "",
-      //     },
-      //     {
-      //       description: "ELECTRICAL CONSUMPTION",
-      //       resource_person: "",
-      //       contact: "",
-      //       qty: "",
-      //       unit_cost: "",
-      //       amount: "",
-      //     },
-      //     {
-      //       description: "CAMPAIGN MATS",
-      //       resource_person: "",
-      //       contact: "",
-      //       qty: "",
-      //       unit_cost: "",
-      //       amount: "",
-      //     },
-      //     {
-      //       description: "GIVEAWAYS",
-      //       resource_person: "",
-      //       contact: "",
-      //       qty: "",
-      //       unit_cost: "",
-      //       amount: "",
-      //     },
-      //     {
-      //       description: "MISCELLANEOUS",
-      //       resource_person: "",
-      //       contact: "",
-      //       qty: "",
-      //       unit_cost: "",
-      //       amount: "",
-      //     },
-      //   ],
-      // },
       grand_total: "0.00",
       errorFields: [],
       time_options: [],
@@ -479,6 +544,7 @@ export default {
           qty: "",
           unit_cost: "",
           amount: "",
+          expense_sub_particulars: [],
         });
 
         this.errorFields.push({
@@ -486,6 +552,28 @@ export default {
           contact: null,
           qty: null,
           unit_cost: null,
+          errorSubFields: [],
+        });
+
+        value.expense_sub_particulars.forEach((val, i) => {
+          this.editedItem.expense_particulars[
+            index
+          ].expense_sub_particulars.push({
+            expense_sub_particular_id: val.id,
+            description: val.description,
+            resource_person: "",
+            contact: "",
+            qty: "",
+            unit_cost: "",
+            amount: "",
+          });
+
+          this.errorFields[index].errorSubFields.push({
+            resource_person: null,
+            contact: null,
+            qty: null,
+            unit_cost: null,
+          });
         });
       });
     },
@@ -503,6 +591,22 @@ export default {
       this.$v.$touch();
 
       this.validateExpenseParticulars();
+
+      console.log(this.$v.$error);
+      console.log(this.expensePaticularHasError);
+
+    console.log(this.editedItem.marketing_event);
+    console.log(this.editedItem.branch_id);
+    console.log(this.editedItem.venue);
+    console.log(this.editedItem.venue);
+    console.log(this.editedItem.period);
+    console.log(this.editedItem.sponsor);
+    console.log(this.editedItem.operating_hrs);
+    console.log(this.hr_from);
+    console.log(this.hr_to);
+    console.log(this.branch);
+
+
 
       // if (!this.$v.$error) {
       //   this.disabled = true;
@@ -546,7 +650,7 @@ export default {
       this.editedItem = Object.assign({}, this.defaultItem);
       this.grand_total = 0;
     },
-    getFieldValue(item, fieldName) {
+    getFieldValue(item, subItem, fieldName) {
       let expense_particulars = this.editedItem.expense_particulars;
       let index = expense_particulars.indexOf(item);
       let expense_particular = expense_particulars[index];
@@ -563,6 +667,34 @@ export default {
           }
         } else {
           this.errorFields[index][fieldName] = null;
+        }
+      }
+
+      // input for expense sub particulars
+      if (subItem) {
+        let expense_sub_particulars =
+          expense_particulars[index]["expense_sub_particulars"];
+        let subIndex = expense_sub_particulars.indexOf(subItem);
+        let expense_sub_particular = expense_sub_particulars[subIndex];
+
+        if (!expense_sub_particular[fieldName]) {
+          this.errorFields[index]["errorSubFields"][subIndex][fieldName] =
+            "error";
+
+        } else {
+          // validate unit_cost if numeric
+          if (fieldName == "unit_cost") {
+            if (expense_sub_particular[fieldName] % 1 >= 0) {
+              this.errorFields[index]["errorSubFields"][subIndex][fieldName] =
+                null;
+            } else {
+              this.errorFields[index]["errorSubFields"][subIndex][fieldName] =
+                "error";
+            }
+          } else {
+            this.errorFields[index]["errorSubFields"][subIndex][fieldName] =
+              null;
+          }
         }
       }
     },
@@ -601,6 +733,39 @@ export default {
         grand_total += amount;
 
         value.amount = amount.toFixed(decimal_length);
+
+        // compute amount for expense sub particulars
+        value.expense_sub_particulars.forEach((val, i) => {
+          qty = val.qty;
+          unit_cost = val.unit_cost;
+
+          if (!qty) {
+            qty = "0.00";
+          }
+
+          if (!unit_cost) {
+            unit_cost = "0.00";
+          }
+
+          // if unit_cost has decimal then get the number of decimal places
+          if (unit_cost.split(".")[1]) {
+            decimal_length = unit_cost.split(".")[1].length;
+
+            if (decimal_length === 1) {
+              decimal_length = 2;
+            }
+          }
+
+          let amount = qty * parseFloat(unit_cost);
+
+          if (!amount) {
+            amount = 0.0;
+          }
+
+          grand_total += amount;
+
+          val.amount = amount.toFixed(decimal_length);
+        });
       });
 
       // get the number of decimals of grand total
@@ -619,7 +784,14 @@ export default {
       expense_particulars.forEach((value, index) => {
         object_names = Object.keys(expense_particulars[index]);
         object_names.forEach((fieldName) => {
-          this.getFieldValue(value, fieldName);
+          this.getFieldValue(value, "", fieldName);
+        });
+        // validate expense sub particulars fields
+        value.expense_sub_particulars.forEach((val, i) => {
+          object_names = Object.keys(expense_particulars[index]);
+          object_names.forEach((fieldName) => {
+            this.getFieldValue(value, val, fieldName);
+          });
         });
       });
 
@@ -633,10 +805,16 @@ export default {
             this.expensePaticularHasError = true;
           }
         });
+        value.errorSubFields.forEach((val, i) => {
+          object_names = Object.keys(value);
+          object_names.forEach((fieldName) => {
+            if (this.errorFields[index]['errorSubFields'][i][fieldName] == "error") {
+              this.expensePaticularHasError = true;
+            }
+          });
+        });
       });
 
-      // console.log(this.expensePaticularHasError);
-      // console.log(this.errorFields);
     },
     isUnauthorized(error) {
       // if unauthenticated (401)
@@ -725,7 +903,7 @@ export default {
   watch: {
     branch() {
       this.editedItem.branch_id = this.branch.id;
-      // console.log(this.editedItem.branch_id);
+      console.log(this.editedItem.branch_id);
     },
   },
   mounted() {
