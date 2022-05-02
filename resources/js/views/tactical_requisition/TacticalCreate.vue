@@ -21,161 +21,189 @@
         <v-card>
           <v-card-title class="mb-0 pb-0">
             <span class="headline mr-2">TACTICAL REQUISITION</span>
-            <v-chip color="primary" v-if="branch"> {{ user.id }} </v-chip>
           </v-card-title>
           <v-divider></v-divider>
-          <v-card-text class="pa-6">
+          <v-card-text class="px-6 pt-0">
             <v-row>
-              <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
-                <v-autocomplete
-                  v-model="branch"
-                  :items="branches"
-                  item-text="name"
-                  item-value="id"
-                  label="Branch"
-                  return-object
-                  required
-                  :error-messages="branchErrors"
-                  @input="$v.branch.$touch()"
-                  @blur="$v.branch.$touch()"
-                >
-                </v-autocomplete>
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
-                <v-autocomplete
-                  v-model="editedItem.marketing_event"
-                  :items="marketing_events"
-                  item-text="event_name"
-                  item-value="id"
-                  label="Event Title"
-                  return-object
-                  required
-                  :error-messages="eventTitleErrors"
-                  @input="$v.editedItem.marketing_event.$touch()"
-                  @blur="$v.editedItem.marketing_event.$touch()"
-                  @change="getMarketingEvent()"
-                >
-                </v-autocomplete>
-              </v-col>
-              <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
-                <v-text-field
-                  name="sponsor"
-                  v-model="editedItem.sponsor"
-                  :error-messages="sponsorErrors"
-                  label="Sponsor"
-                  @input="$v.editedItem.sponsor.$touch()"
-                  @blur="$v.editedItem.sponsor.$touch()"
-                ></v-text-field>
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col cols="6" class="mt-0 mb-0 pt-0 pb-0">
-                <v-text-field
-                  name="venue"
-                  v-model="editedItem.venue"
-                  :error-messages="venueErrors"
-                  label="Venue"
-                  @input="$v.editedItem.venue.$touch()"
-                  @blur="$v.editedItem.venue.$touch()"
-                ></v-text-field>
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
-                <v-row>
-                  <v-col>
-                    <v-menu
-                      ref="menu"
-                      v-model="date_menu1"
-                      :close-on-content-click="true"
-                      :return-value.sync="date_menu1"
-                      transition="scale-transition"
-                      offset-y
-                      min-width="auto"
-                    >
-                      <template v-slot:activator="{ on, attrs }">
-                        <v-text-field
-                          v-model="computedPeriodFromFormatted"
-                          label="Date From"
-                          prepend-icon="mdi-calendar"
-                          readonly
-                          v-bind="attrs"
-                          v-on="on"
-                        ></v-text-field>
-                      </template>
-                      <v-date-picker
-                        v-model="period_date1"
-                        no-title
-                        scrollable
-                        :max="period_date2"
-                      >
-                      </v-date-picker>
-                    </v-menu>
-                  </v-col>
-                  <v-col>
-                    <v-menu
-                      ref="menu"
-                      v-model="date_menu2"
-                      :close-on-content-click="true"
-                      :return-value.sync="date_menu2"
-                      transition="scale-transition"
-                      offset-y
-                      min-width="auto"
-                    >
-                      <template v-slot:activator="{ on, attrs }">
-                        <v-text-field
-                          v-model="computedPeriodToFormatted"
-                          label="Date To"
-                          prepend-icon="mdi-calendar"
-                          readonly
-                          v-bind="attrs"
-                          v-on="on"
-                        ></v-text-field>
-                      </template>
-                      <v-date-picker
-                        v-model="period_date2"
-                        no-title
-                        scrollable
-                        :min="period_date1"
-                      >
-                      </v-date-picker>
-                    </v-menu>
-                  </v-col>
-                </v-row>
-              </v-col>
-              <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
-                <v-row>
-                  <v-col>
+              <v-col cols="8">
+                <v-row v-if="user.id === 1">
+                  <v-col class="mt-0 mb-0 pt-0 pb-0">
                     <v-autocomplete
-                      v-model="hr_from"
-                      :items="time_options"
-                      label="Time From"
+                      v-model="this.editedItem.branch_id"
+                      :items="branches"
+                      item-text="name"
+                      item-value="id"
+                      label="Branch"
+                      return-object
                       required
-                      prepend-icon="mdi-clock"
-                      :error-messages="hrFromErrors"
-                      @input="$v.hr_from.$touch()"
-                      @blur="$v.hr_from.$touch()"
-                    >
-                    </v-autocomplete>
-                  </v-col>
-                  <v-col>
-                    <v-autocomplete
-                      v-model="hr_to"
-                      :items="time_options"
-                      label="Time To"
-                      required
-                      prepend-icon="mdi-clock"
-                      :error-messages="hrToErrors"
-                      @input="$v.hr_to.$touch()"
-                      @blur="$v.hr_to.$touch()"
+                      :error-messages="branchErrors"
+                      @input="$v.editedItem.branch_id.$touch()"
+                      @blur="$v.editedItem.branch_id.$touch()"
                     >
                     </v-autocomplete>
                   </v-col>
                 </v-row>
+                <v-row>
+                  <v-col class="mt-0 mb-0 pt-0 pb-0">
+                    <v-autocomplete
+                      v-model="editedItem.marketing_event"
+                      :items="marketing_events"
+                      item-text="event_name"
+                      item-value="id"
+                      label="Event Title"
+                      return-object
+                      required
+                      :error-messages="eventTitleErrors"
+                      @input="$v.editedItem.marketing_event.$touch()"
+                      @blur="$v.editedItem.marketing_event.$touch()"
+                      @change="getMarketingEvent()"
+                    >
+                    </v-autocomplete>
+                  </v-col>
+                  <v-col class="mt-0 mb-0 pt-0 pb-0">
+                    <v-text-field
+                      name="sponsor"
+                      v-model="editedItem.sponsor"
+                      :error-messages="sponsorErrors"
+                      label="Sponsor"
+                      @input="$v.editedItem.sponsor.$touch()"
+                      @blur="$v.editedItem.sponsor.$touch()"
+                    ></v-text-field>
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <v-col class="mt-0 mb-0 pt-0 pb-0">
+                    <v-text-field
+                      name="venue"
+                      v-model="editedItem.venue"
+                      :error-messages="venueErrors"
+                      label="Venue"
+                      @input="$v.editedItem.venue.$touch()"
+                      @blur="$v.editedItem.venue.$touch()"
+                    ></v-text-field>
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <v-col class="mt-0 mb-0 pt-0 pb-0">
+                    <v-row>
+                      <v-col>
+                        <v-menu
+                          ref="menu"
+                          v-model="date_menu1"
+                          :close-on-content-click="true"
+                          :return-value.sync="date_menu1"
+                          transition="scale-transition"
+                          offset-y
+                          min-width="auto"
+                        >
+                          <template v-slot:activator="{ on, attrs }">
+                            <v-text-field
+                              v-model="computedPeriodFromFormatted"
+                              label="Period From"
+                              prepend-icon="mdi-calendar"
+                              readonly
+                              v-bind="attrs"
+                              v-on="on"
+                            ></v-text-field>
+                          </template>
+                          <v-date-picker
+                            v-model="editedItem.period_from"
+                            no-title
+                            scrollable
+                            :max="editedItem.period_to"
+                          >
+                          </v-date-picker>
+                        </v-menu>
+                      </v-col>
+                      <v-col>
+                        <v-menu
+                          ref="menu"
+                          v-model="date_menu2"
+                          :close-on-content-click="true"
+                          :return-value.sync="date_menu2"
+                          transition="scale-transition"
+                          offset-y
+                          min-width="auto"
+                        >
+                          <template v-slot:activator="{ on, attrs }">
+                            <v-text-field
+                              v-model="computedPeriodToFormatted"
+                              label="Period To"
+                              prepend-icon="mdi-calendar"
+                              readonly
+                              v-bind="attrs"
+                              v-on="on"
+                            ></v-text-field>
+                          </template>
+                          <v-date-picker
+                            v-model="editedItem.period_to"
+                            no-title
+                            scrollable
+                            :min="editedItem.period_from"
+                          >
+                          </v-date-picker>
+                        </v-menu>
+                      </v-col>
+                    </v-row>
+                  </v-col>
+                  <v-col class="mt-0 mb-0 pt-0 pb-0">
+                    <v-row>
+                      <v-col>
+                        <v-autocomplete
+                          v-model="editedItem.operating_from"
+                          :items="time_options"
+                          label="Operating From"
+                          required
+                          prepend-icon="mdi-clock"
+                          :error-messages="hrFromErrors"
+                          @input="$v.editedItem.operating_from.$touch()"
+                          @blur="$v.editedItem.operating_from.$touch()"
+                        >
+                        </v-autocomplete>
+                      </v-col>
+                      <v-col>
+                        <v-autocomplete
+                          v-model="editedItem.operating_to"
+                          :items="time_options"
+                          label="Operating To"
+                          required
+                          prepend-icon="mdi-clock"
+                          :error-messages="hrToErrors"
+                          @input="$v.editedItem.operating_to.$touch()"
+                          @blur="$v.editedItem.operating_to.$touch()"
+                        >
+                        </v-autocomplete>
+                      </v-col>
+                    </v-row>
+                  </v-col>
+                </v-row>
+              </v-col>
+              <v-divider vertical></v-divider>
+              <v-col>
+                <div class="border-1">
+                  <p class="font-weight-bold subtitle-1">
+                    PLS ATTACH THE FOLLOWING:
+                  </p>
+                  <p class="font-weight-bold">1. AGING</p>
+                  <p class="mb-0 font-weight-bold">
+                    2. SUMMARY OF LEDGER PER CATEGORY
+                  </p>
+                  <p class="mt-0 font-italic font-weight-medium">
+                    for mobile, stall exhibit, and appliance tour
+                  </p>
+                  <p class="font-weight-bold">
+                    3. EXPLANATION LETTER
+                    <span class="font-weight-medium">
+                      if previous activity is below quota</span
+                    >
+                  </p>
+                  <p class="font-weight-bold">
+                    4. PICTURES OF PREVIOUS ACTIVITY STATED HEREIN
+                  </p>
+                </div>
               </v-col>
             </v-row>
+            <v-divider></v-divider>
             <v-row>
               <v-col>
                 <v-simple-table>
@@ -409,7 +437,7 @@
               </v-col>
             </v-row>
           </v-card-text>
-
+          <v-divider></v-divider>
           <v-card-actions>
             <v-btn
               color="primary"
@@ -447,15 +475,15 @@ export default {
   validations: {
     editedItem: {
       marketing_event: { required },
+      marketing_event_id: { required },
       branch_id: { required },
       venue: { required },
-      period: { required },
       sponsor: { required },
-      operating_hrs: { required },
+      period_from: { required },
+      period_to: { required },
+      operating_from: { required },
+      operating_to: { required },
     },
-    hr_from: { required },
-    hr_to: { required },
-    branch: { required },
   },
   data() {
     return {
@@ -478,42 +506,53 @@ export default {
       marketing_events: [],
       editedItem: {
         marketing_event: "",
-        branch_id: 1,
+        marketing_event_id: "",
+        branch_id: "",
         venue: "",
-        period: "",
         sponsor: "",
-        operating_hrs: "",
         expense_particulars: [],
+        period_from: new Date(
+          Date.now() - new Date().getTimezoneOffset() * 60000
+        )
+          .toISOString()
+          .substr(0, 10),
+        period_to: new Date(
+          Date.now() - new Date().getTimezoneOffset() * 60000
+        )
+          .toISOString()
+          .substr(0, 10),
+        operating_from: "",
+        operating_to: "",
       },
       defaultItem: {
         marketing_event: "",
-        branch_id: 1,
+        marketing_event_id: "",
+        branch_id: "",
         venue: "",
         period: "",
         sponsor: "",
         operating_hrs: "",
         expense_particulars: [],
+        period_from: new Date(
+          Date.now() - new Date().getTimezoneOffset() * 60000
+        )
+          .toISOString()
+          .substr(0, 10),
+        period_to: new Date(
+          Date.now() - new Date().getTimezoneOffset() * 60000
+        )
+          .toISOString()
+          .substr(0, 10),
+        operating_from: "",
+        operating_to: "",
       },
       grand_total: "0.00",
       errorFields: [],
       time_options: [],
-      hr_from: "",
-      hr_to: "",
-      period_date1: new Date(
-        Date.now() - new Date().getTimezoneOffset() * 60000
-      )
-        .toISOString()
-        .substr(0, 10),
-      period_date2: new Date(
-        Date.now() - new Date().getTimezoneOffset() * 60000
-      )
-        .toISOString()
-        .substr(0, 10),
       date_menu1: false,
       modal: false,
       date_menu2: false,
       expensePaticularHasError: false,
-      branch: "",
     };
   },
 
@@ -592,81 +631,62 @@ export default {
 
       this.validateExpenseParticulars();
 
-      console.log(this.$v.$error);
-      console.log(this.expensePaticularHasError);
+      if (!this.$v.$error && !this.expensePaticularHasError) {
+        this.disabled = true;
+        this.overlay = true;
 
-    console.log(this.editedItem.marketing_event);
-    console.log(this.editedItem.branch_id);
-    console.log(this.editedItem.venue);
-    console.log(this.editedItem.venue);
-    console.log(this.editedItem.period);
-    console.log(this.editedItem.sponsor);
-    console.log(this.editedItem.operating_hrs);
-    console.log(this.hr_from);
-    console.log(this.hr_to);
-    console.log(this.branch);
+        const data = this.editedItem;
 
+        axios.post("/api/tactical_requisition/store", data).then(
+          (response) => {
+            console.log(response);
+            if (response.data.success) {
+              // send data to Sockot.IO Server
+              // this.$socket.emit("sendData", { action: "user-create" });
 
+              this.showAlert();
+              this.clear();
+            } else {
+              let errors = response.data;
+              let errorNames = Object.keys(response.data);
+            }
+            this.overlay = false;
+            this.disabled = false;
+          },
+          (error) => {
+            this.isUnauthorized(error);
 
-      // if (!this.$v.$error) {
-      //   this.disabled = true;
-      //   this.overlay = true;
-
-      //   const data = this.editedItem;
-
-      //   axios.post("/api/user/store", data).then(
-      //     (response) => {
-      //       if (response.data.success) {
-      //         // send data to Sockot.IO Server
-      //         // this.$socket.emit("sendData", { action: "user-create" });
-
-      //         this.showAlert();
-      //         this.clear();
-
-      //         //push recently added data from database
-      //         this.users.push(response.data.user);
-      //       } else {
-      //         let errors = response.data;
-      //         let errorNames = Object.keys(response.data);
-
-      //         errorNames.forEach((value) => {
-      //           this.userError[value].push(errors[value]);
-      //         });
-      //       }
-      //       this.overlay = false;
-      //       this.disabled = false;
-      //     },
-      //     (error) => {
-      //       this.isUnauthorized(error);
-
-      //       this.overlay = false;
-      //       this.disabled = false;
-      //     }
-      //   );
-      // }
+            this.overlay = false;
+            this.disabled = false;
+          }
+        );
+      }
     },
     clear() {
       this.$v.$reset();
       this.editedItem = Object.assign({}, this.defaultItem);
-      this.grand_total = 0;
+      this.grand_total = "0.00";
     },
     getFieldValue(item, subItem, fieldName) {
       let expense_particulars = this.editedItem.expense_particulars;
       let index = expense_particulars.indexOf(item);
       let expense_particular = expense_particulars[index];
 
-      if (!expense_particular[fieldName]) {
-        this.errorFields[index][fieldName] = "error";
-      } else {
-        // validate unit_cost if numeric
-        if (fieldName == "unit_cost") {
-          if (expense_particular[fieldName] % 1 >= 0) {
-            this.errorFields[index][fieldName] = null;
-          } else {
-            this.errorFields[index][fieldName] = "error";
-          }
+      // validate parent row if there is no child data
+      if (!expense_particular.expense_sub_particulars.length) {
+        if (!expense_particular[fieldName]) {
+          this.errorFields[index][fieldName] = "error";
         } else {
-          this.errorFields[index][fieldName] = null;
+          // validate unit_cost if numeric
+          if (fieldName == "unit_cost") {
+            if (expense_particular[fieldName] % 1 >= 0) {
+              this.errorFields[index][fieldName] = null;
+            } else {
+              this.errorFields[index][fieldName] = "error";
+            }
+          } else {
+            this.errorFields[index][fieldName] = null;
+          }
         }
       }
 
@@ -680,7 +700,6 @@ export default {
         if (!expense_sub_particular[fieldName]) {
           this.errorFields[index]["errorSubFields"][subIndex][fieldName] =
             "error";
-
         } else {
           // validate unit_cost if numeric
           if (fieldName == "unit_cost") {
@@ -805,16 +824,18 @@ export default {
             this.expensePaticularHasError = true;
           }
         });
+
         value.errorSubFields.forEach((val, i) => {
           object_names = Object.keys(value);
           object_names.forEach((fieldName) => {
-            if (this.errorFields[index]['errorSubFields'][i][fieldName] == "error") {
+            if (
+              this.errorFields[index]["errorSubFields"][i][fieldName] == "error"
+            ) {
               this.expensePaticularHasError = true;
             }
           });
         });
       });
-
     },
     isUnauthorized(error) {
       // if unauthenticated (401)
@@ -849,14 +870,9 @@ export default {
     },
     branchErrors() {
       const errors = [];
-      if (!this.$v.branch.$dirty) return errors;
-      !this.$v.branch.required && errors.push("Branch is required.");
-      return errors;
-    },
-    periodErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.period.$dirty) return errors;
-      !this.$v.editedItem.period.required && errors.push("Period is required.");
+      if (!this.$v.editedItem.branch_id.$dirty) return errors;
+      !this.$v.editedItem.branch_id.required &&
+        errors.push("Branch is required.");
       return errors;
     },
     venueErrors() {
@@ -872,38 +888,33 @@ export default {
         errors.push("Sponsor is required.");
       return errors;
     },
-    operatingHrsErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.operating_hrs.$dirty) return errors;
-      !this.$v.editedItem.operating_hrs.required &&
-        errors.push("Operating Hours is required.");
-      return errors;
-    },
     hrFromErrors() {
       const errors = [];
-      if (!this.$v.hr_from.$dirty) return errors;
-      !this.$v.hr_from.required && errors.push("Select time.");
+      if (!this.$v.editedItem.operating_from.$dirty) return errors;
+      !this.$v.editedItem.operating_from.required && errors.push("Select time.");
       return errors;
     },
     hrToErrors() {
       const errors = [];
-      if (!this.$v.hr_to.$dirty) return errors;
-      !this.$v.hr_to.required && errors.push("Select time.");
+      if (!this.$v.editedItem.operating_to.$dirty) return errors;
+      !this.$v.editedItem.operating_to.required && errors.push("Select time.");
       return errors;
     },
 
     computedPeriodFromFormatted() {
-      return this.formatDate(this.period_date1);
+      return this.formatDate(this.editedItem.period_from);
     },
     computedPeriodToFormatted() {
-      return this.formatDate(this.period_date2);
+      return this.formatDate(this.editedItem.period_to);
     },
     ...mapState("auth", ["user"]),
   },
   watch: {
-    branch() {
-      this.editedItem.branch_id = this.branch.id;
-      console.log(this.editedItem.branch_id);
+    "editedItem.marketing_event"() {
+      this.editedItem.marketing_event_id = this.editedItem.marketing_event.id;
+    },
+    user() {
+      this.editedItem.branch_id = this.user.branch_id;
     },
   },
   mounted() {

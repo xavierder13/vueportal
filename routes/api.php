@@ -483,34 +483,7 @@ Route::group(['prefix' => 'tactical_requisition', 'middleware' => ['auth:api', '
     ]);
 
 });
-// Tactical Requisition Routes
-Route::group(['prefix' => 'marketing_event', 'middleware' => ['auth:api']], function(){
-    Route::get('/index', [
-        'uses' => 'API\MarketingEventController@index',
-        'as' => 'marketing_event.index',
-    ]);
-    Route::get('/create', [
-        'uses' => 'API\TacticalRequisitionController@create',
-        'as' => 'tactical_requisition.create',
-    ]);
-    Route::post('/store', [
-        'uses' => 'API\TacticalRequisitionController@store',
-        'as' => 'tactical_requisition.store',
-    ]);
-    Route::post('/edit', [
-        'uses' => 'API\TacticalRequisitionController@edit',
-        'as' => 'tactical_requisition.edit',
-    ]);
-    Route::post('/update/{id}', [
-        'uses' => 'API\TacticalRequisitionController@update',
-        'as' => 'tactical_requisition.update',
-    ]);
-    Route::post('/delete', [
-        'uses' => 'API\TacticalRequisitionController@delete',
-        'as' => 'tactical_requisition.delete',
-    ]);
 
-});
 
 // Marketing Event Routes
 Route::group(['prefix' => 'marketing_event', 'middleware' => ['auth:api', 'marketing_event.maintenance']], function(){
