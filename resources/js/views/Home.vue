@@ -90,7 +90,10 @@
           <!-- List Group Title -->
           <template v-slot:activator>
             <v-list-item-content>
-              <v-list-item-title> <v-icon class="mr-4">mdi-account-arrow-right-outline</v-icon> User Management</v-list-item-title>
+              <v-list-item-title>
+                <v-icon class="mr-4">mdi-account-arrow-right-outline</v-icon>
+                User Management</v-list-item-title
+              >
             </v-list-item-content>
           </template>
           <!-- List Group Items -->
@@ -129,7 +132,10 @@
           <!-- List Group Title -->
           <template v-slot:activator>
             <v-list-item-content>
-              <v-list-item-title> <v-icon class="mr-4">mdi-barcode-scan</v-icon> Inventory</v-list-item-title>
+              <v-list-item-title>
+                <v-icon class="mr-4">mdi-barcode-scan</v-icon>
+                Inventory</v-list-item-title
+              >
             </v-list-item-content>
           </template>
           <!-- List Group Items -->
@@ -211,7 +217,10 @@
           <!-- List Group Title -->
           <template v-slot:activator>
             <v-list-item-content>
-              <v-list-item-title> <v-icon class="mr-4">mdi-account-multiple</v-icon> Employee</v-list-item-title>
+              <v-list-item-title>
+                <v-icon class="mr-4">mdi-account-multiple</v-icon>
+                Employee</v-list-item-title
+              >
             </v-list-item-content>
           </template>
           <!-- List Group Items -->
@@ -292,7 +301,10 @@
           <!-- List Group Title -->
           <template v-slot:activator>
             <v-list-item-content>
-              <v-list-item-title> <v-icon class="mr-4">mdi-folder-multiple-outline</v-icon> Training</v-list-item-title>
+              <v-list-item-title>
+                <v-icon class="mr-4">mdi-folder-multiple-outline</v-icon>
+                Training</v-list-item-title
+              >
             </v-list-item-content>
           </template>
           <!-- List Group Items -->
@@ -315,25 +327,30 @@
             </v-list-item-content>
           </v-list-item>
         </v-list-group>
-        <v-list-group no-action
+        <v-list-group
+          no-action
           v-if="
             userPermissions.tactical_requisition_list ||
             userPermissions.tactical_requisition_create ||
             userPermissions.marketing_event_list ||
             userPermissions.marketing_event_create
-          ">
+          "
+        >
           <!-- List Group Icon-->
           <!-- <v-icon slot="prependIcon">mdi-file-multiple-outline</v-icon> -->
           <!-- List Group Title -->
           <template v-slot:activator>
             <v-list-item-content>
-              <v-list-item-title> <v-icon class="mr-4">mdi-file-multiple-outline</v-icon> Tactical Req.</v-list-item-title>
+              <v-list-item-title>
+                <v-icon class="mr-4">mdi-file-multiple-outline</v-icon> Tactical
+                Req.</v-list-item-title
+              >
             </v-list-item-content>
           </template>
           <!-- List Group Items -->
           <v-list-item
             link
-            to="/tactical_requisition/list"
+            to="/tactical_requisition/index"
             v-if="userPermissions.tactical_requisition_list"
           >
             <v-list-item-content>
@@ -362,6 +379,56 @@
         <v-list-group
           no-action
           v-if="
+            userPermissions.access_chart_list ||
+            userPermissions.access_chart_create || 
+            userPermissions.access_module_list ||
+            userPermissions.access_module_create
+          "
+        >
+          <!-- List Group Icon-->
+          <!-- <v-icon slot="prependIcon">mdi-file-multiple-outline</v-icon> -->
+          <!-- List Group Title -->
+          <template v-slot:activator>
+            <v-list-item-content>
+              <v-list-item-title>
+                <v-icon class="mr-4">mdi-chart-arc</v-icon> Access
+                Chart</v-list-item-title
+              >
+            </v-list-item-content>
+          </template>
+          <!-- List Group Items -->
+          <v-list-item
+            link
+            to="/access_chart/index"
+            v-if="userPermissions.access_chart_list"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Access Chart Lists</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+
+          <v-list-item
+            link
+            to="/access_chart/create"
+            v-if="userPermissions.access_chart_list"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Access Chart Create</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
+            to="/access_module/index"
+            v-if="userPermissions.access_module_list || userPermissions.access_module_create"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Access Module Lists</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list-group>
+        <v-list-group
+          no-action
+          v-if="
             userPermissions.branch_list ||
             userPermissions.branch_create ||
             userPermissions.position_list ||
@@ -377,7 +444,10 @@
           <!-- List Group Title -->
           <template v-slot:activator>
             <v-list-item-content>
-              <v-list-item-title> <v-icon class="mr-4">mdi-cog</v-icon> Settings</v-list-item-title>
+              <v-list-item-title>
+                <v-icon class="mr-4">mdi-cog</v-icon>
+                Settings</v-list-item-title
+              >
             </v-list-item-content>
           </template>
           <!-- List Group Items -->
@@ -555,7 +625,6 @@ export default {
     this.getUser();
     this.userRolesPermissions();
     // this.websocket();
-
   },
 };
 </script>

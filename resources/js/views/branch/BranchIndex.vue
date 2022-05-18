@@ -404,11 +404,9 @@ export default {
       this.$options.sockets.sendData = (data) => {
         let action = data.action;
         if (
-          action == "user-edit" ||
-          action == "role-edit" ||
-          action == "role-delete" ||
-          action == "permission-create" ||
-          action == "permission-delete"
+          action == "branch-create" ||
+          action == "branch-edit" ||
+          action == "branch-delete"
         ) {
           this.userRolesPermissions();
         }

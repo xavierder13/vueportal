@@ -23,6 +23,8 @@ class CreateTacticalRequisitionsTable extends Migration
             $table->date('period_to');
             $table->string('operating_from');
             $table->string('operating_to');
+            $table->string('status');
+            $table->date('date_approve')->nullable();
             $table->timestamps();
         });
     }

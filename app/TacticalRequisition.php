@@ -22,9 +22,22 @@ class TacticalRequisition extends Model
         return $this->hasMany('App\TacticalRequisitionRow', 'tactical_requisition_id', 'id');
         //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
     }
+
     public function tactical_attachments()
     {   
         return $this->hasMany('App\TacticalRequisitionAttachment', 'tactical_requisition_id', 'id');
+        //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
+    }
+
+    public function branch()
+    {
+        return $this->hasOne('App\Branch', 'id', 'branch_id');
+        //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
+    }
+
+    public function marketing_event()
+    {
+        return $this->hasOne('App\MarketingEvent', 'id', 'marketing_event_id');
         //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
     }
 }

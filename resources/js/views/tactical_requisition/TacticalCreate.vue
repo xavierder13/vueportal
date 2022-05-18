@@ -29,12 +29,11 @@
                 <v-row v-if="user.id === 1">
                   <v-col class="mt-0 mb-0 pt-0 pb-0">
                     <v-autocomplete
-                      v-model="this.editedItem.branch_id"
+                      v-model="editedItem.branch_id = user.branch_id"
                       :items="branches"
                       item-text="name"
                       item-value="id"
                       label="Branch"
-                      return-object
                       required
                       :error-messages="branchErrors"
                       @input="$v.editedItem.branch_id.$touch()"
@@ -719,7 +718,7 @@ export default {
     },
     computeAmount() {
       let expense_particulars = this.editedItem.expense_particulars;
-      let grand_total = 0.0;
+      let grand_total = "0.00";
       let decimal_length = 2;
 
       expense_particulars.forEach((value, index) => {
@@ -900,7 +899,6 @@ export default {
       !this.$v.editedItem.operating_to.required && errors.push("Select time.");
       return errors;
     },
-
     computedPeriodFromFormatted() {
       return this.formatDate(this.editedItem.period_from);
     },
@@ -920,7 +918,7 @@ export default {
   mounted() {
     axios.defaults.headers.common["Authorization"] =
       "Bearer " + localStorage.getItem("access_token");
-
+    
     this.getTacticalOptions();
     this.timeOptions();
   },

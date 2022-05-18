@@ -50,5 +50,9 @@ class User extends Authenticatable
         return $this->hasOne('App\Position', 'id', 'position_id');
         //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
     }
+
+    public function access_chart_user_maps () {
+        return $this->belongsToMany('App\AccessChart', 'access_chart_user_maps', 'user_id', 'access_chart_id');
+    }
  
 }

@@ -514,6 +514,64 @@ Route::group(['prefix' => 'marketing_event', 'middleware' => ['auth:api', 'marke
 
 });
 
+// Access Module Routes
+Route::group(['prefix' => 'access_module', 'middleware' => ['auth:api', 'access_module.maintenance']], function(){
+    Route::get('/index', [
+        'uses' => 'API\AccessModuleController@index',
+        'as' => 'access_module.index',
+    ]);
+    Route::get('/create', [
+        'uses' => 'API\AccessModuleController@create',
+        'as' => 'access_module.create',
+    ]);
+    Route::post('/store', [
+        'uses' => 'API\AccessModuleController@store',
+        'as' => 'access_module.store',
+    ]);
+    Route::post('/edit', [
+        'uses' => 'API\AccessModuleController@edit',
+        'as' => 'access_module.edit',
+    ]);
+    Route::post('/update/{id}', [
+        'uses' => 'API\AccessModuleController@update',
+        'as' => 'access_module.update',
+    ]);
+    Route::post('/delete', [
+        'uses' => 'API\AccessModuleController@delete',
+        'as' => 'access_module.delete',
+    ]);
+
+});
+
+// Access Chart Routes
+Route::group(['prefix' => 'access_chart', 'middleware' => ['auth:api', 'access_chart.maintenance']], function(){
+    Route::get('/index', [
+        'uses' => 'API\AccessChartController@index',
+        'as' => 'access_chart.index',
+    ]);
+    Route::get('/create', [
+        'uses' => 'API\AccessChartController@create',
+        'as' => 'access_chart.create',
+    ]);
+    Route::post('/store', [
+        'uses' => 'API\AccessChartController@store',
+        'as' => 'access_chart.store',
+    ]);
+    Route::post('/edit', [
+        'uses' => 'API\AccessChartController@edit',
+        'as' => 'access_chart.edit',
+    ]);
+    Route::post('/update/{id}', [
+        'uses' => 'API\AccessChartController@update',
+        'as' => 'access_chart.update',
+    ]);
+    Route::post('/delete', [
+        'uses' => 'API\AccessChartController@delete',
+        'as' => 'access_chart.delete',
+    ]);
+
+});
+
 // Branch Routes
 Route::group(['prefix' => 'branch', 'middleware' => ['auth:api', 'branch.maintenance']], function(){
     Route::get('/index', [

@@ -27,6 +27,9 @@ import TacticalCreate from './views/tactical_requisition/TacticalCreate.vue';
 import MarketingEventIndex from './views/tactical_requisition/marketing_event/Index.vue';
 import MarketingEventCreate from './views/tactical_requisition/marketing_event/Create.vue';
 import MarketingEventEdit from './views/tactical_requisition/marketing_event/Edit.vue';
+import AccessChartIndex from './views/access_chart/AccessChartIndex.vue';
+import AccessChartCreate from './views/access_chart/AccessChartCreate.vue';
+import AccessModuleIndex from './views/access_module/AccessModuleIndex.vue';
 import Permission from './views/permission/PermissionIndex.vue';
 import Role from './views/role/RoleIndex.vue';
 import ActivityLogs from './views/activity_logs/ActivityLogs.vue';
@@ -160,6 +163,21 @@ const routes = [
         path: '/marketing_event/edit/:marketing_event_id',
         name: 'marketing.event.edit',
         component: MarketingEventEdit
+      },
+      {
+        path: '/access_chart/index',
+        name: 'access.chart.index',
+        component: AccessChartIndex
+      },
+      {
+        path: '/access_chart/create',
+        name: 'access.chart.create',
+        component: AccessChartCreate
+      },
+      {
+        path: '/access_module/index',
+        name: 'access.module.index',
+        component: AccessModuleIndex
       },
       {
         path: '/permission/index',

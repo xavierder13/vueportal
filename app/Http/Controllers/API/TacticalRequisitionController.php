@@ -11,9 +11,20 @@ use App\TacticalRequisition;
 use App\TacticalRequisitionRow;
 use App\TacticalRequisitionAttachment;
 use Validator;
+use DB;
 
 class TacticalRequisitionController extends Controller
-{
+{   
+
+    public function index()
+    {
+        $tactical_requisitions = DB::table('tactical_requisitions')
+                                   ->leftJoin('marketing_events', 'tactical_requisitions.marketing_event_id', '=', 'marketing_events.id')
+                                   ->select('tactical_requisitions.id', 'tactical_requisitions.id')
+                                   ->get();
+        return response()->json(['tactical_requisitions' => $tactical_requisitions], 200);
+    }
+
     public function create() 
     {
         $branches = Branch::all();
@@ -71,6 +82,8 @@ class TacticalRequisitionController extends Controller
         $tactical_requisition->period_to = $request->get('period_to');
         $tactical_requisition->operating_to = $request->get('operating_to');
         $tactical_requisition->operating_from = $request->get('operating_from');
+        $tactical_requisition->status = 'Pending';
+        $tactical_requisition->date_approve = null;
         $tactical_requisition->save();
 
         $tactical_requisition_id = $tactical_requisition->id;
@@ -94,6 +107,6 @@ class TacticalRequisitionController extends Controller
                                          ->where('id', '=', $tactical_requisition_id);
         
 
-        return response()->json(['success' => 'Record has successfully added', 'marketing_event' => $tactical_requisition]);
+        return response()->json(['success' => 'Record has successfully added', 'tactical_requisition' => $tactical_requisition]);
     }
 }

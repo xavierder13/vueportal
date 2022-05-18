@@ -104,6 +104,14 @@ const state = {
     marketing_event_create: false,
     marketing_event_edit: false,
     marketing_event_delete: false,
+    access_chart_list: false,
+    access_chart_create: false,
+    access_chart_edit: false,
+    access_chart_delete: false,
+    access_module_list: false,
+    access_module_create: false,
+    access_module_edit: false,
+    access_module_delete: false,
     role_list: false,
     role_create: false,
     role_edit: false,
@@ -303,6 +311,18 @@ const mutations = {
     permission.marketing_event_create = permissions.includes("marketing-event-create");
     permission.marketing_event_edit = permissions.includes("marketing-event-edit");
     permission.marketing_event_delete = permissions.includes("marketing-event-delete");
+
+    // ACCESS MODULE RECORD MAINTENANCE PERMISSIONS
+    permission.access_module_list = permissions.includes("access-module-list");
+    permission.access_module_create = permissions.includes("access-module-create");
+    permission.access_module_edit = permissions.includes("access-module-edit");
+    permission.access_module_delete = permissions.includes("access-module-delete");
+
+    // ACCESS CHART RECORD MAINTENANCE PERMISSIONS
+    permission.access_chart_list = permissions.includes("access-chart-list");
+    permission.access_chart_create = permissions.includes("access-chart-create");
+    permission.access_chart_edit = permissions.includes("access-chart-edit");
+    permission.access_chart_delete = permissions.includes("access-chart-delete");
 
     // PERMISSION RECORD MAINTENANCE PERMISSIONS
     permission.permission_list = permissions.includes("permission-list");

@@ -187,7 +187,7 @@ export default {
         (response) => {
           if (response.data.success) {
             // send data to Sockot.IO Server
-            this.$socket.emit("sendData", { action: "permission-delete" });
+            // this.$socket.emit("sendData", { action: "permission-delete" });
           }
           this.loading = false;
         },

@@ -106,6 +106,18 @@ class PermissionSeeder extends Seeder
             'expense-particular-create',
             'expense-particular-edit',
             'expense-particular-delete',
+            'tactical-requisition-list',
+            'tactical-requisition-create',
+            'tactical-requisition-edit',
+            'tactical-requisition-delete',
+            'access-chart-list',
+            'access-chart-create',
+            'access-chart-edit',
+            'access-chart-delete',
+            'access-module-list',
+            'access-module-create',
+            'access-module-edit',
+            'access-module-delete',
             'permission-list',
             'permission-create',
             'permission-edit',
@@ -115,7 +127,6 @@ class PermissionSeeder extends Seeder
             'role-edit',
             'role-delete',
             'activity-logs',
-            
          ];
  
  

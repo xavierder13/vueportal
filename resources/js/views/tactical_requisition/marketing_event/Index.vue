@@ -51,7 +51,7 @@
                 class="mr-2"
                 color="green"
                 @click="editMarketingEvent(item)"
-                v-if="userPermissions.permission_edit"
+                v-if="userPermissions.marketing_event_edit"
               >
                 mdi-pencil
               </v-icon>
@@ -122,7 +122,6 @@ export default {
       axios.get("/api/marketing_event/index").then(
         (response) => {
           this.marketing_events = response.data.marketing_events;
-          console.log(response);
           this.loading = false;
         },
         (error) => {

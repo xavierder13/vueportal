@@ -18,30 +18,30 @@ class TacticalRequisitionMaintenance
     {
         $user = Auth::user();
 
-        //Role Record
+        //Tactical Requisition Record
         if($request->is('api/tactical_requisition/index')){
             if($user->can('tactical-requisition-list')){
                 return $next($request); 
             }
         }
 
-        //Role Create
+        //Tactical Requisition Create
         if($request->is('api/tactical_requisition/create') || $request->is('api/tactical_requisition/store')){
             if($user->can('tactical-requisition-create')){
                 return $next($request); 
             }
         }
 
-        //Role Edit
+        //Tactical Requisition Edit
         if($request->is('api/tactical_requisition/edit/*') || $request->is('api/tactical_requisition/update/*')){
-            if($user->can('role-edit')){
+            if($user->can('tactical-requisition-edit')){
                 return $next($request); 
             }
         }
 
-        //Role Delete
+        //Tactical Requisition Delete
         if($request->is('api/tactical_requisition/delete')){
-            if($user->can('role-delete')){
+            if($user->can('tactical-requisition-delete')){
                 return $next($request); 
             }
         }
