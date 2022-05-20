@@ -44,14 +44,14 @@
                         <v-row>
                           <v-col class="mt-0 mb-0 pt-0 pb-0">
                             <v-autocomplete
-                              v-model="editedItem.access_module_id"
+                              v-model="editedItem.access_for"
                               :items="access_modules"
                               item-text="name"
                               item-value="id"
                               label="Access For"
                               :error-messages="accessForErrors"
-                              @input="$v.editedItem.access_module_id.$touch()"
-                              @blur="$v.editedItem.access_module_id.$touch()"
+                              @input="$v.editedItem.access_for.$touch()"
+                              @blur="$v.editedItem.access_for.$touch()"
                             >
                             </v-autocomplete>
                           </v-col>
@@ -69,8 +69,6 @@
                                   (nameError.name = [])
                               "
                               @blur="$v.editedItem.name.$touch()"
-                              clearable
-                              @click:clear="viewAccessChart"
                             ></v-text-field>
                           </v-col>
                         </v-row>
@@ -106,7 +104,9 @@
           >
             <template v-slot:item.access_chart_user_maps.length="{ item }">
               <v-chip
-                :class="item.access_chart_user_maps.length ? 'success' : 'red'"
+                :class="
+                  item.access_chart_user_maps.length ? 'success' : 'error'
+                "
               >
                 {{ item.access_chart_user_maps.length }}
               </v-chip>
@@ -116,8 +116,8 @@
                 small
                 class="mr-2"
                 color="info"
-                @click="viewAccessChart(item)"
-                v-if="userPermissions.access_chart_edit"
+                @click="viewApprovingOfficer(item)"
+                v-if="userPermissions.approving_officer_list"
               >
                 mdi-eye
               </v-icon>
@@ -157,178 +157,135 @@
               <v-divider class="ma-0"></v-divider>
               <v-card-text>
                 <v-row>
-                  <!-- <v-col>
-                    <v-row>
-                      <v-col class="pb-0 mt-4">
-                        <v-autocomplete
-                          v-model="approvingOfficer.user_id"
-                          :items="users"
-                          item-text="name"
-                          item-value="id"
-                          label="User"
-                          :error-messages="approvingOfficerErrors"
-                          @input="$v.approvingOfficer.user_id.$touch()"
-                          @blur="$v.approvingOfficer.user_id.$touch()"
-                        >
-                        </v-autocomplete>
-                      </v-col>
-                    </v-row>
-                    <v-row>
-                      <v-col class="pb-0">
-                        <v-autocomplete
-                          v-model="approvingOfficer.access_level"
-                          :items="access_levels"
-                          item-text="level"
-                          label="Access Level"
-                        >
-                        </v-autocomplete>
-                      </v-col>
-                    </v-row>
-                    <v-row>
-                      <v-col>
-                        <v-btn class="primary">Add</v-btn>
-                      </v-col>
-                    </v-row>
-                  </v-col>
-                  <v-divider vertical></v-divider> -->
                   <v-col class="mt-4">
-                    <v-row>
-                      <v-col>
-                        <v-card>
-                          <v-card-title>
-                            Approving Officers
-                            <v-btn
-                              class="primary ml-4"
+                    <v-card>
+                      <v-card-title>
+                        Approving Officers
+                        <v-btn
+                          class="primary ml-4"
+                          small
+                          @click="newApprovingOfficer()"
+                          v-if="userPermissions.approving_officer_list"
+                        >
+                          <v-icon> mdi-plus</v-icon> New
+                        </v-btn>
+                      </v-card-title>
+                      <v-divider class="ma-0"></v-divider>
+                      <v-card-text>
+                        <v-data-table
+                          :headers="headers2"
+                          :items="approving_officers"
+                          :loading="loading"
+                          loading-text="Loading... Please wait"
+                          hide-default-footer
+                        >
+                          <template
+                            v-slot:item.approving_officer="{ item, index }"
+                          >
+                            {{
+                              item.status !== "New"
+                                ? item.user
+                                  ? "Approving Officer " +
+                                    item.access_level +
+                                    " - " +
+                                    item.user.name
+                                  : "No User"
+                                : ""
+                            }}
+
+                            <v-row
+                              v-if="
+                                index === editedIndex2
+                                  ? true
+                                  : false || item.status === 'New'
+                              "
+                            >
+                              <v-col class="pb-0">
+                                <v-autocomplete
+                                  v-model="approvingOfficer.user_id"
+                                  :items="users"
+                                  item-text="name"
+                                  item-value="id"
+                                  label="User"
+                                  :error-messages="approvingOfficerErrors"
+                                  @input="$v.approvingOfficer.user_id.$touch()"
+                                  @blur="$v.approvingOfficer.user_id.$touch()"
+                                  hide-details=""
+                                >
+                                </v-autocomplete>
+                              </v-col>
+                              <v-col class="pb-0">
+                                <v-autocomplete
+                                  v-model="approvingOfficer.access_level"
+                                  :items="access_levels"
+                                  item-text="level"
+                                  label="Access Level"
+                                >
+                                </v-autocomplete>
+                              </v-col>
+                            </v-row>
+                          </template>
+
+                          <template v-slot:item.actions="{ item, index }">
+                            <v-icon
                               small
-                              @click="newApprovingOfficer()"
+                              class="mr-2"
+                              color="green"
+                              @click="editApprover(item)"
+                              v-if="
+                                userPermissions.access_chart_edit &&
+                                index !== editedIndex2 &&
+                                item.status !== 'New'
+                              "
                             >
-                              <v-icon> mdi-plus</v-icon> New
+                              mdi-pencil
+                            </v-icon>
+
+                            <v-icon
+                              small
+                              color="red"
+                              @click="showConfirmAlert(item, 'Approving Officer')"
+                              v-if="
+                                userPermissions.access_chart_delete &&
+                                index !== editedIndex2 &&
+                                item.status !== 'New'
+                              "
+                            >
+                              mdi-delete
+                            </v-icon>
+
+                            <v-btn
+                              class="primary"
+                              x-small
+                              v-if="
+                                index === editedIndex2
+                                  ? true
+                                  : false || item.status === 'New'
+                              "
+                              :disabled="disabled"
+                              @click="saveApprovingOfficer()"
+                            >
+                              save
                             </v-btn>
-                          </v-card-title>
-                          <v-divider class="ma-0"></v-divider>
-                          <v-card-text>
-                            <v-data-table
-                              :headers="headers2"
-                              :items="approving_officers"
-                              :loading="loading"
-                              loading-text="Loading... Please wait"
-                              hide-default-footer
+
+                            <v-btn
+                              x-small
+                              v-if="
+                                index === editedIndex2
+                                  ? true
+                                  : false || item.status === 'New'
+                              "
+                              color="#E0E0E0"
+                              @click="cancelEvent(item)"
                             >
-                              <template
-                                v-slot:item.approving_officer="{ item }"
-                              >
-                                {{
-                                  item.status !== "New"
-                                    ? item.user
-                                      ? "Approving Officer " +
-                                        item.access_level +
-                                        " - " +
-                                        item.user.name
-                                      : "No User"
-                                    : ""
-                                }}
-
-                                <v-row
-                                  v-if="item.status === 'New' ? true : false"
-                                >
-                                  <v-col class="pb-0">
-                                    <v-autocomplete
-                                      v-model="approvingOfficer.user_id"
-                                      :items="users"
-                                      item-text="name"
-                                      item-value="id"
-                                      label="User"
-                                      :error-messages="approvingOfficerErrors"
-                                      @input="
-                                        $v.approvingOfficer.user_id.$touch()
-                                      "
-                                      @blur="
-                                        $v.approvingOfficer.user_id.$touch()
-                                      "
-                                      hide-details=""
-                                    >
-                                    </v-autocomplete>
-                                  </v-col>
-                                  <v-col class="pb-0">
-                                    <v-autocomplete
-                                      v-model="approvingOfficer.access_level"
-                                      :items="access_levels"
-                                      item-text="level"
-                                      label="Access Level"
-                                    >
-                                    </v-autocomplete>
-                                  </v-col>
-                                </v-row>
-                              </template>
-
-                              <template v-slot:item.actions="{ item }">
-                                <v-icon
-                                  small
-                                  class="mr-2"
-                                  color="green"
-                                  @click="editApprover(item)"
-                                  v-if="
-                                    userPermissions.access_chart_edit &&
-                                    item.status !== 'New'
-                                  "
-                                >
-                                  mdi-pencil
-                                </v-icon>
-
-                                <v-icon
-                                  small
-                                  color="red"
-                                  @click="showConfirmAlert2(item)"
-                                  v-if="
-                                    userPermissions.access_chart_delete &&
-                                    item.status !== 'New'
-                                  "
-                                >
-                                  mdi-delete
-                                </v-icon>
-
-                                <v-btn
-                                  class="primary"
-                                  x-small
-                                  v-if="item.status === 'New'"
-                                >
-                                  save
-                                </v-btn>
-
-                                <v-btn
-                                  x-small
-                                  v-if="item.status === 'New'"
-                                  color="#E0E0E0"
-                                >
-                                  cancel
-                                </v-btn>
-                              </template>
-                            </v-data-table>
-                          </v-card-text>
-                        </v-card>
-                      </v-col>
-                    </v-row>
+                              cancel
+                            </v-btn>
+                          </template>
+                        </v-data-table>
+                      </v-card-text>
+                    </v-card>
                   </v-col>
                 </v-row>
-                <v-divider></v-divider>
-                <v-card>
-                  <v-card-title> Assign User </v-card-title>
-                  <v-divider class="ma-0"></v-divider>
-                  <v-card-text> </v-card-text>
-                  <v-card-actions>
-                    <v-btn color="#E0E0E0" @click="close" class="mb-4 ml-4">
-                      Cancel
-                    </v-btn>
-                    <v-btn
-                      color="primary"
-                      @click="save"
-                      class="mb-4 mr-4"
-                      :disabled="disabled"
-                    >
-                      Save
-                    </v-btn>
-                  </v-card-actions>
-                </v-card>
               </v-card-text>
             </v-card>
           </v-dialog>
@@ -348,7 +305,7 @@ export default {
 
   validations: {
     editedItem: {
-      access_module_id: { required },
+      access_for: { required },
       name: { required },
     },
     approvingOfficer: {
@@ -377,12 +334,13 @@ export default {
       access_levels: [],
       users: [],
       editedIndex: -1,
+      editedIndex2: -1,
       editedItem: {
-        access_module_id: "",
+        access_for: "",
         name: "",
       },
       defaultItem: {
-        access_module_id: "",
+        access_for: "",
         name: "",
       },
       approvingOfficer: {
@@ -405,6 +363,7 @@ export default {
       nameError: {
         name: [],
       },
+      addEditMode: "",
     };
   },
 
@@ -413,7 +372,6 @@ export default {
       this.loading = true;
       axios.get("/api/access_chart/index").then(
         (response) => {
-          console.log(response);
           this.access_charts = response.data.access_charts;
           this.access_modules = response.data.access_modules;
           this.users = response.data.users;
@@ -458,7 +416,7 @@ export default {
       });
     },
 
-    showConfirmAlert(item) {
+    showConfirmAlert(item, doctype) {
       this.$swal({
         title: "Are you sure?",
         text: "You won't be able to revert this!",
@@ -473,15 +431,27 @@ export default {
         if (result.value) {
           // <-- if confirmed
 
-          const access_chart_id = item.id;
-          const index = this.access_charts.indexOf(item);
+          if (doctype === 'Access Chart') {
 
-          //Call delete Access Chart function
-          this.deleteAccessChart(access_chart_id);
+            const access_chart_id = item.id;
+            const index = this.access_charts.indexOf(item);
 
-          //Remove item from array permissions
-          this.access_charts.splice(index, 1);
+            //Call delete Access Chart function
+            this.deleteAccessChart(access_chart_id);
 
+            //Remove item from array permissions
+            this.access_charts.splice(index, 1);
+          }
+          else
+          {
+            const approver_id = item.id;
+            const index = this.approving_officers.indexOf(item);
+            //Remove item from array permissions
+            this.approving_officers.splice(index, 1);
+
+            this.deleteApprover(approver_id);
+          }
+          
           this.$swal({
             position: "center",
             icon: "success",
@@ -507,6 +477,7 @@ export default {
         { user_id: "", access_level: 1 }
       );
       this.approving_officers = [];
+      this.editedIndex2 = -1;
     },
 
     save() {
@@ -515,7 +486,7 @@ export default {
         name: [],
       };
 
-      if (!this.$v.$error) {
+      if (!this.$v.editedItem.$error) {
         this.disabled = true;
 
         if (this.editedIndex > -1) {
@@ -555,6 +526,7 @@ export default {
 
           axios.post("/api/access_chart/store", data).then(
             (response) => {
+              console.log(response);
               if (response.data.success) {
                 // send data to Sockot.IO Server
                 // this.$socket.emit("sendData", { action: "access-chart-create" });
@@ -583,7 +555,7 @@ export default {
       }
     },
 
-    viewAccessChart(item) {
+    viewApprovingOfficer(item) {
       this.editedIndex = this.access_charts.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.dialog2 = true;
@@ -600,48 +572,141 @@ export default {
         this.approving_officers.push(value);
       });
     },
-    saveAccessChart() {},
+    saveApprovingOfficer() {
+      this.$v.approvingOfficer.$touch();
+
+      if (!this.$v.approvingOfficer.$error) {
+        this.disabled = true;
+
+        if (this.editedIndex2 > -1) {
+          const data = this.approvingOfficer;
+          const approver_id = this.approvingOfficer.id;
+
+          axios.post("/api/access_chart_user_map/update/" + approver_id, data).then(
+            (response) => {
+              if (response.data.success) {
+                // send data to Sockot.IO Server
+                // this.$socket.emit("sendData", { action: "approving-officer-edit" });
+
+                Object.assign(
+                  this.approving_officers[this.editedIndex2],
+                  this.approvingOfficer
+                );
+                this.showAlert();
+                this.close();
+              } else {
+                let errors = response.data;
+                let errorNames = Object.keys(response.data);
+
+                errorNames.forEach((value) => {
+                  this.accessChartError[value].push(errors[value]);
+                });
+              }
+
+              this.disabled = false;
+            },
+            (error) => {
+              this.isUnauthorized(error);
+              this.disabled = false;
+            }
+          );
+        } else {
+          const data = this.approvingOfficer;
+
+          data['access_chart_id'] = this.editedItem.id;
+
+          axios.post("/api/access_chart_user_map/store", data).then(
+            (response) => {
+              console.log(response);
+              if (response.data.success) {
+                // send data to Sockot.IO Server
+                // this.$socket.emit("sendData", { action: "approving-officer-create" });
+
+                this.showAlert();
+
+                //push recently added data from database
+                
+                let index =  this.approving_officers.length - 1;
+                this.approving_officers[index] = response.data.approver;
+
+
+              } else {
+                let errors = response.data;
+                let errorNames = Object.keys(response.data);
+
+              }
+              this.disabled = false;
+            },
+            (error) => {
+              this.isUnauthorized(error);
+              this.disabled = false;
+            }
+          );
+        }
+      }
+    },
 
     newApprovingOfficer() {
-      this.approving_officers.push({ status: "New" });
-    },
+      this.addEditMode = "Add";
 
-    showConfirmAlert2(item) {
-      this.$swal({
-        title: "Are you sure?",
-        text: "You won't be able to revert this!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#d33",
-        cancelButtonColor: "#6c757d",
-        confirmButtonText: "Delete record!",
-      }).then((result) => {
-        // <--
+      let hasNew = false;
 
-        if (result.value) {
-          // <-- if confirmed
-
-          const approver_id = item.id;
-          const index = this.approving_officers.indexOf(item);
-
-          //Call delete Access Chart function
-          this.deleteAccessChart(access_chart_id);
-
-          //Remove item from array permissions
-          this.access_charts.splice(index, 1);
-
-          this.$swal({
-            position: "center",
-            icon: "success",
-            title: "Record has been deleted",
-            showConfirmButton: false,
-            timer: 2500,
-          });
+      this.approving_officers.forEach((value, index) => {
+        if (value.status === "New") {
+          hasNew = true;
         }
       });
+
+      if (!hasNew) {
+        this.approving_officers.push({ status: "New" });
+      }
     },
 
-    deleteApprover(approver_id) {},
+    editApprover(item) {
+      this.addEditMode = "Edit";
+      this.editedIndex2 = this.approving_officers.indexOf(item);
+      this.approvingOfficer = Object.assign(
+        {},
+        { id: item.id, user_id: item.user.id, access_level: item.access_level }
+      );
+    },
+
+    cancelEvent(item) {
+      this.editedIndex = this.approving_officers.indexOf(item);
+      if (this.addEditMode === "Edit") {
+        this.editedIndex2 = -1;
+      }
+      else
+      {
+        this.approving_officers.splice(this.editedIndex, 1);
+      }
+
+      this.addEditMode = "";
+    },
+
+    clearApprovingOfficer(){
+      this.addEditMode = "";
+      this.disabled = false;
+      this.editedIndex2 = -1
+    },
+
+    
+    deleteApprover(approver_id) {
+      const data = { approver_id: approver_id };
+      this.loading = true;
+      axios.post("/api/access_chart_user_map/delete", data).then(
+        (response) => {
+          if (response.data.success) {
+            // send data to Sockot.IO Server
+            // this.$socket.emit("sendData", { action: "approving-officer-delete" });
+          }
+          this.loading = false;
+        },
+        (error) => {
+          this.isUnauthorized(error);
+        }
+      );
+    },
 
     clear() {
       this.$v.$reset();
@@ -683,8 +748,8 @@ export default {
     },
     accessForErrors() {
       const errors = [];
-      if (!this.$v.editedItem.access_module_id.$dirty) return errors;
-      !this.$v.editedItem.access_module_id.required &&
+      if (!this.$v.editedItem.access_for.$dirty) return errors;
+      !this.$v.editedItem.access_for.required &&
         errors.push("Access Module is required.");
       return errors;
     },

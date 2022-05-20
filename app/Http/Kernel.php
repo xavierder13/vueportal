@@ -81,6 +81,7 @@ class Kernel extends HttpKernel
         'marketing_event.maintenance' => \App\Http\Middleware\MarketingEventMaintenance::class,
         'access_module.maintenance' => \App\Http\Middleware\AccessModuleMaintenance::class,
         'access_chart.maintenance' => \App\Http\Middleware\AccessChartMaintenance::class,
+        'access_chart_user_map.maintenance' => \App\Http\Middleware\AccessChartUserMapMaintenance::class,
         'training_file.maintenance' => \App\Http\Middleware\TrainingFileMaintenance::class,
         'activity.logs' => \App\Http\Middleware\ActivityLogs::class,
     ];

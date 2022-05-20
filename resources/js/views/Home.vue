@@ -406,16 +406,6 @@
               <v-list-item-title>Access Chart Lists</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
-
-          <v-list-item
-            link
-            to="/access_chart/create"
-            v-if="userPermissions.access_chart_list"
-          >
-            <v-list-item-content>
-              <v-list-item-title>Access Chart Create</v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
           <v-list-item
             link
             to="/access_module/index"

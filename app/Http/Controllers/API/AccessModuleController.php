@@ -21,12 +21,11 @@ class AccessModuleController extends Controller
         
     }
 
-
     public function store(Request $request)
     {   
         
         $rules = [
-            'name.required' => 'Please enter brand',
+            'name.required' => 'Please enter name',
             'name.unique' => 'Module Name already exists'
         ];
 
@@ -47,7 +46,7 @@ class AccessModuleController extends Controller
     }
 
 
-    public function edit(Request $request)
+    public function edit($access_module_id)
     {   
         $access_module_id = $request->get('access_module_id');
 

@@ -100,6 +100,7 @@ const state = {
     tactical_requisition_create: false,
     tactical_requisition_edit: false,
     tactical_requisition_delete: false,
+    tactical_requisition_approve: false,
     marketing_event_list: false,
     marketing_event_create: false,
     marketing_event_edit: false,
@@ -112,6 +113,10 @@ const state = {
     access_module_create: false,
     access_module_edit: false,
     access_module_delete: false,
+    approving_officer_list: false,
+    approving_officer_create: false,
+    approving_officer_edit: false,
+    approving_officer_delete: false,
     role_list: false,
     role_create: false,
     role_edit: false,
@@ -148,9 +153,7 @@ const actions = {
           router.push({ name: "unauthorize" });
         }
       });
-
   },
-
 };
 
 const mutations = {
@@ -305,6 +308,7 @@ const mutations = {
     permission.tactical_requisition_create = permissions.includes("tactical-requisition-create");
     permission.tactical_requisition_edit = permissions.includes("tactical-requisition-edit");
     permission.tactical_requisition_delete = permissions.includes("tactical-requisition-delete");
+    permission.tactical_requisition_approve = permissions.includes("tactical-requisition-approve");
 
     // MARKETING EVENT RECORD MAINTENANCE PERMISSIONS
     permission.marketing_event_list = permissions.includes("marketing-event-list");
@@ -323,6 +327,12 @@ const mutations = {
     permission.access_chart_create = permissions.includes("access-chart-create");
     permission.access_chart_edit = permissions.includes("access-chart-edit");
     permission.access_chart_delete = permissions.includes("access-chart-delete");
+
+    // APPROVING OFFICER RECORD MAINTENANCE PERMISSIONS
+    permission.approving_officer_list = permissions.includes("access-chart-list");
+    permission.approving_officer_create = permissions.includes("access-chart-create");
+    permission.approving_officer_edit = permissions.includes("access-chart-edit");
+    permission.approving_officer_delete = permissions.includes("access-chart-delete");
 
     // PERMISSION RECORD MAINTENANCE PERMISSIONS
     permission.permission_list = permissions.includes("permission-list");

@@ -572,6 +572,35 @@ Route::group(['prefix' => 'access_chart', 'middleware' => ['auth:api', 'access_c
 
 });
 
+// Access Chart User Map Routes
+Route::group(['prefix' => 'access_chart_user_map', 'middleware' => ['auth:api', 'access_chart_user_map.maintenance']], function(){
+    Route::get('/index', [
+        'uses' => 'API\AccessChartUserMapController@index',
+        'as' => 'access_chart_user_map.index',
+    ]);
+    Route::get('/create', [
+        'uses' => 'API\AccessChartUserMapController@create',
+        'as' => 'access_chart_user_map.create',
+    ]);
+    Route::post('/store', [
+        'uses' => 'API\AccessChartUserMapController@store',
+        'as' => 'access_chart_user_map.store',
+    ]);
+    Route::post('/edit', [
+        'uses' => 'API\AccessChartUserMapController@edit',
+        'as' => 'access_chart_user_map.edit',
+    ]);
+    Route::post('/update/{id}', [
+        'uses' => 'API\AccessChartUserMapController@update',
+        'as' => 'access_chart_user_map.update',
+    ]);
+    Route::post('/delete', [
+        'uses' => 'API\AccessChartUserMapController@delete',
+        'as' => 'access_chart_user_map.delete',
+    ]);
+
+});
+
 // Branch Routes
 Route::group(['prefix' => 'branch', 'middleware' => ['auth:api', 'branch.maintenance']], function(){
     Route::get('/index', [
