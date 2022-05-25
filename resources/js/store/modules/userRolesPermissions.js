@@ -113,6 +113,7 @@ const state = {
     access_module_create: false,
     access_module_edit: false,
     access_module_delete: false,
+    access_level_edit: false,
     approving_officer_list: false,
     approving_officer_create: false,
     approving_officer_edit: false,
@@ -327,6 +328,7 @@ const mutations = {
     permission.access_chart_create = permissions.includes("access-chart-create");
     permission.access_chart_edit = permissions.includes("access-chart-edit");
     permission.access_chart_delete = permissions.includes("access-chart-delete");
+    permission.access_level_edit = permissions.includes("access-level-edit");
 
     // APPROVING OFFICER RECORD MAINTENANCE PERMISSIONS
     permission.approving_officer_list = permissions.includes("access-chart-list");

@@ -569,6 +569,14 @@ Route::group(['prefix' => 'access_chart', 'middleware' => ['auth:api', 'access_c
         'uses' => 'API\AccessChartController@delete',
         'as' => 'access_chart.delete',
     ]);
+    Route::get('/get_access_level', [
+        'uses' => 'API\AccessChartController@get_access_level',
+        'as' => 'get_access_level',
+    ]);
+    Route::post('/update_access_level/{id}', [
+        'uses' => 'API\AccessChartController@update_access_level',
+        'as' => 'update_access_level',
+    ]);
 
 });
 

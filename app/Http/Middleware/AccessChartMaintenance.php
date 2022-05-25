@@ -46,6 +46,18 @@ class AccessChartMaintenance
             }
         }
 
+        //Access Level
+        if($request->is('api/access_chart/get_access_level')){
+            return $next($request); 
+        }
+
+        //Access Level Update
+        if($request->is('api/access_chart/update_access_level/*')){
+            if($user->can('access-level-edit')){
+                return $next($request); 
+            }
+        }
+
         return abort(401, 'Unauthorized');
     }
 }

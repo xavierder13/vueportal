@@ -182,17 +182,22 @@
                           <template
                             v-slot:item.approving_officer="{ item, index }"
                           >
-                            {{
-                              item.status !== "New"
-                                ? item.user
-                                  ? "Approving Officer " +
-                                    item.access_level +
-                                    " - " +
-                                    item.user.name
-                                  : "No User"
-                                : ""
-                            }}
-
+                            <span
+                              v-if="
+                                editedIndex2 === -1 || editedIndex2 !== index
+                              "
+                            >
+                              {{
+                                item.status !== "New"
+                                  ? item.user
+                                    ? "Approving Officer " +
+                                      item.access_level +
+                                      " - " +
+                                      item.user.name
+                                    : "No User"
+                                  : ""
+                              }}
+                            </span>
                             <v-row
                               v-if="
                                 index === editedIndex2
@@ -203,7 +208,7 @@
                               <v-col class="pb-0">
                                 <v-autocomplete
                                   v-model="approvingOfficer.user_id"
-                                  :items="users"
+                                  :items="filteredUsers"
                                   item-text="name"
                                   item-value="id"
                                   label="User"
@@ -217,7 +222,7 @@
                               <v-col class="pb-0">
                                 <v-autocomplete
                                   v-model="approvingOfficer.access_level"
-                                  :items="access_levels"
+                                  :items="accessLevels"
                                   item-text="level"
                                   label="Access Level"
                                 >
@@ -237,6 +242,7 @@
                                 index !== editedIndex2 &&
                                 item.status !== 'New'
                               "
+                              :disabled="addEditMode === 'Add' ? true : false"
                             >
                               mdi-pencil
                             </v-icon>
@@ -244,12 +250,15 @@
                             <v-icon
                               small
                               color="red"
-                              @click="showConfirmAlert(item, 'Approving Officer')"
+                              @click="
+                                showConfirmAlert(item, 'Approving Officer')
+                              "
                               v-if="
                                 userPermissions.access_chart_delete &&
                                 index !== editedIndex2 &&
                                 item.status !== 'New'
                               "
+                              :disabled="['Add', 'Edit'].includes(addEditMode)"
                             >
                               mdi-delete
                             </v-icon>
@@ -332,6 +341,7 @@ export default {
       access_modules: [],
       access_charts: [],
       access_levels: [],
+      access_level: "",
       users: [],
       editedIndex: -1,
       editedIndex2: -1,
@@ -364,6 +374,7 @@ export default {
         name: [],
       },
       addEditMode: "",
+      max_access_level: "",
     };
   },
 
@@ -372,9 +383,12 @@ export default {
       this.loading = true;
       axios.get("/api/access_chart/index").then(
         (response) => {
-          this.access_charts = response.data.access_charts;
-          this.access_modules = response.data.access_modules;
-          this.users = response.data.users;
+          let data = response.data;
+
+          this.access_charts = data.access_charts;
+          this.access_modules = data.access_modules;
+          this.access_level = data.access_level.level;
+          this.users = data.users;
           this.loading = false;
         },
         (error) => {
@@ -431,8 +445,7 @@ export default {
         if (result.value) {
           // <-- if confirmed
 
-          if (doctype === 'Access Chart') {
-
+          if (doctype === "Access Chart") {
             const access_chart_id = item.id;
             const index = this.access_charts.indexOf(item);
 
@@ -441,17 +454,22 @@ export default {
 
             //Remove item from array permissions
             this.access_charts.splice(index, 1);
-          }
-          else
-          {
+          } else {
+
             const approver_id = item.id;
             const index = this.approving_officers.indexOf(item);
-            //Remove item from array permissions
+
+            //Remove item from array approving_officers
             this.approving_officers.splice(index, 1);
+            
+            this.access_charts[this.editedIndex].access_chart_user_maps.splice(
+              index,
+              1
+            );
 
             this.deleteApprover(approver_id);
           }
-          
+
           this.$swal({
             position: "center",
             icon: "success",
@@ -466,7 +484,8 @@ export default {
     close() {
       this.dialog = false;
       this.dialog2 = false;
-      (this.access_levels = []), this.clear();
+      this.access_levels = [];
+      this.clear();
       this.$nextTick(() => {
         this.editedItem = Object.assign({}, this.defaultItem);
         this.editedIndex = -1;
@@ -562,19 +581,12 @@ export default {
 
       let approving_officers = item.access_chart_user_maps;
 
-      let array_len = item.access_chart_user_maps.length + 1;
-
-      for (let ctr = 1; ctr <= array_len; ctr++) {
-        this.access_levels.push(ctr);
-      }
-
-      approving_officers.forEach((value, index) => {
+      approving_officers.forEach((value) => {
         this.approving_officers.push(value);
       });
     },
     saveApprovingOfficer() {
       this.$v.approvingOfficer.$touch();
-
       if (!this.$v.approvingOfficer.$error) {
         this.disabled = true;
 
@@ -582,38 +594,48 @@ export default {
           const data = this.approvingOfficer;
           const approver_id = this.approvingOfficer.id;
 
-          axios.post("/api/access_chart_user_map/update/" + approver_id, data).then(
-            (response) => {
-              if (response.data.success) {
-                // send data to Sockot.IO Server
-                // this.$socket.emit("sendData", { action: "approving-officer-edit" });
+          axios
+            .post("/api/access_chart_user_map/update/" + approver_id, data)
+            .then(
+              (response) => {
+                console.log(response.data);
+                if (response.data.success) {
+                  // send data to Sockot.IO Server
+                  // this.$socket.emit("sendData", { action: "approving-officer-edit" });
 
-                Object.assign(
-                  this.approving_officers[this.editedIndex2],
-                  this.approvingOfficer
-                );
-                this.showAlert();
-                this.close();
-              } else {
-                let errors = response.data;
-                let errorNames = Object.keys(response.data);
+                  let index = this.editedIndex2;
 
-                errorNames.forEach((value) => {
-                  this.accessChartError[value].push(errors[value]);
-                });
+                  Object.assign(
+                    this.approving_officers[index],
+                    response.data.approver
+                  );
+
+                  Object.assign(
+                    this.access_charts[this.editedIndex].access_chart_user_maps[
+                      index
+                    ],
+                    response.data.approver
+                  );
+
+                  this.clearApprovingOfficer();
+
+                  this.showAlert();
+                } else {
+                  let errors = response.data;
+                  let errorNames = Object.keys(response.data);
+                }
+
+                this.disabled = false;
+              },
+              (error) => {
+                this.isUnauthorized(error);
+                this.disabled = false;
               }
-
-              this.disabled = false;
-            },
-            (error) => {
-              this.isUnauthorized(error);
-              this.disabled = false;
-            }
-          );
+            );
         } else {
           const data = this.approvingOfficer;
 
-          data['access_chart_id'] = this.editedItem.id;
+          data["access_chart_id"] = this.editedItem.id;
 
           axios.post("/api/access_chart_user_map/store", data).then(
             (response) => {
@@ -625,15 +647,23 @@ export default {
                 this.showAlert();
 
                 //push recently added data from database
-                
-                let index =  this.approving_officers.length - 1;
-                this.approving_officers[index] = response.data.approver;
 
+                let index = this.approving_officers.length - 1;
 
+                this.approving_officers.splice(
+                  index,
+                  1,
+                  response.data.approver
+                );
+
+                this.access_charts[
+                  this.editedIndex
+                ].access_chart_user_maps.push(response.data.approver);
+
+                this.clearApprovingOfficer();
               } else {
                 let errors = response.data;
                 let errorNames = Object.keys(response.data);
-
               }
               this.disabled = false;
             },
@@ -647,6 +677,8 @@ export default {
     },
 
     newApprovingOfficer() {
+      this.clearApprovingOfficer();
+
       this.addEditMode = "Add";
 
       let hasNew = false;
@@ -672,25 +704,30 @@ export default {
     },
 
     cancelEvent(item) {
-      this.editedIndex = this.approving_officers.indexOf(item);
+      this.editedIndex2 = this.approving_officers.indexOf(item);
       if (this.addEditMode === "Edit") {
         this.editedIndex2 = -1;
-      }
-      else
-      {
-        this.approving_officers.splice(this.editedIndex, 1);
+      } else {
+        this.approving_officers.splice(this.editedIndex2, 1);
       }
 
       this.addEditMode = "";
     },
 
-    clearApprovingOfficer(){
+    clearApprovingOfficer() {
+      this.$v.approvingOfficer.$reset();
       this.addEditMode = "";
       this.disabled = false;
-      this.editedIndex2 = -1
+      this.editedIndex2 = -1;
+      this.approvingOfficer = Object.assign(
+        {},
+        {
+          user_id: "",
+          access_level: 1,
+        }
+      );
     },
 
-    
     deleteApprover(approver_id) {
       const data = { approver_id: approver_id };
       this.loading = true;
@@ -699,6 +736,10 @@ export default {
           if (response.data.success) {
             // send data to Sockot.IO Server
             // this.$socket.emit("sendData", { action: "approving-officer-delete" });
+            Object.assign(
+              this.access_charts[this.editedIndex].access_chart_user_maps,
+              this.approving_officers
+            );
           }
           this.loading = false;
         },
@@ -709,7 +750,7 @@ export default {
     },
 
     clear() {
-      this.$v.$reset();
+      this.$v.editedItem.$reset();
       this.editedItem.name = "";
       this.nameError = {
         name: [],
@@ -759,6 +800,59 @@ export default {
       !this.$v.approvingOfficer.user_id.required &&
         errors.push("User is required.");
       return errors;
+    },
+    filteredUsers() {
+      let users = [];
+      let userIdArr = [];
+
+      // push all user id into array variable
+      this.approving_officers.forEach((value) => {
+        userIdArr.push(value.user_id);
+      });
+
+      this.users.forEach((value) => {
+        if (!userIdArr.includes(value.id)) {
+          users.push(value);
+        }
+
+        // if edit mode
+        if (
+          this.editedIndex2 > -1 &&
+          this.approvingOfficer.user_id === value.id
+        ) {
+          users.push(value);
+        }
+      });
+
+      return users;
+    },
+    accessLevels() {
+      let accessLevelArr = [];
+      let access_levels = [];
+      let max_access_level = 1;
+
+      this.approving_officers.forEach((value) => {
+        // if has access level
+        if(value.access_level)
+        {
+          accessLevelArr.push(value.access_level);
+        }
+      });
+
+      max_access_level = Math.max(...accessLevelArr);
+
+      // if access_level from DB is less than max_access_level from approving_officers
+      if (this.access_level > max_access_level) {
+        max_access_level = max_access_level + 1;
+         
+      } else {
+        max_access_level = this.access_level;
+      }
+
+      for (let ctr = 1; ctr <= max_access_level; ctr++) {
+        access_levels.push(ctr);
+      }
+      return access_levels;
     },
     ...mapState("userRolesPermissions", ["userRoles", "userPermissions"]),
   },

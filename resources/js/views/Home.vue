@@ -382,7 +382,8 @@
             userPermissions.access_chart_list ||
             userPermissions.access_chart_create || 
             userPermissions.access_module_list ||
-            userPermissions.access_module_create
+            userPermissions.access_module_create ||
+            userPermissions.access_level_edit
           "
         >
           <!-- List Group Icon-->
@@ -413,6 +414,15 @@
           >
             <v-list-item-content>
               <v-list-item-title>Access Module Lists</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
+            to="/access_level"
+            v-if="userPermissions.access_level_edit"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Access Level</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
         </v-list-group>

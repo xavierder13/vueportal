@@ -23,9 +23,16 @@ class AccessChartController extends Controller
                                     ->get();
         
         $access_modules = AccessModule::all();
+        $access_level = AccessLevel::first();
         $users = User::all();
         
-        return response()->json(['access_charts' => $access_charts, 'access_modules' => $access_modules, 'users' => $users], 200);
+        return response()->json(
+            [
+                'access_charts' => $access_charts, 
+                'access_modules' => $access_modules, 
+                'access_level' => $access_level,
+                'users' => $users,
+            ], 200);
     }
 
     public function create()
@@ -135,6 +142,36 @@ class AccessChartController extends Controller
         $access_chart->delete();
 
         return response()->json(['success' => 'Record has been deleted'], 200);
+    }
+
+    public function update_access_level(Request $request, $access_level_id)
+    {
+        $rules = [
+            'level.required' => 'Access Level is required',
+            'level.integer' => 'Access Level must be an integer',   
+        ];
+
+        $validator = Validator::make($request->all(), [
+            'level' => 'required|integer',
+        ], $rules);
+
+        if($validator->fails())
+        {
+            return response()->json($validator->errors(), 200);
+        }
+
+        $access_level = AccessLevel::find($access_level_id);
+        $access_level->level = $request->get('level');
+        $access_level->save();
+
+        return response()->json(['success' => 'Record has been added', 'access_level' => $access_level], 200);
+    }
+
+    public function get_access_level()
+    {
+        $access_level = AccessLevel::first();
+
+        return response()->json(['access_level' => $access_level], 200);
     }
 
 

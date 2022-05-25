@@ -43,8 +43,14 @@ class AccessChartUserMapController extends Controller
         $approver->user_id = $request->get('user_id');
         $approver->access_level = $request->get('access_level');
         $approver->save();
+
+        $approver_id = $approver->id;
+
+        $approver = AccessChartUserMap::with('user')->where('id', '=', $approver_id)->first();
+
+        $max_access_level = $this->max_access_level($request->get('access_chart_id'));
         
-        return response()->json(['success' => 'Record has been added', 'approver' => $approver], 200);
+        return response()->json(['success' => 'Record has been added', 'approver' => $approver, 'max_access_level' => $max_access_level], 200);
     }
 
     public function edit($access_chart_id)
@@ -63,19 +69,20 @@ class AccessChartUserMapController extends Controller
 
     }
 
-    public function update(Request $request, $access_chart_id)
+    public function update(Request $request, $approver_id)
     {
         
+
         $rules = [
-            'name.required' => 'Please enter name',
-            'name.unique' => 'Access Chart Name already exists',
-            'access_for.required' => 'Access ID is required',
-            'access_for.integer' => 'Access ID must be integer',
+            'user_id.required' => 'User ID is required',
+            'user_id.integer' => 'User ID must be integer',
+            'access_level.required' => 'Access Level is required',
+            'access_level.integer' => 'Access Level must be integer',
         ];
 
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|unique:access_charts,name,'.$access_chart_id,
-            'access_for' => 'required|integer'
+        $validator = Validator::make($request->all(),[
+            'user_id' => 'required|integer',
+            'access_level' => 'required|integer'
         ], $rules);
 
         if($validator->fails())
@@ -83,19 +90,19 @@ class AccessChartUserMapController extends Controller
             return response()->json($validator->errors(), 200);
         }
 
-        $access_chart = AccessChart::find($access_chart_id);
-        $access_chart->name = $request->get('name');
-        $access_chart->access_for = $request->get('access_for');
-        $access_chart->save();
+        $approver = AccessChartUserMap::find($approver_id);
+        $approver->user_id = $request->get('user_id');
+        $approver->access_level = $request->get('access_level');
+        $approver->save();
 
-        $access_chart = AccessChart::with('access_chart_user_maps')
-                                    ->with('access_chart_user_maps.user')
-                                    ->with('access_chart_user_maps.user.branch')
-                                    ->with('access_module')
-                                    ->where('id', '=', $access_chart_id)
-                                    ->first();
+        $approver = AccessChartUserMap::with('user')
+                                      ->with('user.branch')
+                                      ->where('id', '=', $approver_id)
+                                      ->first();
+                                      
+        $max_access_level = $this->max_access_level($approver->access_chart_id);
 
-        return response()->json(['success' => 'Record has been added', 'access_chart' => $access_chart], 200);
+        return response()->json(['success' => 'Record has been added', 'approver' => $approver, 'max_access_level' => $max_access_level], 200);
     }
 
     public function delete(Request $request)
@@ -111,6 +118,15 @@ class AccessChartUserMapController extends Controller
 
         $approver->delete();
 
-        return response()->json(['success' => 'Record has been deleted'], 200);
+        $max_access_level = $this->max_access_level($approver->access_chart_id);
+
+        return response()->json(['success' => 'Record has been deleted', 'max_access_level' => $max_access_level], 200);
+    }
+
+    public function max_access_level($access_chart_id)
+    {
+        $max_access_level = AccessChartUserMap::where('access_chart_id', '=', $access_chart_id)->max('access_level');
+
+        return $max_access_level;
     }
 }

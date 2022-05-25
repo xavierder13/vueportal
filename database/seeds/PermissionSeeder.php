@@ -115,6 +115,7 @@ class PermissionSeeder extends Seeder
             'access-chart-create',
             'access-chart-edit',
             'access-chart-delete',
+            'access-level-edit',
             'approving-officer-list',
             'approving-officer-create',
             'approving-officer-edit',

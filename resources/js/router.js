@@ -30,6 +30,7 @@ import MarketingEventEdit from './views/tactical_requisition/marketing_event/Edi
 import AccessChartIndex from './views/access_chart/AccessChartIndex.vue';
 import AccessChartCreate from './views/access_chart/AccessChartCreate.vue';
 import AccessModuleIndex from './views/access_module/AccessModuleIndex.vue';
+import AccessLevel from './views/access_level/AccessLevel.vue';
 import Permission from './views/permission/PermissionIndex.vue';
 import Role from './views/role/RoleIndex.vue';
 import ActivityLogs from './views/activity_logs/ActivityLogs.vue';
@@ -178,6 +179,11 @@ const routes = [
         path: '/access_module/index',
         name: 'access.module.index',
         component: AccessModuleIndex
+      },
+      {
+        path: '/access_level',
+        name: 'access.level.index',
+        component: AccessLevel
       },
       {
         path: '/permission/index',
