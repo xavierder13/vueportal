@@ -33,7 +33,7 @@
                 >
                   <v-icon>mdi-plus</v-icon>
                 </v-btn>
-                <v-dialog v-model="dialog" max-width="500px" persistent>
+                <v-dialog v-model="dialog" max-width="600px" persistent>
                   <v-card>
                     <v-card-title>
                       <span class="headline">{{ formTitle }}</span>
@@ -70,6 +70,69 @@
                               "
                               @blur="$v.editedItem.name.$touch()"
                             ></v-text-field>
+                          </v-col>
+                        </v-row>
+                        <v-row>
+                          <v-col class="mt-0 mb-0 pt-0 pb-0">
+                            <v-autocomplete
+                              v-model="editedItem.max_approval_level"
+                              :items="accessLevels"
+                              item-text="level"
+                              label="Access Level"
+                            >
+                            </v-autocomplete>
+                          </v-col>
+                        </v-row>
+                        <v-row v-if="hasApprovers">
+                          <v-col class="mt-4 mb-0 pt-0 pb-0">
+                            <fieldset>
+                              <legend class="subtitle-1 font-weight-bold">
+                                No. of Approver per Level
+                              </legend>
+                              <v-simple-table>
+                                <thead
+                                  class="
+                                    grey
+                                    darken-1
+                                    white--text
+                                    font-weight-bold
+                                  "
+                                >
+                                  <tr>
+                                    <td
+                                      v-for="(
+                                        item, index
+                                      ) in editedItem.approver_per_level"
+                                    >
+                                      Level {{ index + 1 }}
+                                    </td>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  <tr>
+                                    <td
+                                      v-for="(
+                                        item, index
+                                      ) in editedItem.approver_per_level"
+                                    >
+                                      <v-text-field-integer
+                                        name="access_level"
+                                        v-model="item.num_of_approvers"
+                                        v-bind:properties="{
+                                          placeholder: '0',
+                                          maxLength: 6,
+                                          outlined: true,
+                                          dense: true,
+                                          'hide-details': true,
+                                        }"
+                                        required
+                                      >
+                                      </v-text-field-integer>
+                                    </td>
+                                  </tr>
+                                </tbody>
+                              </v-simple-table>
+                            </fieldset>
                           </v-col>
                         </v-row>
                       </v-container>
@@ -133,7 +196,7 @@
               <v-icon
                 small
                 color="red"
-                @click="showConfirmAlert(item)"
+                @click="showConfirmAlert(item, 'Access Chart')"
                 v-if="userPermissions.access_chart_delete"
               >
                 mdi-delete
@@ -222,7 +285,7 @@
                               <v-col class="pb-0">
                                 <v-autocomplete
                                   v-model="approvingOfficer.access_level"
-                                  :items="accessLevels"
+                                  :items="approverAccessLevels"
                                   item-text="level"
                                   label="Access Level"
                                 >
@@ -328,6 +391,7 @@ export default {
       headers: [
         { text: "Access Chart Name", value: "name" },
         { text: "Access For", value: "access_module.name" },
+        { text: "Max Approval Level", value: "max_approval_level" },
         { text: "Approving Officers", value: "access_chart_user_maps.length" },
         { text: "Actions", value: "actions", sortable: false, width: "120px" },
       ],
@@ -340,7 +404,7 @@ export default {
       dialog2: false,
       access_modules: [],
       access_charts: [],
-      access_levels: [],
+      approver_access_levels: [],
       access_level: "",
       users: [],
       editedIndex: -1,
@@ -348,10 +412,14 @@ export default {
       editedItem: {
         access_for: "",
         name: "",
+        max_approval_level: "",
+        approver_per_level: [],
       },
       defaultItem: {
         access_for: "",
         name: "",
+        max_approval_level: "",
+        approver_per_level: [],
       },
       approvingOfficer: {
         user_id: "",
@@ -375,6 +443,7 @@ export default {
       },
       addEditMode: "",
       max_access_level: "",
+      hasApprovers: false,
     };
   },
 
@@ -384,10 +453,9 @@ export default {
       axios.get("/api/access_chart/index").then(
         (response) => {
           let data = response.data;
-
+          this.access_level = data.access_level.level;
           this.access_charts = data.access_charts;
           this.access_modules = data.access_modules;
-          this.access_level = data.access_level.level;
           this.users = data.users;
           this.loading = false;
         },
@@ -401,6 +469,8 @@ export default {
       this.editedIndex = this.access_charts.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.dialog = true;
+
+      console.log(item);
     },
 
     deleteAccessChart(access_chart_id) {
@@ -447,6 +517,7 @@ export default {
 
           if (doctype === "Access Chart") {
             const access_chart_id = item.id;
+
             const index = this.access_charts.indexOf(item);
 
             //Call delete Access Chart function
@@ -455,13 +526,12 @@ export default {
             //Remove item from array permissions
             this.access_charts.splice(index, 1);
           } else {
-
             const approver_id = item.id;
             const index = this.approving_officers.indexOf(item);
 
             //Remove item from array approving_officers
             this.approving_officers.splice(index, 1);
-            
+
             this.access_charts[this.editedIndex].access_chart_user_maps.splice(
               index,
               1
@@ -484,7 +554,7 @@ export default {
     close() {
       this.dialog = false;
       this.dialog2 = false;
-      this.access_levels = [];
+      this.approver_access_levels = [];
       this.clear();
       this.$nextTick(() => {
         this.editedItem = Object.assign({}, this.defaultItem);
@@ -584,6 +654,8 @@ export default {
       approving_officers.forEach((value) => {
         this.approving_officers.push(value);
       });
+
+      this.access_level = item.max_approval_level;
     },
     saveApprovingOfficer() {
       this.$v.approvingOfficer.$touch();
@@ -751,10 +823,9 @@ export default {
 
     clear() {
       this.$v.editedItem.$reset();
-      this.editedItem.name = "";
-      this.nameError = {
-        name: [],
-      };
+      this.editedItem = Object.assign({}, this.defaultItem);
+      this.editedIndex = -1;
+      this.hasApprovers = false;
     },
     isUnauthorized(error) {
       // if unauthenticated (401)
@@ -777,6 +848,36 @@ export default {
       };
     },
   },
+  watch: {
+    "editedItem.max_approval_level"() {
+      this.hasApprovers = true;
+
+      // add mode
+      if (this.editedIndex === -1) {
+
+        this.editedItem.approver_per_level = [];
+
+        for (let ctr = 0; ctr < this.editedItem.max_approval_level; ctr++) {
+          this.editedItem.approver_per_level.push({ num_of_approvers: "" });
+        }
+
+      } else {
+
+        // edit mode -- if max_approval_level has changed
+
+        if (
+          this.editedItem.approver_per_level.length !=
+          this.editedItem.max_approval_level
+        ) {
+          this.editedItem.approver_per_level = [];
+
+          for (let ctr = 0; ctr < this.editedItem.max_approval_level; ctr++) {
+            this.editedItem.approver_per_level.push({ num_of_approvers: "" });
+          }
+        }
+      }
+    },
+  },
   computed: {
     formTitle() {
       return this.editedIndex === -1 ? "New Access Chart" : "Edit Access Chart";
@@ -791,7 +892,7 @@ export default {
       const errors = [];
       if (!this.$v.editedItem.access_for.$dirty) return errors;
       !this.$v.editedItem.access_for.required &&
-        errors.push("Access Module is required.");
+        errors.push("Access For is required.");
       return errors;
     },
     approvingOfficerErrors() {
@@ -827,32 +928,41 @@ export default {
       return users;
     },
     accessLevels() {
-      let accessLevelArr = [];
       let access_levels = [];
+      for (let ctr = 1; ctr <= this.access_level; ctr++) {
+        access_levels.push(ctr);
+      }
+
+      return access_levels;
+    },
+    approverAccessLevels() {
+      let accessLevelArr = [];
+      let approver_access_levels = [];
       let max_access_level = 1;
+      let max_approval_level = this.editedItem.max_approval_level;
 
       this.approving_officers.forEach((value) => {
         // if has access level
-        if(value.access_level)
-        {
+        if (value.access_level) {
           accessLevelArr.push(value.access_level);
         }
       });
 
-      max_access_level = Math.max(...accessLevelArr);
+      max_access_level = accessLevelArr.length
+        ? Math.max(...accessLevelArr)
+        : 0;
 
       // if access_level from DB is less than max_access_level from approving_officers
-      if (this.access_level > max_access_level) {
+      if (max_approval_level > max_access_level) {
         max_access_level = max_access_level + 1;
-         
       } else {
-        max_access_level = this.access_level;
+        max_access_level = max_approval_level;
       }
 
       for (let ctr = 1; ctr <= max_access_level; ctr++) {
-        access_levels.push(ctr);
+        approver_access_levels.push(ctr);
       }
-      return access_levels;
+      return approver_access_levels;
     },
     ...mapState("userRolesPermissions", ["userRoles", "userPermissions"]),
   },

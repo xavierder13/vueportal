@@ -36,30 +36,50 @@
               </v-toolbar>
             </template>
           </v-card-title>
-
+          {{ max_level_approver }}
+          <div v-for="(item, index) in max_level_approver">
+            <v-icon color="success" small>mdi-checkbox-marked-circle</v-icon>
+          </div>
           <v-data-table
             :headers="headers"
-            :items="marketing_events"
+            :items="tactical_requisitions"
             :search="search"
             :loading="loading"
             loading-text="Loading... Please wait"
             v-if="userPermissions.tactical_requisition_list"
           >
+            <template v-slot:item.progress="{ item }">
+              <template v-for="(item, index) in max_approver_level">
+                <v-tooltip top color="success">
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-icon color="success" v-bind="attrs" v-on="on">mdi-checkbox-marked-circle</v-icon>
+                  </template>
+                  <span>Top tooltip</span>
+                </v-tooltip>
+              </template>
+            </template>
+            <template v-slot:item.status="{ item }">
+              <v-chip
+                :color="item.status === 'Pending' ? 'warning' : 'success'"
+              >
+                {{ item.status }}
+              </v-chip>
+            </template>
             <template v-slot:item.actions="{ item }">
               <v-icon
                 small
                 class="mr-2"
-                color="green"
-                @click="editTacticalRequisition(item)"
-                v-if="userPermissions.tactical_requisitionedit"
+                color="info"
+                @click="viewTacticalRequisition(item)"
+                v-if="userPermissions.tactical_requisition_edit"
               >
-                mdi-pencil
+                mdi-eye
               </v-icon>
               <v-icon
                 small
                 color="red"
                 @click="showConfirmAlert(item)"
-                v-if="userPermissions.tactical_requisitiondelete"
+                v-if="userPermissions.tactical_requisition_delete"
               >
                 mdi-delete
               </v-icon>
@@ -89,14 +109,17 @@ export default {
       search: "",
       headers: [
         // { text: "Event Title", value: "event_name" },
-        { text: "Event Title", value: "event_name" },
-        { text: "Active", value: "active" },
+        { text: "Event Title", value: "marketing_event.event_name" },
+        { text: "Branch", value: "branch.name" },
+        { text: "Progress", value: "progress" },
+        { text: "Status", value: "status" },
+        { text: "Date Created", value: "date_created" },
         { text: "Actions", value: "actions", sortable: false, width: "80px" },
       ],
 
       disabled: false,
       dialog: false,
-      marketing_events: [],
+      tactical_requisitions: [],
       editedIndex: -1,
       items: [
         {
@@ -113,6 +136,7 @@ export default {
       expenseError: {
         description: [],
       },
+      max_level_approver: "",
     };
   },
 
@@ -122,6 +146,7 @@ export default {
       axios.get("/api/tactical_requisition/index").then(
         (response) => {
           this.tactical_requisitions = response.data.tactical_requisitions;
+          this.max_approver_level = response.data.max_approver_level;
           console.log(response);
           this.loading = false;
         },
@@ -131,10 +156,10 @@ export default {
       );
     },
 
-    editTacticalRequisition(item) {
+    viewTacticalRequisition(item) {
       this.$router.push({
-        name: "tactical.edit",
-        params: { tactical_requisition_id: item.id }
+        name: "tactical.view",
+        params: { tactical_requisition_id: item.id },
       });
     },
 
@@ -225,7 +250,7 @@ export default {
       };
     },
   },
-  computed: {  
+  computed: {
     ...mapState("userRolesPermissions", ["userRoles", "userPermissions"]),
   },
   mounted() {

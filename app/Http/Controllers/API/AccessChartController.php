@@ -8,6 +8,7 @@ use App\AccessModule;
 use App\AccessChart;
 use App\AccessChartUserMap;
 use App\AccessLevel;
+use App\ApproverPerLevel;
 use App\User;
 use Validator;
 use DB;
@@ -20,6 +21,7 @@ class AccessChartController extends Controller
                                     ->with('access_chart_user_maps.user')
                                     ->with('access_chart_user_maps.user.branch')
                                     ->with('access_module')
+                                    ->with('approver_per_level')
                                     ->get();
         
         $access_modules = AccessModule::all();
@@ -48,11 +50,17 @@ class AccessChartController extends Controller
             'name.unique' => 'Access Chart Name already exists',
             'access_for.required' => 'Access ID is required',
             'access_for.integer' => 'Access ID must be integer',
+            'max_approval_level.integer' => 'Max Approval Level must be integer',
+            'approver_per_level.*.num_of_approvers' => 'No. of Approvers must be integer',
+            'approver_per_level.*.level' => 'Level must be integer',
         ];
 
         $validator = Validator::make($request->all(),[
             'name' => 'required|unique:access_charts,name',
-            'access_for' => 'required|integer'
+            'access_for' => 'required|integer',
+            'max_approval_level' => 'nullable|integer',
+            'approver_per_level.*.num_of_approvers' => 'nullable|integer',
+            'approver_per_level.*.level' => 'nullable|integer',
         ], $rules);
 
         if($validator->fails())
@@ -63,15 +71,25 @@ class AccessChartController extends Controller
         $access_chart = new AccessChart();
         $access_chart->name = $request->get('name');
         $access_chart->access_for = $request->get('access_for');
+        $access_chart->max_approval_level = $request->get('max_approval_level');
         $access_chart->save();
-        
-        $access_chart_id = $access_chart->id;
+
+        $approver_per_level = $request->get('approver_per_level');
+
+        foreach ($approver_per_level as $i => $value) {
+            $approver_per_level = new ApproverPerLevel();
+            $approver_per_level->module_id = $request->get('access_for');
+            $approver_per_level->level = $value['level'];
+            $approver_per_level->num_of_approvers = $value['num_of_approvers'];
+            $approver_per_level->save();
+        }
 
         $access_chart = AccessChart::with('access_chart_user_maps')
                                     ->with('access_chart_user_maps.user')
                                     ->with('access_chart_user_maps.user.branch')
                                     ->with('access_module')
-                                    ->where('id', '=', $access_chart_id)
+                                    ->with('approver_per_level')
+                                    ->where('id', '=', $access_chart->id)
                                     ->first();
 
         return response()->json(['success' => 'Record has been added', 'access_chart' => $access_chart], 200);
@@ -145,7 +163,7 @@ class AccessChartController extends Controller
     }
 
     public function update_access_level(Request $request, $access_level_id)
-    {
+    {   
         $rules = [
             'level.required' => 'Access Level is required',
             'level.integer' => 'Access Level must be an integer',   

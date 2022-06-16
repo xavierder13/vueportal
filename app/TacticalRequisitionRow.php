@@ -8,6 +8,7 @@ class TacticalRequisitionRow extends Model
 {
     protected $fillable = [
         'tactical_requisition_id',
+        'line_num',
         'description', 
         'resource_person',
         'contact',
@@ -20,5 +21,11 @@ class TacticalRequisitionRow extends Model
     {   
         return $this->belongsTo('App\TacticalRequisition', 'id','tactical_requisition_id');
         //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model>  )
+    }
+
+    public function tactical_sub_rows()
+    {   
+        return $this->hasMany('App\TacticalRequisitionSubRow', 'tactical_requisition_row_id', 'id');
+        //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
     }
 }

@@ -17,6 +17,7 @@ class CreateAccessChartsTable extends Migration
             $table->id();
             $table->string('name');
             $table->integer('access_for');
+            $table->integer('max_approval_level')->nullable();
             $table->timestamps();
         });
     }

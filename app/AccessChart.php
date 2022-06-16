@@ -22,4 +22,10 @@ class AccessChart extends Model
         return $this->hasOne('App\AccessModule', 'id', 'access_for');
         //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
     }
+
+    public function approver_per_level()
+    {
+        return $this->hasMany('App\ApproverPerLevel', 'module_id', 'access_for');
+        //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
+    }
 }

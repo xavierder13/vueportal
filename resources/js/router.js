@@ -24,6 +24,7 @@ import MyFiles from './views/training_file/MyFiles.vue';
 import FilesTutorials from './views/training_file/FilesTutorials.vue';
 import TacticalIndex from './views/tactical_requisition/TacticalIndex.vue';
 import TacticalCreate from './views/tactical_requisition/TacticalCreate.vue';
+import TacticalView from './views/tactical_requisition/TacticalView.vue';
 import MarketingEventIndex from './views/tactical_requisition/marketing_event/Index.vue';
 import MarketingEventCreate from './views/tactical_requisition/marketing_event/Create.vue';
 import MarketingEventEdit from './views/tactical_requisition/marketing_event/Edit.vue';
@@ -149,6 +150,11 @@ const routes = [
         path: '/tactical_requisition/create',
         name: 'tactical.create',
         component: TacticalCreate
+      },
+      {
+        path: '/tactical_requisition/view/:tactical_requisition_id',
+        name: 'tactical.view',
+        component: TacticalView
       },
       {
         path: '/marketing_event/index',

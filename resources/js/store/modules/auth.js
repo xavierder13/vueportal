@@ -31,6 +31,7 @@ const mutations = {
 
     // set true if user value successfully assigned
     state.userIsLoaded = true;
+    state.jerms = 'asda';
   }
 };
 

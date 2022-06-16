@@ -33,7 +33,7 @@ class TacticalRequisitionMaintenance
         }
 
         //Tactical Requisition Edit
-        if($request->is('api/tactical_requisition/edit/*') || $request->is('api/tactical_requisition/update/*')){
+        if($request->is('api/tactical_requisition/edit') || $request->is('api/tactical_requisition/update/*')){
             if($user->can('tactical-requisition-edit')){
                 return $next($request); 
             }

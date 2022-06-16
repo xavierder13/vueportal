@@ -15,7 +15,8 @@ class CreateTacticalRequisitionRowsTable extends Migration
     {
         Schema::create('tactical_requisition_rows', function (Blueprint $table) {
             $table->id();
-            $table->integer('tactical_requisition_id')->nullable();
+            $table->integer('tactical_requisition_id');
+            $table->integer('line_num');
             $table->string('description')->nullable();
             $table->string('resource_person')->nullable();
             $table->string('contact')->nullable();

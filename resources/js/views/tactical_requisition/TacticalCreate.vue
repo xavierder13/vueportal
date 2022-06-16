@@ -568,6 +568,8 @@ export default {
       );
     },
     getMarketingEvent() {
+      this.errorFields = [];
+      this.expensePaticularHasError = false;
       let expense_particulars =
         this.editedItem.marketing_event.expense_particulars;
 
@@ -718,7 +720,7 @@ export default {
     },
     computeAmount() {
       let expense_particulars = this.editedItem.expense_particulars;
-      let grand_total = "0.00";
+      let grand_total = 0;
       let decimal_length = 2;
 
       expense_particulars.forEach((value, index) => {
