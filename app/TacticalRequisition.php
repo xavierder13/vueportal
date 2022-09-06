@@ -8,6 +8,7 @@ class TacticalRequisition extends Model
 {
     protected $fillable = [
         'branch_id', 
+        'user_id', 
         'marketing_event_id',
         'venue',
         'sponsor',
@@ -29,10 +30,22 @@ class TacticalRequisition extends Model
         //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
     }
 
+    public function approved_logs()
+    {   
+        return $this->hasMany('App\ApprovedLog', 'document_id', 'id');
+        //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
+    }
+
     public function branch()
     {
         return $this->hasOne('App\Branch', 'id', 'branch_id');
         //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
+    }
+
+    public function user()
+    {
+        return $this->hasOne('App\User', 'id', 'user_id');
+        //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )  
     }
 
     public function marketing_event()

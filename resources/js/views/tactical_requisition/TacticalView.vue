@@ -206,6 +206,7 @@
                     4. PICTURES OF PREVIOUS ACTIVITY STATED HEREIN
                   </p>
                 </div>
+                <v-btn color="primary" small><v-icon small>mdi-attachment</v-icon> Attach Files {{ '(2)' }}</v-btn> 
               </v-col>
             </v-row>
             <v-divider></v-divider>
@@ -328,7 +329,7 @@
                         class="font-weight-bold border-0"
                         v-if="item.expense_sub_particulars.length === 0"
                       >
-                        {{ !item.amount ? "0.00" : item.amount }}
+                        {{ !item.amount ? "0.00" : Number(item.amount).toLocaleString('en', numOpts) }}
                       </td>
                     </tr>
                     <tr v-for="(subItem, i) in item.expense_sub_particulars">
@@ -428,14 +429,14 @@
                         </v-text-field-dotnumber>
                       </td>
                       <td class="font-weight-bold border-0">
-                        {{ !subItem.amount ? "0.00" : subItem.amount }}
+                        {{ !subItem.amount ? "0.00" : Number(subItem.amount).toLocaleString('en', numOpts) }}
                       </td>
                     </tr>
                   </tbody>
                   <tfoot>
                     <tr class="font-weight-black">
                       <td colspan="5" class="text-right">TOTAL AMOUNT</td>
-                      <td>{{ grand_total }}</td>
+                      <td>{{ Number(grand_total).toLocaleString('en', numOpts) }}</td>
                     </tr>
                   </tfoot>
                 </v-simple-table>
@@ -452,7 +453,10 @@
             >
               Save
             </v-btn>
+            <v-btn color="primary" class="mb-4 mr-1" @click="confirmApproval()"> Approve </v-btn>
             <v-btn color="#E0E0E0" to="/tactical_requisition/index" class="mb-4"> Back </v-btn>
+            <v-spacer></v-spacer>
+            <v-btn color="error" @click="confirmDelete()" class="mb-4 mr-4"> Delete </v-btn>
           </v-card-actions>
         </v-card>
       </v-main>
@@ -496,6 +500,11 @@ export default {
           text: "Home",
           disabled: false,
           link: "/",
+        },
+        {
+          text: "Tactical Requisition Lists",
+          disabled: false,
+          link: "/tactical_requisition/index",
         },
         {
           text: "View Tactical Requisition",
@@ -553,6 +562,10 @@ export default {
       modal: false,
       date_menu2: false,
       expensePaticularHasError: false,
+      numOpts: { 
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2 
+      }
     };
   },
 
@@ -688,6 +701,62 @@ export default {
         );
       }
     },
+
+    approveTactical()
+    {
+      
+      let tactical_requisition_id =  this.$route.params.tactical_requisition_id;
+      const data = this.editedItem;
+
+      axios.post("/api/tactical_requisition/approve/" + tactical_requisition_id, data).then(
+          (response) => {
+            console.log(response);
+            if (response.data.success) {
+              // send data to Sockot.IO Server
+              // this.$socket.emit("sendData", { action: "tactical-requisition-approve" });
+
+              this.$swal({
+                position: "center",
+                icon: "success",
+                title: "Approval saved!",
+                showConfirmButton: false,
+                timer: 2500,
+              });
+
+            } else {
+              let errors = response.data;
+              let errorNames = Object.keys(response.data);
+            }
+            this.overlay = false;
+            this.disabled = false;
+          },
+          (error) => {
+            this.isUnauthorized(error);
+
+            this.overlay = false;
+            this.disabled = false;
+          }
+        );
+    },
+
+    confirmApproval(item) {
+      this.$swal({
+        title: "Approve Tactical Requisition",
+        text: "You won't be able to revert this!",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#6c757d",
+        confirmButtonText: "Yes",
+      }).then((result) => {
+        // <--
+
+        if (result.value) {
+          this.approveTactical();
+        }
+      });
+    },
+
     showConfirmAlert(item) {
       this.$swal({
         title: "Do you want to save changes?",
@@ -704,6 +773,59 @@ export default {
         }
       });
     },
+    
+    deleteTacticalRequisition() {
+
+      const data = { tactical_requisition_id: this.$route.params.tactical_requisition_id };
+
+      axios.post("/api/tactical_requisition/delete", data).then(
+        (response) => {
+          console.log(response);
+          if (response.data.success) {
+            // send data to Sockot.IO Server
+            // this.$socket.emit("sendData", { action: "tactical-requisition-delete" });
+
+            this.$swal({
+              position: "center",
+              icon: "success",
+              title: "Record has been deleted",
+              showConfirmButton: false,
+              timer: 2500,
+            });
+
+            setTimeout(() => {
+              this.$router.push({ name: 'tactical.index' })
+            }, 500);
+
+          }
+        },
+        (error) => {
+          this.isUnauthorized(error);
+        }
+      );
+    },
+
+    confirmDelete() {
+      this.$swal({
+        title: "Are you sure you?",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#6c757d",
+        confirmButtonText: "Delete record!",
+      }).then((result) => {
+        // <--
+
+        if (result.value) {
+          // <-- if confirmed
+          
+          this.deleteTacticalRequisition();
+          
+        }
+      });
+    },
+
     clear() {
       this.$v.$reset();
       this.editedItem = Object.assign({}, this.defaultItem);

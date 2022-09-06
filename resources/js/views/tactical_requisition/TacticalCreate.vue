@@ -27,7 +27,7 @@
             <v-row>
               <v-col cols="8">
                 <v-row v-if="user.id === 1">
-                  <v-col class="mt-0 mb-0 pt-0 pb-0">
+                  <v-col class="mb-0 pt-0 pb-0">
                     <v-autocomplete
                       v-model="editedItem.branch_id = user.branch_id"
                       :items="branches"
@@ -40,6 +40,35 @@
                       @blur="$v.editedItem.branch_id.$touch()"
                     >
                     </v-autocomplete>
+                  </v-col>
+                  <v-col class="mb-0 pt-0 pb-0">
+                    <v-menu
+                      ref="menu"
+                      v-model="date_menu1"
+                      :close-on-content-click="true"
+                      :return-value.sync="date_menu1"
+                      transition="scale-transition"
+                      offset-y
+                      min-width="auto"
+                    >
+                      <template v-slot:activator="{ on, attrs }">
+                        <v-text-field
+                          v-model="computedPeriodFromFormatted"
+                          label="Period From"
+                          prepend-icon="mdi-calendar"
+                          readonly
+                          v-bind="attrs"
+                          v-on="on"
+                        ></v-text-field>
+                      </template>
+                      <v-date-picker
+                        v-model="editedItem.period_from"
+                        no-title
+                        scrollable
+                        :max="editedItem.period_to"
+                      >
+                      </v-date-picker>
+                    </v-menu>
                   </v-col>
                 </v-row>
                 <v-row>
@@ -200,6 +229,7 @@
                     4. PICTURES OF PREVIOUS ACTIVITY STATED HEREIN
                   </p>
                 </div>
+                <v-btn color="primary" small><v-icon small>mdi-attachment</v-icon> Attach Files {{ '(2)' }}</v-btn> 
               </v-col>
             </v-row>
             <v-divider></v-divider>
@@ -322,7 +352,7 @@
                         class="font-weight-bold border-0"
                         v-if="item.expense_sub_particulars.length === 0"
                       >
-                        {{ !item.amount ? "0.00" : item.amount }}
+                        {{ !item.amount ? "0.00" : Number(item.amount).toLocaleString('en', numOpts) }}
                       </td>
                     </tr>
                     <tr v-for="(subItem, i) in item.expense_sub_particulars">
@@ -422,14 +452,14 @@
                         </v-text-field-dotnumber>
                       </td>
                       <td class="font-weight-bold border-0">
-                        {{ !subItem.amount ? "0.00" : subItem.amount }}
+                        {{ !subItem.amount ? "0.00" : Number(subItem.amount).toLocaleString('en', numOpts) }}
                       </td>
                     </tr>
                   </tbody>
                   <tfoot>
                     <tr class="font-weight-black">
                       <td colspan="5" class="text-right">TOTAL AMOUNT</td>
-                      <td>{{ grand_total }}</td>
+                      <td>{{ Number(grand_total).toLocaleString('en', numOpts) }}</td>
                     </tr>
                   </tfoot>
                 </v-simple-table>
@@ -515,9 +545,7 @@ export default {
         )
           .toISOString()
           .substr(0, 10),
-        period_to: new Date(
-          Date.now() - new Date().getTimezoneOffset() * 60000
-        )
+        period_to: new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
           .toISOString()
           .substr(0, 10),
         operating_from: "",
@@ -537,9 +565,7 @@ export default {
         )
           .toISOString()
           .substr(0, 10),
-        period_to: new Date(
-          Date.now() - new Date().getTimezoneOffset() * 60000
-        )
+        period_to: new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
           .toISOString()
           .substr(0, 10),
         operating_from: "",
@@ -552,6 +578,10 @@ export default {
       modal: false,
       date_menu2: false,
       expensePaticularHasError: false,
+      numOpts: { 
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2 
+      }
     };
   },
 
@@ -631,7 +661,8 @@ export default {
       this.$v.$touch();
 
       this.validateExpenseParticulars();
-
+      console.log("validationError", this.$v.$error);
+      console.log("expensePaticularHasError", this.expensePaticularHasError);
       if (!this.$v.$error && !this.expensePaticularHasError) {
         this.disabled = true;
         this.overlay = true;
@@ -892,7 +923,8 @@ export default {
     hrFromErrors() {
       const errors = [];
       if (!this.$v.editedItem.operating_from.$dirty) return errors;
-      !this.$v.editedItem.operating_from.required && errors.push("Select time.");
+      !this.$v.editedItem.operating_from.required &&
+        errors.push("Select time.");
       return errors;
     },
     hrToErrors() {
@@ -920,7 +952,7 @@ export default {
   mounted() {
     axios.defaults.headers.common["Authorization"] =
       "Bearer " + localStorage.getItem("access_token");
-    
+
     this.getTacticalOptions();
     this.timeOptions();
   },

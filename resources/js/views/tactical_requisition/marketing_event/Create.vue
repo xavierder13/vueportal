@@ -28,9 +28,9 @@
                 <v-text-field
                   name="event_name"
                   v-model="editedItem.event_name"
-                  label="Event Name"
-                  :error-messages="eventErrors"
-                  @input="$v.editedItem.event_name.$touch()"
+                  label="Event Title"
+                  :error-messages="eventErrors + eventError.event_name"
+                  @input="$v.editedItem.event_name.$touch() + (eventError.event_name = [])"
                   @blur="$v.editedItem.event_name.$touch()"
                 >
                   ></v-text-field
@@ -163,6 +163,9 @@ export default {
       initiallyOpen: ["two"],
       expense_particulars: [{ description: "", children: [], hasError: false }],
       errorFields: [],
+      eventError: {
+        event_name: [],
+      }
     };
   },
 
@@ -191,7 +194,6 @@ export default {
 
         axios.post("/api/marketing_event/store", data).then(
           (response) => {
-            console.log(response);
             if (response.data.success) {
               // send data to Sockot.IO Server
               // this.$socket.emit("sendData", { action: "marketing-event-create" });
@@ -201,6 +203,9 @@ export default {
             } else {
               let errors = response.data;
               let errorNames = Object.keys(response.data);
+              errorNames.forEach(value => {
+                this.eventError[value].push(errors[value]);
+              });
             }
             this.overlay = false;
             this.disabled = false;
@@ -218,6 +223,9 @@ export default {
       this.$v.$reset();
       this.editedItem = Object.assign({}, this.defaultItem);
       this.expense_particulars = [{ description: "", children: [], hasError: false }];
+      this.eventError = {
+        event_name: []
+      }
     },
 
     isUnauthorized(error) {

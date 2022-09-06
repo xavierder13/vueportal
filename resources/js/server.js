@@ -9,8 +9,12 @@ http.listen(4000, () => {
 io.on("connection", socket => {
 
   socket.on('sendData', function (data) { 
-    io.emit('sendData', data);
+    // io.emit('sendData', data);
     console.log(data); 
-  }); // listen to the event
+  }); // listen to the even
+
+  // setInterval(() => {
+  //   socket.emit('sendData', { data: "data" });
+  // }, 1000);
 
 });

@@ -20,6 +20,10 @@ import BranchIndex from './views/branch/BranchIndex.vue';
 import CompanyIndex from './views/company/CompanyIndex.vue';
 import EmployeeIndex from './views/employee/EmployeeIndex.vue';
 import EmployeeListView from './views/employee/EmployeeListView.vue';
+import EmployeeLoansIndex from './views/employee/loans/EmployeeLoansIndex.vue';
+import EmployeeLoansListView from './views/employee/loans/EmployeeLoansListView.vue';
+import EmployeePremiumsIndex from './views/employee/premiums/EmployeePremiumsIndex.vue';
+import EmployeePremiumsListView from './views/employee/premiums/EmployeePremiumsListView.vue';
 import MyFiles from './views/training_file/MyFiles.vue';
 import FilesTutorials from './views/training_file/FilesTutorials.vue';
 import TacticalIndex from './views/tactical_requisition/TacticalIndex.vue';
@@ -130,6 +134,26 @@ const routes = [
         path: '/employee/view/list/:branch_id',
         name: 'employee.list.view',
         component: EmployeeListView
+      },
+      {
+        path: '/employee/loans/list',
+        name: 'employee.loans.list',
+        component: EmployeeLoansIndex
+      },
+      {
+        path: '/employee/loans/view/list/:branch_id',
+        name: 'employee.loans.list.view',
+        component: EmployeeLoansListView
+      },
+      {
+        path: '/employee/premiums/list',
+        name: 'employee.premiums.list',
+        component: EmployeePremiumsIndex
+      },
+      {
+        path: '/employee/premiums/view/list/:branch_id',
+        name: 'employee.premiums.list.view',
+        component: EmployeePremiumsListView
       },
       {
         path: '/training/my_files',

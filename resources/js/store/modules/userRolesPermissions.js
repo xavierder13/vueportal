@@ -59,34 +59,60 @@ const state = {
     employee_clear_list: false,
     employee_resigned_list: false,
     employee_resigned_list_all: false,
+    employee_resigned_create: false,
+    employee_resigned_edit: false,
+    employee_resigned_delete: false,
     employee_resigned_import: false,
     employee_resigned_export: false,
     employee_resigned_clear_list: false,
     employee_payroll_list: false,
     employee_payroll_list_all: false,
+    employee_payroll_create: false,
+    employee_payroll_edit: false,
+    employee_payroll_delete: false,
     employee_payroll_import: false,
     employee_payroll_export: false,
     employee_payroll_clear_list: false,
     employee_absences_list: false,
     employee_absences_list_all: false,
+    employee_absences_create: false,
+    employee_absences_edit: false,
+    employee_absences_delete: false,
     employee_absences_import: false,
     employee_absences_export: false,
     employee_absences_clear_list: false,
     employee_overtime_list: false,
     employee_overtime_list_all: false,
+    employee_overtime_create: false,
+    employee_overtime_edit: false,
+    employee_overtime_delete: false,
     employee_overtime_import: false,
     employee_overtime_export: false,
     employee_overtime_clear_list: false,
     employee_holiday_pay_list: false,
     employee_holiday_pay_list_all: false,
+    employee_holiday_create: false,
+    employee_holiday_edit: false,
+    employee_holiday_delete: false,
     employee_holiday_pay_import: false,
     employee_holiday_pay_export: false,
     employee_holiday_pay_clear_list: false,
     employee_loans_list: false,
     employee_loans_list_all: false,
+    employee_loans_create: false,
+    employee_loans_edit: false,
+    employee_loans_delete: false,
     employee_loans_import: false,
     employee_loans_export: false,
     employee_loans_clear_list: false,
+    employee_premiums_list: false,
+    employee_premiums_list_all: false,
+    employee_premiums_create: false,
+    employee_premiums_edit: false,
+    employee_premiums_delete: false,
+    employee_premiums_import: false,
+    employee_premiums_export: false,
+    employee_premiums_clear_list: false,
     file_list: false,
     file_create: false,
     file_edit: false,
@@ -252,6 +278,9 @@ const mutations = {
     // RESIGNED EMPLOYEE RECORD MAINTENANCE PERMISSIONS
     permission.employee_resigned_list = permissions.includes("employee-resigned-list");
     permission.employee_resigned_list_all = permissions.includes("employee-resigned-list-all");
+    permission.employee_reqigned_create = permissions.includes("employee-resigned-create");
+    permission.employee_reqigned_edit = permissions.includes("employee-resigned-edit");
+    permission.employee_reqigned_delete = permissions.includes("employee-resigned-delete");
     permission.employee_resigned_import = permissions.includes("employee-resigned-import");
     permission.employee_resigned_export = permissions.includes("employee-resigned-export");
     permission.employee_resigned_clear_list = permissions.includes("employee-resigned-clear-list");
@@ -259,6 +288,9 @@ const mutations = {
     // PAYROLL RECORD MAINTENANCE PERMISSIONS
     permission.employee_payroll_list = permissions.includes("employee-payroll-list");
     permission.employee_payroll_list_all = permissions.includes("employee-payroll-list-all");
+    permission.employee_payroll_create = permissions.includes("employee-payroll-create");
+    permission.employee_payroll_edit = permissions.includes("employee-payroll-edit");
+    permission.employee_payroll_delete = permissions.includes("employee-payroll-delete");
     permission.employee_payroll_import = permissions.includes("employee-payroll-import");
     permission.employee_payroll_export = permissions.includes("employee-payroll-export");
     permission.employee_payroll_clear_list = permissions.includes("employee-payroll-clear-list");
@@ -266,6 +298,9 @@ const mutations = {
     // EMPLOYEE ABSENCES RECORD MAINTENANCE PERMISSIONS
     permission.employee_absences_list = permissions.includes("employee-absences-list");
     permission.employee_absences_list_all = permissions.includes("employee-absences-list-all");
+    permission.employee_absences_create = permissions.includes("employee-absences-create");
+    permission.employee_absences_edit = permissions.includes("employee-absences-edit");
+    permission.employee_absences_delete = permissions.includes("employee-absences-delete");
     permission.employee_absences_import = permissions.includes("employee-absences-import");
     permission.employee_absences_export = permissions.includes("employee-absences-export");
     permission.employee_absences_clear_list = permissions.includes("employee-absences-clear-list");
@@ -273,6 +308,9 @@ const mutations = {
     // EMPLOYEE OVERTIME RECORD MAINTENANCE PERMISSIONS
     permission.employee_overtime_list = permissions.includes("employee-overtime-list");
     permission.employee_overtime_list_all = permissions.includes("employee-overtime-list-all");
+    permission.employee_overtime_create = permissions.includes("employee-overtime-create");
+    permission.employee_overtime_edit = permissions.includes("employee-overtime-edit");
+    permission.employee_overtime_delete = permissions.includes("employee-overtime-delete");
     permission.employee_overtime_import = permissions.includes("employee-overtime-import");
     permission.employee_overtime_export = permissions.includes("employee-overtime-export");
     permission.employee_overtime_clear_list = permissions.includes("employee-overtime-clear-list");
@@ -280,6 +318,9 @@ const mutations = {
     // EMPLOYEE HOLIDAY PAY RECORD MAINTENANCE PERMISSIONS
     permission.employee_holiday_pay_list = permissions.includes("employee-holiday-pay-list");
     permission.employee_holiday_pay_list_all = permissions.includes("employee-holiday-pay-list-all");
+    permission.employee_holiday_create = permissions.includes("employee-holiday-create");
+    permission.employee_holiday_edit = permissions.includes("employee-holiday-edit");
+    permission.employee_holiday_delete = permissions.includes("employee-holiday-delete");
     permission.employee_holiday_pay_import = permissions.includes("employee-holiday-pay-import");
     permission.employee_holiday_pay_export = permissions.includes("employee-holiday-pay-export");
     permission.employee_holiday_pay_clear_list = permissions.includes("employee-holiday-pay-clear-list");
@@ -287,9 +328,22 @@ const mutations = {
     // EMPLOYEE LOANS RECORD MAINTENANCE PERMISSIONS
     permission.employee_loans_list = permissions.includes("employee-loans-list");
     permission.employee_loans_list_all = permissions.includes("employee-loans-list-all");
+    permission.employee_loans_create = permissions.includes("employee-loans-create");
+    permission.employee_loans_edit = permissions.includes("employee-loans-edit");
+    permission.employee_loans_delete = permissions.includes("employee-loans-delete");
     permission.employee_loans_import = permissions.includes("employee-loans-import");
     permission.employee_loans_export = permissions.includes("employee-loans-export");
     permission.employee_loans_clear_list = permissions.includes("employee-loans-clear-list");
+
+    // EMPLOYEE PREMIUMS RECORD MAINTENANCE PERMISSIONS
+    permission.employee_premiums_list = permissions.includes("employee-premiums-list");
+    permission.employee_premiums_list_all = permissions.includes("employee-premiums-list-all");
+    permission.employee_premiums_create = permissions.includes("employee-premiums-create");
+    permission.employee_premiums_edit = permissions.includes("employee-premiums-edit");
+    permission.employee_premiums_delete = permissions.includes("employee-premiums-delete");
+    permission.employee_premiums_import = permissions.includes("employee-premiums-import");
+    permission.employee_premiums_export = permissions.includes("employee-premiums-export");
+    permission.employee_premiums_clear_list = permissions.includes("employee-premiums-clear-list");
 
     // TRAINING FILE RECORD MAINTENANCE PERMISSIONS
     permission.file_list = permissions.includes("file-list");

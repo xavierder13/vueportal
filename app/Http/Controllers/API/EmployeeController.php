@@ -148,7 +148,13 @@ class EmployeeController extends Controller
         $employee->course = $request->get('course');
         $employee->save();
 
-        return response()->json(['success' => 'Record has successfully added', 'employee' => $employee], 200);
+        $branch = Branch::find($request->get('branch_id'));
+
+        return response()->json([
+            'success' => 'Record has successfully added', 
+            'employee' => $employee, 
+            'branch' => $branch
+        ], 200);
 
     }
 
@@ -228,7 +234,7 @@ class EmployeeController extends Controller
             'course' => 'required',
         ];
         
-        $validator = Validator::make($fields, $valid_fields, $rules);  
+        $validator = Validator::make($request->all(), $valid_fields, $rules);  
 
         if($validator->fails())
         {
@@ -264,8 +270,7 @@ class EmployeeController extends Controller
         $employee->course = $request->get('course');
         $employee->save();
 
-
-        return response()->json(['success' => 'Record has been updated'], 200);
+        return response()->json(['success' => 'Record has been updated', 'employee' => $employee], 200);
     } 
 
 
@@ -286,11 +291,11 @@ class EmployeeController extends Controller
                     'file' => strtolower($file_extension),
                 ],
                 [
-                    'file' => 'required|in:xlsx,xls,',
+                    'file' => 'required|in:xlsx,xls,ods,odsx',
                 ], 
                 [
                     'file.required' => 'File is required',
-                    'file.in' => 'File type must be xlsx/xls.',
+                    'file.in' => 'File type must be xlsx/xls/ods/odsx.',
                 ]
             );  
             

@@ -79,6 +79,7 @@
                               :items="accessLevels"
                               item-text="level"
                               label="Access Level"
+                              :readonly="editedIndex > -1 ? true : false"
                             >
                             </v-autocomplete>
                           </v-col>
@@ -444,6 +445,7 @@ export default {
       addEditMode: "",
       max_access_level: "",
       hasApprovers: false,
+      approverPerLevelHasError: false,
     };
   },
 
@@ -469,8 +471,6 @@ export default {
       this.editedIndex = this.access_charts.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.dialog = true;
-
-      console.log(item);
     },
 
     deleteAccessChart(access_chart_id) {
@@ -569,13 +569,21 @@ export default {
       this.editedIndex2 = -1;
     },
 
+    validateApproverPerLevel() {
+      this.approverPerLevelHasError = false;
+      this.editedItem.approver_per_level.forEach((value) => {
+        if (!value.num_of_approvers) {
+          this.approverPerLevelHasError = true;
+        }
+      });
+    },
+
     save() {
       this.$v.editedItem.$touch();
-      this.accessChartError = {
-        name: [],
-      };
+      
+      this.validateApproverPerLevel();
 
-      if (!this.$v.editedItem.$error) {
+      if (!this.$v.editedItem.$error && !this.approverPerLevelHasError) {
         this.disabled = true;
 
         if (this.editedIndex > -1) {
@@ -584,6 +592,7 @@ export default {
 
           axios.post("/api/access_chart/update/" + access_chart_id, data).then(
             (response) => {
+              console.log(response);
               if (response.data.success) {
                 // send data to Sockot.IO Server
                 // this.$socket.emit("sendData", { action: "access-chart-edit" });
@@ -597,10 +606,6 @@ export default {
               } else {
                 let errors = response.data;
                 let errorNames = Object.keys(response.data);
-
-                errorNames.forEach((value) => {
-                  this.accessChartError[value].push(errors[value]);
-                });
               }
 
               this.disabled = false;
@@ -612,10 +617,9 @@ export default {
           );
         } else {
           const data = this.editedItem;
-
+          
           axios.post("/api/access_chart/store", data).then(
             (response) => {
-              console.log(response);
               if (response.data.success) {
                 // send data to Sockot.IO Server
                 // this.$socket.emit("sendData", { action: "access-chart-create" });
@@ -628,10 +632,6 @@ export default {
               } else {
                 let errors = response.data;
                 let errorNames = Object.keys(response.data);
-
-                errorNames.forEach((value) => {
-                  this.accessChartError[value].push(errors[value]);
-                });
               }
               this.disabled = false;
             },
@@ -851,31 +851,43 @@ export default {
   watch: {
     "editedItem.max_approval_level"() {
       this.hasApprovers = true;
-
+      let approval_level_diff =
+        this.editedItem.approver_per_level.length -
+        this.editedItem.max_approval_level;
       // add mode
       if (this.editedIndex === -1) {
-
         this.editedItem.approver_per_level = [];
 
-        for (let ctr = 0; ctr < this.editedItem.max_approval_level; ctr++) {
-          this.editedItem.approver_per_level.push({ num_of_approvers: "" });
+        for (let i = 1; i <= this.editedItem.max_approval_level; i++) {
+          this.editedItem.approver_per_level.push({
+            level: i,
+            num_of_approvers: "",
+          });
         }
+      } 
+      // else {
+      //   // edit mode -- if max_approval_level has changed
 
-      } else {
-
-        // edit mode -- if max_approval_level has changed
-
-        if (
-          this.editedItem.approver_per_level.length !=
-          this.editedItem.max_approval_level
-        ) {
-          this.editedItem.approver_per_level = [];
-
-          for (let ctr = 0; ctr < this.editedItem.max_approval_level; ctr++) {
-            this.editedItem.approver_per_level.push({ num_of_approvers: "" });
-          }
-        }
-      }
+      //   // if new max_approval_level is less than the current approver_per_level length then remove/splice the array of approver_per_level
+      //   if (
+      //     this.editedItem.max_approval_level <
+      //     this.editedItem.approver_per_level.length
+      //   ) {
+      //     for (let i = 0; i < approval_level_diff; i++) {
+      //       let index = approval_level_diff;
+      //       console.log(this.editedItem.approver_per_level.length);
+      //       console.log(this.editedItem.max_approval_level);
+      //       this.editedItem.approver_per_level.splice(index, 1);
+      //     }
+      //   } else if (
+      //     this.editedItem.max_approval_level >
+      //     this.editedItem.approver_per_level.length
+      //   ) {
+      //     for (let i = approval_level_diff + 1; i <= this.editedItem.max_approval_level; i++) {
+      //       this.editedItem.approver_per_level.push({ level: i, num_of_approvers: "" });
+      //     }
+      //   }
+      // }
     },
   },
   computed: {

@@ -563,7 +563,7 @@
                 <v-spacer></v-spacer>
                 <v-btn
                   color="#E0E0E0"
-                  @click="dialog_import = false"
+                  @click="(dialog_import = false) + (loading = false)"
                   class="mb-4"
                 >
                   Cancel
@@ -939,10 +939,21 @@ export default {
                 // send data to Sockot.IO Server
                 // this.$socket.emit("sendData", { action: "employee-edit" });
 
+                let employee = response.data.employee;
+                employee.branch = response.data.branch;
+                
+                // format date_granted
+                let [year, month, day] = employee.dob.split("-");
+                employee.birth_date = `${month}/${day}/${year}`;
+
+                [year, month, day] = employee.date_employed.split("-");
+                employee.date_employed = `${month}/${day}/${year}`;
+
                 Object.assign(
                   this.employees[this.editedIndex],
-                  response.data.employee
+                  employee
                 );
+
                 this.showAlert();
                 this.close();
               } else {
@@ -970,8 +981,17 @@ export default {
                 this.showAlert();
                 this.close();
 
+                let employee = response.data.employee;
+                
+                // format date_granted
+                let [year, month, day] = employee.dob.split("-");
+                employee.birth_date = `${month}/${day}/${year}`;
+
+                [year, month, day] = employee.date_employed.split("-");
+                employee.date_employed = `${month}/${day}/${year}`;
+
                 //push recently added data from database
-                this.employees.push(response.data.employee);
+                this.employees.push(employee);
               } else {
               }
               this.overlay = false;
@@ -1361,7 +1381,7 @@ export default {
       const errors = [];
       if (!this.$v.editedItem.pagibig_no.$dirty) return errors;
       !this.$v.editedItem.pagibig_no.required &&
-        errors.push("Pag-IBIG No. is required.");
+        errors.push("PagIbig No. is required.");
       return errors;
     },
     philhealthNoErrors() {

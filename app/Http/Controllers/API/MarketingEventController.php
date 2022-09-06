@@ -112,8 +112,8 @@ class MarketingEventController extends Controller
     {   
 
         $rules = [
-            'event_name.required' => 'Please enter description',
-            'event_name.unique' => 'Description already exists',
+            'event_name.required' => 'Marketing Event Name is required',
+            'event_name.unique' => 'Marketing Event Name already exists',
             'expense_particulars.*.description.required' => 'Description is required',
             'expense_particulars.*.children.*.description.required' => 'Description is required',
         ];

@@ -29,8 +29,8 @@
                   name="event_name"
                   v-model="editedItem.event_name"
                   label="Event Title"
-                  :error-messages="eventErrors"
-                  @input="$v.editedItem.event_name.$touch()"
+                  :error-messages="eventErrors + eventError.event_name"
+                  @input="$v.editedItem.event_name.$touch() + (eventError.event_name = [])"
                   @blur="$v.editedItem.event_name.$touch()"
                 >
                   ></v-text-field
@@ -162,6 +162,9 @@ export default {
       tree_view: [],
       deletedRows: [],
       addedRows: [],
+      eventError: {
+        event_name: [],
+      }
     };
   },
 
@@ -220,7 +223,10 @@ export default {
     save() {
       this.$v.$touch();
       let hasError = this.validateExpenseParticulars();
-
+      this.eventError = {
+        event_name: []
+      };
+      
       if (!this.$v.$error && !hasError) {
         this.disabled = true;
         this.overlay = true;
@@ -239,15 +245,18 @@ export default {
           .post("/api/marketing_event/update/" + marketing_event_id, data)
           .then(
             (response) => {
-              console.log(response);
+
               if (response.data.success) {
                 // send data to Sockot.IO Server
                 // this.$socket.emit("sendData", { action: "marketing-event-create" });
                 this.getMarketingEvent();
                 this.showAlert();
               } else {
-                let errors = response.data;
-                let errorNames = Object.keys(response.data);
+                  let errors = response.data;
+                  let errorNames = Object.keys(response.data);
+                  errorNames.forEach(value => {
+                    this.eventError[value].push(errors[value]);
+                  });
               }
               this.overlay = false;
               this.disabled = false;
@@ -267,6 +276,9 @@ export default {
       this.expense_particulars = [
         { description: "", children: [], hasError: false },
       ];
+      this.eventError = {
+        event_name: []
+      }
     },
 
     isUnauthorized(error) {

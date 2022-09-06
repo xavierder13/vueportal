@@ -18,6 +18,7 @@ class CreateApprovedLogsTable extends Migration
             $table->integer('module_id');
             $table->integer('document_id');
             $table->integer('approver_id');
+            $table->integer('level')->nullable();
             $table->timestamps();
         });
     }

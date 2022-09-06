@@ -25,7 +25,7 @@ class EmployeesExport implements FromCollection, WithHeadings
 
         $employees = DB::table('employees')
                       ->join('branches', 'employees.branch_id', '=', 'branches.id')
-                      ->join('companies', 'branches.company_id', '=', 'companies.id')
+                      ->leftJoin('companies', 'branches.company_id', '=', 'companies.id')
                       ->select(DB::raw('branches.name as branch, companies.name as company'),
                                 'employees.employee_code',
                                 'employees.last_name',

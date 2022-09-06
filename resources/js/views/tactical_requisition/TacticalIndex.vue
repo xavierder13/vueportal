@@ -36,26 +36,27 @@
               </v-toolbar>
             </template>
           </v-card-title>
-          {{ max_level_approver }}
-          <div v-for="(item, index) in max_level_approver">
-            <v-icon color="success" small>mdi-checkbox-marked-circle</v-icon>
-          </div>
           <v-data-table
             :headers="headers"
-            :items="tactical_requisitions"
+            :items="tacticalRequisitions"
             :search="search"
             :loading="loading"
             loading-text="Loading... Please wait"
             v-if="userPermissions.tactical_requisition_list"
           >
             <template v-slot:item.progress="{ item }">
-              <template v-for="(item, index) in max_approver_level">
-                <v-tooltip top color="success">
+              <template v-for="(item, index) in item.approval_progress">
+                
+                <v-tooltip top :color=" item.done ? 'success' : '' " v-if="item.approver.length">
                   <template v-slot:activator="{ on, attrs }">
-                    <v-icon color="success" v-bind="attrs" v-on="on">mdi-checkbox-marked-circle</v-icon>
+                    <v-icon :color=" item.done ? 'success' : '' " v-bind="attrs" v-on="on">mdi-checkbox-marked-circle</v-icon>
                   </template>
-                  <span>Top tooltip</span>
+                  <span>{{ item.approver.join(', ') }}</span>
                 </v-tooltip>
+                
+                <!-- show check icon without tooltip -->
+                <v-icon v-if="!item.approver.length">mdi-checkbox-marked-circle</v-icon>
+
               </template>
             </template>
             <template v-slot:item.status="{ item }">
@@ -71,10 +72,11 @@
                 class="mr-2"
                 color="info"
                 @click="viewTacticalRequisition(item)"
-                v-if="userPermissions.tactical_requisition_edit"
+                v-if="userPermissions.tactical_requisition_edit || userPermissions.tactical_requisition_approve"
               >
                 mdi-eye
               </v-icon>
+
               <v-icon
                 small
                 color="red"
@@ -111,6 +113,7 @@ export default {
         // { text: "Event Title", value: "event_name" },
         { text: "Event Title", value: "marketing_event.event_name" },
         { text: "Branch", value: "branch.name" },
+        { text: "Created By", value: "user.name" },
         { text: "Progress", value: "progress" },
         { text: "Status", value: "status" },
         { text: "Date Created", value: "date_created" },
@@ -136,7 +139,7 @@ export default {
       expenseError: {
         description: [],
       },
-      max_level_approver: "",
+      approval_progress: [],
     };
   },
 
@@ -145,9 +148,12 @@ export default {
       this.loading = true;
       axios.get("/api/tactical_requisition/index").then(
         (response) => {
-          this.tactical_requisitions = response.data.tactical_requisitions;
-          this.max_approver_level = response.data.max_approver_level;
-          console.log(response);
+          
+          let data = response.data
+        
+          this.tactical_requisitions = data.tactical_requisitions;
+          this.approval_progress = data.approval_progress
+
           this.loading = false;
         },
         (error) => {
@@ -168,6 +174,7 @@ export default {
       this.loading = true;
       axios.post("/api/tactical_requisition/delete", data).then(
         (response) => {
+          console.log(response);
           if (response.data.success) {
             // send data to Sockot.IO Server
             // this.$socket.emit("sendData", { action: "tactical-requisition-delete" });
@@ -251,6 +258,21 @@ export default {
     },
   },
   computed: {
+    tacticalRequisitions()
+    {
+      let tactical_requisitions = [];
+      this.tactical_requisitions.forEach((value, i) => {
+        tactical_requisitions.push(value);
+        this.approval_progress.forEach((val) => {
+          if(value.id === val.tactical_requisition_id)
+          {
+            tactical_requisitions[i]['approval_progress'] = val.progress;
+          }
+        });
+      });
+
+      return tactical_requisitions;
+    },
     ...mapState("userRolesPermissions", ["userRoles", "userPermissions"]),
   },
   mounted() {

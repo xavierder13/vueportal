@@ -242,6 +242,106 @@ Route::get('/employee/export_employee/{id}', [
     'as' => 'employee.export',
 ])->middleware(['employee.maintenance']);
 
+// Employee Loans Routes
+Route::group(['prefix' => 'employee_loans', 'middleware' => ['auth:api', 'employee.loans.maintenance']], function(){
+    Route::get('/index', [
+        'uses' => 'API\EmployeeLoansController@index',
+        'as' => 'employee.loans.index',
+    ]);
+
+    Route::get('/list/view/{id}', [
+        'uses' => 'API\EmployeeLoansController@list_view',
+        'as' => 'employee.loans.list.view',
+    ]);
+
+    Route::get('/create', [
+        'uses' => 'API\EmployeeLoansController@create',
+        'as' => 'employee.loans.create',
+    ]);
+
+    Route::post('/store', [
+        'uses' => 'API\EmployeeLoansController@store',
+        'as' => 'employee.loans.store',
+    ]);
+
+    Route::get('/edit/{id}', [
+        'uses' => 'API\EmployeeLoansController@edit',
+        'as' => 'employee.loans.edit',
+    ]);
+
+    Route::post('/update/{id}', [
+        'uses' => 'API\EmployeeLoansController@update',
+        'as' => 'employee.loans.update',
+    ]);
+
+    Route::post('/import_loans/{id}', [
+        'uses' => 'API\EmployeeLoansController@import_loans',
+        'as' => 'employee.loans.import'
+    ]);
+
+    Route::post('/delete', [
+        'uses' => 'API\EmployeeLoansController@delete',
+        'as' => 'employee.loans.delete'
+    ]);
+
+});
+
+// Employee Loans Export Route
+Route::get('/employee_loans/export_loans/{id}', [
+    'uses' => 'API\EmployeeLoansController@export_loans',
+    'as' => 'employee.loan.export',
+])->middleware(['employee.loans.maintenance']);
+
+// Employee Premiums Routes
+Route::group(['prefix' => 'employee_premiums', 'middleware' => ['auth:api', 'employee.premiums.maintenance']], function(){
+    Route::get('/index', [
+        'uses' => 'API\EmployeePremiumsController@index',
+        'as' => 'employee.premiums.index',
+    ]);
+
+    Route::get('/list/view/{id}', [
+        'uses' => 'API\EmployeePremiumsController@list_view',
+        'as' => 'employee.premiums.list.view',
+    ]);
+
+    Route::get('/create', [
+        'uses' => 'API\EmployeePremiumsController@create',
+        'as' => 'employee.premiums.create',
+    ]);
+
+    Route::post('/store', [
+        'uses' => 'API\EmployeePremiumsController@store',
+        'as' => 'employee.premiums.store',
+    ]);
+
+    Route::get('/edit/{id}', [
+        'uses' => 'API\EmployeePremiumsController@edit',
+        'as' => 'employee.premiums.edit',
+    ]);
+
+    Route::post('/update/{id}', [
+        'uses' => 'API\EmployeePremiumsController@update',
+        'as' => 'employee.premiums.update',
+    ]);
+
+    Route::post('/import_loans/{id}', [
+        'uses' => 'API\EmployeePremiumsController@import_loans',
+        'as' => 'employee.premiums.import'
+    ]);
+
+    Route::post('/delete', [
+        'uses' => 'API\EmployeePremiumsController@delete',
+        'as' => 'employee.premiums.delete'
+    ]);
+
+});
+
+// Employee Premiums Export Route
+Route::get('/employee_premiums/export_premiums/{id}', [
+    'uses' => 'API\EmployeePremiumsController@export_premiums',
+    'as' => 'employee.premiums.export',
+])->middleware(['employee.premiums.maintenance']);
+
 // Training Files Route
 Route::group(['prefix' => 'training', 'middleware' => ['auth:api', 'training_file.maintenance']], function(){
     Route::get('/files', [
@@ -476,6 +576,10 @@ Route::group(['prefix' => 'tactical_requisition', 'middleware' => ['auth:api', '
     Route::post('/update/{id}', [
         'uses' => 'API\TacticalRequisitionController@update',
         'as' => 'tactical_requisition.update',
+    ]);
+    Route::post('/approve/{id}', [
+        'uses' => 'API\TacticalRequisitionController@approve',
+        'as' => 'tactical_requisition.approve',
     ]);
     Route::post('/delete', [
         'uses' => 'API\TacticalRequisitionController@delete',

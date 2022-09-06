@@ -16,6 +16,7 @@ class CreateTacticalRequisitionsTable extends Migration
         Schema::create('tactical_requisitions', function (Blueprint $table) {
             $table->id();
             $table->integer('branch_id');
+            $table->integer('user_id');
             $table->integer('marketing_event_id');
             $table->string('venue');
             $table->string('sponsor');

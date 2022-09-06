@@ -209,7 +209,8 @@
             userPermissions.employee_absences_list ||
             userPermissions.employee_overtime_list ||
             userPermissions.employee_holiday_pay_list ||
-            userPermissions.employee_loans_list
+            userPermissions.employee_loans_list ||
+            userPermissions.employee_premiums_list
           "
         >
           <!-- List Group Icon-->
@@ -285,6 +286,15 @@
           >
             <v-list-item-content>
               <v-list-item-title>Loans</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
+            to="/employee/premiums/list"
+            v-if="userPermissions.employee_premiums_list"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Premiums</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
         </v-list-group>
@@ -369,7 +379,7 @@
           <v-list-item
             link
             to="/marketing_event/index"
-            v-if="userPermissions.marketing_event_list"
+            v-if="userPermissions.marketing_event_list || userPermissions.marketing_event_create"
           >
             <v-list-item-content>
               <v-list-item-title>Marketing Event</v-list-item-title>

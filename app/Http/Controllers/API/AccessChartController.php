@@ -134,7 +134,20 @@ class AccessChartController extends Controller
         $access_chart = AccessChart::find($access_chart_id);
         $access_chart->name = $request->get('name');
         $access_chart->access_for = $request->get('access_for');
-        $access_chart->save();
+        // $access_chart->save();
+
+        $approver_per_level = $request->get('approver_per_level');
+        
+        $approver_per_level_1_count = ApproverPerLevel::where('module_id', '=', $request->get('access_for'))->get()->count();
+        $approver_per_level_2_count = count($approver_per_level);
+
+        foreach ($approver_per_level as $i => $value) {
+            $approver_per_level = new ApproverPerLevel();
+            $approver_per_level->module_id = $request->get('access_for');
+            $approver_per_level->level = $value['level'];
+            $approver_per_level->num_of_approvers = $value['num_of_approvers'];
+            // $approver_per_level->save();
+        }
 
         $access_chart = AccessChart::with('access_chart_user_maps')
                                     ->with('access_chart_user_maps.user')
@@ -143,7 +156,13 @@ class AccessChartController extends Controller
                                     ->where('id', '=', $access_chart_id)
                                     ->first();
 
-        return response()->json(['success' => 'Record has been added', 'access_chart' => $access_chart], 200);
+        return response()->json(
+            [
+                'success' => 'Record has been added', 
+                'access_chart' => $access_chart,
+                $approver_per_level_1_count,
+                $approver_per_level_2_count
+            ], 200);
     }
 
     public function delete(Request $request)
@@ -158,6 +177,9 @@ class AccessChartController extends Controller
         }
 
         $access_chart->delete();
+
+        $access_chart_user_map = AccessChartUserMap::where('access_chart_id', '=', $access_chart_id);
+        $access_chart_user_map->delete();
 
         return response()->json(['success' => 'Record has been deleted'], 200);
     }
