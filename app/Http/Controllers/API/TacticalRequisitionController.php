@@ -433,6 +433,7 @@ class TacticalRequisitionController extends Controller
 
         TacticalRequisitionRow::where('tactical_requisition_id', '=', $tactical_requisition_id)->delete();
         TacticalRequisitionSubRow::whereIn('tactical_requisition_row_id', $tactical_requisition_row_ids)->delete();
+        TacticalRequisitionAttachment::where('tactical_requisition_id', '=', $tactical_requisition_id)->delete();
 
         return response()->json(['success' => 'Recard has been deleted'],200);
     }
