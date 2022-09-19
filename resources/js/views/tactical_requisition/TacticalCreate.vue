@@ -229,7 +229,7 @@
                     4. PICTURES OF PREVIOUS ACTIVITY STATED HEREIN
                   </p>
                 </div>
-                <v-btn color="primary" small><v-icon small>mdi-attachment</v-icon> Attach Files {{ '(2)' }}</v-btn> 
+                <v-btn color="primary" small @click="dialog_attache_file = true"><v-icon small>mdi-attachment</v-icon> Attach Files {{ '(2)' }}</v-btn> 
               </v-col>
             </v-row>
             <v-divider></v-divider>
@@ -479,6 +479,54 @@
             <v-btn color="#E0E0E0" to="/" class="mb-4"> Cancel </v-btn>
           </v-card-actions>
         </v-card>
+
+        <v-dialog v-model="dialog_attache_file" max-width="500px" persistent>
+            <v-card>
+              <v-card-title class="mb-0 pb-0">
+                <span class="headline">Attach file</span>
+              </v-card-title>
+              <v-divider></v-divider>
+              <v-card-text>
+                <v-container>
+                  <v-row>
+                    <v-col class="mt-0 mb-0 pt-0 pb-0">
+                      <v-file-input
+                        v-model="editedItem.file"
+                        show-size
+                        label="File input"
+                        prepend-icon="mdi-paperclip"
+                        required
+                        multiple
+                      >
+                        <template v-slot:selection="{ index, text }">
+                          <v-chip small label color="primary" close @click:close="removeFile(index, text)">
+                            {{ text }}
+                          </v-chip>
+                        </template>
+                      </v-file-input>
+                    </v-col>
+                  </v-row>
+                </v-container>
+              </v-card-text>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <!-- <v-btn
+                  color="#E0E0E0"
+                  @click="(dialog_attache_file = false)"
+                  class="mb-4"
+                >
+                  Close
+                </v-btn> -->
+                <v-btn
+                  color="primary"
+                  class="mb-4 mr-4"
+                  @click="(dialog_attache_file = false)"
+                >
+                  OK
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
       </v-main>
     </div>
   </div>
@@ -550,6 +598,7 @@ export default {
           .substr(0, 10),
         operating_from: "",
         operating_to: "",
+        file: [],
       },
       defaultItem: {
         marketing_event: "",
@@ -570,6 +619,7 @@ export default {
           .substr(0, 10),
         operating_from: "",
         operating_to: "",
+        file: [],
       },
       grand_total: "0.00",
       errorFields: [],
@@ -581,7 +631,8 @@ export default {
       numOpts: { 
         minimumFractionDigits: 2,
         maximumFractionDigits: 2 
-      }
+      },
+      dialog_attache_file: false
     };
   },
 
@@ -659,7 +710,6 @@ export default {
 
     save() {
       this.$v.$touch();
-
       this.validateExpenseParticulars();
       console.log("validationError", this.$v.$error);
       console.log("expensePaticularHasError", this.expensePaticularHasError);
@@ -667,11 +717,14 @@ export default {
         this.disabled = true;
         this.overlay = true;
 
-        const data = this.editedItem;
-
-        axios.post("/api/tactical_requisition/store", data).then(
+        axios.post("/api/tactical_requisition/store", this.formData, {
+          headers: {
+              Authorization: "Bearer " + localStorage.getItem("access_token"),
+              "Content-Type": "multipart/form-data",
+            }
+        }).then(
           (response) => {
-            console.log(response);
+            console.log(response.data);
             if (response.data.success) {
               // send data to Sockot.IO Server
               // this.$socket.emit("sendData", { action: "user-create" });
@@ -891,6 +944,9 @@ export default {
       const [year, month, day] = date.split("-");
       return `${month}/${day}/${year}`;
     },
+    removeFile(index, text) {
+      this.file.splice(index, 1)
+    },
   },
   computed: {
     eventTitleErrors() {
@@ -938,6 +994,24 @@ export default {
     },
     computedPeriodToFormatted() {
       return this.formatDate(this.editedItem.period_to);
+    },
+    formData(){
+      let formData = new FormData();
+
+      const data = this.editedItem;
+      let fieldName = Object.keys(data);
+
+      fieldName.forEach(field => {
+        formData.append(field, JSON.stringify(this.editedItem[`${field}`]));
+      });
+
+      // formData.append("file", JSON.stringify(this.files));
+      
+      // formData.append('editedItem', JSON.stringify(this.editedItem));
+
+
+
+      return formData;
     },
     ...mapState("auth", ["user"]),
   },

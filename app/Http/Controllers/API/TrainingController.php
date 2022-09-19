@@ -80,6 +80,7 @@ class TrainingController extends Controller
 
     public function file_upload(Request $request)
     {   
+        return $request->file('file');
         try {
             $file_extension = '';
             $path = '';
@@ -130,7 +131,7 @@ class TrainingController extends Controller
         $file_date = Carbon::now()->format('Y-m-d');
         $uploadedFile = $request->file('file');
         $file_name = time().$uploadedFile->getClientOriginalName();
-        $file_path = '/wysiwyg' . '/' . $file_date;
+        $file_path = '/wysiwyg/training_files/' . $file_date;
 
         $uploadedFile->move(public_path() . $file_path, $file_name);
         

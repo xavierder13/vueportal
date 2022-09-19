@@ -110,7 +110,6 @@ export default {
     return {
       search: "",
       headers: [
-        // { text: "Event Title", value: "event_name" },
         { text: "Event Title", value: "marketing_event.event_name" },
         { text: "Branch", value: "branch.name" },
         { text: "Created By", value: "user.name" },

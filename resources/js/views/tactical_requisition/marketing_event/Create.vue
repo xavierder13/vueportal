@@ -183,6 +183,9 @@ export default {
     save() {
       this.$v.$touch();
       let hasError = this.validateExpenseParticulars();
+      this.eventError = {
+        event_name: []
+      };
 
       if (!this.$v.$error && !hasError) {
         this.disabled = true;

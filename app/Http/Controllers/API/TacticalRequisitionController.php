@@ -16,6 +16,7 @@ use App\AccessChartUserMap;
 use App\ApprovedLog;
 use Validator;
 use DB;
+use Carbon\Carbon;
 
 class TacticalRequisitionController extends Controller
 {   
@@ -205,6 +206,7 @@ class TacticalRequisitionController extends Controller
     public function store(Request $request)
     {   
 
+        
         $rules = [
             'branch_id.required' => 'Branch ID is required',
             'branch_id.integer' => 'Branch ID must be an integer',
@@ -212,10 +214,10 @@ class TacticalRequisitionController extends Controller
             'marketing_event_id.integer' => 'Marketing Event ID must be an integer',
             'venue.required' => 'Venue is required',
             'sponsor.required' => 'Sponsor is required',
-            'period_from.required' => 'Period Date From is required',
-            'period_from.date_format' => 'Invalid date. Format: (YYYY-MM-DD)',
-            'period_to.required' => 'Period Date From is required',
-            'period_to.date_format' => 'Invalid date. Format: (YYYY-MM-DD)',
+            // 'period_from.required' => 'Period Date From is required',
+            // 'period_from.date_format' => 'Invalid date. Format: (YYYY-MM-DD)',
+            // 'period_to.required' => 'Period Date From is required',
+            // 'period_to.date_format' => 'Invalid date. Format: (YYYY-MM-DD)',
             'operating_from.required' => 'Operating Hour From is required',
             'operating_to.required' => 'Operating Hour To is required',
             'expense_particulars.required' => 'Expense Particulars is required',
@@ -227,8 +229,8 @@ class TacticalRequisitionController extends Controller
             'marketing_event_id' => 'required|integer',
             'venue' => 'required',
             'sponsor' => 'required',
-            'period_from' => 'required|date_format:Y-m-d',
-            'period_to' => 'required|date_format:Y-m-d',
+            // 'period_from' => 'required|date_format:Y-m-d',
+            // 'period_to' => 'required|date_format:Y-m-d',
             'operating_from' => 'required',
             'operating_to' => 'required',
             'expense_particulars' => 'required',
@@ -246,8 +248,8 @@ class TacticalRequisitionController extends Controller
         $tactical_requisition->marketing_event_id = $request->get('marketing_event_id');
         $tactical_requisition->sponsor = $request->get('sponsor');
         $tactical_requisition->venue = $request->get('venue');
-        $tactical_requisition->period_from = $request->get('period_from');
-        $tactical_requisition->period_to = $request->get('period_to');
+        $tactical_requisition->period_from = json_decode($request->period_from);;
+        $tactical_requisition->period_to = json_decode($request->period_from);;
         $tactical_requisition->operating_to = $request->get('operating_to');
         $tactical_requisition->operating_from = $request->get('operating_from');
         $tactical_requisition->status = 'Pending';
@@ -295,6 +297,32 @@ class TacticalRequisitionController extends Controller
                                          ->with('tactical_attachments')
                                          ->where('id', '=', $tactical_requisition_id)
                                          ->first();
+        if($request->has('file'))
+        {
+            foreach ($request->file('file') as $key => $file) {
+
+                try {
+                    $file_extension = $file->getClientOriginalExtension();
+                    $file_date = Carbon::now()->format('Y-m-d');
+                    $file_name = time().$file->getClientOriginalName();
+                    $file_path = '/wysiwyg/tactical_attachement/' . $file_date;
+
+                    $tactical_attachement = new TacticalRequisitionAttachment();
+                    $tactical_attachement->tactical_requisition_id = $tactical_requisition_id;
+                    $tactical_attachement->file_name = $file_name;
+                    $tactical_attachement->file_path = $file_path;
+                    $tactical_attachement->file_type = $file_extension;
+                    $tactical_attachement->title = $file_name;
+                    $tactical_attachement->save();
+
+                    $file->move(public_path() . $file_path, $file_name);
+                    
+                } catch (\Exception $e) {
+                
+                    return response()->json(['error' => $e->getMessage()], 200);
+                }
+            }
+        }
 
         return response()->json(['success' => 'Record has successfully added', 'tactical_requisition' => $tactical_requisition]);
     }
