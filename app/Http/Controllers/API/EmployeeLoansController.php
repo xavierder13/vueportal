@@ -76,6 +76,8 @@ class EmployeeLoansController extends Controller
             'monthly_amortization.required' => 'Monthly Amortization is required',
             'monthly_amortization.numeric' => 'Enter a valid value',
             'monthly_amortization.between' => 'Enter a valid value',
+            'total_months_paid.required' => 'Total Months Paid is required',
+            'total_months_paid.integer' => 'Total Months Paid must be an integer',
             'total_paid.required' => 'Total Amount Paid is required',
             'total_paid.numeric' => 'Enter a valid value',
             'total_paid.between' => 'Enter a valid value',
@@ -104,6 +106,7 @@ class EmployeeLoansController extends Controller
             'period_from' => 'required|date_format:Y-m-d',
             'period_to' => 'required|date_format:Y-m-d',
             'monthly_amortization' => 'required|numeric|between:1, 999999.99',
+            'total_months_paid' => 'required|integer',
             'total_paid' => 'required|numeric|between:1, 999999.99',
             'balance' => 'required|numeric|between:1, 999999.99',
             'remaining_term' => 'required|integer',
@@ -134,6 +137,7 @@ class EmployeeLoansController extends Controller
         $employee_loans->period_from = $request->get('period_from');	
         $employee_loans->period_to = $request->get('period_to');	
         $employee_loans->monthly_amortization =	$request->get('monthly_amortization');
+        $employee_loans->total_months_paid = $request->get('total_months_paid');
         $employee_loans->total_paid = $request->get('total_paid');
         $employee_loans->balance = $request->get('balance');	
         $employee_loans->remaining_term = $request->get('remaining_term');
@@ -196,6 +200,8 @@ class EmployeeLoansController extends Controller
             'monthly_amortization.required' => 'Monthly Amortization is required',
             'monthly_amortization.numeric' => 'Enter a valid value',
             'monthly_amortization.between' => 'Enter a valid value',
+            'total_months_paid.required' => 'Total Months Paid is required',
+            'total_months_paid.integer' => 'Total Months Paid must be an integer',
             'total_paid.required' => 'Total Amount Paid is required',
             'total_paid.numeric' => 'Enter a valid value',
             'total_paid.between' => 'Enter a valid value',
@@ -223,6 +229,7 @@ class EmployeeLoansController extends Controller
             'period_from' => 'required|date_format:Y-m-d',
             'period_to' => 'required|date_format:Y-m-d',
             'monthly_amortization' => 'required|numeric|between:1, 999999.99',
+            'total_months_paid' => 'required|integer',
             'total_paid' => 'required|numeric|between:1, 999999.99',
             'balance' => 'required|numeric|between:1, 999999.99',
             'remaining_term' => 'required|integer',
@@ -252,13 +259,20 @@ class EmployeeLoansController extends Controller
         $employee_loans->period_from = $request->get('period_from');	
         $employee_loans->period_to = $request->get('period_to');	
         $employee_loans->monthly_amortization =	$request->get('monthly_amortization');
+        $employee_loans->total_months_paid = $request->get('total_months_paid');
         $employee_loans->total_paid = $request->get('total_paid');
         $employee_loans->balance = $request->get('balance');	
         $employee_loans->remaining_term = $request->get('remaining_term');
         $employee_loans->or_number = $request->get('or_number');
         $employee_loans->save();
 
-        return response()->json(['success' => 'Record has been updated', 'employee_loans' => $employee_loans], 200);
+        $branch = Branch::find($employee_loans->branch_id);
+
+        return response()->json([
+            'success' => 'Record has been updated', 
+            'employee_loans' => $employee_loans,
+            'branch' => $branch,
+        ], 200);
     } 
 
 
@@ -273,7 +287,7 @@ class EmployeeLoansController extends Controller
                 $path = $request->file('file')->getRealPath();
                 $file_extension = $request->file('file')->getClientOriginalExtension();
             }
-
+            
             $validator = Validator::make(
                 [
                     'file' => strtolower($file_extension),
@@ -306,22 +320,18 @@ class EmployeeLoansController extends Controller
                     'ref_no',
                     'date_granted',	
                     'principal_loan',	
-                    'interest',	
-                    'total_loan',	
                     'terms',	
                     'period_from',	
                     'period_to',	
-                    'monthly_amortization',	
-                    'total_paid',	
-                    'balance',	
-                    'remaining_term',	
+                    'monthly_amortization',
+                    'total_months_paid',
                     'or_number',	
                 ]; 
 
                 $collection_errors = [];
                 $collection_column_errors = [];
                 $fields = [];    
-
+                
                 // if no. of columns did not match
                 if(count($collection[0]) <> count($columns))
                 {
@@ -385,14 +395,13 @@ class EmployeeLoansController extends Controller
                         '*.monthly_amortization.required' => 'Monthly Amortization is required',
                         '*.monthly_amortization.numeric' => 'Enter a valid value',
                         '*.monthly_amortization.between' => 'Enter a valid value',
-                        '*.total_paid.required' => 'Total Amount Paid is required',
-                        '*.total_paid.numeric' => 'Enter a valid value',
-                        '*.total_paid.between' => 'Enter a valid value',
-                        '*.balance.required' => 'Balance Amount is required',
-                        '*.balance.numeric' => 'Enter a valid value',
-                        '*.balance.between' => 'Enter a valid value',
-                        '*.remaining_term.required' => 'Remaining Term is required',
-                        '*.remaining_term.integer' => 'Remaining Term must be an integer',
+                        '*.total_months_paid.required' => 'Total Months Paid is required',
+                        '*.total_months_paid.integer' => 'Total Months Paid must be an integer',
+                        // '*.balance.required' => 'Balance Amount is required',
+                        // '*.balance.numeric' => 'Enter a valid value',
+                        // '*.balance.between' => 'Enter a valid value',
+                        // '*.remaining_term.required' => 'Remaining Term is required',
+                        // '*.remaining_term.integer' => 'Remaining Term must be an integer',
                         '*.or_number.required' => 'OR Number is required',
                     ];
             
@@ -405,16 +414,16 @@ class EmployeeLoansController extends Controller
                         '*.ref_no' => 'required',
                         '*.date_granted' => 'required|date_format:Y-m-d',
                         '*.principal_loan' => 'required|numeric|between:1, 999999.99',
-                        '*.interest' => 'required|numeric|between:1, 999999.99',
-                        '*.total_loan' => 'required|numeric|between:1, 999999.99',
-                        '*.principal_loan' => 'required|numeric|between:1, 999999.99',
+                        // '*.interest' => 'required|numeric|between:1, 999999.99',
+                        // '*.total_loan' => 'required|numeric|between:1, 999999.99',
                         '*.terms' => 'required|integer',
                         '*.period_from' => 'required|date_format:Y-m-d',
                         '*.period_to' => 'required|date_format:Y-m-d',
                         '*.monthly_amortization' => 'required|numeric|between:1, 999999.99',
-                        '*.total_paid' => 'required|numeric|between:1, 999999.99',
-                        '*.balance' => 'required|numeric|between:1, 999999.99',
-                        '*.remaining_term' => 'required|integer',
+                        '*.total_months_paid' => 'required|integer',
+                        // '*.total_paid' => 'required|numeric|between:1, 999999.99',
+                        // '*.balance' => 'required|numeric|between:1, 999999.99',
+                        // '*.remaining_term' => 'required|integer',
                         '*.or_number' => 'required',
                     ];
                     

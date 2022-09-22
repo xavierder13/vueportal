@@ -274,65 +274,45 @@
                       <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
                         <v-text-field-dotnumber
                           class="pa-0"
-                          v-model="editedItem.interest"
+                          v-model="interest"
                           label= "Interest"
                           v-bind:properties="{
                             name: 'interest',
                             placeholder: '0.00',
-                            error: interestErrors.hasError,
-                            messages: interestErrors.errors,
+                            //error: interestErrors.hasError,
+                            //messages: interestErrors.errors,
+                            readonly: true
                           }"
                           v-bind:options="{
                             length: 11,
                             precision: 2,
                             empty: null,
                           }"
-                          @input="$v.editedItem.interest.$touch()"
-                          @blur="$v.editedItem.interest.$touch()"
+
                         >
                         </v-text-field-dotnumber>
                       </v-col>
                       <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
                         <v-text-field-dotnumber
                           class="pa-0"
-                          v-model="editedItem.total_loan"
+                          v-model="totalLoan"
                           label= "Total Loan"
                           v-bind:properties="{
                             name: 'total_loan',
                             placeholder: '0.00',
-                            error: totalLoanErrors.hasError,
-                            messages: totalLoanErrors.errors,
+                            //error: totalLoanErrors.hasError,
+                            //messages: totalLoanErrors.errors,
+                            readonly: true,
                           }"
                           v-bind:options="{
                             length: 11,
                             precision: 2,
                             empty: null,
                           }"
-                          @input="$v.editedItem.total_loan.$touch()"
-                          @blur="$v.editedItem.total_loan.$touch()"
                         >
                         </v-text-field-dotnumber>
                       </v-col>
                       <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
-                        <!-- <v-text-field-money
-                          class="pa-0"
-                          v-model="editedItem.terms"
-                          label="Terms"
-                          v-bind:properties="{
-                            name: 'terms',
-                            placeholder: '0',
-                            error: termsErrors.hasError,
-                            messages: termsErrors.errors,
-                          }"
-                          v-bind:options="{
-                            length: 16,
-                            precision: 0,
-                            empty: null,
-                          }"
-                          @input="$v.editedItem.terms.$touch()"
-                          @blur="$v.editedItem.terms.$touch()"
-                        >
-                        </v-text-field-money> -->
                         <v-text-field-integer
                           v-model="editedItem.terms"
                           label="Terms"
@@ -437,21 +417,20 @@
                       <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
                         <v-text-field-dotnumber
                           class="pa-0"
-                          v-model="editedItem.total_paid"
+                          v-model="totalPaid"
                           label= "Total Paid"
                           v-bind:properties="{
                             name: 'total_paid',
                             placeholder: '0.00',
-                            error: totalPaidErrors.hasError,
-                            messages: totalPaidErrors.errors,
+                            //error: totalPaidErrors.hasError,
+                            //messages: totalPaidErrors.errors,
+                            readonly: true,
                           }"
                           v-bind:options="{
                             length: 11,
                             precision: 2,
                             empty: null,
                           }"
-                          @input="$v.editedItem.total_paid.$touch()"
-                          @blur="$v.editedItem.total_paid.$touch()"
                         >
                         </v-text-field-dotnumber>
                       </v-col> 
@@ -460,50 +439,48 @@
                       <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
                         <v-text-field-dotnumber
                           class="pa-0"
-                          v-model="editedItem.balance"
+                          v-model="balance"
                           label= "Balance"
                           v-bind:properties="{
                             name: 'balance',
                             placeholder: '0.00',
-                            error: balanceErrors.hasError,
-                            messages: balanceErrors.errors,
+                            //error: balanceErrors.hasError,
+                            //messages: balanceErrors.errors,
+                            readonly: true,
                           }"
                           v-bind:options="{
                             length: 11,
                             precision: 2,
                             empty: null,
                           }"
-                          @input="$v.editedItem.balance.$touch()"
-                          @blur="$v.editedItem.balance.$touch()"
                         >
                         </v-text-field-dotnumber>
                       </v-col> 
                       <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
-                        <!-- <v-text-field-money
-                          class="pa-0"
-                          v-model="editedItem.remaining_term"
+                        <v-text-field-integer
+                          v-model="remainingTerm"
                           label="Remaining Terms"
                           v-bind:properties="{
-                            name: 'remaining_term',
+                            //error: remainingTermErrors.hasError,
+                            //messages: remainingTermErrors.errors,
                             placeholder: '0',
-                            error: remainingTermErrors.hasError,
-                            messages: remainingTermErrors.errors,
+                            readonly: true,
                           }"
                           v-bind:options="{
-                            length: 16,
-                            precision: 0,
+                            inputMask: '#########',
+                            outputMask: '#########',
                             empty: null,
+                            applyAfter: false,
                           }"
-                          @input="$v.editedItem.remaining_term.$touch()"
-                          @blur="$v.editedItem.remaining_term.$touch()"
-                        >
-                        </v-text-field-money> -->
+                        />
+                      </v-col>
+                      <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
                         <v-text-field-integer
-                          v-model="editedItem.remaining_term"
-                          label="Remaining Terms"
+                          v-model="editedItem.total_months_paid"
+                          label="Total Months Paid"
                           v-bind:properties="{
-                            error: remainingTermErrors.hasError,
-                            messages: remainingTermErrors.errors,
+                            error: totalMonthsPaidErrors.hasError,
+                            messages: totalMonthsPaidErrors.errors,
                             placeholder: '0',
                           }"
                           v-bind:options="{
@@ -512,8 +489,8 @@
                             empty: null,
                             applyAfter: false,
                           }"
-                          @input="$v.editedItem.remaining_term.$touch()"
-                          @blur="$v.editedItem.remaining_term.$touch()"
+                          @input="$v.editedItem.total_months_paid.$touch()"
+                          @blur="$v.editedItem.total_months_paid.$touch()"
                         />
                       </v-col>
                       <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
@@ -564,7 +541,7 @@
                         label="File input"
                         prepend-icon="mdi-paperclip"
                         required
-                        :error-messages="fileErrors"
+                        :error-messages="fileErrors + fileError"
                         @change="$v.file.$touch() + (fileIsEmpty = false)"
                         @blur="$v.file.$touch()"
                         
@@ -601,7 +578,7 @@
                 <v-spacer></v-spacer>
                 <v-btn
                   color="#E0E0E0"
-                  @click="dialog_import = false"
+                  @click="(dialog_import = false) + (fileError = '')"
                   class="mb-4"
                 >
                   Cancel
@@ -679,6 +656,7 @@ export default {
       period_from: { required },	
       period_to: { required },	
       monthly_amortization: { required },	
+      total_months_paid: { required },	
       total_paid: { required },	
       balance: { required },	
       remaining_term: { required },	
@@ -742,6 +720,7 @@ export default {
       dialog_import: false,
       dialog_error_list: false,
       errors_array: [],
+      fileError: "",
       branch_id: "",
       editedIndex: -1,
       editedItem: {
@@ -760,6 +739,7 @@ export default {
         period_from: "",	
         period_to: "",	
         monthly_amortization: 0.00,	
+        total_months_paid: 0.00,	
         total_paid: 0.00,	
         balance: 0.00,	
         remaining_term: 0,	
@@ -781,6 +761,7 @@ export default {
         period_from: "",	
         period_to: "",	
         monthly_amortization: 0.00,	
+        total_months_paid: 0.00,	
         total_paid: 0.00,	
         balance: 0.00,	
         remaining_term: 0,	
@@ -1130,7 +1111,7 @@ export default {
           .then(
             (response) => {
               this.errors_array = [];
-
+              this.fileError = "";
               if (response.data.success) {
                 // send data to Socket.IO Server
                 // this.$socket.emit("sendData", { action: "import-project" });
@@ -1177,7 +1158,8 @@ export default {
               } else if (response.data.error_empty) {
                 this.fileIsEmpty = true;
               } else {
-                this.fileIsInvalid = true;
+                // this.fileIsInvalid = true;
+                this.fileError = response.data.error;
               }
 
               this.uploadDisabled = false;
@@ -1428,12 +1410,55 @@ export default {
         
       return {errors: errors, hasError: hasError};
     },
+    totalMonthsPaidErrors() {
+      const errors = [];
+      let hasError = false;
+
+      if (!this.$v.editedItem.total_months_paid.$dirty) return {errors: errors, hasError: hasError};
+
+      if(!this.editedItem.total_months_paid)
+      {
+        errors.push("Total Months Paid is required.");
+        hasError = true;
+      }
+        
+      return {errors: errors, hasError: hasError};
+    },
     orNumberErrors() {
       const errors = [];
       if (!this.$v.editedItem.or_number.$dirty) return errors;
       !this.$v.editedItem.or_number.required &&
         errors.push("Or Number is required.");
       return errors;
+    },
+    totalLoan(){
+      let monthly_amortization = this.editedItem.monthly_amortization ? parseFloat(this.editedItem.monthly_amortization) : 0;
+      let terms = this.editedItem.terms ? parseInt(this.editedItem.terms) : 0;
+
+      return terms * monthly_amortization;
+    },
+    interest(){
+      let principal_loan = this.editedItem.principal_loan ? parseFloat(this.editedItem.principal_loan) : 0;
+
+      return this.totalLoan - principal_loan;
+    },
+    totalPaid(){
+      let monthly_amortization = this.editedItem.monthly_amortization ? parseFloat(this.editedItem.monthly_amortization) : 0;
+      let total_months_paid = this.editedItem.total_months_paid ? parseInt(this.editedItem.total_months_paid) : 0;
+      
+      return total_months_paid * monthly_amortization;
+    },
+    remainingTerm(){
+      let terms = this.editedItem.terms ? parseInt(this.editedItem.terms) : 0;
+      let total_months_paid = this.editedItem.total_months_paid ? parseInt(this.editedItem.total_months_paid) : 0;
+
+      return terms - total_months_paid;
+    },
+    balance(){
+      let total_loan = this.editedItem.total_loan ? parseFloat(this.editedItem.total_loan) : 0;
+      let total_paid = this.editedItem.total_paid ? parseFloat(this.editedItem.total_paid) : 0;
+
+      return total_loan - total_paid;
     },
     ...mapState("auth", ["user", "userIsLoaded"]),
     ...mapState("userRolesPermissions", [

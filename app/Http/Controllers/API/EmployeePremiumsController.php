@@ -263,11 +263,17 @@ class EmployeePremiumsController extends Controller
         $employee_premiums->pagibig_total = $request->get('pagibig_total');
         $employee_premiums->save();
 
-        return response()->json(['success' => 'Record has been updated', 'employee_premiums' => $employee_premiums], 200);
+        $branch = Branch::find($employee_premiums->branch_id);
+
+        return response()->json([
+            'success' => 'Record has been updated', 
+            'employee_premiums' => $employee_premiums,
+            'branch' => $branch,
+        ], 200);
     } 
 
 
-    public function import_loans(Request $request, $branch_id) 
+    public function import_premiums(Request $request, $branch_id) 
     {   
 
         try {
@@ -312,15 +318,15 @@ class EmployeePremiumsController extends Controller
                     'sss_ee',
                     'sss_er',
                     'sss_ec',
-                    'sss_total',
+                    // 'sss_total',
                     'philhealth_no',
                     'philhealth_ee',
                     'philhealth_er',
-                    'philhealth_total',
+                    // 'philhealth_total',
                     'pagibig_no',
                     'pagibig_ee',
                     'pagibig_er',
-                    'pagibig_total',
+                    // 'pagibig_total',
                 ]; 
 
                 $collection_errors = [];
@@ -381,9 +387,9 @@ class EmployeePremiumsController extends Controller
                         '*.sss_ec.required' => 'Enter a valid value',
                         '*.sss_ec.numeric' => 'Enter a valid value',
                         '*.sss_ec.between' => 'Enter a valid value',
-                        '*.sss_total.required' => 'Enter a valid value',
-                        '*.sss_total.numeric' => 'Enter a valid value',
-                        '*.sss_total.between' => 'Enter a valid value',
+                        // '*.sss_total.required' => 'Enter a valid value',
+                        // '*.sss_total.numeric' => 'Enter a valid value',
+                        // '*.sss_total.between' => 'Enter a valid value',
                         '*.philhealth_no.required' => 'PhilHealth No. is required',
                         '*.philhealth_no.required' => 'SSS No. is required',
                         '*.philhealth_ee.required' => 'Enter a valid value',
@@ -392,9 +398,9 @@ class EmployeePremiumsController extends Controller
                         '*.philhealth_er.required' => 'Enter a valid value',
                         '*.philhealth_er.numeric' => 'Enter a valid value',
                         '*.philhealth_er.between' => 'Enter a valid value',
-                        '*.philhealth_total.required' => 'Enter a valid value',
-                        '*.philhealth_total.numeric' => 'Enter a valid value',
-                        '*.philhealth_total.between' => 'Enter a valid value',
+                        // '*.philhealth_total.required' => 'Enter a valid value',
+                        // '*.philhealth_total.numeric' => 'Enter a valid value',
+                        // '*.philhealth_total.between' => 'Enter a valid value',
                         '*.pagibig_no.required' => 'Pag-IBIG No. is required',
                         '*.pagibig_ee.required' => 'Enter a valid value',
                         '*.pagibig_ee.numeric' => 'Enter a valid value',
@@ -402,9 +408,9 @@ class EmployeePremiumsController extends Controller
                         '*.pagibig_er.required' => 'Enter a valid value',
                         '*.pagibig_er.numeric' => 'Enter a valid value',
                         '*.pagibig_er.between' => 'Enter a valid value',
-                        '*.pagibig_total.required' => 'Enter a valid value',
-                        '*.pagibig_total.numeric' => 'Enter a valid value',
-                        '*.pagibig_total.between' => 'Enter a valid value',
+                        // '*.pagibig_total.required' => 'Enter a valid value',
+                        // '*.pagibig_total.numeric' => 'Enter a valid value',
+                        // '*.pagibig_total.between' => 'Enter a valid value',
                         
                     ];
             
@@ -417,15 +423,15 @@ class EmployeePremiumsController extends Controller
                         '*.sss_ee' => 'required|numeric|between:1, 999999.99',
                         '*.sss_er' => 'required|numeric|between:1, 999999.99',
                         '*.sss_ec' => 'required|numeric|between:1, 999999.99',
-                        '*.sss_total' => 'required|numeric|between:1, 999999.99',
+                        // '*.sss_total' => 'required|numeric|between:1, 999999.99',
                         '*.philhealth_no' => 'required',
                         '*.philhealth_ee' => 'required|numeric|between:1, 999999.99',
                         '*.philhealth_er' => 'required|numeric|between:1, 999999.99',
-                        '*.philhealth_total' => 'required|numeric|between:1, 999999.99',
+                        // '*.philhealth_total' => 'required|numeric|between:1, 999999.99',
                         '*.pagibig_no' => 'required',
                         '*.pagibig_ee' => 'required|numeric|between:1, 999999.99',
                         '*.pagibig_er' => 'required|numeric|between:1, 999999.99',
-                        '*.pagibig_total' => 'required|numeric|between:1, 999999.99',
+                        // '*.pagibig_total' => 'required|numeric|between:1, 999999.99',
                     ];
                     
                     $validator = Validator::make($fields, $valid_fields, $rules);  

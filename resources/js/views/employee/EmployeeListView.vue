@@ -938,7 +938,7 @@ export default {
               if (response.data.success) {
                 // send data to Sockot.IO Server
                 // this.$socket.emit("sendData", { action: "employee-edit" });
-
+                console.log(response.data);
                 let employee = response.data.employee;
                 employee.branch = response.data.branch;
                 

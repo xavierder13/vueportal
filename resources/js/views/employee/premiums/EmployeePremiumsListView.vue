@@ -335,21 +335,20 @@
                       <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
                         <v-text-field-dotnumber
                           class="pa-0"
-                          v-model="editedItem.sss_total"
-                          label= "SSS Premium ER"
+                          v-model="sssTotal"
+                          label= "SSS Premium Total"
                           v-bind:properties="{
                             name: 'sss_total',
                             placeholder: '0.00',
-                            error: sssTotalErrors.hasError,
-                            messages: sssTotalErrors.errors,
+                            //error: sssTotalErrors.hasError,
+                            //messages: sssTotalErrors.errors,
+                            readonly: true,
                           }"
                           v-bind:options="{
                             length: 11,
                             precision: 2,
                             empty: null,
                           }"
-                          @input="$v.editedItem.sss_total.$touch()"
-                          @blur="$v.editedItem.sss_total.$touch()"
                         >
                         </v-text-field-dotnumber>
                       </v-col> 
@@ -410,21 +409,20 @@
                       <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
                         <v-text-field-dotnumber
                           class="pa-0"
-                          v-model="editedItem.philhealth_total"
+                          v-model="philhealthTotal"
                           label= "Philhealth Premium Total"
                           v-bind:properties="{
                             name: 'philhealth_total',
                             placeholder: '0.00',
-                            error: philhealthTotalErrors.hasError,
-                            messages: philhealthTotalErrors.errors,
+                            //error: philhealthTotalErrors.hasError,
+                            //messages: philhealthTotalErrors.errors,
+                            readonly: true,
                           }"
                           v-bind:options="{
                             length: 11,
                             precision: 2,
                             empty: null,
                           }"
-                          @input="$v.editedItem.philhealth_total.$touch()"
-                          @blur="$v.editedItem.philhealth_total.$touch()"
                         >
                         </v-text-field-dotnumber>
                       </v-col>
@@ -485,21 +483,20 @@
                       <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
                         <v-text-field-dotnumber
                           class="pa-0"
-                          v-model="editedItem.pagibig_total"
+                          v-model="pagibigTotal"
                           label= "Pagibig Premium Total"
                           v-bind:properties="{
                             name: 'pagibig_total',
                             placeholder: '0.00',
-                            error: pagibigTotalErrors.hasError,
-                            messages: pagibigTotalErrors.errors,
+                            //error: pagibigTotalErrors.hasError,
+                            //messages: pagibigTotalErrors.errors,
+                            readonly: true,
                           }"
                           v-bind:options="{
                             length: 11,
                             precision: 2,
                             empty: null,
                           }"
-                          @input="$v.editedItem.pagibig_total.$touch()"
-                          @blur="$v.editedItem.pagibig_total.$touch()"
                         >
                         </v-text-field-dotnumber>
                       </v-col>
@@ -540,7 +537,7 @@
                         label="File input"
                         prepend-icon="mdi-paperclip"
                         required
-                        :error-messages="fileErrors"
+                        :error-messages="fileErrors + fileError"
                         @change="$v.file.$touch() + (fileIsEmpty = false)"
                         @blur="$v.file.$touch()"
                         
@@ -577,7 +574,7 @@
                 <v-spacer></v-spacer>
                 <v-btn
                   color="#E0E0E0"
-                  @click="dialog_import = false"
+                  @click="(dialog_import = false) + (fileError = '')"
                   class="mb-4"
                 >
                   Cancel
@@ -715,6 +712,7 @@ export default {
       dialog_import: false,
       dialog_error_list: false,
       errors_array: [],
+      fileError: "",
       branch_id: "",
       editedIndex: -1,
       editedItem: {
@@ -1083,7 +1081,7 @@ export default {
         formData.append("file", this.file);
 
         axios
-          .post("api/employee_premiums/import_loans/" + this.branch_id, formData, {
+          .post("api/employee_premiums/import_premiums/" + this.branch_id, formData, {
             headers: {
               Authorization: "Bearer " + localStorage.getItem("access_token"),
               "Content-Type": "multipart/form-data",
@@ -1092,7 +1090,8 @@ export default {
           .then(
             (response) => {
               this.errors_array = [];
-            console.log(response);
+              this.fileError = "";
+
               if (response.data.success) {
                 // send data to Socket.IO Server
                 // this.$socket.emit("sendData", { action: "import-project" });
@@ -1139,7 +1138,8 @@ export default {
               } else if (response.data.error_empty) {
                 this.fileIsEmpty = true;
               } else {
-                this.fileIsInvalid = true;
+                // this.fileIsInvalid = true;
+                this.fileError = response.data.error;
               }
 
               this.uploadDisabled = false;
@@ -1417,6 +1417,31 @@ export default {
       }
         
       return {errors: errors, hasError: hasError};
+    },
+    sssTotal()
+    {
+
+      let sss_ee = this.editedItem.sss_ee ? parseFloat(this.editedItem.sss_ee) : 0;
+      let sss_er = this.editedItem.sss_er ? parseFloat(this.editedItem.sss_er) : 0;
+      let sss_ec = this.editedItem.sss_ec ? parseFloat(this.editedItem.sss_ec) : 0;
+
+      return sss_ee + sss_er + sss_ec;
+    },
+    philhealthTotal()
+    {
+
+      let philhealth_ee = this.editedItem.philhealth_ee ? parseFloat(this.editedItem.philhealth_ee) : 0;
+      let philhealth_er = this.editedItem.philhealth_er ? parseFloat(this.editedItem.philhealth_er) : 0;
+
+      return philhealth_ee + philhealth_er;
+    },
+    pagibigTotal()
+    {
+
+      let pagibig_ee = this.editedItem.pagibig_ee ? parseFloat(this.editedItem.pagibig_ee) : 0;
+      let pagibig_er = this.editedItem.pagibig_er ? parseFloat(this.editedItem.pagibig_er) : 0;
+
+      return pagibig_ee + pagibig_er;
     },
     ...mapState("auth", ["user", "userIsLoaded"]),
     ...mapState("userRolesPermissions", [

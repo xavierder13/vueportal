@@ -324,8 +324,8 @@ Route::group(['prefix' => 'employee_premiums', 'middleware' => ['auth:api', 'emp
         'as' => 'employee.premiums.update',
     ]);
 
-    Route::post('/import_loans/{id}', [
-        'uses' => 'API\EmployeePremiumsController@import_loans',
+    Route::post('/import_premiums/{id}', [
+        'uses' => 'API\EmployeePremiumsController@import_premiums',
         'as' => 'employee.premiums.import'
     ]);
 

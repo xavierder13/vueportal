@@ -241,7 +241,7 @@ class EmployeeController extends Controller
             return response()->json($validator->errors(), 200);
         }
 
-        $employee = Employee::find($employee_id);
+        $employee = Employee::with('branch')->find($employee_id);
         $employee->employee_code = $request->get('employee_code');
         $employee->last_name = $request->get('last_name');
         $employee->first_name = $request->get('first_name');
@@ -270,7 +270,13 @@ class EmployeeController extends Controller
         $employee->course = $request->get('course');
         $employee->save();
 
-        return response()->json(['success' => 'Record has been updated', 'employee' => $employee], 200);
+        $branch = Branch::find($employee->branch_id);
+
+        return response()->json([
+            'success' => 'Record has been updated', 
+            'employee' => $employee,
+            'branch' => $branch,
+        ], 200);
     } 
 
 

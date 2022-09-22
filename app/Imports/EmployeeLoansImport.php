@@ -41,16 +41,18 @@ class EmployeeLoansImport implements ToModel
                 'ref_no' => @$row[6],
                 'date_granted' => @$row[7],	
                 'principal_loan' => @$row[8],	
-                'interest' => @$row[9],	
-                'total_loan' => @$row[10],	
-                'terms' => @$row[11],	
-                'period_from' => @$row[12],	
-                'period_to' => @$row[13],	
-                'monthly_amortization' => @$row[14],	
-                'total_paid' => @$row[15],	
-                'balance' => @$row[16],	
-                'remaining_term' => @$row[17],	
-                'or_number' => @$row[18],	
+                'terms' => @$row[9],	
+                'period_from' => @$row[10],	
+                'period_to' => @$row[11],	
+                'monthly_amortization' => @$row[12],	
+                'total_months_paid' => @$row[13],
+                'or_number' => @$row[14],	
+                'interest' => @($row[9] * $row[12]) - $row[8],	// (terms * monthly_amortization) -- principal_loan
+                'total_loan' => @($row[9] * $row[12]), // (terms * monthly_amortization)
+                'total_paid' => @($row[12] * $row[13]),	// (total_months_paid * monthly_amortization)
+                'remaining_term' => @($row[9] - $row[13]),	// (terms - total_months_paid)
+                'balance' => @($row[9] * $row[12]) - ($row[12] * $row[13]),	//(terms * monthly_amortization) - (total_months_paid * monthly_amortization)
+                
             ]);
         }
 

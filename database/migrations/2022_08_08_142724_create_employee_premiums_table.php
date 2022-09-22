@@ -23,18 +23,18 @@ class CreateEmployeePremiumsTable extends Migration
             $table->date('date_hired');
             $table->string('or_number');
             $table->string('sss_no');
-            $table->decimal('sss_ee', 8, 2);
-            $table->decimal('sss_er', 8, 2);
-            $table->decimal('sss_ec', 8, 2);
-            $table->decimal('sss_total', 8, 2);
+            $table->decimal('sss_ee', 12, 2);
+            $table->decimal('sss_er', 12, 2);
+            $table->decimal('sss_ec', 12, 2);
+            $table->decimal('sss_total', 12, 2);
             $table->string('philhealth_no');
-            $table->decimal('philhealth_ee', 8, 2);
-            $table->decimal('philhealth_er', 8, 2);
-            $table->decimal('philhealth_total', 8, 2);
+            $table->decimal('philhealth_ee', 12, 2);
+            $table->decimal('philhealth_er', 12, 2);
+            $table->decimal('philhealth_total', 12, 2);
             $table->string('pagibig_no');
-            $table->decimal('pagibig_ee', 8, 2);
-            $table->decimal('pagibig_er', 8, 2);
-            $table->decimal('pagibig_total', 8, 2);
+            $table->decimal('pagibig_ee', 12, 2);
+            $table->decimal('pagibig_er', 12, 2);
+            $table->decimal('pagibig_total', 12, 2);
             $table->timestamps();
         });
     }

@@ -1000,9 +1000,23 @@ export default {
 
       const data = this.editedItem;
       let fieldName = Object.keys(data);
-
+      let fieldValue;
       fieldName.forEach(field => {
-        formData.append(field, JSON.stringify(this.editedItem[`${field}`]));
+        fieldValue = this.editedItem[`${field}`];
+        formData.append(field, JSON.stringify(fieldValue));
+        // if (field != 'file') {
+        //   formData.append(field, JSON.stringify(fieldValue));
+        // }
+        // else
+        // {
+        //   // create array formData for file
+        //   fieldValue.forEach(val => {
+        //     formData.append('file[]', val);
+        //   });
+          
+        // }
+        
+        
       });
 
       // formData.append("file", JSON.stringify(this.files));

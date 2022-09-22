@@ -47,7 +47,7 @@ class EmployeePremiumsMaintenance
         }
 
         //Employee Premiums Import Data
-        if($request->is('api/employee_premiums/import_loans/*')){
+        if($request->is('api/employee_premiums/import_premiums/*')){
             if($user->can('employee-premiums-import')){
                 return $next($request); 
             }

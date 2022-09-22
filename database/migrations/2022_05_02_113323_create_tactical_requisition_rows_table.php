@@ -21,8 +21,8 @@ class CreateTacticalRequisitionRowsTable extends Migration
             $table->string('resource_person')->nullable();
             $table->string('contact')->nullable();
             $table->integer('qty')->nullable();
-            $table->decimal('unit_cost', 8, 2)->nullable();
-            $table->decimal('amount', 8, 2)->nullable();
+            $table->decimal('unit_cost', 12, 2)->nullable();
+            $table->decimal('amount', 12, 2)->nullable();
             $table->timestamps();
         });
     }
