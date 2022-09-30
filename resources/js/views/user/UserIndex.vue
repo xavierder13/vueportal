@@ -479,9 +479,9 @@ export default {
       this.emailReadonly = true;
       this.password = "password";
       this.confirm_password = "password";
-      if (item.active == "Y") {
-        this.switch1 = true;
-      } else {
+      this.switch1 = true;
+      if(this.editedItem.active === 'N')
+      {
         this.switch1 = false;
       }
     },

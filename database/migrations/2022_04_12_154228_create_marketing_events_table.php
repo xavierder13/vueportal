@@ -17,6 +17,7 @@ class CreateMarketingEventsTable extends Migration
             $table->id();
             $table->string('event_name');
             $table->string('active');
+            $table->string('attachment_required');
             $table->timestamps();
         });
     }

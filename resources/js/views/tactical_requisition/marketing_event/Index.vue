@@ -91,6 +91,7 @@ export default {
         // { text: "Event Title", value: "event_name" },
         { text: "Event Title", value: "event_name" },
         { text: "Active", value: "active" },
+        { text: "Attachment Reqruired", value: "attachment_required" },
         { text: "Actions", value: "actions", sortable: false, width: "80px" },
       ],
 
@@ -142,7 +143,7 @@ export default {
       this.loading = true;
       axios.post("/api/marketing_event/delete", data).then(
         (response) => {
-          console.log(response);
+
           if (response.data.success) {
             // send data to Sockot.IO Server
             // this.$socket.emit("sendData", { action: "marketing-event-delete" });

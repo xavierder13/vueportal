@@ -191,6 +191,11 @@ export default {
       this.editedIndex = this.brands.indexOf(item);
       this.editedBrand = Object.assign({}, item);
       this.dialog = true;
+      this.switch1 = true;
+      if(this.editedBrand.active === 'N')
+      {
+        this.switch1 = false;
+      }
     },
 
     deleteBrand(brand_id) {

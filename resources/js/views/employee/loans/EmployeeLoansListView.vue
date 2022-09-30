@@ -1435,30 +1435,29 @@ export default {
       let monthly_amortization = this.editedItem.monthly_amortization ? parseFloat(this.editedItem.monthly_amortization) : 0;
       let terms = this.editedItem.terms ? parseInt(this.editedItem.terms) : 0;
 
-      return terms * monthly_amortization;
+      return (terms * monthly_amortization).toFixed(2);
     },
     interest(){
       let principal_loan = this.editedItem.principal_loan ? parseFloat(this.editedItem.principal_loan) : 0;
-
-      return this.totalLoan - principal_loan;
+      return (this.totalLoan - principal_loan).toFixed(2);
     },
     totalPaid(){
       let monthly_amortization = this.editedItem.monthly_amortization ? parseFloat(this.editedItem.monthly_amortization) : 0;
       let total_months_paid = this.editedItem.total_months_paid ? parseInt(this.editedItem.total_months_paid) : 0;
       
-      return total_months_paid * monthly_amortization;
+      return (total_months_paid * monthly_amortization).toFixed(2);
     },
     remainingTerm(){
       let terms = this.editedItem.terms ? parseInt(this.editedItem.terms) : 0;
       let total_months_paid = this.editedItem.total_months_paid ? parseInt(this.editedItem.total_months_paid) : 0;
 
-      return terms - total_months_paid;
+      return (terms - total_months_paid).toFixed(2);
     },
     balance(){
       let total_loan = this.editedItem.total_loan ? parseFloat(this.editedItem.total_loan) : 0;
       let total_paid = this.editedItem.total_paid ? parseFloat(this.editedItem.total_paid) : 0;
 
-      return total_loan - total_paid;
+      return (total_loan - total_paid).toFixed(2);
     },
     ...mapState("auth", ["user", "userIsLoaded"]),
     ...mapState("userRolesPermissions", [

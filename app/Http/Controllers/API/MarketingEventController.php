@@ -39,12 +39,14 @@ class MarketingEventController extends Controller
         $rules = [
             'event_name.required' => 'Marketing Event Name is required',
             'event_name.unique' => 'Marketing Event Name already exists',
+            'attachment_required.required' => 'Attachment Required status is required',
             'expense_particulars.*.description.required' => 'Description is required',
             'expense_particulars.*.children.*.description.required' => 'Description is required',
         ];
 
         $validator = Validator::make($request->all(), [
             'event_name' => 'required|unique:marketing_events,event_name',
+            'attachment_required' => 'required',
             'expense_particulars.*.description' => 'required',
             'expense_particulars.*.children.*.description' => 'required',
         ], $rules);
@@ -58,6 +60,7 @@ class MarketingEventController extends Controller
 
         $marketing_event = new MarketingEvent();
         $marketing_event->event_name = $request->get('event_name');
+        $marketing_event->attachment_required = $request->get('attachment_required');
         $marketing_event->active = 'Y';
         $marketing_event->save();
 
@@ -114,15 +117,18 @@ class MarketingEventController extends Controller
         $rules = [
             'event_name.required' => 'Marketing Event Name is required',
             'event_name.unique' => 'Marketing Event Name already exists',
+            'attachment_required.required' => 'Attachment Required status is required',
             'expense_particulars.*.description.required' => 'Description is required',
             'expense_particulars.*.children.*.description.required' => 'Description is required',
         ];
 
         $validator = Validator::make($request->all(), [
             'event_name' => 'required|unique:marketing_events,event_name,'.$marketing_event_id,
+            'attachment_required' => 'required',
             'expense_particulars.*.description' => 'required',
             'expense_particulars.*.children.*.description' => 'required',
         ], $rules);
+
 
         if($validator->fails())
         {
@@ -138,6 +144,7 @@ class MarketingEventController extends Controller
         }
 
         $marketing_event->event_name = $request->get('event_name');
+        $marketing_event->attachment_required = $request->get('attachment_required');
         $marketing_event->save();
         
         $expense_particulars = $request->get('expense_particulars');

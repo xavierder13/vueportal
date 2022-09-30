@@ -1425,7 +1425,7 @@ export default {
       let sss_er = this.editedItem.sss_er ? parseFloat(this.editedItem.sss_er) : 0;
       let sss_ec = this.editedItem.sss_ec ? parseFloat(this.editedItem.sss_ec) : 0;
 
-      return sss_ee + sss_er + sss_ec;
+      return (sss_ee + sss_er + sss_ec).toFixed(2);
     },
     philhealthTotal()
     {
@@ -1433,7 +1433,7 @@ export default {
       let philhealth_ee = this.editedItem.philhealth_ee ? parseFloat(this.editedItem.philhealth_ee) : 0;
       let philhealth_er = this.editedItem.philhealth_er ? parseFloat(this.editedItem.philhealth_er) : 0;
 
-      return philhealth_ee + philhealth_er;
+      return (philhealth_ee + philhealth_er).toFixed(2);
     },
     pagibigTotal()
     {
@@ -1441,7 +1441,7 @@ export default {
       let pagibig_ee = this.editedItem.pagibig_ee ? parseFloat(this.editedItem.pagibig_ee) : 0;
       let pagibig_er = this.editedItem.pagibig_er ? parseFloat(this.editedItem.pagibig_er) : 0;
 
-      return pagibig_ee + pagibig_er;
+      return (pagibig_ee + pagibig_er).toFixed(2);
     },
     ...mapState("auth", ["user", "userIsLoaded"]),
     ...mapState("userRolesPermissions", [

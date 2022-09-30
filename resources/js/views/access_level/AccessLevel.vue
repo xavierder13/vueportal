@@ -77,7 +77,6 @@ export default {
     return {
       absolute: true,
       overlay: false,
-      switch1: false,
       disabled: false,
       items: [
         {

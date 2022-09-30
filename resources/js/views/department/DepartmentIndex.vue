@@ -202,9 +202,9 @@ export default {
       this.editedItem.id = item.id;
       this.editedItem.department = item.name;
       this.editedItem.active = item.active;
-      if (this.editedItem.active == "Y") {
-        this.switch1 = true;
-      } else {
+      this.switch1 = true;
+      if(this.editedItem.active === 'N')
+      {
         this.switch1 = false;
       }
       this.dialog = true;

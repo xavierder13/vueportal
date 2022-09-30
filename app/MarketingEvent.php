@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class MarketingEvent extends Model
 {
-    protected $fillable = ['event_name', 'active'];
+    protected $fillable = ['event_name', 'active', 'attachment_required'];
 
     public function expense_particulars()
     {

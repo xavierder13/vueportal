@@ -25,6 +25,9 @@ class CreateTacticalRequisitionsTable extends Migration
             $table->string('operating_from');
             $table->string('operating_to');
             $table->string('status');
+            $table->date('prev_date')->nullable();
+            $table->string('prev_venue');
+            $table->string('prev_sponsor');
             $table->date('date_approve')->nullable();
             $table->date('date_cancelled')->nullable();
             $table->timestamps();

@@ -173,7 +173,7 @@ export default {
       this.loading = true;
       axios.post("/api/tactical_requisition/delete", data).then(
         (response) => {
-          console.log(response);
+
           if (response.data.success) {
             // send data to Sockot.IO Server
             // this.$socket.emit("sendData", { action: "tactical-requisition-delete" });

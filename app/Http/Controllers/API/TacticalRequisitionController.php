@@ -306,7 +306,7 @@ class TacticalRequisitionController extends Controller
         
         $files = $request->file;
 
-        if($files)
+        if(is_array($files))
         {
             foreach ($files as $key => $file) {
                 

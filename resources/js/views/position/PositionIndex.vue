@@ -180,6 +180,11 @@ export default {
       this.editedIndex = this.positions.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.dialog = true;
+      this.switch1 = true;
+      if(this.editedItem.active === 'N')
+      {
+        this.switch1 = false;
+      }
     },
 
     deletePosition(position_id) {

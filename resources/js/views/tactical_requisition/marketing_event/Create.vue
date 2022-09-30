@@ -30,11 +30,20 @@
                   v-model="editedItem.event_name"
                   label="Event Title"
                   :error-messages="eventErrors + eventError.event_name"
-                  @input="$v.editedItem.event_name.$touch() + (eventError.event_name = [])"
+                  @input="
+                    $v.editedItem.event_name.$touch() +
+                      (eventError.event_name = [])
+                  "
                   @blur="$v.editedItem.event_name.$touch()"
                 >
                   ></v-text-field
                 >
+              </v-col>
+              
+            </v-row>
+            <v-row>
+              <v-col cols="4" class="mt-0 mb-0 pt-0 pb-0">
+                <v-switch v-model="switch1" :label="attachRequiredStatus"></v-switch>
               </v-col>
             </v-row>
             <v-row>
@@ -156,16 +165,21 @@ export default {
 
       editedItem: {
         event_name: "",
+        attachment_required: "N"
+
       },
       defaultItem: {
         event_name: "",
+        attachment_required: "N"
       },
       initiallyOpen: ["two"],
       expense_particulars: [{ description: "", children: [], hasError: false }],
       errorFields: [],
       eventError: {
         event_name: [],
-      }
+        attachment_required: [],
+      },
+      switch1: false,
     };
   },
 
@@ -184,14 +198,14 @@ export default {
       this.$v.$touch();
       let hasError = this.validateExpenseParticulars();
       this.eventError = {
-        event_name: []
+        event_name: [],
       };
 
       if (!this.$v.$error && !hasError) {
         this.disabled = true;
         this.overlay = true;
 
-        this.editedItem['expense_particulars'] = this.expense_particulars ;
+        this.editedItem["expense_particulars"] = this.expense_particulars;
 
         const data = this.editedItem;
 
@@ -206,7 +220,7 @@ export default {
             } else {
               let errors = response.data;
               let errorNames = Object.keys(response.data);
-              errorNames.forEach(value => {
+              errorNames.forEach((value) => {
                 this.eventError[value].push(errors[value]);
               });
             }
@@ -225,10 +239,13 @@ export default {
     clear() {
       this.$v.$reset();
       this.editedItem = Object.assign({}, this.defaultItem);
-      this.expense_particulars = [{ description: "", children: [], hasError: false }];
+      this.expense_particulars = [
+        { description: "", children: [], hasError: false },
+      ];
       this.eventError = {
-        event_name: []
-      }
+        event_name: [],
+        attachment_required: [],
+      };
     },
 
     isUnauthorized(error) {
@@ -291,8 +308,6 @@ export default {
           this.expense_particulars[index].children[i].parent_index = index;
         });
       });
-
-
     },
     validateExpenseParticulars() {
       let hasError = false;
@@ -323,6 +338,15 @@ export default {
       !this.$v.editedItem.event_name.required &&
         errors.push("Event Title is required.");
       return errors;
+    },
+    attachRequiredStatus() {
+      if (this.switch1) {
+        this.editedItem.attachment_required = "Y";
+        return " Attachment Required";
+      } else {
+        this.editedItem.attachment_required = "N";
+        return " Attachment Not Required";
+      }
     },
   },
   mounted() {

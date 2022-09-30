@@ -38,6 +38,11 @@
               </v-col>
             </v-row>
             <v-row>
+              <v-col cols="4" class="mt-0 mb-0 pt-0 pb-0">
+                <v-switch v-model="switch1" :label="attachRequiredStatus"></v-switch>
+              </v-col>
+            </v-row>
+            <v-row>
               <v-col>
                 <fieldset class="border-1">
                   <legend>Expense Particulars:</legend>
@@ -152,9 +157,11 @@ export default {
 
       editedItem: {
         event_name: "",
+        attachment_required: "N"
       },
       defaultItem: {
         event_name: "",
+        attachment_required: "N"
       },
       initiallyOpen: [""],
       expense_particulars: [],
@@ -164,7 +171,9 @@ export default {
       addedRows: [],
       eventError: {
         event_name: [],
-      }
+        attachment_required: [],
+      },
+      switch1: false,
     };
   },
 
@@ -178,6 +187,11 @@ export default {
         (response) => {
           this.marketing_event = response.data.marketing_event;
           this.editedItem.event_name = this.marketing_event.event_name;
+          this.editedItem.attachment_required = this.marketing_event.attachment_required;
+          if(this.editedItem.attachment_required === 'Y')
+          {
+            this.switch1 = true;
+          }
           let expense_particulars = this.marketing_event.expense_particulars;
 
           this.expense_particulars = [];
@@ -224,7 +238,8 @@ export default {
       this.$v.$touch();
       let hasError = this.validateExpenseParticulars();
       this.eventError = {
-        event_name: []
+        event_name: [],
+        attachment_required: [],
       };
       
       if (!this.$v.$error && !hasError) {
@@ -237,6 +252,7 @@ export default {
 
         const data = {
           event_name: this.editedItem.event_name,
+          attachment_required: this.editedItem.attachment_required,
           expense_particulars: this.expense_particulars,
           deletedRows: this.deletedRows,
         };
@@ -277,8 +293,10 @@ export default {
         { description: "", children: [], hasError: false },
       ];
       this.eventError = {
-        event_name: []
+        event_name: [],
+        attachment_required: [],
       }
+      this.switch1 = false;
     },
 
     isUnauthorized(error) {
@@ -394,6 +412,16 @@ export default {
       !this.$v.editedItem.event_name.required &&
         errors.push("Event Title is required.");
       return errors;
+    },
+    attachRequiredStatus() {
+      if (this.switch1) {
+        this.editedItem.attachment_required = "Y";
+        return " Attachment Required";
+      } else {
+        this.editedItem.attachment_required = "N";
+        return " Attachment Not Required";
+      }
+
     },
   },
   mounted() {

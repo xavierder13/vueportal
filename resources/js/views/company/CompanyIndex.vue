@@ -244,6 +244,11 @@ export default {
       this.editedIndex = this.companies.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.dialog = true;
+      this.switch1 = true;
+      if(this.editedItem.active === 'N')
+      {
+        this.switch1 = false;
+      }
     },
 
     deleteCompany(company_id) {
