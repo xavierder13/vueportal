@@ -84,13 +84,18 @@ class TacticalRequisitionController extends Controller
                 
                 // approved_logs for each record
                 foreach ($value->approved_logs as $key3 => $value3) {
+
+                    // scan if approved_logs is equal to approver_per_level (from access_charts table relations)
                     if($value2->level === $value3->level)
-                    {
+                    {   
+                        // count the logs of approver per level for each record - used to validate if tactical requisition has already approved by the required approver for each level
                         $approver_ctr_per_level += 1;
+
                         $approver [] = $value3->approver->name;
                     }
                 }
-    
+                
+                // count 
                 if($value2->num_of_approvers !== $approver_ctr_per_level)
                 {
                     $level [] = $value2->level;
@@ -224,6 +229,16 @@ class TacticalRequisitionController extends Controller
             'period_to.date_format' => 'Invalid date. Format: (YYYY-MM-DD)',
             'operating_from.required' => 'Operating Hour From is required',
             'operating_to.required' => 'Operating Hour To is required',
+            'prev_period_from.date_format' => 'Invalid date. Format: (YYYY-MM-DD)',
+            'prev_period_to.date_format' => 'Invalid date. Format: (YYYY-MM-DD)',
+            'prev_quota.numeric' => 'Enter a valid value',
+            'prev_quota.between' => 'Enter a valid value',
+            'prev_total_sales.numeric' => 'Enter a valid value',
+            'prev_total_sales.between' => 'Enter a valid value',
+            'prev_sales_achievement.numeric' => 'Enter a valid value',
+            'prev_sales_achievement.between' => 'Enter a valid value',
+            'prev_total_expense.numeric' => 'Enter a valid value',
+            'prev_total_expense.between' => 'Enter a valid value',
             'expense_particulars.required' => 'Expense Particulars is required',
 
         ];
@@ -237,6 +252,12 @@ class TacticalRequisitionController extends Controller
             'period_to' => 'required|date_format:Y-m-d',
             'operating_from' => 'required',
             'operating_to' => 'required',
+            'prev_period_from' => 'date_format:Y-m-d|nullable',
+            'prev_period_to' => 'date_format:Y-m-d|nullable',
+            'prev_quota' => 'numeric|between:1, 999999.99|nullable',
+            'prev_total_sales' => 'numeric|between:1, 999999.99|nullable',
+            'prev_sales_achievement' => 'numeric|between:1, 999999.99|nullable',
+            'prev_total_expense' => 'numeric|between:1, 999999.99|nullable',
             'expense_particulars' => 'required',
 
         ], $rules);
@@ -258,6 +279,14 @@ class TacticalRequisitionController extends Controller
         $tactical_requisition->period_to = $data->period_from;
         $tactical_requisition->operating_to = $data->operating_to;
         $tactical_requisition->operating_from = $data->operating_from;
+        $tactical_requisition->prev_period_from = $data->prev_period_from;
+        $tactical_requisition->prev_period_to = $data->prev_period_to;
+        $tactical_requisition->prev_venue = $data->prev_venue;
+        $tactical_requisition->prev_sponsor = $data->prev_sponsor;
+        $tactical_requisition->prev_quota = (float)$data->prev_quota;
+        $tactical_requisition->prev_total_sales = (float)$data->prev_total_sales;
+        $tactical_requisition->prev_sales_achievement = (float)$data->prev_sales_achievement;
+        $tactical_requisition->prev_total_expense = (float)$data->prev_total_expense;
         $tactical_requisition->status = 'Pending';
         $tactical_requisition->date_approve = null;
         $tactical_requisition->save();
@@ -377,6 +406,16 @@ class TacticalRequisitionController extends Controller
             'period_to.date_format' => 'Invalid date. Format: (YYYY-MM-DD)',
             'operating_from.required' => 'Operating Hour From is required',
             'operating_to.required' => 'Operating Hour To is required',
+            'prev_period_from.date_format' => 'Invalid date. Format: (YYYY-MM-DD)',
+            'prev_period_to.date_format' => 'Invalid date. Format: (YYYY-MM-DD)',
+            'prev_quota.numeric' => 'Enter a valid value',
+            'prev_quota.between' => 'Enter a valid value',
+            'prev_total_sales.numeric' => 'Enter a valid value',
+            'prev_total_sales.between' => 'Enter a valid value',
+            'prev_sales_achievement.numeric' => 'Enter a valid value',
+            'prev_sales_achievement.between' => 'Enter a valid value',
+            'prev_total_expense.numeric' => 'Enter a valid value',
+            'prev_total_expense.between' => 'Enter a valid value',
             'expense_particulars.required' => 'Expense Particulars is required',
 
         ];
@@ -390,6 +429,14 @@ class TacticalRequisitionController extends Controller
             'period_to' => 'required|date_format:Y-m-d',
             'operating_from' => 'required',
             'operating_to' => 'required',
+            'period_from' => 'date_format:Y-m-d|nullable',
+            'period_to' => 'date_format:Y-m-d|nullable',
+            'prev_period_from' => 'date_format:Y-m-d|nullable',
+            'prev_period_to' => 'date_format:Y-m-d|nullable',
+            'prev_quota' => 'numeric|between:1, 999999.99|nullable',
+            'prev_total_sales' => 'numeric|between:1, 999999.99|nullable',
+            'prev_sales_achievement' => 'numeric|between:1, 999999.99|nullable',
+            'prev_total_expense' => 'numeric|between:1, 999999.99|nullable',
             'expense_particulars' => 'required',
 
         ], $rules);
@@ -408,6 +455,14 @@ class TacticalRequisitionController extends Controller
         $tactical_requisition->period_to = $request->get('period_to');
         $tactical_requisition->operating_to = $request->get('operating_to');
         $tactical_requisition->operating_from = $request->get('operating_from');
+        $tactical_requisition->prev_period_from = $data->prev_period_from;
+        $tactical_requisition->prev_period_to = $data->prev_period_to;
+        $tactical_requisition->prev_venue = $data->prev_venue;
+        $tactical_requisition->prev_sponsor = $data->prev_sponsor;
+        $tactical_requisition->prev_quota = $data->prev_quota;
+        $tactical_requisition->prev_total_sales = $data->prev_total_sales;
+        $tactical_requisition->prev_sales_achievement = $data->prev_sales_achievement;
+        $tactical_requisition->prev_total_expense = $data->prev_total_expense;
         $tactical_requisition->status = 'Pending';
         $tactical_requisition->date_approve = null;
         $tactical_requisition->save();

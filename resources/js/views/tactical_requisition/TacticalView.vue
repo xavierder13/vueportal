@@ -47,9 +47,39 @@
                       item-value="id"
                       label="Branch"
                       required
-                      readonly
+                      :readonly="user.id === 1 ? false :  true"
                     >
                     </v-autocomplete>
+                  </v-col>
+                  <v-col class="mb-0 pt-0 pb-0">
+                    <v-menu
+                      ref="menu"
+                      v-model="date_menu_date_submit"
+                      :close-on-content-click="true"
+                      :return-value.sync="date_menu_date_submit"
+                      transition="scale-transition"
+                      offset-y
+                      min-width="auto"
+                    >
+                      <template v-slot:activator="{ on, attrs }">
+                        <v-text-field
+                          v-model="computedDateSubmitFormatted"
+                          label="Date Submitted"
+                          prepend-icon="mdi-calendar"
+                          readonly
+                          v-bind="attrs"
+                          v-on="on"
+                        ></v-text-field>
+                      </template>
+                      <v-date-picker
+                        v-model="editedItem.date_submit"
+                        no-title
+                        scrollable
+                        :max="editedItem.date_submit"
+                        readonly
+                      >
+                      </v-date-picker>
+                    </v-menu>
                   </v-col>
                 </v-row>
                 <v-row>
@@ -94,9 +124,9 @@
                       <v-col>
                         <v-menu
                           ref="menu"
-                          v-model="date_menu1"
+                          v-model="date_menu_period_fr"
                           :close-on-content-click="true"
-                          :return-value.sync="date_menu1"
+                          :return-value.sync="date_menu_period_fr"
                           transition="scale-transition"
                           offset-y
                           min-width="auto"
@@ -123,9 +153,9 @@
                       <v-col>
                         <v-menu
                           ref="menu"
-                          v-model="date_menu2"
+                          v-model="date_menu_period_to"
                           :close-on-content-click="true"
-                          :return-value.sync="date_menu2"
+                          :return-value.sync="date_menu_period_to"
                           transition="scale-transition"
                           offset-y
                           min-width="auto"
@@ -206,7 +236,165 @@
                     4. PICTURES OF PREVIOUS ACTIVITY STATED HEREIN
                   </p>
                 </div>
-                <v-btn color="primary" small><v-icon small>mdi-attachment</v-icon> Attach Files {{ '(2)' }}</v-btn> 
+                <v-btn color="primary" small @click="dialog_attach_file = true"><v-icon small>mdi-attachment</v-icon> Attach Files {{ editedItem.file.length ? '(' + editedItem.file.length + ')' : '' }}</v-btn> 
+              </v-col>
+            </v-row>
+            <v-divider></v-divider>
+            <v-row>
+              <v-col class="mb-0 pt-0 pb-0">
+                <p class="font-weight-bold subtitle-1">
+                  PREVIOUS TACTICAL ACTIVITY
+                </p>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col class="mb-0 pt-0 pb-0">
+                <v-menu
+                  ref="menu"
+                  v-model="date_menu_prev_period_fr"
+                  :close-on-content-click="true"
+                  :return-value.sync="date_menu_prev_period_fr"
+                  transition="scale-transition"
+                  offset-y
+                  min-width="auto"
+                >
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-text-field
+                      v-model="computedPrevPeriodFromFormatted"
+                      label="Period From"
+                      prepend-icon="mdi-calendar"
+                      readonly
+                      v-bind="attrs"
+                      v-on="on"
+                    ></v-text-field>
+                  </template>
+                  <v-date-picker
+                    v-model="editedItem.prev_period_from"
+                    no-title
+                    scrollable
+                    :max="editedItem.prev_period_from"
+                  >
+                  </v-date-picker>
+                </v-menu>
+              </v-col>
+              <v-col class="mb-0 pt-0 pb-0">
+                <v-menu
+                  ref="menu"
+                  v-model="date_menu_prev_period_to"
+                  :close-on-content-click="true"
+                  :return-value.sync="date_menu_prev_period_to"
+                  transition="scale-transition"
+                  offset-y
+                  min-width="auto"
+                >
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-text-field
+                      v-model="computedPrevPeriodToFormatted"
+                      label="Period To"
+                      prepend-icon="mdi-calendar"
+                      readonly
+                      v-bind="attrs"
+                      v-on="on"
+                    ></v-text-field>
+                  </template>
+                  <v-date-picker
+                    v-model="editedItem.prev_period_to"
+                    no-title
+                    scrollable
+                    :max="editedItem.prev_period_to"
+                  >
+                  </v-date-picker>
+                </v-menu>
+              </v-col>
+              
+              <v-col class="mt-0 mb-0 pt-0 pb-0">
+                <v-text-field
+                  name="prev_venue"
+                  v-model="editedItem.prev_venue"
+                  label="Venue"
+                ></v-text-field>
+              </v-col>
+              <v-col class="mt-0 mb-0 pt-0 pb-0">
+                <v-text-field
+                  name="prev_sponsor"
+                  v-model="editedItem.prev_sponsor"
+                  label="Sponsor"
+                ></v-text-field>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col class="mt-0 mb-0 pt-0 pb-0">
+                <v-text-field-dotnumber
+                  v-model="editedItem.prev_quota"
+                  label= 'Quota'
+                  v-bind:properties="{
+                    name: 'prev_quota',
+                    placeholder: '0',
+                    error: prevQuotaErrors.length ? true : false,
+                    messages: prevQuotaErrors,
+                  }"
+                  v-bind:options="{
+                    length: 16,
+                    precision: 0,
+                    empty: null,
+                    
+                  }"
+                >
+                </v-text-field-dotnumber>
+              </v-col>
+              <v-col class="mt-0 mb-0 pt-0 pb-0">
+                <v-text-field-dotnumber
+                  v-model="editedItem.prev_total_sales"
+                  label= 'Total Sales'
+                  v-bind:properties="{
+                    name: 'prev_total_sales',
+                    placeholder: '0',
+                    error: prevTotalSalesErrors.length ? true : false,
+                    messages: prevTotalSalesErrors,
+                  }"
+                  v-bind:options="{
+                    length: 16,
+                    precision: 0,
+                    empty: null,
+                  }"
+                >
+                </v-text-field-dotnumber>
+              </v-col>
+              <v-col class="mt-0 mb-0 pt-0 pb-0">
+                <v-text-field-dotnumber
+                  v-model="editedItem.prev_sales_achievement"
+                  label= 'Sales Achievement'
+                  v-bind:properties="{
+                    name: 'prev_sales_achievement',
+                    placeholder: '0',
+                    error: prevSalesAchvmntErrors.length ? true : false,
+                    messages: prevSalesAchvmntErrors,
+                  }"
+                  v-bind:options="{
+                    length: 16,
+                    precision: 0,
+                    empty: null,
+                  }"
+                >
+                </v-text-field-dotnumber>
+              </v-col>
+              <v-col class="mt-0 mb-0 pt-0 pb-0">
+                <v-text-field-dotnumber
+                  v-model="editedItem.prev_total_expense"
+                  label= 'Total Expense'
+                  v-bind:properties="{
+                    name: 'prev_total_expense',
+                    placeholder: '0',
+                    error: prevTotalExpenseErrors.length ? true : false,
+                    messages: prevTotalExpenseErrors,
+                  }"
+                  v-bind:options="{
+                    length: 16,
+                    precision: 0,
+                    empty: null,
+                  }"
+                >
+                </v-text-field-dotnumber>
               </v-col>
             </v-row>
             <v-divider></v-divider>
@@ -453,12 +641,70 @@
             >
               Save
             </v-btn>
-            <v-btn color="primary" class="mb-4 mr-1" @click="confirmApproval()"> Approve </v-btn>
+            <v-btn color="success" class="mb-4 mr-1" @click="confirmApproval()"> Approve </v-btn>
             <v-btn color="#E0E0E0" to="/tactical_requisition/index" class="mb-4"> Back </v-btn>
             <v-spacer></v-spacer>
             <v-btn color="error" @click="confirmDelete()" class="mb-4 mr-4"> Delete </v-btn>
           </v-card-actions>
         </v-card>
+        <v-dialog v-model="dialog_attach_file" max-width="500px" persistent>
+          <v-card>
+            <v-card-title class="mb-0 pb-0">
+              <span class="headline">Attach file</span>
+            </v-card-title>
+            <v-divider></v-divider>
+            <v-card-text>
+              <v-container>
+                <v-row>
+                  <v-col class="mt-0 mb-0 pt-0 pb-0">
+                    <v-file-input
+                      v-model="editedItem.file"
+                      show-size
+                      label="File input"
+                      prepend-icon="mdi-paperclip"
+                      required
+                      multiple
+                    >
+                      <template v-slot:selection="{ index, text }">
+                        <v-chip small label color="primary" close @click:close="removeFile(index, text)">
+                          {{ text }}
+                        </v-chip>
+                      </template>
+                    </v-file-input>
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <v-col>
+                    <v-list-item>
+                      <v-list-item-content>
+                        <v-list-item-title v-for="item in tactical_attachments" :key="item.id"> 
+                          <v-icon color="error" @click=""> mdi-close </v-icon> {{ item.file_name }} 
+                        </v-list-item-title>
+                      </v-list-item-content>
+                    </v-list-item>
+                  </v-col>
+                </v-row>
+              </v-container>
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <!-- <v-btn
+                color="#E0E0E0"
+                @click="(dialog_attach_file = false)"
+                class="mb-4"
+              >
+                Close
+              </v-btn> -->
+              <v-btn
+                color="primary"
+                class="mb-4 mr-4"
+                @click="(dialog_attach_file = false)"
+              >
+                OK
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
       </v-main>
     </div>
   </div>
@@ -468,10 +714,7 @@ import axios from "axios";
 import { validationMixin } from "vuelidate";
 import {
   required,
-  maxLength,
-  email,
-  minLength,
-  sameAs,
+  requiredIf,
 } from "vuelidate/lib/validators";
 import TimeRangePicker from "vuetify-time-range-picker";
 import { mapState } from "vuex";
@@ -489,6 +732,11 @@ export default {
       period_to: { required },
       operating_from: { required },
       operating_to: { required },
+      file: {
+        required: requiredIf(function () {
+          return this.fileIsRequired;
+        }),
+      },
     },
   },
   data() {
@@ -511,10 +759,10 @@ export default {
           disabled: true,
         },
       ],
-      switch1: true,
       disabled: false,
       branches: [],
       marketing_events: [],
+      tactical_attachments: [],
       editedItem: {
         marketing_event: "",
         marketing_event_id: "",
@@ -522,6 +770,11 @@ export default {
         venue: "",
         sponsor: "",
         expense_particulars: [],
+        date_submit: new Date(
+          Date.now() - new Date().getTimezoneOffset() * 60000
+        )
+          .toISOString()
+          .substr(0, 10),
         period_from: new Date(
           Date.now() - new Date().getTimezoneOffset() * 60000
         )
@@ -532,17 +785,28 @@ export default {
           .substr(0, 10),
         operating_from: "",
         operating_to: "",
-        status: "",
+        prev_period_from: null,
+        prev_period_to: null,
+        prev_venue: "",
+        prev_sponsor: "",
+        prev_quota: "",
+        prev_total_sales: "",
+        prev_sales_achievement: "",
+        prev_total_expense: "",
+        file: [],
       },
       defaultItem: {
         marketing_event: "",
         marketing_event_id: "",
         branch_id: "",
         venue: "",
-        period: "",
         sponsor: "",
-        operating_hrs: "",
         expense_particulars: [],
+        date_submit: new Date(
+          Date.now() - new Date().getTimezoneOffset() * 60000
+        )
+          .toISOString()
+          .substr(0, 10),
         period_from: new Date(
           Date.now() - new Date().getTimezoneOffset() * 60000
         )
@@ -553,19 +817,31 @@ export default {
           .substr(0, 10),
         operating_from: "",
         operating_to: "",
-        status: "",
+        prev_period_from: null,
+        prev_period_to: null,
+        prev_venue: "",
+        prev_sponsor: "",
+        prev_quota: "",
+        prev_total_sales: "",
+        prev_sales_achievement: "",
+        prev_total_expense: "",
+        file: [],
       },
       grand_total: "0.00",
       errorFields: [],
       time_options: [],
-      date_menu1: false,
+      date_menu_period_fr: false,
+      date_menu_period_to: false,
+      date_menu_date_submit: false,
+      date_menu_prev_period_fr: false,
+      date_menu_prev_period_to: false,
       modal: false,
-      date_menu2: false,
       expensePaticularHasError: false,
       numOpts: { 
         minimumFractionDigits: 2,
         maximumFractionDigits: 2 
-      }
+      },
+      dialog_attach_file: false
     };
   },
 
@@ -580,19 +856,27 @@ export default {
           this.branches = response.data.branches;
           this.marketing_events = response.data.marketing_events;
 
-          console.log(response.data);
-
           const data = response.data.tactical_requisitions;
-
+          
           this.editedItem.branch_id = data.branch_id;
           this.editedItem.marketing_event_id = data.marketing_event_id;
           this.editedItem.sponsor = data.sponsor;
           this.editedItem.venue = data.venue;
           this.editedItem.operating_from = data.operating_from;
           this.editedItem.operating_to = data.operating_to;
+          this.editedItem.prev_period_from = data.prev_period_from;
+          this.editedItem.prev_period_to = data.prev_period_to;
+          this.editedItem.prev_venue = data.prev_venue;
+          this.editedItem.prev_sponsor = data.prev_sponsor;
+          this.editedItem.prev_quota = data.prev_quota;
+          this.editedItem.prev_total_sales = data.prev_total_sales;
+          this.editedItem.prev_sales_achievement = data.prev_sales_achievement;
+          this.editedItem.prev_total_expense = data.prev_total_expense;
           this.editedItem.status = data.status;
           this.editedItem.expense_particulars = data.tactical_rows;
 
+          this.tactical_attachments = data.tactical_attachments;
+      
           this.getMarketingEvent();
           this.computeAmount();
           
@@ -1023,6 +1307,9 @@ export default {
       const [year, month, day] = date.split("-");
       return `${month}/${day}/${year}`;
     },
+    removeFile(index, text) {
+      this.editedItem.file.splice(index, 1)
+    },
   },
   computed: {
     eventTitleErrors() {
@@ -1065,11 +1352,81 @@ export default {
       !this.$v.editedItem.operating_to.required && errors.push("Select time.");
       return errors;
     },
+    prevQuotaErrors(){
+      let errors = [];
+      if(!(this.editedItem.prev_quota % 1 >= 0))
+      {
+        errors.push("Invalid Amount");
+      }
+      return errors;
+    },
+    prevTotalSalesErrors(){
+      let errors = [];
+      if(!(this.editedItem.prev_total_sales % 1 >= 0))
+      {
+        errors.push("Invalid Amount");
+      }
+      return errors;
+    },
+    prevSalesAchvmntErrors(){
+      let errors = [];
+      if(!(this.editedItem.prev_sales_achievement % 1 >= 0))
+      {
+        errors.push("Invalid Amount");
+      }
+      return errors;
+    },
+    prevTotalExpenseErrors(){
+      let errors = [];
+      if(!(this.editedItem.prev_total_expense % 1 >= 0))
+      {
+        errors.push("Invalid Amount");
+      }
+      return errors;
+    },
     computedPeriodFromFormatted() {
       return this.formatDate(this.editedItem.period_from);
     },
     computedPeriodToFormatted() {
       return this.formatDate(this.editedItem.period_to);
+    },
+    computedDateSubmitFormatted() {
+      return this.formatDate(this.editedItem.date_submit);
+    },
+    computedPrevPeriodFromFormatted() {
+      return this.formatDate(this.editedItem.prev_period_from);
+    },
+    computedPrevPeriodToFormatted() {
+      return this.formatDate(this.editedItem.prev_period_to);
+    },
+    formData(){
+      let formData = new FormData();
+
+      const data = this.editedItem;
+      let fieldName = Object.keys(data);
+      let fieldValue;
+      fieldName.forEach(field => {
+        fieldValue = this.editedItem[`${field}`];
+        formData.append(field, JSON.stringify(fieldValue));
+        if (field != 'file') {
+          formData.append(field, JSON.stringify(fieldValue));
+        }
+        else
+        {
+          // create array formData for file
+          fieldValue.forEach(val => {
+            formData.append('file[]', val);
+          });
+          
+        }
+        
+        
+      });
+
+      return formData;
+    },
+    fileIsRequired(){
+      return this.editedItem.marketing_event.attachment_required == 'Y' ? true : false;
     },
     ...mapState("auth", ["user"]),
   },

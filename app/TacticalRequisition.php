@@ -16,6 +16,14 @@ class TacticalRequisition extends Model
         'period_to',
         'operating_from',
         'operating_to',
+        'prev_period_from',
+        'prev_period_to',
+        'prev_venue',
+        'prev_sponsor',
+        'prev_quota',
+        'prev_total_sales',
+        'prev_sales_achievement',
+        'prev_total_expense',
     ];
 
     public function tactical_rows()

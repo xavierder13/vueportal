@@ -234,133 +234,162 @@
               </v-col>
             </v-row>
             <v-divider></v-divider>
-              <v-row>
-                <v-col class="mb-0 pt-0 pb-0">
-                  <p class="font-weight-bold subtitle-1">
-                    PREVIOUS TACTICAL ACTIVITY
-                  </p>
-                </v-col>
-              </v-row>
-              <v-row>
-                <v-col class="mb-0 pt-0 pb-0">
-                  <v-menu
-                    ref="menu"
-                    v-model="date_menu_prev_date"
-                    :close-on-content-click="true"
-                    :return-value.sync="date_menu_prev_date"
-                    transition="scale-transition"
-                    offset-y
-                    min-width="auto"
+            <v-row>
+              <v-col class="mb-0 pt-0 pb-0">
+                <p class="font-weight-bold subtitle-1">
+                  PREVIOUS TACTICAL ACTIVITY
+                </p>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col class="mb-0 pt-0 pb-0">
+                <v-menu
+                  ref="menu"
+                  v-model="date_menu_prev_period_fr"
+                  :close-on-content-click="true"
+                  :return-value.sync="date_menu_prev_period_fr"
+                  transition="scale-transition"
+                  offset-y
+                  min-width="auto"
+                >
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-text-field
+                      v-model="computedPrevPeriodFromFormatted"
+                      label="Period From"
+                      prepend-icon="mdi-calendar"
+                      readonly
+                      v-bind="attrs"
+                      v-on="on"
+                    ></v-text-field>
+                  </template>
+                  <v-date-picker
+                    v-model="editedItem.prev_period_from"
+                    no-title
+                    scrollable
+                    :max="editedItem.prev_period_from"
                   >
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-text-field
-                        v-model="computedPrevDateFormatted"
-                        label="Date"
-                        prepend-icon="mdi-calendar"
-                        readonly
-                        v-bind="attrs"
-                        v-on="on"
-                      ></v-text-field>
-                    </template>
-                    <v-date-picker
-                      v-model="editedItem.prev_date"
-                      no-title
-                      scrollable
-                      :max="editedItem.prev_date"
-                    >
-                    </v-date-picker>
-                  </v-menu>
-                </v-col>
-                <v-col class="mt-0 mb-0 pt-0 pb-0">
-                  <v-text-field
-                    name="prev_venue"
-                    v-model="editedItem.prev_venue"
-                    label="Venue"
-                  ></v-text-field>
-                </v-col>
-                <v-col class="mt-0 mb-0 pt-0 pb-0">
-                  <v-text-field
-                    name="prev_sponsor"
-                    v-model="editedItem.prev_sponsor"
-                    label="Sponsor"
-                  ></v-text-field>
-                </v-col>
-              </v-row>
-              <v-row>
-                <v-col class="mt-0 mb-0 pt-0 pb-0">
-                  <v-text-field-dotnumber
-                    v-model="editedItem.prev_quota"
-                    label= 'Quota'
-                    v-bind:properties="{
-                      name: 'prev_quota',
-                      placeholder: '0',
-                      error: prevQuotaErrors.length ? true : false,
-                      messages: prevQuotaErrors,
-                    }"
-                    v-bind:options="{
-                      length: 16,
-                      precision: 0,
-                      empty: null,
-                      
-                    }"
+                  </v-date-picker>
+                </v-menu>
+              </v-col>
+              <v-col class="mb-0 pt-0 pb-0">
+                <v-menu
+                  ref="menu"
+                  v-model="date_menu_prev_period_to"
+                  :close-on-content-click="true"
+                  :return-value.sync="date_menu_prev_period_to"
+                  transition="scale-transition"
+                  offset-y
+                  min-width="auto"
+                >
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-text-field
+                      v-model="computedPrevPeriodToFormatted"
+                      label="Period To"
+                      prepend-icon="mdi-calendar"
+                      readonly
+                      v-bind="attrs"
+                      v-on="on"
+                    ></v-text-field>
+                  </template>
+                  <v-date-picker
+                    v-model="editedItem.prev_period_to"
+                    no-title
+                    scrollable
+                    :max="editedItem.prev_period_to"
                   >
-                  </v-text-field-dotnumber>
-                </v-col>
-                <v-col class="mt-0 mb-0 pt-0 pb-0">
-                  <v-text-field-dotnumber
-                    v-model="editedItem.prev_total_sales"
-                    label= 'Total Sales'
-                    v-bind:properties="{
-                      name: 'prev_total_sales',
-                      placeholder: '0',
-                      error: prevTotalSalesErrors.length ? true : false,
-                      messages: prevTotalSalesErrors,
-                    }"
-                    v-bind:options="{
-                      length: 16,
-                      precision: 0,
-                      empty: null,
-                    }"
-                  >
-                  </v-text-field-dotnumber>
-                </v-col>
-                <v-col class="mt-0 mb-0 pt-0 pb-0">
-                  <v-text-field-dotnumber
-                    v-model="editedItem.prev_sales_achievement"
-                    label= 'Sales Achievement'
-                    v-bind:properties="{
-                      name: 'prev_sales_achievement',
-                      placeholder: '0',
-                      error: prevSalesAchvmntErrors.length ? true : false,
-                      messages: prevSalesAchvmntErrors,
-                    }"
-                    v-bind:options="{
-                      length: 16,
-                      precision: 0,
-                      empty: null,
-                    }"
-                  >
-                  </v-text-field-dotnumber>
-                </v-col>
-                <v-col class="mt-0 mb-0 pt-0 pb-0">
-                  <v-text-field-dotnumber
-                    v-model="editedItem.prev_total_expense"
-                    label= 'Total Expense'
-                    v-bind:properties="{
-                      name: 'prev_total_expense',
-                      placeholder: '0',
-                      error: prevTotalExpenseErrors.length ? true : false,
-                      messages: prevTotalExpenseErrors,
-                    }"
-                    v-bind:options="{
-                      length: 16,
-                      precision: 0,
-                      empty: null,
-                    }"
-                  >
-                  </v-text-field-dotnumber>
-                </v-col>
-              </v-row>
+                  </v-date-picker>
+                </v-menu>
+              </v-col>
+              <v-col class="mt-0 mb-0 pt-0 pb-0">
+                <v-text-field
+                  name="prev_venue"
+                  v-model="editedItem.prev_venue"
+                  label="Venue"
+                ></v-text-field>
+              </v-col>
+              <v-col class="mt-0 mb-0 pt-0 pb-0">
+                <v-text-field
+                  name="prev_sponsor"
+                  v-model="editedItem.prev_sponsor"
+                  label="Sponsor"
+                ></v-text-field>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col class="mt-0 mb-0 pt-0 pb-0">
+                <v-text-field-dotnumber
+                  v-model="editedItem.prev_quota"
+                  label= 'Quota'
+                  v-bind:properties="{
+                    name: 'prev_quota',
+                    placeholder: '0',
+                    error: prevQuotaErrors.length ? true : false,
+                    messages: prevQuotaErrors,
+                  }"
+                  v-bind:options="{
+                    length: 16,
+                    precision: 0,
+                    empty: null,
+                    
+                  }"
+                >
+                </v-text-field-dotnumber>
+              </v-col>
+              <v-col class="mt-0 mb-0 pt-0 pb-0">
+                <v-text-field-dotnumber
+                  v-model="editedItem.prev_total_sales"
+                  label= 'Total Sales'
+                  v-bind:properties="{
+                    name: 'prev_total_sales',
+                    placeholder: '0',
+                    error: prevTotalSalesErrors.length ? true : false,
+                    messages: prevTotalSalesErrors,
+                  }"
+                  v-bind:options="{
+                    length: 16,
+                    precision: 0,
+                    empty: null,
+                  }"
+                >
+                </v-text-field-dotnumber>
+              </v-col>
+              <v-col class="mt-0 mb-0 pt-0 pb-0">
+                <v-text-field-dotnumber
+                  v-model="editedItem.prev_sales_achievement"
+                  label= 'Sales Achievement'
+                  v-bind:properties="{
+                    name: 'prev_sales_achievement',
+                    placeholder: '0',
+                    error: prevSalesAchvmntErrors.length ? true : false,
+                    messages: prevSalesAchvmntErrors,
+                  }"
+                  v-bind:options="{
+                    length: 16,
+                    precision: 0,
+                    empty: null,
+                  }"
+                >
+                </v-text-field-dotnumber>
+              </v-col>
+              <v-col class="mt-0 mb-0 pt-0 pb-0">
+                <v-text-field-dotnumber
+                  v-model="editedItem.prev_total_expense"
+                  label= 'Total Expense'
+                  v-bind:properties="{
+                    name: 'prev_total_expense',
+                    placeholder: '0',
+                    error: prevTotalExpenseErrors.length ? true : false,
+                    messages: prevTotalExpenseErrors,
+                  }"
+                  v-bind:options="{
+                    length: 16,
+                    precision: 0,
+                    empty: null,
+                  }"
+                >
+                </v-text-field-dotnumber>
+              </v-col>
+            </v-row>
             <v-divider></v-divider>
             <v-row>
               <v-col>
@@ -708,7 +737,6 @@ export default {
           disabled: true,
         },
       ],
-      switch1: true,
       disabled: false,
       branches: [],
       marketing_events: [],
@@ -734,7 +762,8 @@ export default {
           .substr(0, 10),
         operating_from: "",
         operating_to: "",
-        prev_date: null,
+        prev_period_from: null,
+        prev_period_to: null,
         prev_venue: "",
         prev_sponsor: "",
         prev_quota: "",
@@ -765,13 +794,14 @@ export default {
           .substr(0, 10),
         operating_from: "",
         operating_to: "",
-        prev_date: null,
+        prev_period_from: null,
+        prev_period_to: null,
         prev_venue: "",
         prev_sponsor: "",
-        quota: "",
-        total_sales: "",
-        sales_achievement: "",
-        total_expense: "",
+        prev_quota: "",
+        prev_total_sales: "",
+        prev_sales_achievement: "",
+        prev_total_expense: "",
         file: [],
       },
       grand_total: "0.00",
@@ -780,7 +810,8 @@ export default {
       date_menu_period_fr: false,
       date_menu_period_to: false,
       date_menu_date_submit: false,
-      date_menu_prev_date: false,
+      date_menu_prev_period_fr: false,
+      date_menu_prev_period_to: false,
       modal: false,
       expensePaticularHasError: false,
       numOpts: { 
@@ -1184,8 +1215,11 @@ export default {
     computedDateSubmitFormatted() {
       return this.formatDate(this.editedItem.date_submit);
     },
-    computedPrevDateFormatted() {
-      return this.formatDate(this.editedItem.prev_date);
+    computedPrevPeriodFromFormatted() {
+      return this.formatDate(this.editedItem.prev_period_from);
+    },
+    computedPrevPeriodToFormatted() {
+      return this.formatDate(this.editedItem.prev_period_to);
     },
     formData(){
       let formData = new FormData();
