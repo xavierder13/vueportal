@@ -204,18 +204,11 @@ class TacticalRequisitionController extends Controller
                                           ->get();
         
         return response()->json(['branches' => $branches, 'marketing_events' => $marketing_events], 200);
-    }
+    } 
 
-    public function store(Request $request)
-    {   
-
-        $req = (array)json_encode($request->all()); //convert stringify into array
-        $data = [];
-
-        foreach (json_decode($req[0]) as $field => $value) {
-            $data[$field] = ($field != 'file') ? json_decode($value) : $value ;
-        }  
-
+    public function tactical_validator($data, $action)
+    {
+        
         $rules = [
             'branch_id.required' => 'Branch ID is required',
             'branch_id.integer' => 'Branch ID must be an integer',
@@ -243,9 +236,7 @@ class TacticalRequisitionController extends Controller
 
         ];
 
-        $validator = Validator::make($data, [
-            'branch_id' => 'required|integer',
-            'marketing_event_id' => 'required|integer',
+        $valid_fields = [
             'venue' => 'required',
             'sponsor' => 'required',
             'period_from' => 'required|date_format:Y-m-d',
@@ -254,25 +245,32 @@ class TacticalRequisitionController extends Controller
             'operating_to' => 'required',
             'prev_period_from' => 'date_format:Y-m-d|nullable',
             'prev_period_to' => 'date_format:Y-m-d|nullable',
-            'prev_quota' => 'numeric|between:1, 999999.99|nullable',
-            'prev_total_sales' => 'numeric|between:1, 999999.99|nullable',
-            'prev_sales_achievement' => 'numeric|between:1, 999999.99|nullable',
-            'prev_total_expense' => 'numeric|between:1, 999999.99|nullable',
+            'prev_quota' => 'numeric|between:0, 999999.99|nullable',
+            'prev_total_sales' => 'numeric|between:0, 999999.99|nullable',
+            'prev_sales_achievement' => 'numeric|between:0, 999999.99|nullable',
+            'prev_total_expense' => 'numeric|between:0, 999999.99|nullable',
             'expense_particulars' => 'required',
+        ];
 
-        ], $rules);
-
-        if($validator->fails())
+        if($action === 'add')
         {
-            return response()->json($validator->errors(), 200);
+            $valid_fields['branch_id'] = 'required|integer';
+            $valid_fields['marketing_event_id'] = 'required|integer';
         }
 
-        $data = (object)$data; //convert array to object
+        return $validator = Validator::make($data, $valid_fields, $rules);
 
-        $tactical_requisition = new TacticalRequisition();
-        $tactical_requisition->branch_id = $data->branch_id;
-        $tactical_requisition->user_id = Auth::id();
-        $tactical_requisition->marketing_event_id = $data->marketing_event_id;
+    }
+
+    public function tactical_requisition($data, $tactical_requisition, $action)
+    {
+        if($action === 'add')
+        {
+            $tactical_requisition->branch_id = $data->branch_id;
+            $tactical_requisition->user_id = Auth::id();
+            $tactical_requisition->marketing_event_id = $data->marketing_event_id;
+        }
+        
         $tactical_requisition->sponsor = $data->sponsor;
         $tactical_requisition->venue = $data->venue;
         $tactical_requisition->period_from = $data->period_from;
@@ -291,7 +289,33 @@ class TacticalRequisitionController extends Controller
         $tactical_requisition->date_approve = null;
         $tactical_requisition->save();
 
-        $tactical_requisition_id = $tactical_requisition->id;
+        return $tactical_requisition;
+    }
+
+    public function store(Request $request)
+    {   
+
+        $req = (array)json_encode($request->all()); //convert stringify into array
+        $data = [];
+
+        foreach (json_decode($req[0]) as $field => $value) {
+            $data[$field] = ($field != 'file') ? json_decode($value) : $value ;
+        }  
+
+        // call validator public function tactical_validator
+        $validator = $this->tactical_validator($data, 'add');
+        
+        if($validator->fails())
+        {
+            return response()->json($validator->errors(), 200);
+        }
+
+        $data = (object)$data; //convert array to object
+
+        $tactical_requisition = new TacticalRequisition();
+        
+        // call public function tactical_requisition 
+        $tactical_requisition_id = $this->tactical_requisition($data, $tactical_requisition, 'add')->id;
 
         $expense_particulars = $data->expense_particulars;
  
@@ -335,6 +359,16 @@ class TacticalRequisitionController extends Controller
         
         $files = $request->file;
 
+        // call public function add_file
+        $this->add_file($request, $tactical_requisition_id);
+
+        return response()->json(['success' => 'Record has successfully added', 'tactical_requisition' => $tactical_requisition], 200);
+    }
+
+    public function add_file(Request $request, $tactical_requisition_id)
+    {   
+        $files = $request->file;
+
         if(is_array($files))
         {
             foreach ($files as $key => $file) {
@@ -345,13 +379,13 @@ class TacticalRequisitionController extends Controller
                     $file_name = time().$file->getClientOriginalName();
                     $file_path = '/wysiwyg/tactical_attachement/' . $file_date;
 
-                    $tactical_attachement = new TacticalRequisitionAttachment();
-                    $tactical_attachement->tactical_requisition_id = $tactical_requisition_id;
-                    $tactical_attachement->file_name = $file_name;
-                    $tactical_attachement->file_path = $file_path;
-                    $tactical_attachement->file_type = $file_extension;
-                    $tactical_attachement->title = $file_name;
-                    $tactical_attachement->save();
+                    $tactical_attachment = new TacticalRequisitionAttachment();
+                    $tactical_attachment->tactical_requisition_id = $tactical_requisition_id;
+                    $tactical_attachment->file_name = $file_name;
+                    $tactical_attachment->file_path = $file_path;
+                    $tactical_attachment->file_type = $file_extension;
+                    $tactical_attachment->title = $file_name;
+                    $tactical_attachment->save();
 
                     $file->move(public_path() . $file_path, $file_name);
                     
@@ -362,7 +396,10 @@ class TacticalRequisitionController extends Controller
             }
         }
 
-        return response()->json(['success' => 'Record has successfully added', 'tactical_requisition' => $tactical_requisition]);
+        $tactical_attachments = TacticalRequisitionAttachment::where('tactical_requisition_id', '=', $tactical_requisition_id)->get();
+
+        return response()->json(['success' => 'File has been added', 'tactical_attachments' => $tactical_attachments ], 200);
+
     }
 
     public function edit(Request $request)
@@ -392,82 +429,19 @@ class TacticalRequisitionController extends Controller
 
     public function update(Request $request, $tactical_requisition_id)
     {   
-        // return $request;
-        $rules = [
-            // 'branch_id.required' => 'Branch ID is required',
-            // 'branch_id.integer' => 'Branch ID must be an integer',
-            // 'marketing_event_id.required' => 'Marketing Event ID is required',
-            // 'marketing_event_id.integer' => 'Marketing Event ID must be an integer',
-            'venue.required' => 'Venue is required',
-            'sponsor.required' => 'Sponsor is required',
-            'period_from.required' => 'Period Date From is required',
-            'period_from.date_format' => 'Invalid date. Format: (YYYY-MM-DD)',
-            'period_to.required' => 'Period Date From is required',
-            'period_to.date_format' => 'Invalid date. Format: (YYYY-MM-DD)',
-            'operating_from.required' => 'Operating Hour From is required',
-            'operating_to.required' => 'Operating Hour To is required',
-            'prev_period_from.date_format' => 'Invalid date. Format: (YYYY-MM-DD)',
-            'prev_period_to.date_format' => 'Invalid date. Format: (YYYY-MM-DD)',
-            'prev_quota.numeric' => 'Enter a valid value',
-            'prev_quota.between' => 'Enter a valid value',
-            'prev_total_sales.numeric' => 'Enter a valid value',
-            'prev_total_sales.between' => 'Enter a valid value',
-            'prev_sales_achievement.numeric' => 'Enter a valid value',
-            'prev_sales_achievement.between' => 'Enter a valid value',
-            'prev_total_expense.numeric' => 'Enter a valid value',
-            'prev_total_expense.between' => 'Enter a valid value',
-            'expense_particulars.required' => 'Expense Particulars is required',
 
-        ];
-
-        $validator = Validator::make($request->all(), [
-            // 'branch_id' => 'required|integer',
-            // 'marketing_event_id' => 'required|integer',
-            'venue' => 'required',
-            'sponsor' => 'required',
-            'period_from' => 'required|date_format:Y-m-d',
-            'period_to' => 'required|date_format:Y-m-d',
-            'operating_from' => 'required',
-            'operating_to' => 'required',
-            'period_from' => 'date_format:Y-m-d|nullable',
-            'period_to' => 'date_format:Y-m-d|nullable',
-            'prev_period_from' => 'date_format:Y-m-d|nullable',
-            'prev_period_to' => 'date_format:Y-m-d|nullable',
-            'prev_quota' => 'numeric|between:1, 999999.99|nullable',
-            'prev_total_sales' => 'numeric|between:1, 999999.99|nullable',
-            'prev_sales_achievement' => 'numeric|between:1, 999999.99|nullable',
-            'prev_total_expense' => 'numeric|between:1, 999999.99|nullable',
-            'expense_particulars' => 'required',
-
-        ], $rules);
-
+        // call validator public function tactical_validator
+        $validator = $this->tactical_validator($request->all(), 'edit');
+        
         if($validator->fails())
         {
             return response()->json($validator->errors(), 200);
         }
         
         $tactical_requisition = TacticalRequisition::find($tactical_requisition_id);
-        // $tactical_requisition->branch_id = $request->get('branch_id');
-        // $tactical_requisition->marketing_event_id = $request->get('marketing_event_id');
-        $tactical_requisition->sponsor = $request->get('sponsor');
-        $tactical_requisition->venue = $request->get('venue');
-        $tactical_requisition->period_from = $request->get('period_from');
-        $tactical_requisition->period_to = $request->get('period_to');
-        $tactical_requisition->operating_to = $request->get('operating_to');
-        $tactical_requisition->operating_from = $request->get('operating_from');
-        $tactical_requisition->prev_period_from = $data->prev_period_from;
-        $tactical_requisition->prev_period_to = $data->prev_period_to;
-        $tactical_requisition->prev_venue = $data->prev_venue;
-        $tactical_requisition->prev_sponsor = $data->prev_sponsor;
-        $tactical_requisition->prev_quota = $data->prev_quota;
-        $tactical_requisition->prev_total_sales = $data->prev_total_sales;
-        $tactical_requisition->prev_sales_achievement = $data->prev_sales_achievement;
-        $tactical_requisition->prev_total_expense = $data->prev_total_expense;
-        $tactical_requisition->status = 'Pending';
-        $tactical_requisition->date_approve = null;
-        $tactical_requisition->save();
 
-        $tactical_requisition_id = $tactical_requisition->id;
+        // call public function tactical_requisition 
+        $this->tactical_requisition($request, $tactical_requisition, 'edit');
 
         $expense_particulars = $request->get('expense_particulars');
 
@@ -528,6 +502,27 @@ class TacticalRequisitionController extends Controller
         TacticalRequisitionAttachment::where('tactical_requisition_id', '=', $tactical_requisition_id)->delete();
 
         return response()->json(['success' => 'Recard has been deleted'],200);
+    }
+
+    public function delete_file(Request $request)
+    {
+        $file_id = $request->get('file_id');
+        $file = TacticalRequisitionAttachment::find($file_id);
+        
+        //if record is empty then display error page
+        if(empty($file->id))
+        {
+            return abort(404, 'Not Found');
+        }
+
+        $file->delete();
+
+        $file_path = $file->file_path;
+
+        $path = public_path() . $file_path . "/" . $file->file_name;
+        unlink($path);
+
+        return response()->json(['success' => 'Record has been deleted'], 200);
     }
 
     public function approve(Request $request, $tactical_requisition_id)

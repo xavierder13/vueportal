@@ -122,14 +122,14 @@
 
           <v-dialog v-model="dialog_import" max-width="500px" persistent>
             <v-card>
-              <v-card-title class="mb-0 pb-0">
+              <v-card-title class="pa-4">
                 <span class="headline">Import Data from SAP</span>
               </v-card-title>
-              <v-divider></v-divider>
+              <v-divider class="mt-0"></v-divider>
               <v-card-text>
                 <v-container>
                   <v-row>
-                    <v-col class="mt-0 mb-0 pt-0 pb-0">
+                    <v-col class="my-0 py-0">
                       <v-autocomplete
                         v-model="branch_id"
                         :items="branches"
@@ -145,7 +145,7 @@
                     </v-col>
                   </v-row>
                   <v-row>
-                    <v-col class="mt-0 mb-0 pt-0 pb-0">
+                    <v-col class="my-0 py-0">
                       <v-file-input
                         v-model="file"
                         show-size
@@ -184,18 +184,19 @@
                   </v-row>
                 </v-container>
               </v-card-text>
-              <v-card-actions>
+              <v-divider class="mb-3 mt-0"></v-divider>
+              <v-card-actions class="pa-0">
                 <v-spacer></v-spacer>
                 <v-btn
                   color="#E0E0E0"
                   @click="clear() + (dialog_import = false)"
-                  class="mb-4"
+                  class="mb-3"
                 >
                   Cancel
                 </v-btn>
                 <v-btn
                   color="primary"
-                  class="mb-4 mr-4"
+                  class="mb-3 mr-4"
                   @click="uploadFile()"
                   :disabled="uploadDisabled"
                 >
@@ -206,10 +207,12 @@
           </v-dialog>
           <v-dialog v-model="dialog_error_list" max-width="1000px" persistent>
             <v-card>
-              <v-card-title class="mb-0 pb-0">
+              <v-card-title class="pa-4">
                 <span class="headline">Error List</span>
                 <v-spacer></v-spacer>
-                <v-icon @click="dialog_error_list = false"> mdi-close </v-icon>
+                <v-btn @click="dialog_error_list = false" icon>
+                  <v-icon> mdi-close </v-icon>
+                </v-btn>
               </v-card-title>
               <v-divider></v-divider>
               <v-card-text>

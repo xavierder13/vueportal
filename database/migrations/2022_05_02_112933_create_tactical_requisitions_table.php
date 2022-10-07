@@ -27,8 +27,8 @@ class CreateTacticalRequisitionsTable extends Migration
             $table->string('status');
             $table->date('prev_period_from')->nullable();
             $table->date('prev_period_to')->nullable();
-            $table->string('prev_venue');
-            $table->string('prev_sponsor');
+            $table->string('prev_venue')->nullable();
+            $table->string('prev_sponsor')->nullable();
             $table->decimal('prev_quota', 12, 2)->nullable();
             $table->decimal('prev_total_sales', 12, 2)->nullable();
             $table->decimal('prev_sales_achievement', 12, 2)->nullable();

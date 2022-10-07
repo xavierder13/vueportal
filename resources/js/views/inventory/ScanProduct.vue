@@ -39,7 +39,7 @@
           <v-divider></v-divider>
           <v-card-text class="pa-6">
             <v-row>
-              <v-col class="mt-0 mb-0 pt-0 pb-0" sm="6" md="4" lg="4" xl="4">
+              <v-col class="my-0 py-0" sm="6" md="4" lg="4" xl="4">
                 <v-autocomplete
                   v-model="editedItem.brand_id"
                   :items="brands"
@@ -61,7 +61,7 @@
               </v-col>
             </v-row>
             <!-- <v-row>
-              <v-col class="mt-0 mb-0 pt-0 pb-0">
+              <v-col class="my-0 py-0">
                 <v-text-field
                   name="model"
                   label="Model"
@@ -79,7 +79,7 @@
               </v-col>
             </v-row> -->
             <v-row>
-              <v-col class="mt-0 mb-0 pt-0 pb-0" sm="6" md="4" lg="4" xl="4">
+              <v-col class="my-0 py-0" sm="6" md="4" lg="4" xl="4">
                 <v-autocomplete
                   :items="product_models"
                   v-model="editedItem.model"
@@ -124,7 +124,7 @@
             </v-row>
 
             <v-row>
-              <v-col class="mt-0 mb-0 pt-0 pb-0" sm="6" md="4" lg="4" xl="4">
+              <v-col class="my-0 py-0" sm="6" md="4" lg="4" xl="4">
                 <v-autocomplete
                   v-model="editedItem.product_category_id"
                   :items="product_categories"
@@ -148,7 +148,7 @@
               </v-col>
             </v-row>
             <v-row v-if="!switch1">
-              <v-col class="mt-0 mb-0 pt-0 pb-0" sm="6" md="4" lg="4" xl="4">
+              <v-col class="my-0 py-0" sm="6" md="4" lg="4" xl="4">
                 <v-text-field
                   name="serial"
                   label="Serial"
@@ -162,7 +162,7 @@
               </v-col>
             </v-row>
             <v-row>
-              <v-col class="mt-0 mb-0 pt-0 pb-0" sm="6" md="4" lg="4" xl="4">
+              <v-col class="my-0 py-0" sm="6" md="4" lg="4" xl="4">
                 <v-autocomplete
                   v-model="editedItem.branch_id"
                   :items="branches"
@@ -186,7 +186,7 @@
             </v-row>
 
             <v-row v-if="switch1">
-              <v-col class="mt-0 mb-0 pt-0 pb-0" sm="6" md="4" lg="4" xl="4">
+              <v-col class="my-0 py-0" sm="6" md="4" lg="4" xl="4">
                 <v-responsive class="overflow-y-auto" max-height="350px" id="serial-table">
                   <v-simple-table dense class="mt-2">
                     <thead class="grey darken-1 white--text font-weight-bold">

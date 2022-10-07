@@ -21,6 +21,7 @@
         <v-card>
           <v-card-title class="mb-0 pb-0">
             <span class="headline mr-2">TACTICAL REQUISITION </span>
+            <v-spacer></v-spacer>
             <v-chip
               :color="
                 editedItem.status === 'Pending'
@@ -39,7 +40,7 @@
             <v-row>
               <v-col cols="8">
                 <v-row v-if="user.id === 1">
-                  <v-col class="mt-0 mb-0 pt-0 pb-0">
+                  <v-col class="my-0 py-0">
                     <v-autocomplete
                       v-model="editedItem.branch_id"
                       :items="branches"
@@ -51,7 +52,7 @@
                     >
                     </v-autocomplete>
                   </v-col>
-                  <v-col class="mb-0 pt-0 pb-0">
+                  <v-col class="mb-0 py-0">
                     <v-menu
                       ref="menu"
                       v-model="date_menu_date_submit"
@@ -83,7 +84,7 @@
                   </v-col>
                 </v-row>
                 <v-row>
-                  <v-col class="mt-0 mb-0 pt-0 pb-0">
+                  <v-col class="my-0 py-0">
                     <v-autocomplete
                       v-model="editedItem.marketing_event_id"
                       :items="marketing_events"
@@ -95,7 +96,7 @@
                     >
                     </v-autocomplete>
                   </v-col>
-                  <v-col class="mt-0 mb-0 pt-0 pb-0">
+                  <v-col class="my-0 py-0">
                     <v-text-field
                       name="sponsor"
                       v-model="editedItem.sponsor"
@@ -107,7 +108,7 @@
                   </v-col>
                 </v-row>
                 <v-row>
-                  <v-col class="mt-0 mb-0 pt-0 pb-0">
+                  <v-col class="my-0 py-0">
                     <v-text-field
                       name="venue"
                       v-model="editedItem.venue"
@@ -119,7 +120,7 @@
                   </v-col>
                 </v-row>
                 <v-row>
-                  <v-col class="mt-0 mb-0 pt-0 pb-0">
+                  <v-col class="my-0 py-0">
                     <v-row>
                       <v-col>
                         <v-menu
@@ -181,7 +182,7 @@
                       </v-col>
                     </v-row>
                   </v-col>
-                  <v-col class="mt-0 mb-0 pt-0 pb-0">
+                  <v-col class="my-0 py-0">
                     <v-row>
                       <v-col>
                         <v-autocomplete
@@ -236,19 +237,19 @@
                     4. PICTURES OF PREVIOUS ACTIVITY STATED HEREIN
                   </p>
                 </div>
-                <v-btn color="primary" small @click="dialog_attach_file = true"><v-icon small>mdi-attachment</v-icon> Attach Files {{ editedItem.file.length ? '(' + editedItem.file.length + ')' : '' }}</v-btn> 
+                <v-btn color="primary" small @click="dialog_attach_file = true"><v-icon small>mdi-attachment</v-icon> Attach Files {{ attachmentLength }}</v-btn> 
               </v-col>
             </v-row>
             <v-divider></v-divider>
             <v-row>
-              <v-col class="mb-0 pt-0 pb-0">
+              <v-col class="mb-0 py-0">
                 <p class="font-weight-bold subtitle-1">
                   PREVIOUS TACTICAL ACTIVITY
                 </p>
               </v-col>
             </v-row>
             <v-row>
-              <v-col class="mb-0 pt-0 pb-0">
+              <v-col class="mb-0 py-0">
                 <v-menu
                   ref="menu"
                   v-model="date_menu_prev_period_fr"
@@ -277,7 +278,7 @@
                   </v-date-picker>
                 </v-menu>
               </v-col>
-              <v-col class="mb-0 pt-0 pb-0">
+              <v-col class="mb-0 py-0">
                 <v-menu
                   ref="menu"
                   v-model="date_menu_prev_period_to"
@@ -307,14 +308,14 @@
                 </v-menu>
               </v-col>
               
-              <v-col class="mt-0 mb-0 pt-0 pb-0">
+              <v-col class="my-0 py-0">
                 <v-text-field
                   name="prev_venue"
                   v-model="editedItem.prev_venue"
                   label="Venue"
                 ></v-text-field>
               </v-col>
-              <v-col class="mt-0 mb-0 pt-0 pb-0">
+              <v-col class="my-0 py-0">
                 <v-text-field
                   name="prev_sponsor"
                   v-model="editedItem.prev_sponsor"
@@ -323,7 +324,7 @@
               </v-col>
             </v-row>
             <v-row>
-              <v-col class="mt-0 mb-0 pt-0 pb-0">
+              <v-col class="my-0 py-0">
                 <v-text-field-dotnumber
                   v-model="editedItem.prev_quota"
                   label= 'Quota'
@@ -342,7 +343,7 @@
                 >
                 </v-text-field-dotnumber>
               </v-col>
-              <v-col class="mt-0 mb-0 pt-0 pb-0">
+              <v-col class="my-0 py-0">
                 <v-text-field-dotnumber
                   v-model="editedItem.prev_total_sales"
                   label= 'Total Sales'
@@ -360,7 +361,7 @@
                 >
                 </v-text-field-dotnumber>
               </v-col>
-              <v-col class="mt-0 mb-0 pt-0 pb-0">
+              <v-col class="my-0 py-0">
                 <v-text-field-dotnumber
                   v-model="editedItem.prev_sales_achievement"
                   label= 'Sales Achievement'
@@ -378,7 +379,7 @@
                 >
                 </v-text-field-dotnumber>
               </v-col>
-              <v-col class="mt-0 mb-0 pt-0 pb-0">
+              <v-col class="my-0 py-0">
                 <v-text-field-dotnumber
                   v-model="editedItem.prev_total_expense"
                   label= 'Total Expense'
@@ -649,14 +650,36 @@
         </v-card>
         <v-dialog v-model="dialog_attach_file" max-width="500px" persistent>
           <v-card>
-            <v-card-title class="mb-0 pb-0">
-              <span class="headline">Attach file</span>
+            <v-card-title class="pa-4">
+              <span class="headline">Attachments</span>
             </v-card-title>
-            <v-divider></v-divider>
+            <v-divider class="mt-0"></v-divider>
             <v-card-text>
               <v-container>
+                <v-row v-if="tactical_attachments.length">
+                  <v-col class="my-0 py-0">
+                    <v-list dense>
+                      <v-subheader class="font-weight-bold subtitle-2"> UPLOADED FILES</v-subheader>
+                      <v-list-item-group>
+                        <v-list-item v-for="item in tactical_attachments" :key="item.id">
+                          <v-list-item-content>
+                            <v-list-item-title> 
+                              <v-btn icon color="error" @click="confirmRemoveFile(item)">
+                                <v-icon> mdi-close-circle </v-icon> 
+                              </v-btn>
+                              <v-btn x-small text class="blue--text text--darken-2" @click="downloadFile(item)">
+                                {{ item.file_name.length > 50 ? item.file_name.substr(0, 45) + "..." : item.file_name }}
+                              </v-btn>
+                            </v-list-item-title>
+                          </v-list-item-content>
+                        </v-list-item>
+                      </v-list-item-group>
+                    </v-list>
+                  </v-col>
+                </v-row>
+                <v-divider v-if="tactical_attachments.length"></v-divider>
                 <v-row>
-                  <v-col class="mt-0 mb-0 pt-0 pb-0">
+                  <v-col class="my-0 py-0">
                     <v-file-input
                       v-model="editedItem.file"
                       show-size
@@ -673,20 +696,10 @@
                     </v-file-input>
                   </v-col>
                 </v-row>
-                <v-row>
-                  <v-col>
-                    <v-list-item>
-                      <v-list-item-content>
-                        <v-list-item-title v-for="item in tactical_attachments" :key="item.id"> 
-                          <v-icon color="error" @click=""> mdi-close </v-icon> {{ item.file_name }} 
-                        </v-list-item-title>
-                      </v-list-item-content>
-                    </v-list-item>
-                  </v-col>
-                </v-row>
               </v-container>
             </v-card-text>
-            <v-card-actions>
+            <v-divider class="mb-3 mt-0"></v-divider>
+            <v-card-actions class="pa-0">
               <v-spacer></v-spacer>
               <!-- <v-btn
                 color="#E0E0E0"
@@ -697,10 +710,10 @@
               </v-btn> -->
               <v-btn
                 color="primary"
-                class="mb-4 mr-4"
-                @click="(dialog_attach_file = false)"
+                class="mb-3 mr-4"
+                @click="uploadFile()"
               >
-                OK
+                {{ attachmentBtnLabel }}
               </v-btn>
             </v-card-actions>
           </v-card>
@@ -841,14 +854,17 @@ export default {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2 
       },
-      dialog_attach_file: false
+      dialog_attach_file: false,
+      tactical_requisition_id: null,
     };
   },
 
   methods: {
     getTacticalRequisition() {
+      this.tactical_requisition_id = this.$route.params.tactical_requisition_id;
+
       const data = {
-        tactical_requisition_id: this.$route.params.tactical_requisition_id,
+        tactical_requisition_id: this.tactical_requisition_id,
       };
 
       axios.post("/api/tactical_requisition/edit", data).then(
@@ -956,11 +972,9 @@ export default {
         this.disabled = true;
         this.overlay = true;
 
-        let tactical_requisition_id =  this.$route.params.tactical_requisition_id;
-
         const data = this.editedItem;
 
-        axios.post("/api/tactical_requisition/update/" + tactical_requisition_id, data).then(
+        axios.post("/api/tactical_requisition/update/" + this.tactical_requisition_id, data).then(
           (response) => {
             console.log(response);
             if (response.data.success) {
@@ -986,13 +1000,54 @@ export default {
       }
     },
 
+    uploadFile(){
+      if(this.attachmentBtnLabel === 'Upload')
+      {
+        axios.post("/api/tactical_requisition/add_file/" + this.tactical_requisition_id, this.formData, {
+          headers: {
+              Authorization: "Bearer " + localStorage.getItem("access_token"),
+              "Content-Type": "multipart/form-data",
+            }
+        }).then(
+          (response) => {
+            console.log(response.data);
+            if (response.data.success) {
+              // send data to Sockot.IO Server
+              // this.$socket.emit("sendData", { action: "tactical-requisition-edit" });
+              this.tactical_attachments = response.data.tactical_attachments;
+              this.editedItem.file = [];
+
+              this.showAlert();
+
+            } else {
+              let errors = response.data;
+              let errorNames = Object.keys(response.data);
+            }
+            this.overlay = false;
+            this.disabled = false;
+          },
+          (error) => {
+            this.isUnauthorized(error);
+
+            this.overlay = false;
+            this.disabled = false;
+          }
+        );
+      }
+      else
+      {
+        this.dialog_attach_file = false;
+      }
+      
+    },
+
     approveTactical()
     {
       
-      let tactical_requisition_id =  this.$route.params.tactical_requisition_id;
+
       const data = this.editedItem;
 
-      axios.post("/api/tactical_requisition/approve/" + tactical_requisition_id, data).then(
+      axios.post("/api/tactical_requisition/approve/" + this.tactical_requisition_id, data).then(
           (response) => {
             console.log(response);
             if (response.data.success) {
@@ -1060,7 +1115,7 @@ export default {
     
     deleteTacticalRequisition() {
 
-      const data = { tactical_requisition_id: this.$route.params.tactical_requisition_id };
+      const data = { tactical_requisition_id: this.this.tactical_requisition_id };
 
       axios.post("/api/tactical_requisition/delete", data).then(
         (response) => {
@@ -1108,6 +1163,63 @@ export default {
           
         }
       });
+    },
+
+    deleteFile(item) {
+
+      const data = { file_id: item.id };
+      const index = this.tactical_attachments.indexOf(item);
+
+      axios.post("/api/tactical_requisition/delete_file", data).then(
+        (response) => {
+          console.log(response);
+          if (response.data.success) {
+            // send data to Sockot.IO Server
+            // this.$socket.emit("sendData", { action: "tactical-requisition-edit" });
+            
+            //Remove item from array tactical_attachements
+            this.tactical_attachments.splice(index, 1);
+
+            this.$swal({
+              position: "center",
+              icon: "success",
+              title: "File attachment has been deleted",
+              showConfirmButton: false,
+              timer: 2500,
+            });
+
+          }
+        },
+        (error) => {
+          this.isUnauthorized(error);
+        }
+      );
+      
+    },
+
+    confirmRemoveFile(item){
+      this.$swal({
+        title: "Are you sure you?",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#6c757d",
+        confirmButtonText: "Delete File!",
+      }).then((result) => {
+        // <--
+
+        if (result.value) {
+          // <-- if confirmed
+          
+          this.deleteFile(item);
+          
+        }
+      });
+    },
+
+    downloadFile(item){
+      alert(item)
     },
 
     clear() {
@@ -1402,31 +1514,29 @@ export default {
     formData(){
       let formData = new FormData();
 
-      const data = this.editedItem;
-      let fieldName = Object.keys(data);
-      let fieldValue;
-      fieldName.forEach(field => {
-        fieldValue = this.editedItem[`${field}`];
-        formData.append(field, JSON.stringify(fieldValue));
-        if (field != 'file') {
-          formData.append(field, JSON.stringify(fieldValue));
-        }
-        else
-        {
-          // create array formData for file
-          fieldValue.forEach(val => {
-            formData.append('file[]', val);
-          });
-          
-        }
-        
-        
+      this.editedItem.file.forEach(val => {
+        formData.append('file[]', val);
       });
 
       return formData;
     },
     fileIsRequired(){
       return this.editedItem.marketing_event.attachment_required == 'Y' ? true : false;
+    },
+    attachmentLength(){
+      let ctr = this.editedItem.file.length + this.tactical_attachments.length;
+      let length = null;
+
+      if(ctr)
+      {
+        length = `(${ctr})`;
+      }
+
+      return length;
+
+    },
+    attachmentBtnLabel(){
+      return this.editedItem.file.length ? 'Upload' : 'OK';
     },
     ...mapState("auth", ["user"]),
   },

@@ -24,7 +24,7 @@
           <v-divider></v-divider>
           <v-card-text class="pa-6">
             <v-row>
-              <v-col cols="4" class="mt-0 mb-0 pt-0 pb-0">
+              <v-col cols="4" class="my-0 py-0">
                 <v-text-field
                   name="event_name"
                   v-model="editedItem.event_name"
@@ -42,7 +42,7 @@
               
             </v-row>
             <v-row>
-              <v-col cols="4" class="mt-0 mb-0 pt-0 pb-0">
+              <v-col cols="4" class="my-0 py-0">
                 <v-switch v-model="switch1" :label="attachRequiredStatus"></v-switch>
               </v-col>
             </v-row>

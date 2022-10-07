@@ -35,14 +35,14 @@
                 </v-btn>
                 <v-dialog v-model="dialog" max-width="500px" persistent>
                   <v-card>
-                    <v-card-title>
+                    <v-card-title class="pa-4">
                       <span class="headline">{{ formTitle }}</span>
                     </v-card-title>
-                    <v-divider></v-divider>
+                    <v-divider class="mt-0"></v-divider>
                     <v-card-text>
                       <v-container>
                         <v-row>
-                          <v-col class="mt-0 mb-0 pt-0 pb-0">
+                          <v-col class="my-0 py-0">
                             <v-text-field
                               name="brand"
                               v-model="editedBrand.name"
@@ -55,7 +55,7 @@
                           </v-col>
                         </v-row>
                         <v-row>
-                          <v-col cols="2" class="mt-0 mb-0 pt-0 pb-0">
+                          <v-col cols="2" class="my-0 py-0">
                             <v-switch
                               v-model="switch1"
                               :label="activeStatus"
@@ -64,16 +64,16 @@
                         </v-row>
                       </v-container>
                     </v-card-text>
-
-                    <v-card-actions>
+                    <v-divider class="mb-3 mt-0"></v-divider>
+                    <v-card-actions class="pa-0">
                       <v-spacer></v-spacer>
-                      <v-btn color="#E0E0E0" @click="close" class="mb-4">
+                      <v-btn color="#E0E0E0" @click="close" class="mb-3">
                         Cancel
                       </v-btn>
                       <v-btn
                         color="primary"
                         @click="save"
-                        class="mb-4 mr-4"
+                        class="mb-3 mr-4"
                         :disabled="disabled"
                       >
                         Save

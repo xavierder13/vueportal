@@ -196,7 +196,7 @@
             <v-card-text>
               <v-container>
                 <v-row v-if="editedIndex === -1">
-                  <v-col class="mt-0 mb-0 pt-0 pb-0">
+                  <v-col class="my-0 py-0">
                     <v-file-input
                       v-model="file"
                       show-size
@@ -216,7 +216,7 @@
                   </v-col>
                 </v-row>
                 <v-row>
-                  <v-col class="mt-0 mb-0 pt-0 pb-0">
+                  <v-col class="my-0 py-0">
                     <v-text-field
                       name="title"
                       v-model="editedItem.title"
@@ -228,7 +228,7 @@
                   </v-col>
                 </v-row>
                 <v-row>
-                  <v-col class="mt-0 mb-0 pt-0 pb-0">
+                  <v-col class="my-0 py-0">
                     <v-textarea
                       rows="3"
                       label="Description"

@@ -24,7 +24,7 @@
           <v-divider></v-divider>
           <v-card-text class="ml-4">
             <v-row>
-              <v-col cols="4" class="mt-0 mb-0 pt-0 pb-0">
+              <v-col cols="4" class="my-0 py-0">
                 <v-text-field
                   name="name"
                   v-model="editedItem.name"
@@ -37,7 +37,7 @@
               </v-col>
             </v-row>
             <v-row>
-              <v-col cols="4" class="mt-0 mb-0 pt-0 pb-0">
+              <v-col cols="4" class="my-0 py-0">
                 <v-text-field
                   name="email"
                   v-model="editedItem.email"
@@ -49,7 +49,7 @@
               </v-col>
             </v-row>
             <v-row>
-              <v-col cols="4" class="mt-0 mb-0 pt-0 pb-0">
+              <v-col cols="4" class="my-0 py-0">
                 <v-text-field
                   name="password"
                   v-model="editedItem.password"
@@ -66,7 +66,7 @@
               </v-col>
             </v-row>
             <v-row>
-              <v-col cols="4" class="mt-0 mb-0 pt-0 pb-0">
+              <v-col cols="4" class="my-0 py-0">
                 <v-text-field
                   name="confirm_password"
                   v-model="editedItem.confirm_password"
@@ -85,7 +85,7 @@
               </v-col>
             </v-row>
             <v-row>
-              <v-col cols="4" class="mt-0 mb-0 pt-0 pb-0">
+              <v-col cols="4" class="my-0 py-0">
                 <v-autocomplete
                   v-model="editedItem.roles"
                   :items="roles"
@@ -109,7 +109,7 @@
               </v-col>
             </v-row>
             <v-row>
-              <v-col cols="4" class="mt-0 mb-0 pt-0 pb-0">
+              <v-col cols="4" class="my-0 py-0">
                 <v-autocomplete
                   v-model="editedItem.branch_id"
                   :items="branches"
@@ -128,7 +128,7 @@
               </v-col>
             </v-row>
             <v-row>
-              <v-col cols="4" class="mt-0 mb-0 pt-0 pb-0">
+              <v-col cols="4" class="my-0 py-0">
                 <v-autocomplete
                   v-model="editedItem.position_id"
                   :items="positions"
@@ -140,13 +140,13 @@
               </v-col>
             </v-row>
             <v-row>
-              <v-col cols="2" class="mt-0 mb-0 pt-0 pb-0">
+              <v-col cols="2" class="my-0 py-0">
                 <v-switch v-model="switch1" :label="activeStatus"></v-switch>
               </v-col>
             </v-row>
           </v-card-text>
-
-          <v-card-actions>
+          <v-divider class="mb-3 mt-4"></v-divider>
+          <v-card-actions class="pa-0">
             <v-btn
               color="primary"
               @click="save"
@@ -162,7 +162,7 @@
     </div>
   </div>
 </template>
-<script>
+<script>                                                                                                                                                                                                                                                                                                                                
 import axios from "axios";
 import { validationMixin } from "vuelidate";
 import {

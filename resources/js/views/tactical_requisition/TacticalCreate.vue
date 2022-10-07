@@ -27,7 +27,7 @@
             <v-row>
               <v-col cols="8">
                 <v-row v-if="user.id === 1">
-                  <v-col class="mb-0 pt-0 pb-0">
+                  <v-col class="mb-0 py-0">
                     <v-autocomplete
                       v-model="editedItem.branch_id = user.branch_id"
                       :items="branches"
@@ -41,7 +41,7 @@
                     >
                     </v-autocomplete>
                   </v-col>
-                  <v-col class="mb-0 pt-0 pb-0">
+                  <v-col class="mb-0 py-0">
                     <v-menu
                       ref="menu"
                       v-model="date_menu_date_submit"
@@ -73,7 +73,7 @@
                   </v-col>
                 </v-row>
                 <v-row>
-                  <v-col class="mt-0 mb-0 pt-0 pb-0">
+                  <v-col class="my-0 py-0">
                     <v-autocomplete
                       v-model="editedItem.marketing_event"
                       :items="marketing_events"
@@ -89,7 +89,7 @@
                     >
                     </v-autocomplete>
                   </v-col>
-                  <v-col class="mt-0 mb-0 pt-0 pb-0">
+                  <v-col class="my-0 py-0">
                     <v-text-field
                       name="sponsor"
                       v-model="editedItem.sponsor"
@@ -101,7 +101,7 @@
                   </v-col>
                 </v-row>
                 <v-row>
-                  <v-col class="mt-0 mb-0 pt-0 pb-0">
+                  <v-col class="my-0 py-0">
                     <v-text-field
                       name="venue"
                       v-model="editedItem.venue"
@@ -113,7 +113,7 @@
                   </v-col>
                 </v-row>
                 <v-row>
-                  <v-col class="mt-0 mb-0 pt-0 pb-0">
+                  <v-col class="my-0 py-0">
                     <v-row>
                       <v-col>
                         <v-menu
@@ -175,7 +175,7 @@
                       </v-col>
                     </v-row>
                   </v-col>
-                  <v-col class="mt-0 mb-0 pt-0 pb-0">
+                  <v-col class="my-0 py-0">
                     <v-row>
                       <v-col>
                         <v-autocomplete
@@ -235,14 +235,14 @@
             </v-row>
             <v-divider></v-divider>
             <v-row>
-              <v-col class="mb-0 pt-0 pb-0">
+              <v-col class="mb-0 py-0">
                 <p class="font-weight-bold subtitle-1">
                   PREVIOUS TACTICAL ACTIVITY
                 </p>
               </v-col>
             </v-row>
             <v-row>
-              <v-col class="mb-0 pt-0 pb-0">
+              <v-col class="mb-0 py-0">
                 <v-menu
                   ref="menu"
                   v-model="date_menu_prev_period_fr"
@@ -271,7 +271,7 @@
                   </v-date-picker>
                 </v-menu>
               </v-col>
-              <v-col class="mb-0 pt-0 pb-0">
+              <v-col class="mb-0 py-0">
                 <v-menu
                   ref="menu"
                   v-model="date_menu_prev_period_to"
@@ -300,14 +300,14 @@
                   </v-date-picker>
                 </v-menu>
               </v-col>
-              <v-col class="mt-0 mb-0 pt-0 pb-0">
+              <v-col class="my-0 py-0">
                 <v-text-field
                   name="prev_venue"
                   v-model="editedItem.prev_venue"
                   label="Venue"
                 ></v-text-field>
               </v-col>
-              <v-col class="mt-0 mb-0 pt-0 pb-0">
+              <v-col class="my-0 py-0">
                 <v-text-field
                   name="prev_sponsor"
                   v-model="editedItem.prev_sponsor"
@@ -316,7 +316,7 @@
               </v-col>
             </v-row>
             <v-row>
-              <v-col class="mt-0 mb-0 pt-0 pb-0">
+              <v-col class="my-0 py-0">
                 <v-text-field-dotnumber
                   v-model="editedItem.prev_quota"
                   label= 'Quota'
@@ -335,7 +335,7 @@
                 >
                 </v-text-field-dotnumber>
               </v-col>
-              <v-col class="mt-0 mb-0 pt-0 pb-0">
+              <v-col class="my-0 py-0">
                 <v-text-field-dotnumber
                   v-model="editedItem.prev_total_sales"
                   label= 'Total Sales'
@@ -353,7 +353,7 @@
                 >
                 </v-text-field-dotnumber>
               </v-col>
-              <v-col class="mt-0 mb-0 pt-0 pb-0">
+              <v-col class="my-0 py-0">
                 <v-text-field-dotnumber
                   v-model="editedItem.prev_sales_achievement"
                   label= 'Sales Achievement'
@@ -371,7 +371,7 @@
                 >
                 </v-text-field-dotnumber>
               </v-col>
-              <v-col class="mt-0 mb-0 pt-0 pb-0">
+              <v-col class="my-0 py-0">
                 <v-text-field-dotnumber
                   v-model="editedItem.prev_total_expense"
                   label= 'Total Expense'
@@ -624,13 +624,13 @@
               </v-col>
             </v-row>
           </v-card-text>
-          <v-divider></v-divider>
-          <v-card-actions>
+          <v-divider class="mb-3 mt-0"></v-divider>
+          <v-card-actions class="pa-0">
             <v-btn
               color="primary"
               @click="save"
               :disabled="disabled"
-              class="ml-4 mb-4 mr-1"
+              class="ml-6 mb-4 mr-1"
             >
               Save
             </v-btn>
@@ -640,14 +640,14 @@
 
         <v-dialog v-model="dialog_attach_file" max-width="500px" persistent>
             <v-card>
-              <v-card-title class="mb-0 pb-0">
+              <v-card-title class="pa-4">
                 <span class="headline">Attach file</span>
               </v-card-title>
-              <v-divider></v-divider>
+              <v-divider class="mt-0"></v-divider>
               <v-card-text>
                 <v-container>
                   <v-row>
-                    <v-col class="mt-0 mb-0 pt-0 pb-0">
+                    <v-col class="my-0 py-0">
                       <v-file-input
                         v-model="editedItem.file"
                         show-size
@@ -666,7 +666,8 @@
                   </v-row>
                 </v-container>
               </v-card-text>
-              <v-card-actions>
+              <v-divider class="mb-3 mt-0"></v-divider>
+              <v-card-actions class="pa-0">
                 <v-spacer></v-spacer>
                 <!-- <v-btn
                   color="#E0E0E0"
@@ -677,7 +678,7 @@
                 </v-btn> -->
                 <v-btn
                   color="primary"
-                  class="mb-4 mr-4"
+                  class="mb-3 mr-4"
                   @click="(dialog_attach_file = false)"
                 >
                   OK
@@ -898,7 +899,7 @@ export default {
       this.validateExpenseParticulars();
       console.log("validationError", this.$v.$error);
       console.log("expensePaticularHasError", this.expensePaticularHasError);
-      if (!this.$v.$error && !this.expensePaticularHasError) {
+      // if (!this.$v.$error && !this.expensePaticularHasError) {
         this.disabled = true;
         this.overlay = true;
 
@@ -930,7 +931,7 @@ export default {
             this.disabled = false;
           }
         );
-      }
+      // }
     },
     clear() {
       this.$v.$reset();

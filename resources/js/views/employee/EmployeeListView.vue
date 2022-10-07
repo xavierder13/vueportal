@@ -131,16 +131,16 @@
 
           <v-dialog v-model="dialog" max-width="1000px" persistent>
             <v-card>
-              <v-card-title class="mb-0 pb-0">
+              <v-card-title class="pa-4">
                 <span class="headline">{{ formTitle }}</span>
               </v-card-title>
-              <v-divider></v-divider>
+              <v-divider class="mt-0"></v-divider>
               <v-card-text>
                 <v-container>
                   <fieldset>
                     <legend class="mb-6">Personal Information</legend>
                     <v-row>
-                      <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
+                      <v-col cols="3" class="my-0 py-0">
                         <v-text-field
                           name="employee_code"
                           v-model="editedItem.employee_code"
@@ -150,7 +150,7 @@
                           @blur="$v.editedItem.employee_code.$touch()"
                         ></v-text-field>
                       </v-col>
-                      <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
+                      <v-col cols="3" class="my-0 py-0">
                         <v-text-field
                           name="last_name"
                           v-model="editedItem.last_name"
@@ -160,7 +160,7 @@
                           @blur="$v.editedItem.last_name.$touch()"
                         ></v-text-field>
                       </v-col>
-                      <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
+                      <v-col cols="3" class="my-0 py-0">
                         <v-text-field
                           name="first_name"
                           v-model="editedItem.first_name"
@@ -170,7 +170,7 @@
                           @blur="$v.editedItem.first_name.$touch()"
                         ></v-text-field>
                       </v-col>
-                      <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
+                      <v-col cols="3" class="my-0 py-0">
                         <v-text-field
                           name="middle_name"
                           v-model="editedItem.middle_name"
@@ -179,12 +179,12 @@
                       </v-col>
                     </v-row>
                     <!-- <v-row>
-                    <v-col class="mt-0 mb-0 pt-0 pb-0">
-                      <v-divider class="mt-0 mb-0 pt-0 pb-0"></v-divider>
+                    <v-col class="my-0 py-0">
+                      <v-divider class="my-0 py-0"></v-divider>
                     </v-col>
                   </v-row> -->
                     <v-row>
-                      <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
+                      <v-col cols="3" class="my-0 py-0">
                         <v-menu
                           v-model="input_birth_date"
                           :close-on-content-click="false"
@@ -214,7 +214,7 @@
                           ></v-date-picker>
                         </v-menu>
                       </v-col>
-                      <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
+                      <v-col cols="3" class="my-0 py-0">
                         <v-autocomplete
                           v-model="editedItem.gender"
                           :items="gender_items"
@@ -227,7 +227,7 @@
                         >
                         </v-autocomplete>
                       </v-col>
-                      <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
+                      <v-col cols="3" class="my-0 py-0">
                         <v-autocomplete
                           v-model="editedItem.civil_status"
                           :items="civil_status_items"
@@ -240,7 +240,7 @@
                         >
                         </v-autocomplete>
                       </v-col>
-                      <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
+                      <v-col cols="3" class="my-0 py-0">
                         <v-text-field
                           name="contact"
                           v-model="editedItem.contact"
@@ -252,7 +252,7 @@
                       </v-col>
                     </v-row>
                     <v-row>
-                      <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
+                      <v-col cols="3" class="my-0 py-0">
                         <v-text-field
                           name="email"
                           v-model="editedItem.email"
@@ -262,7 +262,7 @@
                           @blur="$v.editedItem.email.$touch()"
                         ></v-text-field>
                       </v-col>
-                      <v-col cols="9" class="mt-0 mb-0 pt-0 pb-0">
+                      <v-col cols="9" class="my-0 py-0">
                         <v-text-field
                           name="address"
                           v-model="editedItem.address"
@@ -274,15 +274,15 @@
                       </v-col>
                     </v-row>
                     <v-row>
-                      <v-col class="mt-0 mb-0 pt-0 pb-0">
-                        <v-divider class="mt-0 mb-0 pt-0 pb-0"></v-divider>
+                      <v-col class="my-0 py-0">
+                        <v-divider class="my-0 py-0"></v-divider>
                       </v-col>
                     </v-row>
                   </fieldset>
                   <fieldset>
                     <legend class="mb-6 mt-6">Employment Information</legend>
                     <v-row>
-                      <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
+                      <v-col cols="3" class="my-0 py-0">
                         <v-text-field
                           name="class"
                           v-model="editedItem.class"
@@ -292,7 +292,7 @@
                           @blur="$v.editedItem.class.$touch()"
                         ></v-text-field>
                       </v-col>
-                      <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
+                      <v-col cols="3" class="my-0 py-0">
                         <v-text-field
                           name="rank"
                           v-model="editedItem.rank"
@@ -302,7 +302,7 @@
                           @blur="$v.editedItem.rank.$touch()"
                         ></v-text-field>
                       </v-col>
-                      <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
+                      <v-col cols="3" class="my-0 py-0">
                         <v-text-field
                           name="department"
                           v-model="editedItem.department"
@@ -312,7 +312,7 @@
                           @blur="$v.editedItem.department.$touch()"
                         ></v-text-field>
                       </v-col>
-                      <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
+                      <v-col cols="3" class="my-0 py-0">
                         <v-text-field
                           name="cost_center_code"
                           v-model="editedItem.cost_center_code"
@@ -324,7 +324,7 @@
                       </v-col>
                     </v-row>
                     <v-row>
-                      <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
+                      <v-col cols="3" class="my-0 py-0">
                         <v-text-field
                           name="job_description"
                           v-model="editedItem.job_description"
@@ -334,7 +334,7 @@
                           @blur="$v.editedItem.job_description.$touch()"
                         ></v-text-field>
                       </v-col>
-                      <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
+                      <v-col cols="3" class="my-0 py-0">
                         <v-menu
                           v-model="input_date_employed"
                           :close-on-content-click="false"
@@ -364,7 +364,7 @@
                           ></v-date-picker>
                         </v-menu>
                       </v-col>
-                      <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
+                      <v-col cols="3" class="my-0 py-0">
                         <v-text-field
                           name="tax_status"
                           v-model="editedItem.tax_status"
@@ -374,7 +374,7 @@
                           @blur="$v.editedItem.tax_status.$touch()"
                         ></v-text-field>
                       </v-col>
-                      <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
+                      <v-col cols="3" class="my-0 py-0">
                         <v-text-field
                           name="tax_branch_code"
                           v-model="editedItem.tax_branch_code"
@@ -386,7 +386,7 @@
                       </v-col>
                     </v-row>
                     <v-row>
-                      <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
+                      <v-col cols="3" class="my-0 py-0">
                         <v-text-field
                           name="tin_no"
                           v-model="editedItem.tin_no"
@@ -396,7 +396,7 @@
                           @blur="$v.editedItem.tin_no.$touch()"
                         ></v-text-field>
                       </v-col>
-                      <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
+                      <v-col cols="3" class="my-0 py-0">
                         <v-text-field
                           name="pagibig_no"
                           v-model="editedItem.pagibig_no"
@@ -406,7 +406,7 @@
                           @blur="$v.editedItem.pagibig_no.$touch()"
                         ></v-text-field>
                       </v-col>
-                      <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
+                      <v-col cols="3" class="my-0 py-0">
                         <v-text-field
                           name="philhealth_no"
                           v-model="editedItem.philhealth_no"
@@ -416,7 +416,7 @@
                           @blur="$v.editedItem.philhealth_no.$touch()"
                         ></v-text-field>
                       </v-col>
-                      <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
+                      <v-col cols="3" class="my-0 py-0">
                         <v-text-field
                           name="sss_no"
                           v-model="editedItem.sss_no"
@@ -428,7 +428,7 @@
                       </v-col>
                     </v-row>
                     <v-row>
-                      <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
+                      <v-col cols="3" class="my-0 py-0">
                         <v-text-field
                           name="time_schedule"
                           v-model="editedItem.time_schedule"
@@ -438,7 +438,7 @@
                           @blur="$v.editedItem.time_schedule.$touch()"
                         ></v-text-field>
                       </v-col>
-                      <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
+                      <v-col cols="3" class="my-0 py-0">
                         <v-text-field
                           name="restday"
                           v-model="editedItem.restday"
@@ -450,15 +450,15 @@
                       </v-col>
                     </v-row>
                     <v-row>
-                      <v-col class="mt-0 mb-0 pt-0 pb-0">
-                        <v-divider class="mt-0 mb-0 pt-0 pb-0"></v-divider>
+                      <v-col class="my-0 py-0">
+                        <v-divider class="my-0 py-0"></v-divider>
                       </v-col>
                     </v-row>
                   </fieldset>
                   <fieldset>
                     <legend class="mb-6 mt-6">Educational Background</legend>
                     <v-row>
-                      <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
+                      <v-col cols="3" class="my-0 py-0">
                         <v-text-field
                           name="educ_attain"
                           v-model="editedItem.educ_attain"
@@ -468,7 +468,7 @@
                           @blur="$v.editedItem.educ_attain.$touch()"
                         ></v-text-field>
                       </v-col>
-                      <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
+                      <v-col cols="3" class="my-0 py-0">
                         <v-text-field
                           name="school_attended"
                           v-model="editedItem.school_attended"
@@ -478,7 +478,7 @@
                           @blur="$v.editedItem.school_attended.$touch()"
                         ></v-text-field>
                       </v-col>
-                      <v-col cols="3" class="mt-0 mb-0 pt-0 pb-0">
+                      <v-col cols="3" class="my-0 py-0">
                         <v-text-field
                           name="course"
                           v-model="editedItem.course"
@@ -492,34 +492,33 @@
                   </fieldset>
                 </v-container>
               </v-card-text>
-
-              <v-card-actions>
+              <v-divider class="mb-3 mt-0"></v-divider>
+              <v-card-actions class="pa-0">
                 <v-spacer></v-spacer>
-                <v-btn color="#E0E0E0" @click="close" class="mb-4">
+                <v-btn color="#E0E0E0" @click="close" class="mb-3">
                   Cancel
                 </v-btn>
                 <v-btn
                   color="primary"
                   @click="save"
                   :disabled="disabled"
-                  class="mb-4 mr-4"
+                  class="mb-3 mr-4"
                 >
                   Save
                 </v-btn>
               </v-card-actions>
             </v-card>
           </v-dialog>
-
           <v-dialog v-model="dialog_import" max-width="500px" persistent>
             <v-card>
-              <v-card-title class="mb-0 pb-0">
+              <v-card-title class="pa-4">
                 <span class="headline">Import Data</span>
               </v-card-title>
-              <v-divider></v-divider>
+              <v-divider class="mt-0"></v-divider>
               <v-card-text>
                 <v-container>
                   <v-row>
-                    <v-col class="mt-0 mb-0 pt-0 pb-0">
+                    <v-col class="my-0 py-0">
                       <v-file-input
                         v-model="file"
                         show-size
@@ -559,18 +558,19 @@
                   </v-row>
                 </v-container>
               </v-card-text>
-              <v-card-actions>
+              <v-divider class="mb-3 mt-0"></v-divider>
+              <v-card-actions class="pa-0">
                 <v-spacer></v-spacer>
                 <v-btn
                   color="#E0E0E0"
                   @click="(dialog_import = false) + (loading = false)"
-                  class="mb-4"
+                  class="mb-3"
                 >
                   Cancel
                 </v-btn>
                 <v-btn
                   color="primary"
-                  class="mb-4 mr-4"
+                  class="mb-3 mr-4"
                   @click="uploadFile()"
                   :disabled="uploadDisabled"
                 >
@@ -581,12 +581,14 @@
           </v-dialog>
           <v-dialog v-model="dialog_error_list" max-width="1000px" persistent>
             <v-card>
-              <v-card-title class="mb-0 pb-0">
+              <v-card-title class="pa-4">
                 <span class="headline">Error List</span>
                 <v-spacer></v-spacer>
-                <v-icon @click="dialog_error_list = false"> mdi-close </v-icon>
+                <v-btn @click="dialog_error_list = false" icon>
+                  <v-icon> mdi-close </v-icon>
+                </v-btn>
               </v-card-title>
-              <v-divider></v-divider>
+              <v-divider class="mt-0"></v-divider>
               <v-card-text>
                 <v-container>
                   <v-row>

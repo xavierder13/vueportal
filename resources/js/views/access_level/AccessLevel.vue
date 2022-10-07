@@ -25,7 +25,7 @@
           <v-divider></v-divider>
           <v-card-text class="ml-2">
             <v-row>
-              <v-col cols="4">
+              <v-col cols="4" class="my-0 py-0">
                 <v-text-field-integer
                   name="access_level"
                   v-model="level"
@@ -45,7 +45,8 @@
               </v-col>
             </v-row>
           </v-card-text>
-          <v-card-actions>
+          <v-divider class="mb-3 mt-4"></v-divider>
+          <v-card-actions class="pa-0">
             <v-btn
               class="ml-2 mb-2"
               color="primary"

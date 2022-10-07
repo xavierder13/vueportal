@@ -102,14 +102,14 @@
                 <v-spacer></v-spacer>
                 <v-dialog v-model="dialog" max-width="500px" persistent>
                   <v-card>
-                    <v-card-title>
+                    <v-card-title class="pa-4">
                       <span class="headline">{{ formTitle }}</span>
                     </v-card-title>
-                    <v-divider></v-divider>
+                    <v-divider class="mt-0"></v-divider>
                     <v-card-text>
                       <v-container>
                         <v-row>
-                          <v-col class="mt-0 mb-0 pt-0 pb-0">
+                          <v-col class="my-0 py-0">
                             <v-autocomplete
                               v-model="editedItem.brand_id"
                               :items="brands"
@@ -128,7 +128,7 @@
                           </v-col>
                         </v-row>
                         <v-row>
-                          <v-col class="mt-0 mb-0 pt-0 pb-0">
+                          <v-col class="my-0 py-0">
                             <v-text-field
                               name="model"
                               label="Model"
@@ -144,7 +144,7 @@
                           </v-col>
                         </v-row>
                         <v-row>
-                          <v-col class="mt-0 mb-0 pt-0 pb-0">
+                          <v-col class="my-0 py-0">
                             <v-autocomplete
                               v-model="editedItem.product_category_id"
                               :items="product_categories"
@@ -164,7 +164,7 @@
                           </v-col>
                         </v-row>
                         <v-row>
-                          <v-col class="mt-0 mb-0 pt-0 pb-0">
+                          <v-col class="my-0 py-0">
                             <v-text-field
                               name="serial"
                               label="Serial"
@@ -178,7 +178,7 @@
                           </v-col>
                         </v-row>
                         <v-row>
-                          <v-col class="mt-0 mb-0 pt-0 pb-0">
+                          <v-col class="my-0 py-0">
                             <v-autocomplete
                               v-model="editedItem.branch_id"
                               :items="branches"
@@ -196,16 +196,16 @@
                         </v-row>
                       </v-container>
                     </v-card-text>
-
-                    <v-card-actions>
+                    <v-divider class="mb-3 mt-0"></v-divider>
+                    <v-card-actions class="pa-0">
                       <v-spacer></v-spacer>
-                      <v-btn color="#E0E0E0" @click="close" class="mb-4">
+                      <v-btn color="#E0E0E0" @click="close" class="mb-3">
                         Cancel
                       </v-btn>
                       <v-btn
                         color="primary"
                         @click="save"
-                        class="mb-4 mr-4"
+                        class="mb-3 mr-4"
                         :disabled="disabled"
                       >
                         Save
@@ -220,7 +220,7 @@
                   persistent
                 >
                   <v-card>
-                    <v-card-title>
+                    <v-card-title class="pa-4">
                       <span class="headline">Unreconciled Inventories</span>
                       <v-spacer></v-spacer>
                       <v-text-field
@@ -228,6 +228,7 @@
                         append-icon="mdi-magnify"
                         label="Search"
                         single-line
+                        hide-details=""
                       ></v-text-field>
                       <v-spacer></v-spacer>
                       <v-autocomplete
@@ -236,11 +237,12 @@
                         item-text="name"
                         item-value="name"
                         label="Inventory Group"
+                        hide-details=""
                         v-if="user.id === 1"
                       >
                       </v-autocomplete>
                     </v-card-title>
-                    <v-divider></v-divider>
+                    <v-divider class="mt-0"></v-divider>
                     <v-card-text>
                       <v-container>
                         <v-row v-if="user.id === 1"> </v-row>
@@ -282,14 +284,15 @@
                         </v-row>
                       </v-container>
                     </v-card-text>
-                    <v-card-actions>
+                    <v-divider class="mb-3 mt-0"></v-divider>
+                    <v-card-actions class="pa-0">
                       <v-spacer></v-spacer>
                       <v-btn
                         color="#E0E0E0"
                         @click="
                           (dialog_unreconciled = false) + (loading = false)
                         "
-                        class="mb-4 mr-4"
+                        class="mb-3 mr-4"
                       >
                         Cancel
                       </v-btn>
