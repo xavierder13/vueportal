@@ -42,7 +42,9 @@ class TacticalRequisitionController extends Controller
 
         // check if Auth is approver on access chart tactical requisition
         $approver_ctr = AccessChart::with('access_chart_user_maps')
-                                    ->where('access_for', '=', 1)
+                                    ->whereHas('access_module', function($query){
+                                        $query->where('name', '=', 'Tactical Requisition');
+                                    })
                                     ->whereHas('access_chart_user_maps', function($query){
                                         $query->whereIn('user_id', [Auth::id()]);
                                     })->get()->count();
@@ -377,7 +379,7 @@ class TacticalRequisitionController extends Controller
                     $file_extension = $file->getClientOriginalExtension();
                     $file_date = Carbon::now()->format('Y-m-d');
                     $file_name = time().$file->getClientOriginalName();
-                    $file_path = '/wysiwyg/tactical_attachement/' . $file_date;
+                    $file_path = '/wysiwyg/tactical_attachment/' . $file_date;
 
                     $tactical_attachment = new TacticalRequisitionAttachment();
                     $tactical_attachment->tactical_requisition_id = $tactical_requisition_id;
@@ -534,9 +536,9 @@ class TacticalRequisitionController extends Controller
                                     ->whereHas('access_chart_user_maps', function($query){
                                         $query->whereIn('user_id', [Auth::id()]);
                                     })
-                                    ->where('access_for', '=', 1)
+                                    ->where('name', '=', 'Tactical Requisition')
                                     ->get();
-        
+
         $approver_ctr = $access_chart->count();
 
         if($approver_ctr=== 0 || !$user_can_approve_tactical)
@@ -545,7 +547,7 @@ class TacticalRequisitionController extends Controller
         }
 
         $access_level = AccessChart::with('access_chart_user_maps')
-                                     ->where('access_for', '=', 1)
+                                     ->where('name', '=', 'Tactical Requisition')
                                      ->first()
                                      ->access_chart_user_maps
                                      ->where('user_id', Auth::id())
@@ -553,11 +555,21 @@ class TacticalRequisitionController extends Controller
                                      ->access_level;
                                      
         $approved_log = new ApprovedLog();
-        $approved_log->module_id = 1; //Tactical Requisition
+        $approved_log->module_id = $access_chart->access_for; //Tactical Requisition
         $approved_log->document_id = $tactical_requisition_id;
         $approved_log->approver_id = Auth::id();
         $approved_log->level = $access_level;
-        $approved_log->save();
+        // $approved_log->save();
+
+        // get the number of max level approvers
+        $approved_logs = ApprovedLog::where('document_id', '=', $tactical_requisition_id)
+                                    ->where('level', '=', 4)
+                                    ->get()->count();
+
+
+        $tactical_requisition = TacticalRequisition::find($tactical_requisition_id);
+        $tactical_requisition->status = 'Approved';
+        $tactical_requisition->save();
 
         return response()->json([
             'success' => 'Record has been approved'

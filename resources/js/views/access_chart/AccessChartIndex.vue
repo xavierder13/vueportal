@@ -205,7 +205,7 @@
             </template>
           </v-data-table>
           <v-dialog
-            v-model="dialog2"
+            v-model="dialog_approving_officer"
             fullscreen
             hide-overlay
             transition="dialog-bottom-transition"
@@ -402,7 +402,7 @@ export default {
       ],
       disabled: false,
       dialog: false,
-      dialog2: false,
+      dialog_approving_officer: false,
       access_modules: [],
       access_charts: [],
       approver_access_levels: [],
@@ -553,7 +553,7 @@ export default {
 
     close() {
       this.dialog = false;
-      this.dialog2 = false;
+      this.dialog_approving_officer = false;
       this.approver_access_levels = [];
       this.clear();
       this.$nextTick(() => {
@@ -647,7 +647,7 @@ export default {
     viewApprovingOfficer(item) {
       this.editedIndex = this.access_charts.indexOf(item);
       this.editedItem = Object.assign({}, item);
-      this.dialog2 = true;
+      this.dialog_approving_officer = true;
 
       let approving_officers = item.access_chart_user_maps;
 

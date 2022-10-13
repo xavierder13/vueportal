@@ -198,6 +198,7 @@
                               v-model="switch1"
                               :label="activeStatus"
                               :readonly="editedItem.id == 1 ? true : false"
+                              hide-details=""
                             ></v-switch>
                           </v-col>
                         </v-row>
@@ -428,6 +429,7 @@ export default {
         email: "",
         roles: [],
         branch_id: "",
+        position_id: "",
         active: "Y",
       },
       defaultItem: {
@@ -437,6 +439,7 @@ export default {
         confirm_password: "",
         roles: [],
         branch_id: "",
+        position_id: "",
         active: "Y",
       },
       password: "",

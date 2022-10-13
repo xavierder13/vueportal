@@ -147,6 +147,8 @@ export default {
       this.loading = true;
       axios.get("/api/tactical_requisition/index").then(
         (response) => {
+
+          console.log(response.data);
           
           let data = response.data
         

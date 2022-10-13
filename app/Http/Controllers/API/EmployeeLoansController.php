@@ -284,7 +284,9 @@ class EmployeeLoansController extends Controller
             $path = '';
             if($request->file('file'))
             {   
-                $path = $request->file('file')->getRealPath();
+                $path1 = $request->file('file')->store('temp'); 
+                $path=storage_path('app').'/'.$path1;  
+                // $path = $request->file('file')->getRealPath();
                 $file_extension = $request->file('file')->getClientOriginalExtension();
             }
             
