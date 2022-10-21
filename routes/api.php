@@ -596,6 +596,12 @@ Route::group(['prefix' => 'tactical_requisition', 'middleware' => ['auth:api', '
 
 });
 
+// Tactical Requisition File Download Route
+Route::get('/tactical_requisition/attachment/download', [
+    'uses' => 'API\TacticalRequisitionController@download',
+    'as' => 'tactical_requisition.file.download',
+])->middleware(['tactical_requisition.maintenance']);
+
 
 // Marketing Event Routes
 Route::group(['prefix' => 'marketing_event', 'middleware' => ['auth:api', 'marketing_event.maintenance']], function(){

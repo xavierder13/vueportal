@@ -28,7 +28,7 @@
                   fab
                   dark
                   class="mb-2"
-                  @click="clear() + (dialog = true)"
+                  @click="addRole()"
                   v-if="userPermissions.role_create"
                 >
                   <v-icon>mdi-plus</v-icon>
@@ -231,19 +231,31 @@ export default {
       );
     },
 
-    editRole(item) {
-      const data = { roleid: item.id };
-      let rolePermissions = item.permissions;
-      this.role = item;
-      this.permission = [];
+    addRole() {
+      this.$router.push({
+        name: "role.create"
+      });
+    },
 
-      rolePermissions.forEach((value, index) => {
-        this.permission.push(value.id);
+    editRole(item) {
+      this.$router.push({
+        name: "role.view",
+        params: { roleid: item.id },
       });
 
-      this.editedIndex = this.roles.indexOf(item);
-      this.editedRole = Object.assign({}, item);
-      this.dialog = true;
+      // const data = { roleid: item.id };
+      
+      // let rolePermissions = item.permissions;
+      // this.role = item;
+      // this.permission = [];
+
+      // rolePermissions.forEach((value, index) => {
+      //   this.permission.push(value.id);
+      // });
+
+      // this.editedIndex = this.roles.indexOf(item);
+      // this.editedRole = Object.assign({}, item);
+      // this.dialog = true;
     },
 
     deleteRole(roleid) {

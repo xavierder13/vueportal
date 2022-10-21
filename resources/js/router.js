@@ -37,7 +37,9 @@ import AccessChartCreate from './views/access_chart/AccessChartCreate.vue';
 import AccessModuleIndex from './views/access_module/AccessModuleIndex.vue';
 import AccessLevel from './views/access_level/AccessLevel.vue';
 import Permission from './views/permission/PermissionIndex.vue';
-import Role from './views/role/RoleIndex.vue';
+import RoleIndex from './views/role/RoleIndex.vue';
+import RoleCreate from './views/role/RoleCreate.vue';
+import RoleView from './views/role/RoleView.vue';
 import ActivityLogs from './views/activity_logs/ActivityLogs.vue';
 import PageNotFound from './404/PageNotFound.vue';
 import Unauthorize from './401/Unauthorize.vue';
@@ -223,7 +225,17 @@ const routes = [
       {
         path: '/role/index',
         name: 'role.index',
-        component: Role
+        component: RoleIndex
+      },
+      {
+        path: '/role/create',
+        name: 'role.create',
+        component: RoleCreate
+      },
+      {
+        path: '/role/view/:roleid',
+        name: 'role.view',
+        component: RoleView
       },
       {
         path: '/activity_logs',

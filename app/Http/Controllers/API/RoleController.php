@@ -69,12 +69,12 @@ class RoleController extends Controller
             return abort(404, 'Not Found');
         }
 
-        $permission = Permission::get();
+        $permissions = Permission::get();
         $rolePermissions = DB::table("role_has_permissions")->where("role_id", $roleid)
-                             ->pluck('permission_id','permission_id')
+                             ->pluck('permission_id')
                              ->all();
         // return view('pages.service.edit', compact('service'));
-        return response()->json(['role' => $role, 'permission' => $permission, 'rolePermissions' => $rolePermissions], 200);
+        return response()->json(['role' => $role, 'permissions' => $permissions, 'rolePermissions' => $rolePermissions], 200);
 
     }
 

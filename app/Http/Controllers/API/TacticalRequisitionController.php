@@ -576,4 +576,28 @@ class TacticalRequisitionController extends Controller
         ], 200);
 
     }
+
+    public function download(Request $request)
+    {   
+        try {
+
+            $file = TacticalRequisitionAttachment::where('id', '=', $request->id)->get()->first();
+
+            $title = $file->title; 
+            $file_path = $file->file_path;    
+            $file_name = $file->file_name;
+            $file_type = $file->file_type;
+
+            $file = public_path() . $file_path . "/" . $file_name;
+            $headers = array('Content-Type: application/' . $file_type,);
+            // return Response::download($file, 'Branch Company.csv', $headers);
+            return response()->download($file, $title . '.' . $file_type, $headers);
+
+        } catch (\Exception $e) {
+            
+            return response()->json(['error' => $e->getMessage()], 200);
+        }
+
+        
+    }
 }

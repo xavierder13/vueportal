@@ -212,6 +212,7 @@ export default {
     getFiles() {
       axios.get("api/training/files").then(
         (response) => {
+          console.log(response.data);
           this.files = response.data.files;
           this.loaded = true;
           this.loading = false;

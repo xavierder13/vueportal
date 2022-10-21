@@ -579,26 +579,42 @@ export default {
 
   methods: {
     logout() {
-      this.overlay = true;
-      axios.get("/api/auth/logout").then(
-        (response) => {
-          if (response.data.success) {
-            this.overlay = false;
-            localStorage.removeItem("access_token");
-            this.$router.push("/login").catch(() => {});
-          }
-        },
-        (error) => {
-          this.overlay = false;
-          console.log(error);
+      
+      this.$swal({
+        title: "Log Out",
+        text: "Are you sure you want to log out?",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "primary",
+        cancelButtonColor: "secondary",
+        confirmButtonText: "Log Out",
+      }).then((result) => {
+        
+        if (result.value) {
+          this.overlay = true;
+          axios.get("/api/auth/logout").then(
+            (response) => {
+              if (response.data.success) {
+                this.overlay = false;
+                localStorage.removeItem("access_token");
+                this.$router.push("/login").catch(() => {});
+              }
+            },
+            (error) => {
+              this.overlay = false;
+              console.log(error);
 
-          // if unauthenticated (401)
-          if (error.response.status == "401") {
-            localStorage.removeItem("access_token");
-            this.$router.push({ name: "login" });
-          }
+              // if unauthenticated (401)
+              if (error.response.status == "401") {
+                localStorage.removeItem("access_token");
+                this.$router.push({ name: "login" });
+              }
+            }
+          );
         }
-      );
+        
+      });
+
     },
 
     userProfile() {

@@ -58,6 +58,13 @@ class TacticalRequisitionMaintenance
             }
         }
 
+        //Tactical Requisition Attachment Download
+        if($request->is('api/tactical_requisition/attachment/download')){
+            
+            return $next($request); 
+            
+        }
+
         return abort(401, 'Unauthorized');
     }
 }

@@ -80,7 +80,7 @@ class TrainingController extends Controller
 
     public function file_upload(Request $request)
     {   
-        return $request->file('file');
+ 
         try {
             $file_extension = '';
             $path = '';
@@ -231,10 +231,12 @@ class TrainingController extends Controller
     {   
         try {
 
-            $title = $request->get('title'); 
-            $file_path = $request->get('file_path');    
-            $file_name = $request->get('file_name');
-            $file_type = $request->get('file_type');
+            $file = TrainingFile::find($request->id);
+
+            $title = $file->title; 
+            $file_path = $file->file_path;    
+            $file_name = $file->file_name;
+            $file_type = $file->file_type;
 
             $file = public_path() . $file_path . "/" . $file_name;
             $headers = array('Content-Type: application/' . $file_type,);

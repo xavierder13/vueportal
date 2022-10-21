@@ -127,6 +127,8 @@ const state = {
     tactical_requisition_edit: false,
     tactical_requisition_delete: false,
     tactical_requisition_approve: false,
+    tactical_attachment_upload: false,
+    tactical_attachment_delete: false,
     marketing_event_list: false,
     marketing_event_create: false,
     marketing_event_edit: false,
@@ -364,6 +366,8 @@ const mutations = {
     permission.tactical_requisition_edit = permissions.includes("tactical-requisition-edit");
     permission.tactical_requisition_delete = permissions.includes("tactical-requisition-delete");
     permission.tactical_requisition_approve = permissions.includes("tactical-requisition-approve");
+    permission.tactical_attachment_upload = permissions.includes("tactical-attachment-upload");
+    permission.tactical_attachment_delete = permissions.includes("tactical-attachment-delete");
 
     // MARKETING EVENT RECORD MAINTENANCE PERMISSIONS
     permission.marketing_event_list = permissions.includes("marketing-event-list");

@@ -33,7 +33,7 @@ class RoleMaintenance
         }
 
         //Role Edit
-        if($request->is('api/role/edit/*') || $request->is('api/role/update/*')){
+        if($request->is('api/role/edit') || $request->is('api/role/update/*')){
             if($user->can('role-edit')){
                 return $next($request); 
             }

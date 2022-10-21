@@ -642,7 +642,7 @@
             >
               Save
             </v-btn>
-            <v-btn color="success" class="mb-4 mr-1" @click="confirmApproval()"> Approve </v-btn>
+            <v-btn color="success" class="mb-4 mr-1" @click="confirmApproval()" v-if="userPermissions.tactical_requisition_approve"> Approve </v-btn>
             <v-btn color="#E0E0E0" to="/tactical_requisition/index" class="mb-4"> Back </v-btn>
             <v-spacer></v-spacer>
             <v-btn color="error" @click="confirmDelete()" class="mb-4 mr-4"> Delete </v-btn>
@@ -652,6 +652,10 @@
           <v-card>
             <v-card-title class="pa-4">
               <span class="headline">Attachments</span>
+              <v-spacer></v-spacer>
+              <v-btn @click="dialog_attach_file = false" icon>
+                <v-icon> mdi-close-circle </v-icon>
+              </v-btn>
             </v-card-title>
             <v-divider class="mt-0"></v-divider>
             <v-card-text>
@@ -662,12 +666,12 @@
                       <v-subheader class="font-weight-bold subtitle-2"> UPLOADED FILES</v-subheader>
                       <v-list-item-group>
                         <v-list-item v-for="item in tactical_attachments" :key="item.id">
-                          <v-list-item-content>
+                          <v-list-item-content class="pa-0">
                             <v-list-item-title> 
-                              <v-btn icon color="error" @click="confirmRemoveFile(item)">
+                              <v-btn icon color="error" @click="confirmRemoveFile(item)" v-if="userPermissions.tactical_attachement_delete">
                                 <v-icon> mdi-close-circle </v-icon> 
                               </v-btn>
-                              <v-btn x-small text class="blue--text text--darken-2" @click="downloadFile(item)">
+                              <v-btn x-small text class="blue--text text--darken-2" @click="fileDownload(item)">
                                 {{ item.file_name.length > 50 ? item.file_name.substr(0, 45) + "..." : item.file_name }}
                               </v-btn>
                             </v-list-item-title>
@@ -1044,7 +1048,6 @@ export default {
     approveTactical()
     {
       
-
       const data = this.editedItem;
 
       axios.post("/api/tactical_requisition/approve/" + this.tactical_requisition_id, data).then(
@@ -1218,8 +1221,8 @@ export default {
       });
     },
 
-    downloadFile(item){
-      alert(item)
+    fileDownload(item){
+      window.open(location.origin + "/api/tactical_requisition/attachment/download?id=" + item.id, "_blank");
     },
 
     clear() {
@@ -1539,6 +1542,11 @@ export default {
       return this.editedItem.file.length ? 'Upload' : 'OK';
     },
     ...mapState("auth", ["user"]),
+    ...mapState("userRolesPermissions", [
+      "userRoles",
+      "userPermissions",
+      "userRolesPermissionsIsLoaded",
+    ]),
   },
   watch: {
     "editedItem.marketing_event"() {

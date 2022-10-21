@@ -1263,6 +1263,8 @@ export default {
     },
     user() {
       this.editedItem.branch_id = this.user.branch_id;
+      console.log(this.user);
+      console.log(this.editedItem.branch_id);
     },
   },
   mounted() {

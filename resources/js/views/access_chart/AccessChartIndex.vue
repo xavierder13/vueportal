@@ -85,12 +85,12 @@
                           </v-col>
                         </v-row>
                         <v-row v-if="hasApprovers">
-                          <v-col class="mt-4 mb-0 pt-0 pb-0">
+                          <v-col class="mt-0 mb-0 pt-0 pb-0">
                             <fieldset>
-                              <legend class="subtitle-1 font-weight-bold">
+                              <legend class="subtitle-1 font-weight-bold mb-2">
                                 No. of Approver per Level
                               </legend>
-                              <v-simple-table>
+                              <!-- <v-simple-table>
                                 <thead
                                   class="
                                     grey
@@ -132,7 +132,27 @@
                                     </td>
                                   </tr>
                                 </tbody>
-                              </v-simple-table>
+                              </v-simple-table> -->
+                              <v-row>
+                                <template v-for="(item, index) in editedItem.approver_per_level">
+                                  <v-col>
+                                    <v-text-field-integer
+                                        :label="'Level ' + (index + 1).toString()"
+                                        name="access_level[]"
+                                        v-model="item.num_of_approvers"
+                                        v-bind:properties="{
+                                          placeholder: '0',
+                                          maxLength: 6,
+                                          outlined: true,
+                                          dense: true,
+                                          'hide-details': true,
+                                        }"
+                                        required
+                                      >
+                                      </v-text-field-integer>
+                                  </v-col>
+                                </template>
+                              </v-row>
                             </fieldset>
                           </v-col>
                         </v-row>
@@ -206,17 +226,18 @@
           </v-data-table>
           <v-dialog
             v-model="dialog_approving_officer"
-            fullscreen
+            max-width="1000px"
             hide-overlay
             transition="dialog-bottom-transition"
             scrollable
           >
             <v-card>
               <v-card-title>
-                <v-btn icon @click="close" class="mr-4 white" x-large>
+                {{ editedItem.name + " - Access Chart" }}
+                <v-spacer></v-spacer>
+                <v-btn icon @click="close" class="white">
                   <v-icon>mdi-close-circle</v-icon>
                 </v-btn>
-                {{ editedItem.name + " - Access Chart" }}
               </v-card-title>
               <v-divider class="ma-0"></v-divider>
               <v-card-text>
@@ -360,6 +381,17 @@
                   </v-col>
                 </v-row>
               </v-card-text>
+              <v-divider class="mb-3 mt-0"></v-divider>
+              <v-card-actions class="pa-0">
+                <v-spacer></v-spacer>
+                <v-btn
+                  color="primary"
+                  class="mb-3 mr-4"
+                  @click="close()"
+                >
+                  OK
+                </v-btn>
+              </v-card-actions>
             </v-card>
           </v-dialog>
         </v-card>
