@@ -599,6 +599,7 @@ export default {
       );
       this.approving_officers = [];
       this.editedIndex2 = -1;
+      this.addEditMode = "";
     },
 
     validateApproverPerLevel() {

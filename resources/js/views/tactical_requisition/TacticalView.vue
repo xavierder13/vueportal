@@ -632,20 +632,21 @@
               </v-col>
             </v-row>
           </v-card-text>
-          <v-divider></v-divider>
-          <v-card-actions>
+          <v-divider class="mb-3 mt-0"></v-divider>
+          <v-card-actions class="pa-0 pl-4" v-if="editedItem.status == 'Pending'">
             <v-btn
               color="primary"
               @click="showConfirmAlert()"
               :disabled="disabled"
-              class="ml-4 mb-4 mr-1"
+              class="mb-4 mr-1"
+              v-if="userPermissions.tactical_requisition_edit"
             >
               Save
             </v-btn>
-            <v-btn color="success" class="mb-4 mr-1" @click="confirmApproval()" v-if="userPermissions.tactical_requisition_approve"> Approve </v-btn>
+            <v-btn color="success" class="mb-4 mr-1" @click="confirmApproval()" v-if="userPermissions.tactical_requisition_approve && !isApproved"> Approve </v-btn>
             <v-btn color="#E0E0E0" to="/tactical_requisition/index" class="mb-4"> Back </v-btn>
             <v-spacer></v-spacer>
-            <v-btn color="error" @click="confirmDelete()" class="mb-4 mr-4"> Delete </v-btn>
+            <v-btn color="error" @click="confirmDelete()" class="mb-4 mr-4" v-if="userPermissions.tactical_requisition_delete"> Delete </v-btn>
           </v-card-actions>
         </v-card>
         <v-dialog v-model="dialog_attach_file" max-width="500px" persistent>
@@ -668,7 +669,7 @@
                         <v-list-item v-for="item in tactical_attachments" :key="item.id">
                           <v-list-item-content class="pa-0">
                             <v-list-item-title> 
-                              <v-btn icon color="error" @click="confirmRemoveFile(item)" v-if="userPermissions.tactical_attachement_delete">
+                              <v-btn icon color="error" @click="confirmRemoveFile(item)" v-if="userPermissions.tactical_attachment_delete">
                                 <v-icon> mdi-close-circle </v-icon> 
                               </v-btn>
                               <v-btn x-small text class="blue--text text--darken-2" @click="fileDownload(item)">
@@ -681,8 +682,8 @@
                     </v-list>
                   </v-col>
                 </v-row>
-                <v-divider v-if="tactical_attachments.length"></v-divider>
-                <v-row>
+                <v-divider v-if="tactical_attachments.length && !isApproved"></v-divider>
+                <v-row v-if="!isApproved">
                   <v-col class="my-0 py-0">
                     <v-file-input
                       v-model="editedItem.file"
@@ -860,6 +861,7 @@ export default {
       },
       dialog_attach_file: false,
       tactical_requisition_id: null,
+      approved_logs: [],
     };
   },
 
@@ -896,6 +898,8 @@ export default {
           this.editedItem.expense_particulars = data.tactical_rows;
 
           this.tactical_attachments = data.tactical_attachments;
+
+          this.approved_logs = data.approved_logs;
       
           this.getMarketingEvent();
           this.computeAmount();
@@ -1060,10 +1064,13 @@ export default {
               this.$swal({
                 position: "center",
                 icon: "success",
-                title: "Approval saved!",
+                title: "Record has been approved!",
                 showConfirmButton: false,
                 timer: 2500,
               });
+
+              this.approved_logs = response.data.approved_logs;
+              this.editedItem.status = response.data.status;
 
             } else {
               let errors = response.data;
@@ -1540,6 +1547,19 @@ export default {
     },
     attachmentBtnLabel(){
       return this.editedItem.file.length ? 'Upload' : 'OK';
+    },
+    isApproved(){
+      let isApproved = false;
+      
+      // check if current user has already approved the tactical requisition
+      this.approved_logs.forEach(value => {
+        if(value.approver_id === this.user.id)
+        {
+          isApproved = true;
+        }
+      });
+
+      return isApproved;
     },
     ...mapState("auth", ["user"]),
     ...mapState("userRolesPermissions", [

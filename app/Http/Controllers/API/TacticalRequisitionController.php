@@ -14,6 +14,7 @@ use App\TacticalRequisitionAttachment;
 use App\AccessChart;
 use App\AccessChartUserMap;
 use App\ApprovedLog;
+use App\ApproverPerLevel;
 use Validator;
 use DB;
 use Carbon\Carbon;
@@ -73,11 +74,10 @@ class TacticalRequisitionController extends Controller
 
         // get the current level approvers
         $curr_level_approvers = [];
-
-        $approval_progress = [];
         
         // get the required current level approvers for each record
         foreach ($tactical_requisitions as $key => $value) {
+
             $level = [];
 
             foreach ($approver_per_level as $key2 => $value2) {
@@ -104,18 +104,27 @@ class TacticalRequisitionController extends Controller
                 }
                 
             }
+            
 
             $approvers_arr = [];
+            $current_level = $access_chart->max_approval_level;
+            
+            // if tactical requisition status is Pending then set the required level approver to show the for approval tactical requisition
+            if($value->status === 'Pending')
+            {
+                $current_level = min($level);
+            }
+
             // get the approver id (user_id) where level == min($level)
             foreach ($approvers as $key2 => $value2) {
 
-                if($value2->access_level === min($level))
+                if($value2->access_level === $current_level)
                 {
                     $approvers_arr[] = $value2->user_id;
                 }
             }
 
-            $curr_level_approvers [] = ['tactical_requisition_id' => $value->id, 'level' => min($level), 'approver_id' => $approvers_arr];
+            $curr_level_approvers [] = ['tactical_requisition_id' => $value->id, 'level' => $current_level, 'approver_id' => $approvers_arr];
 
         }
         
@@ -124,7 +133,8 @@ class TacticalRequisitionController extends Controller
         // if user is approver 
         if($approver_ctr > 0)
         {
-            $tactical_requisitions = [];
+            
+            $tactical_requisitions = []; // if user is approver then reset the $tactical_requisitions
 
             // filter record if approver has already approved the record
             foreach ($data as $key => $value) {
@@ -132,6 +142,7 @@ class TacticalRequisitionController extends Controller
                 $approved_by_user = false;
                 $current_level_approver = false;
 
+                // check if user(approver) already approved the record based from approved_logs table
                 foreach ($value->approved_logs as $key2 => $value2) {
                     if(Auth::id() ===  $value2->approver_id)
                     {
@@ -155,7 +166,6 @@ class TacticalRequisitionController extends Controller
                 
             }
 
-            // filter record if approver is on the current level to approve
         }
     
         $approval_progress = [];
@@ -528,7 +538,8 @@ class TacticalRequisitionController extends Controller
     }
 
     public function approve(Request $request, $tactical_requisition_id)
-    {
+    {   
+        $date_now = Carbon::now()->format('Y-m-d');
         $user_can_approve_tactical = Auth::user()->can('tactical-requisition-approve');
 
         // get access chart tactical requisition approver
@@ -553,26 +564,44 @@ class TacticalRequisitionController extends Controller
                                      ->where('user_id', Auth::id())
                                      ->first()
                                      ->access_level;
-                                     
+
+        $max_approval_level = $access_chart->first()->max_approval_level;
+        $module_id = $access_chart->first()->access_for;
+        
+        // get the required number of approvers (max level)
+        $num_of_approvers_max_level = ApproverPerLevel::where('module_id', '=', $module_id)
+                                              ->where('level', '=', $max_approval_level)
+                                              ->max('num_of_approvers');
+
         $approved_log = new ApprovedLog();
-        $approved_log->module_id = $access_chart->access_for; //Tactical Requisition
+        $approved_log->module_id = $module_id; //Tactical Requisition
         $approved_log->document_id = $tactical_requisition_id;
         $approved_log->approver_id = Auth::id();
         $approved_log->level = $access_level;
-        // $approved_log->save();
-
-        // get the number of max level approvers
+        $approved_log->save();
+        
         $approved_logs = ApprovedLog::where('document_id', '=', $tactical_requisition_id)
-                                    ->where('level', '=', 4)
-                                    ->get()->count();
+                                    ->get();
 
+        // get the number of approvers (maximum level)
+        $approved_logs_max_level = $approved_logs->where('level', '=', $max_approval_level)->count();   
 
-        $tactical_requisition = TacticalRequisition::find($tactical_requisition_id);
-        $tactical_requisition->status = 'Approved';
-        $tactical_requisition->save();
+        $status = 'Pending';
+
+        //approval logs of maximum level is equal or greater than required number of approval then update status 
+        if($approved_logs_max_level >= $num_of_approvers_max_level)
+        {       
+            $status = 'Approved';
+            $tactical_requisition = TacticalRequisition::find($tactical_requisition_id);
+            $tactical_requisition->status = 'Approved';
+            $tactical_requisition->date_approve = $date_now;
+            $tactical_requisition->save();
+        }
 
         return response()->json([
-            'success' => 'Record has been approved'
+            'success' => 'Record has been approved',
+            'status' => $status,
+            'approved_logs' => $approved_logs,
         ], 200);
 
     }

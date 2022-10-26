@@ -230,7 +230,12 @@
                     4. PICTURES OF PREVIOUS ACTIVITY STATED HEREIN
                   </p>
                 </div>
-                <v-btn color="primary" small @click="dialog_attach_file = true"><v-icon small>mdi-attachment</v-icon> Attach Files {{ editedItem.file.length ? '(' + editedItem.file.length + ')' : '' }}</v-btn> 
+                <div class="d-flex justify-start">
+                  <v-btn color="primary" small @click="dialog_attach_file = true">
+                    <v-icon small>mdi-attachment</v-icon> Attach Files {{ editedItem.file.length ? '(' + editedItem.file.length + ')' : '' }}
+                  </v-btn> 
+                  <p class="ml-2 font-weight-bold font-italic red--text text--darken-1" v-if="fileIsRequired"> {{ fileErrors }} </p>
+                </div>
               </v-col>
             </v-row>
             <v-divider></v-divider>
@@ -404,10 +409,15 @@
                       <td>AMOUNT</td>
                     </tr>
                   </thead>
+                  <tr v-if="editedItem.expense_particulars.length === 0">
+                    <td colspan="6" class="text-center">
+                      <p class="font-italic font-weight-bold subtitle-1 my-4">Please select Event Title</p>
+                    </td>
+                  </tr>
                   <tbody
                     v-for="(item, index) in editedItem.expense_particulars"
                   >
-                    <tr>
+                    <tr class="pa-0">
                       <td class="font-weight-bold border-0">
                         {{ item.description }}
                       </td>
@@ -761,8 +771,8 @@ export default {
         period_to: new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
           .toISOString()
           .substr(0, 10),
-        operating_from: "",
-        operating_to: "",
+        operating_from: "08:00",
+        operating_to: "08:00",
         prev_period_from: null,
         prev_period_to: null,
         prev_venue: "",
@@ -819,7 +829,7 @@ export default {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2 
       },
-      dialog_attach_file: false
+      dialog_attach_file: false,
     };
   },
 
@@ -897,9 +907,9 @@ export default {
     save() {
       this.$v.$touch();
       this.validateExpenseParticulars();
-      console.log("validationError", this.$v.$error);
-      console.log("expensePaticularHasError", this.expensePaticularHasError);
-      // if (!this.$v.$error && !this.expensePaticularHasError) {
+      // console.log("validationError", this.$v.$error);
+      // console.log("expensePaticularHasError", this.expensePaticularHasError);
+      if (!this.$v.$error && !this.expensePaticularHasError) {
         this.disabled = true;
         this.overlay = true;
 
@@ -931,7 +941,7 @@ export default {
             this.disabled = false;
           }
         );
-      // }
+      }
     },
     clear() {
       this.$v.$reset();
@@ -1207,6 +1217,16 @@ export default {
       }
       return errors;
     },
+    fileErrors() {
+      if(this.fileIsRequired)
+      {
+        if(this.$v.editedItem.file.$dirty)
+        { 
+          return "Attachment is required!";
+        }
+      }
+      
+    },
     computedPeriodFromFormatted() {
       return this.formatDate(this.editedItem.period_from);
     },
@@ -1224,6 +1244,12 @@ export default {
     },
     formData(){
       let formData = new FormData();
+      
+      // if user is not administrator then set the user_id with the id of current user
+      if(this.user.id != 1)
+      {
+        this.editedItem.branch_id = this.user.branch_id;
+      }
 
       const data = this.editedItem;
       let fieldName = Object.keys(data);
@@ -1231,6 +1257,7 @@ export default {
       fieldName.forEach(field => {
         fieldValue = this.editedItem[`${field}`];
         formData.append(field, JSON.stringify(fieldValue));
+
         if (field != 'file') {
           formData.append(field, JSON.stringify(fieldValue));
         }
@@ -1243,12 +1270,7 @@ export default {
           
         }
         
-        
       });
-
-      // formData.append("file", JSON.stringify(this.files));
-      
-      // formData.append('editedItem', JSON.stringify(this.editedItem));
 
       return formData;
     },
@@ -1263,8 +1285,6 @@ export default {
     },
     user() {
       this.editedItem.branch_id = this.user.branch_id;
-      console.log(this.user);
-      console.log(this.editedItem.branch_id);
     },
   },
   mounted() {

@@ -48,14 +48,14 @@
           <v-divider class="mb-3 mt-4"></v-divider>
           <v-card-actions class="pa-0">
             <v-btn
-              class="ml-2 mb-2"
               color="primary"
               @click="save"
               :disabled="disabled"
+              class="ml-6 mb-4 mr-1"
             >
               Save
             </v-btn>
-            <!-- <v-btn color="#E0E0E0" @click="clear()"> Clear </v-btn> -->
+            <v-btn color="#E0E0E0" to="/" class="mb-4"> Cancel </v-btn>
           </v-card-actions>
         </v-card>
       </v-main>

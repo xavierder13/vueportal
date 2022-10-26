@@ -74,6 +74,7 @@
                         v-on="on"
                         :indeterminate="props.indeterminate"
                         color="primary"
+                         v-if="roleid != 1"
                       />
                     </template>
                   
@@ -86,7 +87,7 @@
             </v-row>
           </v-card-text>
           <v-divider class="mb-3 mt-4"></v-divider>
-          <v-card-actions class="pa-0">
+          <v-card-actions class="pa-0" v-if="roleid != 1">
             <v-btn
               color="primary"
               @click="save"
@@ -155,16 +156,17 @@ export default {
       loading: true,
       roleError: {
         name: [],
-      }
+      },
+      roleid: "",
     };
   },
 
   methods: {
     getRole() {
       this.loading = true;
-
+      this.roleid =  this.$route.params.roleid
       const data = {
-        roleid: this.$route.params.roleid,
+        roleid: this.roleid,
       };
 
       axios.post("/api/role/edit", data).then(
