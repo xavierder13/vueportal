@@ -6,36 +6,47 @@ use App\Product;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use DB;
+use Auth;
 
 class ProductsExport implements FromCollection, WithHeadings
 {
     /**
     * @return \Illuminate\Support\Collection
     */
-    protected $branch_id;
+    protected $params;
 
-    public function __construct($branch_id)
+    public function __construct($params)
     {
-        $this->branch_id = $branch_id;
+        $this->params = $params;
     }
     
     public function collection()
     {   
-        $branch_id = $this->branch_id;
-
+        $params = $this->params;
+   
         $products = DB::table('products')
                       ->join('brands', 'products.brand_id', '=', 'brands.id')
-                      ->select('brands.name', 'products.model', 'products.serial')
-                      ->where(function($query) use ($branch_id){
-                          if($branch_id <> 0)
+                      ->leftJoin('product_categories', 'products.product_category_id', '=', 'product_categories.id')
+                      ->select(DB::raw('brands.name as brand'), 'products.model', DB::raw('product_categories.name as product_category'), 'products.serial')
+                      ->where(function($query) use ($params){
+                            
+                          if($params['branch_id'] <> 0) //select with specific branch and user
                           {
-                              $query->where('products.branch_id', '=', $branch_id);
+                              $query->where('products.user_id', '=', $params['user_id'])
+                                    ->where('products.branch_id', '=', $params['branch_id']);
                           }
+                          else //select with specific user
+                          {
+                              $query->where('products.user_id', '=', $params['user_id']);
+                          }
+                          
                       })
                       ->orderBy('brands.name', 'Asc')
                       ->orderBy('products.model', 'Asc')
+                      ->orderBy('product_categories.name', 'Asc')
                       ->orderBy('products.serial', 'Asc')
                       ->get();
+
         return $products;
     }
 
@@ -44,6 +55,7 @@ class ProductsExport implements FromCollection, WithHeadings
         return [
             'BRAND',
             'MODEL',
+            'PRODUCT CATEGORY',
             'SERIAL',
             'QUANTITY'
         ];

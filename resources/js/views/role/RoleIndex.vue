@@ -11,7 +11,7 @@
         </v-breadcrumbs>
         <v-card>
           <v-card-title>
-            Roles Record
+            Roles Lists
             <v-spacer></v-spacer>
             <v-text-field
               v-model="search"
@@ -204,7 +204,7 @@ export default {
           link: "/",
         },
         {
-          text: "Roles Record",
+          text: "Roles Lists",
           disabled: true,
         },
       ],

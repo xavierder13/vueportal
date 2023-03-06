@@ -34,7 +34,8 @@ class Employee extends Model
         'restday',
         'educ_attain',
         'school_attended',
-        'course'
+        'course',
+        'file_upload_log_id',
     ];
 
     public function branch()
@@ -43,5 +44,10 @@ class Employee extends Model
         //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
     }
 
+    public function file_upload_log()
+    {
+        return $this->hasOne('App\FileUploadLog', 'id', 'file_upload_log_id');
+        //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
+    }
 
 }

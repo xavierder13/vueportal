@@ -43,9 +43,12 @@ const state = {
     product_clear_list: false,
     product_reconcile: false,
     product_export: false,
+    serial_number_details: false,
+    sync_item_master_data: false,
     inventory_recon_list: false,
     inventory_recon_list_all: false,
     inventory_recon_create: false,
+    inventory_recon_sync: false,
     inventory_recon_edit: false,
     inventory_recon_delete: false,
     inventory_recon_audit: false,
@@ -57,6 +60,14 @@ const state = {
     employee_list_import: false,
     employee_list_export: false,
     employee_clear_list: false,
+    employee_attlog_list: false,
+    employee_attlog_list_all: false,
+    employee_attlog_create: false,
+    employee_attlog_edit: false,
+    employee_attlog_delete: false,
+    employee_attlog_import: false,
+    employee_attlog_export: false,
+    employee_attlog_clear_list: false,
     employee_resigned_list: false,
     employee_resigned_list_all: false,
     employee_resigned_create: false,
@@ -154,6 +165,10 @@ const state = {
     permission_create: false,
     permission_edit: false,
     permission_delete: false,
+    sap_database_list: false,
+    sap_database_create: false,
+    sap_database_edit: false,
+    sap_database_delete: false,
     activity_logs: false,
   },
   userRoles: {
@@ -258,11 +273,14 @@ const mutations = {
     permission.product_export = permissions.includes("product-export");
     permission.product_clear_list = permissions.includes("product-clear-list");
     permission.product_reconcile = permissions.includes("product-reconcile");
+    permission.serial_number_details = permissions.includes("serial-number-details");
+    permission.sync_item_master_data = permissions.includes("sync-item-master-data");
 
     // INVENTORY RECONCILIATION RECORD MAINTENANCE PERMISSIONS
     permission.inventory_recon_list = permissions.includes("inventory-recon-list");
     permission.inventory_recon_list_all = permissions.includes("inventory-recon-list-all");
     permission.inventory_recon_create = permissions.includes("inventory-recon-create");
+    permission.inventory_recon_sync = permissions.includes("inventory-recon-sync");
     permission.inventory_recon_edit = permissions.includes("inventory-recon-edit");
     permission.inventory_recon_delete = permissions.includes("inventory-recon-delete");
     permission.inventory_recon_audit = permissions.includes("inventory-recon-audit");
@@ -276,6 +294,16 @@ const mutations = {
     permission.employee_list_import = permissions.includes("employee-list-import");
     permission.employee_list_export = permissions.includes("employee-list-export");
     permission.employee_clear_list = permissions.includes("employee-clear-list");
+
+    // EMPLOYEE ATTLOG RECORD MAINTENANCE PERMISSIONS
+    permission.employee_attlog_list = permissions.includes("employee-attlog-list");
+    permission.employee_attlog_list_all = permissions.includes("employee-attlog-list-all");
+    permission.employee_attlog_create = permissions.includes("employee-attlog-create");
+    permission.employee_attlog_edit = permissions.includes("employee-attlog-edit");
+    permission.employee_attlog_delete = permissions.includes("employee-attlog-delete");
+    permission.employee_attlog_import = permissions.includes("employee-attlog-import");
+    permission.employee_attlog_export = permissions.includes("employee-attlog-export");
+    permission.employee_attlog_clear_list = permissions.includes("employee-attlog-clear-list");
 
     // RESIGNED EMPLOYEE RECORD MAINTENANCE PERMISSIONS
     permission.employee_resigned_list = permissions.includes("employee-resigned-list");
@@ -405,6 +433,12 @@ const mutations = {
     permission.role_create = permissions.includes("role-create");
     permission.role_edit = permissions.includes("role-edit");
     permission.role_delete = permissions.includes("role-delete");
+
+    // SAP DATABASE RECORD MAINTENANCE PERMISSIONS
+    permission.sap_database_list = permissions.includes("sap-database-list");
+    permission.sap_database_create = permissions.includes("sap-database-create");
+    permission.sap_database_edit = permissions.includes("sap-database-edit");
+    permission.sap_database_delete = permissions.includes("sap-database-delete");
 
     // ACTIVITY LOG PERMISSIONS
     permission.activity_logs = permissions.includes("activity-logs");

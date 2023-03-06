@@ -122,10 +122,18 @@ Route::group(['prefix' => 'product', 'middleware' => ['auth:api', 'product.maint
         'as' => 'product.search_model',
     ]);
 
+    Route::post('/search_serial', [
+        'uses' => 'API\ProductController@search_serial',
+        'as' => 'product.search_serial',
+    ]);
+    
+    Route::post('/serial_number_details', 'API\ProductController@serial_number_details');
+    Route::get('/sync_item_master_data', 'API\ProductController@sync_item_master_data');
+
 });
 
 // Product Export Route
-Route::get('/product/export/{id}', [
+Route::get('/product/export/{branch_id}/{user_id}', [
     'uses' => 'API\ProductController@export',
     'as' => 'product.export',
 ])->middleware(['product.maintenance']);
@@ -176,6 +184,11 @@ Route::group(['prefix' => 'inventory_reconciliation', 'middleware' => ['auth:api
         'as' => 'inventory_reconciliation.import',
     ]);
 
+    Route::post('/sync', [
+        'uses' => 'API\InventoryReconciliationController@sync_inventory_recon',
+        'as' => 'inventory_reconciliation.sync',
+    ]);
+
     Route::post('/export', [
         'uses' => 'API\InventoryReconciliationController@export',
         'as' => 'inventory_reconciliation.export',
@@ -199,7 +212,7 @@ Route::group(['prefix' => 'employee', 'middleware' => ['auth:api', 'employee.mai
         'as' => 'employee.index',
     ]);
 
-    Route::get('/list/view/{id}', [
+    Route::post('/list/view', [
         'uses' => 'API\EmployeeController@list_view',
         'as' => 'employee.list.view',
     ]);
@@ -249,7 +262,7 @@ Route::group(['prefix' => 'employee_loans', 'middleware' => ['auth:api', 'employ
         'as' => 'employee.loans.index',
     ]);
 
-    Route::get('/list/view/{id}', [
+    Route::post('/list/view', [
         'uses' => 'API\EmployeeLoansController@list_view',
         'as' => 'employee.loans.list.view',
     ]);
@@ -299,7 +312,7 @@ Route::group(['prefix' => 'employee_premiums', 'middleware' => ['auth:api', 'emp
         'as' => 'employee.premiums.index',
     ]);
 
-    Route::get('/list/view/{id}', [
+    Route::post('/list/view', [
         'uses' => 'API\EmployeePremiumsController@list_view',
         'as' => 'employee.premiums.list.view',
     ]);
@@ -341,6 +354,62 @@ Route::get('/employee_premiums/export_premiums/{id}', [
     'uses' => 'API\EmployeePremiumsController@export_premiums',
     'as' => 'employee.premiums.export',
 ])->middleware(['employee.premiums.maintenance']);
+
+// Employee Attlog Routes
+Route::group(['prefix' => 'employee_attlog', 'middleware' => ['auth:api', 'employee.attlog.maintenance']], function(){
+    Route::get('/index', [
+        'uses' => 'API\EmployeeAttlogController@index',
+        'as' => 'employee.attlog.index',
+    ]);
+
+    Route::post('/list/view', [
+        'uses' => 'API\EmployeeAttlogController@list_view',
+        'as' => 'employee.attlog.list.view',
+    ]);
+
+    Route::get('/create', [
+        'uses' => 'API\EmployeeAttlogController@create',
+        'as' => 'employee.attlog.create',
+    ]);
+
+    Route::post('/store', [
+        'uses' => 'API\EmployeeAttlogController@store',
+        'as' => 'employee.attlog.store',
+    ]);
+
+    Route::get('/edit/{id}', [
+        'uses' => 'API\EmployeeAttlogController@edit',
+        'as' => 'employee.attlog.edit',
+    ]);
+
+    Route::post('/update/{id}', [
+        'uses' => 'API\EmployeeAttlogController@update',
+        'as' => 'employee.attlog.update',
+    ]);
+
+    Route::post('/import_attlog/{id}', [
+        'uses' => 'API\EmployeeAttlogController@import_attlog',
+        'as' => 'employee.attlog.import'
+    ]);
+
+    Route::post('/delete', [
+        'uses' => 'API\EmployeeAttlogController@delete',
+        'as' => 'employee.attlog.delete'
+    ]);
+
+});
+
+// Employee Attlog Export Route
+Route::get('/employee_attlog/export_attlog/{id}', [
+    'uses' => 'API\EmployeeAttlogController@export_attlog',
+    'as' => 'employee.attlog.export',
+])->middleware(['employee.attlog.maintenance']);
+
+// Employee Attlog File Download Route
+Route::get('/employee_attlog/file/download', [
+    'uses' => 'API\EmployeeAttlogController@download',
+    'as' => 'employee.attlog.file.download',
+])->middleware(['employee.attlog.maintenance']);
 
 // Training Files Route
 Route::group(['prefix' => 'training', 'middleware' => ['auth:api', 'training_file.maintenance']], function(){
@@ -632,6 +701,35 @@ Route::group(['prefix' => 'marketing_event', 'middleware' => ['auth:api', 'marke
 
 });
 
+// Marketing Event User Map Routes
+Route::group(['prefix' => 'marketing_event_user_map', 'middleware' => ['auth:api', 'marketing_event_user_map.maintenance']], function(){
+    Route::get('/index', [
+        'uses' => 'API\MarketingEventUserMapController@index',
+        'as' => 'marketing_event_user_map.index',
+    ]);
+    Route::get('/create', [
+        'uses' => 'API\MarketingEventUserMapController@create',
+        'as' => 'marketing_event_user_map.create',
+    ]);
+    Route::post('/store', [
+        'uses' => 'API\MarketingEventUserMapController@store',
+        'as' => 'marketing_event_user_map.store',
+    ]);
+    Route::post('/edit', [
+        'uses' => 'API\MarketingEventUserMapController@edit',
+        'as' => 'marketing_event_user_map.edit',
+    ]);
+    Route::post('/update/{id}', [
+        'uses' => 'API\MarketingEventUserMapController@update',
+        'as' => 'marketing_event_user_map.update',
+    ]);
+    Route::post('/delete', [
+        'uses' => 'API\MarketingEventUserMapController@delete',
+        'as' => 'marketing_event_user_map.delete',
+    ]);
+
+});
+
 // Access Module Routes
 Route::group(['prefix' => 'access_module', 'middleware' => ['auth:api', 'access_module.maintenance']], function(){
     Route::get('/index', [
@@ -843,6 +941,35 @@ Route::group(['prefix' => 'department', 'middleware' => ['auth:api', 'department
 
 });
 
+// SAP Database Routes
+Route::group(['prefix' => 'sap_database', 'middleware' => ['auth:api', 'sap_database.maintenance']], function(){
+    Route::get('/index', [
+        'uses' => 'API\SAPDatabaseController@index',
+        'as' => 'sap.database.index',
+    ]);
+    Route::get('/create', [
+        'uses' => 'API\SAPDatabaseController@create',
+        'as' => 'sap.database.create',
+    ]);
+    Route::post('/store', [
+        'uses' => 'API\SAPDatabaseController@store',
+        'as' => 'sap.database.store',
+    ]);
+    Route::post('/edit', [
+        'uses' => 'API\SAPDatabaseController@edit',
+        'as' => 'sap.database.edit',
+    ]);
+    Route::post('/update/{id}', [
+        'uses' => 'API\SAPDatabaseController@update',
+        'as' => 'sap.database.update',
+    ]);
+    Route::post('/delete', [
+        'uses' => 'API\SAPDatabaseController@delete',
+        'as' => 'sap.database.delete',
+    ]);
+
+});
+
 //Activity Logs
 Route::group(['prefix' => 'activity_logs', 'middleware' => ['auth:api', 'activity.logs']], function(){
     Route::get('/index', [
@@ -851,3 +978,4 @@ Route::group(['prefix' => 'activity_logs', 'middleware' => ['auth:api', 'activit
     ]);
     
 });
+

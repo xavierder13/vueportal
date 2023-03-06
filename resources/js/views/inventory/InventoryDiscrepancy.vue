@@ -49,7 +49,7 @@
                       :data="products"
                       :fields="json_fields"
                       type="xls"
-                      :name="branch + '_Reconciliations.xls'"
+                      :name="branch + '_Reconciliations - Discrepancy.xls'"
                     >
                       <v-btn class="ma-2" color="success" width="120px" small>
                         <v-icon class="mr-1" small>
@@ -119,10 +119,10 @@
               >
             </template>
             <template v-slot:item.sap_discrepancy="{ item, index }">
-              <span class="text-success"> {{ item.sap_discrepancy }} </span>
+              <span class="text-danger"> {{ item.sap_discrepancy }} </span>
             </template>
             <template v-slot:item.physical_discrepancy="{ item, index }">
-              <span class="text-danger"> {{ item.physical_discrepancy }} </span>
+              <span class="text-success"> {{ item.physical_discrepancy }} </span>
             </template>
           </v-data-table>
           <!-- <v-simple-table>

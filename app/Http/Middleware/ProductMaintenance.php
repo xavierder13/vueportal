@@ -26,7 +26,11 @@ class ProductMaintenance
         }
 
         //Product Create
-        if($request->is('api/product/create') || $request->is('api/product/store') || $request->is('api/product/search_model')){
+        if($request->is('api/product/create') || 
+           $request->is('api/product/store') || 
+           $request->is('api/product/search_model') || 
+           $request->is('api/product/search_serial')
+        ){
             if($user->can('product-create')){
                 return $next($request); 
             }
@@ -47,12 +51,29 @@ class ProductMaintenance
         }
 
         //Product Export
-        if($request->is('api/product/export/*')){
+        if($request->is('api/product/export/*/*')){
             // if($user->can('product-export')){
             //     return $next($request); 
             // }
             return $next($request); 
         }
+
+        // Product Serial Number Details
+        if($request->is('api/product/serial_number_details')){
+            if($user->can('serial-number-details')){
+                return $next($request); 
+            }
+            return $next($request); 
+        }
+
+        // Sync Item Master Data
+        if($request->is('api/product/sync_item_master_data')){
+            if($user->can('sync-item-master-data')){
+                return $next($request); 
+            }
+            return $next($request); 
+        }
+
 
         return abort(401, 'Unauthorized');
     }

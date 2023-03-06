@@ -9,7 +9,7 @@
             </v-breadcrumbs-item>
           </template>
         </v-breadcrumbs>
-        <div class="d-flex justify-content-end mb-3">
+        <!-- <div class="d-flex justify-content-end mb-3">
           <div>
             <v-btn
               color="success"
@@ -21,7 +21,7 @@
               Export All Data
             </v-btn>
           </div>
-        </div>
+        </div> -->
         <v-card>
           <v-card-title>
             Branches 
@@ -40,26 +40,122 @@
             :items="filteredBranches"
             :search="search"
             :loading="loading"
+            group-by="name"
+            class="elevation-1"
+            :expanded.sync="expanded"
             loading-text="Loading... Please wait"
             v-if="userPermissions.employee_list"
           >
-            <template v-slot:item.last_upload="{ item }">
-              <v-chip color="secondary" v-if="item.last_upload">
-                {{ item.last_upload }}
+            <template v-slot:item.date_uploaded="{ item }">
+              <v-chip color="secondary" v-if="item.date_uploaded">
+                {{ item.date_uploaded }}
               </v-chip>
             </template>
-            <template v-slot:item.actions="{ item }">
-              <v-btn color="info" x-small @click="viewList(item)">
-                <v-icon small class="mr-1" >
-                  mdi-eye
-                </v-icon>
-                View
-              </v-btn>
-              
+            <template
+              v-slot:group.header="{
+                items,
+                headers,
+                toggle,
+                isOpen,
+              }"
+            >
+              <td colspan="3">
+                <v-row>
+                  <v-col>
+                    <v-btn
+                      @click="toggle"
+                      small
+                      icon
+                      :ref="items"
+                      :data-open="isOpen"
+                    >
+                      <v-icon v-if="isOpen">mdi-chevron-up</v-icon>
+                      <v-icon v-else>mdi-chevron-down</v-icon>
+                    </v-btn>
+                    <!-- <v-chip color="secondary">
+                      <strong></strong>
+                    </v-chip> -->
+                    {{ items[0].name }}
+                  </v-col>
+                </v-row>
+              </td>
+              <td> 
+                <v-btn x-small color="primary" @click="importExcel(items)" v-if="userPermissions.employee_list_import"> 
+                  <v-icon small class="mr-2">mdi-upload</v-icon> import
+                </v-btn> 
+              </td>
+            </template>
+            <template v-slot:item="{ item }">
+              <tr v-for="(value, index) in item.file_upload_logs">
+                <td> </td>
+                <td>
+                  <v-chip color="secondary">
+                    {{ value.date_uploaded }}
+                  </v-chip>
+                </td>
+                <td> 
+                  <v-chip color="secondary">
+                    {{ value.docdate }}
+                  </v-chip> </td>
+                <td>
+                  <v-menu offset-y>
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-btn x-small v-bind="attrs" v-on="on" class="primary--text">
+                        Actions
+                        <v-icon small> mdi-menu-down </v-icon>
+                      </v-btn>
+                    </template>
+                    <v-list class="pa-1">
+                      <v-list-item
+                        class="ma-0 pa-0"
+                        style="min-height: 25px"
+                      >
+                        <v-list-item-title>
+                          <v-btn 
+                            x-small 
+                            @click="viewList(value)" 
+                            class="mx-2 primary--text"
+                            width="120px"
+                          >
+                            <v-icon class="mr-2" small>
+                              mdi-eye
+                            </v-icon>
+                            View
+                          </v-btn>
+                        </v-list-item-title>
+                      </v-list-item>
+                      <v-list-item
+                        class="ma-0 pa-0"
+                        style="min-height: 25px"
+                        v-if="userPermissions.employee_list_export"
+                      >
+                        <v-list-item-title>
+                          <v-btn
+                            class="mx-2 my-2 success--text"
+                            x-small
+                            @click="exportData(value)"
+                            width="120px"
+                          >
+                            <v-icon class="mr-2" small> mdi-microsoft-excel </v-icon>
+                            Export
+                          </v-btn>
+                        </v-list-item-title>
+                      </v-list-item>
+                    </v-list>
+                  </v-menu>
+                </td>
+              </tr>
             </template>
           </v-data-table>
+          
         </v-card>
       </v-main>
+      <ImportDialog 
+            :api_route="api_route" 
+            :dialog_import="dialog_import"
+            @getData="getEmployee"
+            @closeImportDialog="closeImportDialog"
+          />
     </div>
   </div>
 </template>
@@ -68,19 +164,33 @@ import axios from "axios";
 import { validationMixin } from "vuelidate";
 import { required, maxLength, email } from "vuelidate/lib/validators";
 import { mapState } from "vuex";
+import ImportDialog from "./components/ImportDialog.vue";
 
 export default {
+  name: "EmployeeIndex",
+  components: {
+    ImportDialog,
+  },
+  props: {
+
+  },
+
   mixins: [validationMixin],
+  
+  validations: {
+    
+  },
   data() {
     return {
       search: "",
       headers: [
-        { text: "Branch", value: "name" },
-        { text: "Last Uploaded", value: "last_upload" },
+        { text: "Branch", value: "branch" },
+        { text: "Date Uploaded", value: "date_uploaded" },
+        { text: "Document Date", value: "docdate" },
         { text: "Actions", value: "actions", sortable: false, width: "120px" },
       ],
       disabled: false,
-      dialog: false,
+      expanded: [],
       employees: [],
       branches: [],
       items: [
@@ -95,6 +205,9 @@ export default {
         },
       ],
       loading: true,
+      branch_id: "",
+      dialog_import: false,
+      api_route: "",
     };
   },
 
@@ -105,6 +218,7 @@ export default {
         (response) => {
           this.branches = response.data.branches;
           this.loading = false;
+
         },
         (error) => {
           this.isUnauthorized(error);
@@ -113,20 +227,43 @@ export default {
     },
 
     viewList(item) {
-      let branch_id = item.id;
-    
+
+      let branch_id = item.branch_id;
+
       this.$router.push({
         name: 'employee.list.view',
-        params: { branch_id: branch_id }
+        params: { branch_id: branch_id, file_upload_log_id: item.id }
       });
 
     },
 
-    exportData() {
+    importExcel(item) {
+      this.branch_id = item[0].id;
+      this.dialog_import = true;
+      this.api_route = 'api/employee/import_employee/' + this.branch_id;
+    },
+
+    exportData(item) {
+      // window.open(
+      //   location.origin + "/api/employee/export_employee/" + 0,
+      //   "_blank"
+      // );
+
       window.open(
-        location.origin + "/api/employee/export_employee/" + 0,
+        location.origin + "/api/employee/export_employee/" + item.id,
         "_blank"
       );
+    },
+
+    closeImportDialog() {
+      this.branch_id = "";
+      this.dialog_import = false;
+    },
+
+    formatDate(date) {
+      if (!date) return null;
+      const [year, month, day] = date.split("-");
+      return `${month}/${day}/${year}`;
     },
 
     isUnauthorized(error) {

@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\EmployeeLoans;
 use App\Branch;
+use App\FileUploadLog;
 use Carbon\Carbon;
 use Validator;
 use DB;
 use Excel;
+use Auth;
 use App\Imports\EmployeeLoansImport;
 use App\Exports\EmployeeLoansExport;
 
@@ -17,26 +19,36 @@ class EmployeeLoansController extends Controller
 {
     public function index()
     {
-     
-        $branches = DB::table('branches')
-                      ->leftJoin('employee_loans', 'branches.id', '=', 'employee_loans.branch_id')
-                      ->select('branches.id', 'branches.name', DB::raw("DATE_FORMAT(max(employee_loans.created_at), '%m/%d/%Y') as last_upload"))
-                      ->groupBy('branches.id', 'branches.name')
-                      ->get();
+        $user_can_employee_loans_list_all = Auth::user()->can('employee-loans-list-all');
+        $branches = Branch::with(['file_upload_logs' => function($query){
+                                $query->select(DB::raw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_uploaded, DATE_FORMAT(docdate, '%m/%d/%Y') as docdate"))
+                                      ->where('docname', '=', 'Employee Loans List');
+                            }])
+                            ->where(function($query) use ($user_can_employee_loans_list_all){
+                                // if user has no permission to view all the branches then select the user's branch only
+                                if(!$user_can_employee_loans_list_all)
+                                {
+                                    $query->where('id', '=', Auth::user()->branch_id);
+                                }
+                            })
+                            ->get();
 
         return response()->json(['branches' => $branches], 200);
     }
 
-    public function list_view($branch_id)
-    {
+    public function list_view(Request $request)
+    {   
+        $file_upload_log_id = $request->get('file_upload_log_id');
+        $file_upload_log = FileUploadLog::select(DB::raw("id, DATE_FORMAT(docdate, '%m/%d/%Y') as docdate, DATE_FORMAT(created_at, '%m/%d/%Y') as date_uploaded"))->find($file_upload_log_id);
         $employee_loans = EmployeeLoans::with('branch')
-                             ->where('branch_id', '=', $branch_id)
                              ->select(DB::raw("*, DATE_FORMAT(employee_loans.date_granted, '%m/%d/%Y') as date_granted, 
                                               DATE_FORMAT(employee_loans.period_from, '%m/%d/%Y') as period_from,
                                               DATE_FORMAT(employee_loans.period_to, '%m/%d/%Y') as period_to"))
+                             ->where('file_upload_log_id', '=', $file_upload_log_id)
                              ->get();  
 
-        return response()->json(['employee_loans' => $employee_loans], 200);
+        return response()->json(['employee_loans' => $employee_loans, 'file_upload_log' => $file_upload_log], 200);
+
     }
 
     public function create()
@@ -121,6 +133,7 @@ class EmployeeLoansController extends Controller
         }
 
         $employee_loans = new EmployeeLoans();
+        $employee_loans->file_upload_log_id = $request->get('file_upload_log_id');
         $employee_loans->branch_id = $request->get('branch_id');
         $employee_loans->last_name = $request->get('last_name');	
         $employee_loans->first_name = $request->get('first_name');	
@@ -309,8 +322,9 @@ class EmployeeLoansController extends Controller
             }
     
             if ($request->file('file')) {
-                    
-                $collection = Excel::toCollection(new EmployeeLoansImport($branch_id), $request->file('file'))[0];
+                
+                $params = ['branch_id' => $branch_id, 'file_upload_log_id' => 0];
+                $collection = Excel::toCollection(new EmployeeLoansImport($params), $request->file('file'))[0];
                 $ctr_collection = count($collection);
                 $columns = [
                     'last_name',	
@@ -338,7 +352,7 @@ class EmployeeLoansController extends Controller
                 if(count($collection[0]) <> count($columns))
                 {
                     $collection_column_errors[] = 'Number of columns did not match';    
-                    return response()->json(['error_column' => $collection_column_errors], 200);                                
+                    return response()->json(['error_column' => $collection_column_errors, count($collection[0]), count($columns)], 200);                                
                 }
                 elseif($ctr_collection > 1)
                 {   
@@ -450,11 +464,22 @@ class EmployeeLoansController extends Controller
                 }
                 else
                 {   
+                    // file upload logs
+                    $file_upload_log = new FileUploadLog();
+                    $file_upload_log->branch_id = $branch_id;
+                    $file_upload_log->docdate = $request->get('docdate');
+                    $file_upload_log->docname = "Employee Loans List";
+                    $file_upload_log->save();
+
+                    $params = ['branch_id' => $branch_id, 'file_upload_log_id' => $file_upload_log->id];
                     // import excel file
-                    Excel::import(new EmployeeLoansImport($branch_id), $path);
+                    Excel::import(new EmployeeLoansImport($params), $path);
                 }
                     
-                return response()->json(['success' => 'Record has successfully imported'], 200);
+                return response()->json([
+                    'success' => 'Record has successfully imported', 
+                    'file_upload_log_id' => $file_upload_log->id
+                ], 200);
             }
             else
             {
@@ -468,38 +493,32 @@ class EmployeeLoansController extends Controller
         
     }
 
-    public function export_loans($branch_id)
+    public function export_loans($file_upload_log_id)
     {   
-        return Excel::download(new EmployeeLoansExport($branch_id), 'employee_loans.xls');
+        return Excel::download(new EmployeeLoansExport($file_upload_log_id), 'employee_loans.xls');
     }
 
     public function delete(Request $request)
     {   
         
         $branch_id = $request->get('branch_id');
-
-        $employee_loans = DB::table('employee_loans')
-                        ->where(function($query) use ($branch_id){
-                            if($branch_id <> 0)
-                            {
-                                $query->where('employee_loans.branch_id', '=', $branch_id);
-                            }
-                        });
         
         if($request->get('clear_list'))
         {   
+             
+            $file_upload_log_id = $request->get('file_upload_log_id');
             
+            $file_upload_log = FileUploadLog::find($file_upload_log_id);
+
             $employee_loans = DB::table('employee_loans')
-                      ->where('branch_id', '=', $request->get('branch_id'));
-            
-            if(!$employee_loans->count('id'))
+                                ->where('file_upload_log_id', '=', $file_upload_log_id);
+
+            if(empty($file_upload_log->id))
             {
-                return response()->json('No record found', 200);
+                return abort(404, 'Not Found');
             }
-            else
-            {
-                $employee_loans->delete();
-            }
+
+            $file_upload_log->delete();
 
         }
         else

@@ -207,7 +207,7 @@
                     <v-divider class="mb-3 mt-0"></v-divider>
                     <v-card-actions class="pa-0">
                       <v-spacer></v-spacer>
-                      <v-btn color="#E0E0E0" @click="close" class="mb-3">
+                      <v-btn color="#E0E0E0" @click="close" :class="editedItem.id != 1 ? 'mb-3' : 'mb-3 mr-4'">
                         Cancel
                       </v-btn>
                       <v-btn

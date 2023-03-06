@@ -108,6 +108,14 @@
             loading-text="Loading... Please wait"
             v-if="userPermissions.employee_loans_list"
           >
+            <template v-slot:top v-if="file_upload_log">
+              <v-toolbar
+                flat
+              >
+                <h6 class="my-0 font-weight-bold">Document Date:</h6>  <v-chip color="secondary" class="ml-2">{{ file_upload_log.docdate }}</v-chip>
+                <h6 class="my-0 font-weight-bold ml-8">Uploaded Date:</h6>  <v-chip color="secondary" class="ml-2">{{ file_upload_log.date_uploaded }}</v-chip>
+              </v-toolbar>
+            </template>
             <template v-slot:item.actions="{ item }">
               <v-icon
                 small
@@ -524,111 +532,12 @@
               </v-card-actions>
             </v-card>
           </v-dialog>
-
-          <v-dialog v-model="dialog_import" max-width="500px" persistent>
-            <v-card>
-              <v-card-title class="pa-4">
-                <span class="headline">Import Data</span>
-              </v-card-title>
-              <v-divider class="mt-0"></v-divider>
-              <v-card-text>
-                <v-container>
-                  <v-row>
-                    <v-col class="my-0 py-0">
-                      <v-file-input
-                        v-model="file"
-                        show-size
-                        label="File input"
-                        prepend-icon="mdi-paperclip"
-                        required
-                        :error-messages="fileErrors + fileError"
-                        @change="$v.file.$touch() + (fileIsEmpty = false)"
-                        @blur="$v.file.$touch()"
-                        
-                      >
-                        <template v-slot:selection="{ text }">
-                          <v-chip small label color="primary">
-                            {{ text }}
-                          </v-chip>
-                        </template>
-                      </v-file-input>
-                    </v-col>
-                  </v-row>
-                  <v-row
-                    class="fill-height"
-                    align-content="center"
-                    justify="center"
-                    v-if="uploading"
-                  >
-                    <v-col class="subtitle-1 text-center" cols="12">
-                      Uploading...
-                    </v-col>
-                    <v-col cols="6">
-                      <v-progress-linear
-                        color="primary"
-                        indeterminate
-                        rounded
-                        height="6"
-                      ></v-progress-linear>
-                    </v-col>
-                  </v-row>
-                </v-container>
-              </v-card-text>
-              <v-divider class="mb-3 mt-0"></v-divider>
-              <v-card-actions class="pa-0">
-                <v-spacer></v-spacer>
-                <v-btn
-                  color="#E0E0E0"
-                  @click="(dialog_import = false) + (fileError = '')"
-                  class="mb-3"
-                >
-                  Cancel
-                </v-btn>
-                <v-btn
-                  color="primary"
-                  class="mb-3 mr-4"
-                  @click="uploadFile()"
-                  :disabled="uploadDisabled"
-                >
-                  Upload
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-dialog>
-          <v-dialog v-model="dialog_error_list" max-width="1000px" persistent>
-            <v-card>
-              <v-card-title class="pa-4">
-                <span class="headline">Error List</span>
-                <v-spacer></v-spacer>
-                <v-btn @click="dialog_error_list = false" icon>
-                  <v-icon> mdi-close </v-icon>
-                </v-btn>
-              </v-card-title>
-              <v-divider class="mt-0"></v-divider>
-              <v-card-text>
-                <v-container>
-                  <v-row>
-                    <v-col>
-                      <v-simple-table dense>
-                        <thead>
-                          <tr>
-                            <th>#</th>
-                            <th>Error Message</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr v-for="(item, index) in imported_file_errors">
-                            <td>{{ index + 1 }}</td>
-                            <td v-html="item"></td>
-                          </tr>
-                        </tbody>
-                      </v-simple-table>
-                    </v-col>
-                  </v-row>
-                </v-container>
-              </v-card-text>
-            </v-card>
-          </v-dialog>
+           <ImportDialog 
+            :api_route="api_route" 
+            :dialog_import="dialog_import"
+            @getData="getEmployeeLoans"
+            @closeImportDialog="closeImportDialog"
+          />
         </v-card>
       </v-main>
     </div>
@@ -639,8 +548,16 @@ import axios from "axios";
 import { validationMixin } from "vuelidate";
 import { required, maxLength, email } from "vuelidate/lib/validators";
 import { mapState } from "vuex";
+import ImportDialog from "../components/ImportDialog.vue";
 
 export default {
+  name: "EmployeeLoansListView",
+  components: {
+    ImportDialog,
+  },
+  props: {
+
+  },
   mixins: [validationMixin],
 
   validations: {
@@ -773,6 +690,9 @@ export default {
       input_date_granted: false,
       input_period_from: false,
       input_period_to: false,
+      file_upload_log: "",
+      dialog_import: false,
+      api_route: ""
     };
   },
 
@@ -780,26 +700,29 @@ export default {
     userIsLoaded: {
       handler() {
         if (this.userIsLoaded && this.userRolesPermissionsIsLoaded) {
-          this.getEmployeeLoans();
+          this.getEmployeeLoans(this.$route.params.file_upload_log_id);
         }
       },
     },
     userRolesPermissionsIsLoaded: {
       handler() {
         if (this.userIsLoaded && this.userRolesPermissionsIsLoaded) {
-          this.getEmployeeLoans();
+          this.getEmployeeLoans(this.$route.params.file_upload_log_id);
         }
       },
     },
   },
 
   methods: {
-    getEmployeeLoans() {
+    getEmployeeLoans(file_upload_log_id) {
+      
+      let data = { file_upload_log_id: file_upload_log_id }
       this.loading = true;
-      axios.get("/api/employee_loans/list/view/" + this.branch_id).then(
+      axios.post("/api/employee_loans/list/view", data).then(
         (response) => {
+      
           // if user has no permission to view overall list
-          
+          // console.log(response.data);
           if (
             !this.userPermissions.employee_loans_list_all &&
             this.user.branch_id != this.branch_id
@@ -807,8 +730,20 @@ export default {
             this.$router.push({ name: "unauthorize" });
           }
 
+          this.file_upload_log = response.data.file_upload_log;
           this.employee_loans = response.data.employee_loans;
           this.loading = false;
+
+          this.file_upload_log_id = this.file_upload_log.id
+
+          // change route parameter everytime page is reloaded - when new data is imported, change the this.file_upload_log_id
+
+          this.$router.replace({
+            name: 'employee.loans.list.view',
+            params: { branch_id: this.branch_id, file_upload_log_id: this.file_upload_log_id }
+          }).catch(error => {
+            
+          });          
           
         },
         (error) => {
@@ -902,6 +837,10 @@ export default {
         this.editedItem = Object.assign({}, this.defaultItem);
         this.editedIndex = -1;
       });
+    },
+
+    closeImportDialog() {
+      this.dialog_import = false;
     },
 
     save() {
@@ -1029,7 +968,11 @@ export default {
           if (result.value) {
             // <-- if confirmed
 
-            let data = { branch_id: this.branch_id, clear_list: true };
+            let data = { 
+              branch_id: this.branch_id, 
+              file_upload_log_id: this.file_upload_log_id, 
+              clear_list: true 
+            };
 
             axios.post("api/employee_loans/delete", data).then(
               (response) => {
@@ -1038,6 +981,7 @@ export default {
                   // this.$socket.emit("sendData", { action: "product-create" });
 
                   this.employee_loans = [];
+                  this.file_upload_log = null;
 
                   this.$swal({
                     position: "center",
@@ -1088,8 +1032,6 @@ export default {
 
     importExcel() {
       this.dialog_import = true;
-      this.file = [];
-      this.$v.$reset();
     },
 
     uploadFile() {
@@ -1181,7 +1123,7 @@ export default {
     exportData() {
       if (this.employee_loans.length) {
         window.open(
-          location.origin + "/api/employee_loans/export_loans/" + this.branch_id,
+          location.origin + "/api/employee_loans/export_loans/" + this.file_upload_log_id,
           "_blank"
         );
       } else {
@@ -1474,9 +1416,11 @@ export default {
     axios.defaults.headers.common["Authorization"] =
       "Bearer " + localStorage.getItem("access_token");
     this.branch_id = this.$route.params.branch_id;
-    
+    this.file_upload_log_id = this.$route.params.file_upload_log_id;
+    this.api_route = 'api/employee_loans/import_loans/' + this.branch_id; //set api route for uploading excel
+
     if (this.userIsLoaded && this.userRolesPermissionsIsLoaded) {
-      this.getEmployeeLoans();
+      this.getEmployeeLoans(this.file_upload_log_id);
     }
 
     // this.websocket();

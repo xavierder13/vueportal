@@ -13,16 +13,16 @@ class EmployeePremiumsExport implements FromCollection, WithHeadings
     * @return \Illuminate\Support\Collection
     */
 
-    protected $branch_id;
+    protected $file_upload_log_id;
 
-    public function __construct($branch_id)
+    public function __construct($file_upload_log_id)
     {
-        $this->branch_id = $branch_id;
+        $this->file_upload_log_id = $file_upload_log_id;
     }
 
     public function collection()
     {
-        $branch_id = $this->branch_id;
+        $file_upload_log_id = $this->file_upload_log_id;
 
         $employee_premiums = DB::table('employee_premiums')
                       ->join('branches', 'employee_premiums.branch_id', '=', 'branches.id')
@@ -47,12 +47,13 @@ class EmployeePremiumsExport implements FromCollection, WithHeadings
                                 'employee_premiums.pagibig_ee',
                                 'employee_premiums.pagibig_er',
                                 'employee_premiums.pagibig_total')
-                      ->where(function($query) use ($branch_id){
-                          if($branch_id <> 0)
-                          {
-                              $query->where('employee_premiums.branch_id', '=', $branch_id);
-                          }
-                      })
+                    //   ->where(function($query) use ($branch_id){
+                    //       if($branch_id <> 0)
+                    //       {
+                    //           $query->where('employee_premiums.branch_id', '=', $branch_id);
+                    //       }
+                    //   })
+                      ->where('employee_premiums.file_upload_log_id','=', $file_upload_log_id)
                       ->get();
         return $employee_premiums;
     }

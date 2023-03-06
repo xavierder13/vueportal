@@ -19,7 +19,7 @@ class EmployeePremiumsMaintenance
         $user = Auth::user();
 
         //Employee Premiums Record
-        if($request->is('api/employee_premiums/index') || $request->is('api/employee_premiums/list/view/*')){
+        if($request->is('api/employee_premiums/index') || $request->is('api/employee_premiums/list/view')){
             if($user->can('employee-premiums-list')){
                 return $next($request); 
             }

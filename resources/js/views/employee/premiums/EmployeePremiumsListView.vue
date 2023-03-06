@@ -108,6 +108,14 @@
             loading-text="Loading... Please wait"
             v-if="userPermissions.employee_premiums_list"
           >
+            <template v-slot:top v-if="file_upload_log">
+              <v-toolbar
+                flat
+              >
+                <h6 class="my-0 font-weight-bold">Document Date:</h6>  <v-chip color="secondary" class="ml-2">{{ file_upload_log.docdate }}</v-chip>
+                <h6 class="my-0 font-weight-bold ml-8">Uploaded Date:</h6>  <v-chip color="secondary" class="ml-2">{{ file_upload_log.date_uploaded }}</v-chip>
+              </v-toolbar>
+            </template>
             <template v-slot:item.actions="{ item }">
               <v-icon
                 small
@@ -626,6 +634,12 @@
               </v-card-text>
             </v-card>
           </v-dialog>
+          <ImportDialog 
+            :api_route="api_route" 
+            :dialog_import="dialog_import"
+            @getData="getEmployeePremiums"
+            @closeImportDialog="closeImportDialog"
+          />
         </v-card>
       </v-main>
     </div>
@@ -636,8 +650,16 @@ import axios from "axios";
 import { validationMixin } from "vuelidate";
 import { required, maxLength, email } from "vuelidate/lib/validators";
 import { mapState } from "vuex";
+import ImportDialog from "../components/ImportDialog.vue";
 
 export default {
+  name: "EmployeePremiumsListView",
+  components: {
+    ImportDialog,
+  },
+  props: {
+
+  },
   mixins: [validationMixin],
 
   validations: {
@@ -763,6 +785,9 @@ export default {
       },
       input_birth_date: false,
       input_date_hired: false,
+      file_upload_log: "",
+      dialog_import: false,
+      api_route: "",
     };
   },
 
@@ -770,26 +795,27 @@ export default {
     userIsLoaded: {
       handler() {
         if (this.userIsLoaded && this.userRolesPermissionsIsLoaded) {
-          this.getEmployeePremiums();
+          this.getEmployeePremiums(this.$route.params.file_upload_log_id);
         }
       },
     },
     userRolesPermissionsIsLoaded: {
       handler() {
         if (this.userIsLoaded && this.userRolesPermissionsIsLoaded) {
-          this.getEmployeePremiums();
+          this.getEmployeePremiums(this.$route.params.file_upload_log_id);
         }
       },
     },
   },
 
   methods: {
-    getEmployeePremiums() {
+    getEmployeePremiums(file_upload_log_id) {
       this.loading = true;
-      axios.get("/api/employee_premiums/list/view/" + this.branch_id).then(
+      let data = { file_upload_log_id: file_upload_log_id }
+      axios.post("/api/employee_premiums/list/view", data).then(
         (response) => {
           // if user has no permission to view overall list
-          
+         
           if (
             !this.userPermissions.employee_premiums_list_all &&
             this.user.branch_id != this.branch_id
@@ -797,6 +823,7 @@ export default {
             this.$router.push({ name: "unauthorize" });
           }
 
+          this.file_upload_log = response.data.file_upload_log;
           this.employee_premiums = response.data.employee_premiums;
           this.loading = false;
           
@@ -890,6 +917,10 @@ export default {
         this.editedItem = Object.assign({}, this.defaultItem);
         this.editedIndex = -1;
       });
+    },
+
+    closeImportDialog() {
+      this.dialog_import = false;
     },
 
     save() {
@@ -1009,15 +1040,21 @@ export default {
           if (result.value) {
             // <-- if confirmed
 
-            let data = { branch_id: this.branch_id, clear_list: true };
+            let data = { 
+              branch_id: this.branch_id, 
+              file_upload_log_id: this.file_upload_log_id, 
+              clear_list: true 
+            };
 
             axios.post("api/employee_premiums/delete", data).then(
               (response) => {
+
                 if (response.data.success) {
                   // send data to Sockot.IO Server
                   // this.$socket.emit("sendData", { action: "product-create" });
 
                   this.employee_premiums = [];
+                  this.file_upload_log = null;
 
                   this.$swal({
                     position: "center",
@@ -1159,10 +1196,15 @@ export default {
           );
       }
     },
+
+    importExcel() {
+      this.dialog_import = true;
+    },
+
     exportData() {
       if (this.employee_premiums.length) {
         window.open(
-          location.origin + "/api/employee_premiums/export_premiums/" + this.branch_id,
+          location.origin + "/api/employee_premiums/export_premiums/" + this.file_upload_log_id,
           "_blank"
         );
       } else {
@@ -1459,9 +1501,11 @@ export default {
     axios.defaults.headers.common["Authorization"] =
       "Bearer " + localStorage.getItem("access_token");
     this.branch_id = this.$route.params.branch_id;
+    this.file_upload_log_id = this.$route.params.file_upload_log_id;
+    this.api_route = 'api/employee_premiums/import_premiums/' + this.branch_id; //set api route for uploading excel
     
     if (this.userIsLoaded && this.userRolesPermissionsIsLoaded) {
-      this.getEmployeePremiums();
+      this.getEmployeePremiums(this.file_upload_log_id);
     }
 
     // this.websocket();

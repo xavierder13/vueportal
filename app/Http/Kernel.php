@@ -72,6 +72,7 @@ class Kernel extends HttpKernel
         'employee.maintenance' => \App\Http\Middleware\EmployeeMaintenance::class,
         'employee.loans.maintenance' => \App\Http\Middleware\EmployeeLoansMaintenance::class,
         'employee.premiums.maintenance' => \App\Http\Middleware\EmployeePremiumsMaintenance::class,
+        'employee.attlog.maintenance' => \App\Http\Middleware\EmployeeAttlogMaintenance::class,
         'permission.maintenance' => \App\Http\Middleware\PermissionMaintenance::class,
         'role.maintenance' => \App\Http\Middleware\RoleMaintenance::class,
         'product.maintenance' => \App\Http\Middleware\ProductMaintenance::class,
@@ -85,6 +86,7 @@ class Kernel extends HttpKernel
         'access_chart.maintenance' => \App\Http\Middleware\AccessChartMaintenance::class,
         'access_chart_user_map.maintenance' => \App\Http\Middleware\AccessChartUserMapMaintenance::class,
         'training_file.maintenance' => \App\Http\Middleware\TrainingFileMaintenance::class,
+        'sap_database.maintenance' => \App\Http\Middleware\SAPDatabaseMaintenance::class,
         'activity.logs' => \App\Http\Middleware\ActivityLogs::class,
     ];
 }

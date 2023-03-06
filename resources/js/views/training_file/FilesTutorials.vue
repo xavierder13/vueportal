@@ -239,18 +239,7 @@ export default {
     },
 
     fileDownload(item) {
-      window.open(
-        location.origin +
-          "/api/training/file/download?title=" +
-          item.title +
-          "&file_path=" +
-          item.file_path +
-          "&file_name=" +
-          item.file_name +
-          "&file_type=" +
-          item.file_name,
-        "_blank"
-      );
+      window.open(location.origin + "/api/training/file/download?id=" + item.id, "_blank");
     },
     isUnauthorized(error) {
       // if unauthenticated (401)

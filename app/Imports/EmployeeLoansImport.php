@@ -13,11 +13,11 @@ class EmployeeLoansImport implements ToModel
 
     use Importable;  
 
-    protected $branch_id;
+    protected $params;
 
-    public function __construct($branch_id)
+    public function __construct($params)
     {
-        $this->branch_id = $branch_id;
+        $this->params = $params;
     }
 
     /**
@@ -31,7 +31,8 @@ class EmployeeLoansImport implements ToModel
         if($this->rows > 0)
         {
             return new EmployeeLoans([
-                'branch_id' => $this->branch_id,
+                'file_upload_log_id' => $this->params['file_upload_log_id'],
+                'branch_id' => $this->params['branch_id'],
                 'last_name' => @$row[0],	
                 'first_name' => @$row[1],	
                 'middle_name' => @$row[2],	

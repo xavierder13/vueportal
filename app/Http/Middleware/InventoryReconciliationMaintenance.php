@@ -34,6 +34,13 @@ class InventoryReconciliationMaintenance
             }
         }
 
+        //Inventory Reconciliation Sync From SAP
+        if($request->is('api/inventory_reconciliation/sync')){
+            if($user->can('inventory-recon-sync')){
+                return $next($request); 
+            }
+        }
+
         //Product Reconcile for Branch user
         if($request->is('api/inventory_reconciliation/reconcile') || $request->is('api/inventory_reconciliation/unreconcile/list')){
             if($user->can('product-reconcile')){

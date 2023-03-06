@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\EmployeePremiums;
 use App\Branch;
+use App\FileUploadLog;
 use Carbon\Carbon;
 use Validator;
 use DB;
 use Excel;
+use Auth;
 use App\Imports\EmployeePremiumsImport;
 use App\Exports\EmployeePremiumsExport;
 
@@ -17,25 +19,37 @@ class EmployeePremiumsController extends Controller
 {
     public function index()
     {
-     
-        $branches = DB::table('branches')
-                      ->leftJoin('employee_premiums', 'branches.id', '=', 'employee_premiums.branch_id')
-                      ->select('branches.id', 'branches.name', DB::raw("DATE_FORMAT(max(employee_premiums.created_at), '%m/%d/%Y') as last_upload"))
-                      ->groupBy('branches.id', 'branches.name')
-                      ->get();
+        
+        $user_can_employee_premiums_list_all = Auth::user()->can('employee-premiums-list-all');
+
+        $branches = Branch::with(['file_upload_logs' => function($query){
+                                $query->select(DB::raw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_uploaded, DATE_FORMAT(docdate, '%m/%d/%Y') as docdate"))
+                                    ->where('docname', '=', 'Employee Premiums');
+                            }])
+                            ->where(function($query) use ($user_can_employee_premiums_list_all){
+                                // if user has no permission to view all the branches then select the user's branch only
+                                if(!$user_can_employee_premiums_list_all)
+                                {
+                                    $query->where('id', '=', Auth::user()->branch_id);
+                                }
+                            })
+                            ->get();
 
         return response()->json(['branches' => $branches], 200);
     }
 
-    public function list_view($branch_id)
+    public function list_view(Request $request)
     {
+        
+        $file_upload_log_id = $request->get('file_upload_log_id');
+        $file_upload_log = FileUploadLog::select(DB::raw("DATE_FORMAT(docdate, '%m/%d/%Y') as docdate, DATE_FORMAT(created_at, '%m/%d/%Y') as date_uploaded"))->find($file_upload_log_id);
         $employee_premiums = EmployeePremiums::with('branch')
-                             ->where('branch_id', '=', $branch_id)
                              ->select(DB::raw("*, DATE_FORMAT(employee_premiums.dob, '%m/%d/%Y') as birth_date, 
                                               DATE_FORMAT(employee_premiums.date_hired, '%m/%d/%Y') as date_hired"))
+                             ->where('file_upload_log_id', '=', $file_upload_log_id)
                              ->get();  
 
-        return response()->json(['employee_premiums' => $employee_premiums], 200);
+        return response()->json(['employee_premiums' => $employee_premiums, 'file_upload_log' => $file_upload_log], 200);
     }
 
     public function create()
@@ -306,8 +320,9 @@ class EmployeePremiumsController extends Controller
             }
     
             if ($request->file('file')) {
-                    
-                $collection = Excel::toCollection(new EmployeePremiumsImport($branch_id), $request->file('file'))[0];
+                
+                $params = ['branch_id' => $branch_id, 'file_upload_log_id' => 0];
+                $collection = Excel::toCollection(new EmployeePremiumsImport($params), $request->file('file'))[0];
                 $ctr_collection = count($collection);
                 $columns = [
                     'last_name',
@@ -457,11 +472,23 @@ class EmployeePremiumsController extends Controller
                 }
                 else
                 {   
+                    // file upload logs
+                    $file_upload_log = new FileUploadLog();
+                    $file_upload_log->branch_id = $branch_id;
+                    $file_upload_log->docdate = $request->get('docdate');
+                    $file_upload_log->docname = "Employee Premiums";
+                    $file_upload_log->save();
+
+                    $params = ['branch_id' => $branch_id, 'file_upload_log_id' => $file_upload_log->id];
+
                     // import excel file
-                    Excel::import(new EmployeePremiumsImport($branch_id), $path);
+                    Excel::import(new EmployeePremiumsImport($params), $path);
                 }
                     
-                return response()->json(['success' => 'Record has successfully imported'], 200);
+                return response()->json([
+                    'success' => 'Record has successfully imported', 
+                    'file_upload_log_id' => $file_upload_log->id
+                ], 200);
             }
             else
             {
@@ -475,9 +502,9 @@ class EmployeePremiumsController extends Controller
         
     }
 
-    public function export_premiums($branch_id)
+    public function export_premiums($file_upload_log_id)
     {   
-        return Excel::download(new EmployeePremiumsExport($branch_id), 'employee_premiums.xls');
+        return Excel::download(new EmployeePremiumsExport($file_upload_log_id), 'employee_premiums.xls');
     }
 
     public function delete(Request $request)
@@ -496,17 +523,21 @@ class EmployeePremiumsController extends Controller
         if($request->get('clear_list'))
         {   
             
-            $employee_premiums = DB::table('employee_premiums')
-                      ->where('branch_id', '=', $request->get('branch_id'));
+            $file_upload_log_id = $request->get('file_upload_log_id');
             
-            if(!$employee_premiums->count('id'))
+            $file_upload_log = FileUploadLog::find($file_upload_log_id);
+           
+            $employee_premiums = DB::table('employee_premiums')
+                           ->where('file_upload_log_id', '=', $file_upload_log_id);
+            
+            if(empty($file_upload_log->id))
             {
-                return response()->json('No record found', 200);
+                return abort(404, 'Not Found');
             }
-            else
-            {
-                $employee_premiums->delete();
-            }
+                 
+            $file_upload_log->delete();
+
+            $employee_premiums->delete();
 
         }
         else

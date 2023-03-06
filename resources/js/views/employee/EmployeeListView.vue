@@ -107,7 +107,15 @@
             :loading="loading"
             loading-text="Loading... Please wait"
             v-if="userPermissions.employee_list"
-          >
+          > 
+            <template v-slot:top v-if="file_upload_log">
+              <v-toolbar
+                flat
+              >
+                <h6 class="my-0 font-weight-bold">Document Date:</h6>  <v-chip color="secondary" class="ml-2">{{ file_upload_log.docdate }}</v-chip>
+                <h6 class="my-0 font-weight-bold ml-8">Uploaded Date:</h6>  <v-chip color="secondary" class="ml-2">{{ file_upload_log.date_uploaded }}</v-chip>
+              </v-toolbar>
+            </template>
             <template v-slot:item.actions="{ item }">
               <v-icon
                 small
@@ -195,7 +203,7 @@
                         >
                           <template v-slot:activator="{ on, attrs }">
                             <v-text-field
-                              name="remarks_date"
+                              name="birth_date"
                               v-model="computedBirthDateFormatted"
                               label="Birth Date (MM/DD/YYYY)"
                               persistent-hint
@@ -509,110 +517,12 @@
               </v-card-actions>
             </v-card>
           </v-dialog>
-          <v-dialog v-model="dialog_import" max-width="500px" persistent>
-            <v-card>
-              <v-card-title class="pa-4">
-                <span class="headline">Import Data</span>
-              </v-card-title>
-              <v-divider class="mt-0"></v-divider>
-              <v-card-text>
-                <v-container>
-                  <v-row>
-                    <v-col class="my-0 py-0">
-                      <v-file-input
-                        v-model="file"
-                        show-size
-                        label="File input"
-                        prepend-icon="mdi-paperclip"
-                        required
-                        :error-messages="fileErrors"
-                        @change="$v.file.$touch() + (fileIsEmpty = false)"
-                        @blur="$v.file.$touch()"
-                        
-                      >
-                        <template v-slot:selection="{ text }">
-                          <v-chip small label color="primary">
-                            {{ text }}
-                          </v-chip>
-                        </template>
-                      </v-file-input>
-                    </v-col>
-                  </v-row>
-                  <v-row
-                    class="fill-height"
-                    align-content="center"
-                    justify="center"
-                    v-if="uploading"
-                  >
-                    <v-col class="subtitle-1 text-center" cols="12">
-                      Uploading...
-                    </v-col>
-                    <v-col cols="6">
-                      <v-progress-linear
-                        color="primary"
-                        indeterminate
-                        rounded
-                        height="6"
-                      ></v-progress-linear>
-                    </v-col>
-                  </v-row>
-                </v-container>
-              </v-card-text>
-              <v-divider class="mb-3 mt-0"></v-divider>
-              <v-card-actions class="pa-0">
-                <v-spacer></v-spacer>
-                <v-btn
-                  color="#E0E0E0"
-                  @click="(dialog_import = false) + (loading = false)"
-                  class="mb-3"
-                >
-                  Cancel
-                </v-btn>
-                <v-btn
-                  color="primary"
-                  class="mb-3 mr-4"
-                  @click="uploadFile()"
-                  :disabled="uploadDisabled"
-                >
-                  Upload
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-dialog>
-          <v-dialog v-model="dialog_error_list" max-width="1000px" persistent>
-            <v-card>
-              <v-card-title class="pa-4">
-                <span class="headline">Error List</span>
-                <v-spacer></v-spacer>
-                <v-btn @click="dialog_error_list = false" icon>
-                  <v-icon> mdi-close </v-icon>
-                </v-btn>
-              </v-card-title>
-              <v-divider class="mt-0"></v-divider>
-              <v-card-text>
-                <v-container>
-                  <v-row>
-                    <v-col>
-                      <v-simple-table dense>
-                        <thead>
-                          <tr>
-                            <th>#</th>
-                            <th>Error Message</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr v-for="(item, index) in imported_file_errors">
-                            <td>{{ index + 1 }}</td>
-                            <td v-html="item"></td>
-                          </tr>
-                        </tbody>
-                      </v-simple-table>
-                    </v-col>
-                  </v-row>
-                </v-container>
-              </v-card-text>
-            </v-card>
-          </v-dialog>
+          <ImportDialog 
+            :api_route="api_route" 
+            :dialog_import="dialog_import"
+            @getData="getEmployee"
+            @closeImportDialog="closeImportDialog"
+          />
         </v-card>
       </v-main>
     </div>
@@ -623,8 +533,17 @@ import axios from "axios";
 import { validationMixin } from "vuelidate";
 import { required, maxLength, email } from "vuelidate/lib/validators";
 import { mapState } from "vuex";
+import ImportDialog from "./components/ImportDialog.vue";
 
 export default {
+
+  name: "EmployeeListView",
+  components: {
+    ImportDialog,
+  },
+  props: {
+
+  },
   mixins: [validationMixin],
 
   validations: {
@@ -656,7 +575,7 @@ export default {
       school_attended: { required },
       course: { required },
     },
-    file: { required },
+    
   },
   data() {
     return {
@@ -725,15 +644,8 @@ export default {
       ],
       loading: true,
       search_branch: "",
-      file: [],
-      fileIsEmpty: false,
-      fileIsInvalid: false,
-      uploadDisabled: false,
-      uploading: false,
-      dialog_import: false,
-      dialog_error_list: false,
-      errors_array: [],
       branch_id: "",
+      file_upload_log_id: "",
       editedIndex: -1,
       editedItem: {
         branch_id: "",
@@ -795,6 +707,10 @@ export default {
       },
       input_birth_date: false,
       input_date_employed: false,
+      input_docdate: false,
+      file_upload_log: "",
+      dialog_import: false,
+      api_route: "",
     };
   },
 
@@ -802,23 +718,25 @@ export default {
     userIsLoaded: {
       handler() {
         if (this.userIsLoaded && this.userRolesPermissionsIsLoaded) {
-          this.getEmployee();
+          this.getEmployee(this.$route.params.file_upload_log_id);
         }
       },
     },
     userRolesPermissionsIsLoaded: {
       handler() {
         if (this.userIsLoaded && this.userRolesPermissionsIsLoaded) {
-          this.getEmployee();
+          this.getEmployee(this.$route.params.file_upload_log_id);
         }
       },
     },
   },
 
   methods: {
-    getEmployee() {
+    getEmployee(file_upload_log_id) {
+
       this.loading = true;
-      axios.get("/api/employee/list/view/" + this.branch_id).then(
+      let data = { file_upload_log_id: file_upload_log_id }
+      axios.post("/api/employee/list/view", data).then(
         (response) => {
           // if user has no permission to view overall list
 
@@ -828,7 +746,7 @@ export default {
           ) {
             this.$router.push({ name: "unauthorize" });
           }
-
+          this.file_upload_log = response.data.file_upload_log;
           this.employees = response.data.employees;
           this.loading = false;
         },
@@ -923,6 +841,10 @@ export default {
       });
     },
 
+    closeImportDialog() {
+      this.dialog_import = false;
+    },
+
     save() {
       this.$v.editedItem.$touch();
       if (!this.$v.$error) {
@@ -940,7 +862,7 @@ export default {
               if (response.data.success) {
                 // send data to Sockot.IO Server
                 // this.$socket.emit("sendData", { action: "employee-edit" });
-                console.log(response.data);
+
                 let employee = response.data.employee;
                 employee.branch = response.data.branch;
                 
@@ -971,6 +893,9 @@ export default {
             }
           );
         } else {
+
+          this.editedItem.file_upload_log_id = this.file_upload_log_id;
+
           const data = this.editedItem;
 
           axios.post("/api/employee/store", data).then(
@@ -1036,7 +961,11 @@ export default {
           if (result.value) {
             // <-- if confirmed
 
-            let data = { branch_id: this.branch_id, clear_list: true };
+            let data = { 
+              branch_id: this.branch_id, 
+              file_upload_log_id: this.file_upload_log_id, 
+              clear_list: true 
+            };
 
             axios.post("api/employee/delete", data).then(
               (response) => {
@@ -1045,6 +974,7 @@ export default {
                   // this.$socket.emit("sendData", { action: "product-create" });
 
                   this.employees = [];
+                  this.file_upload_log = null;
 
                   this.$swal({
                     position: "center",
@@ -1095,99 +1025,12 @@ export default {
 
     importExcel() {
       this.dialog_import = true;
-      this.file = [];
-      this.$v.$reset();
     },
 
-    uploadFile() {
-      this.$v.$touch();
-      this.fileIsEmpty = false;
-      this.fileIsInvalid = false;
-
-      if (!this.$v.file.$error) {
-        this.uploadDisabled = true;
-        this.uploading = true;
-        let formData = new FormData();
-
-        formData.append("file", this.file);
-
-        axios
-          .post("api/employee/import_employee/" + this.branch_id, formData, {
-            headers: {
-              Authorization: "Bearer " + localStorage.getItem("access_token"),
-              "Content-Type": "multipart/form-data",
-            },
-          })
-          .then(
-            (response) => {
-              this.errors_array = [];
-
-              if (response.data.success) {
-                // send data to Socket.IO Server
-                // this.$socket.emit("sendData", { action: "import-project" });
-                this.getEmployee();
-                this.$swal({
-                  position: "center",
-                  icon: "success",
-                  title: "Record has been imported",
-                  showConfirmButton: false,
-                  timer: 2500,
-                });
-                this.$v.$reset();
-                this.dialog_import = false;
-                this.file = [];
-                this.fileIsEmpty = false;
-              } else if (response.data.error_column) {
-                this.errors_array = response.data.error_column;
-                this.dialog_error_list = true;
-              } else if (response.data.error_row_data) {
-                let error_keys = Object.keys(response.data.error_row_data);
-                let errors = response.data.error_row_data;
-                let field_values = response.data.field_values;
-                let row = "";
-                let col = "";
-
-                error_keys.forEach((value, index) => {
-                  row = value.split(".")[0];
-                  col = value.split(".")[1];
-                  errors[value].forEach((val, i) => {
-                    this.errors_array[index] =
-                      "Error on row: <label class='text-info'>" +
-                      (parseInt(row) + 1) +
-                      "</label>; Column: <label class='text-primary'>" +
-                      col +
-                      "</label>; Msg: <label class='text-danger'>" +
-                      val +
-                      "</label>; Value: <label class='text-success'>" +
-                      field_values[row][col] +
-                      "</label>";
-                  });
-                });
-
-                this.dialog_error_list = true;
-              } else if (response.data.error_empty) {
-                this.fileIsEmpty = true;
-              } else {
-                this.fileIsInvalid = true;
-              }
-
-              this.uploadDisabled = false;
-              this.uploading = false;
-
-              console.log(response.data);
-            },
-            (error) => {
-              this.isUnauthorized(error);
-              this.uploadDisabled = false;
-              console.log(error);
-            }
-          );
-      }
-    },
     exportData() {
       if (this.employees.length) {
         window.open(
-          location.origin + "/api/employee/export_employee/" + this.branch_id,
+          location.origin + "/api/employee/export_employee/" + this.file_upload_log_id,
           "_blank"
         );
       } else {
@@ -1224,18 +1067,6 @@ export default {
   computed: {
     formTitle() {
       return this.editedIndex === -1 ? "New Employee" : "Edit Employee";
-    },
-    fileErrors() {
-      const errors = [];
-      if (!this.$v.file.$dirty) return errors;
-      !this.$v.file.required && errors.push("File is required.");
-      this.fileIsEmpty && errors.push("File is empty.");
-      this.fileIsInvalid &&
-        errors.push("File type must be 'xlsx', 'xls' or 'ods'.");
-      return errors;
-    },
-    imported_file_errors() {
-      return this.errors_array.sort();
     },
     employeeCodeErrors() {
       const errors = [];
@@ -1443,15 +1274,19 @@ export default {
   },
 
   mounted() {
+    
     axios.defaults.headers.common["Authorization"] =
       "Bearer " + localStorage.getItem("access_token");
     this.branch_id = this.$route.params.branch_id;
-    
+    this.file_upload_log_id = this.$route.params.file_upload_log_id;
+    this.api_route = 'api/employee/import_employee/' + this.branch_id; //set api route for uploading excel
+
     if (this.userIsLoaded && this.userRolesPermissionsIsLoaded) {
-      this.getEmployee();
+
+      this.getEmployee(this.file_upload_log_id);
+      
     }
 
-    // this.websocket();
   },
 };
 </script>

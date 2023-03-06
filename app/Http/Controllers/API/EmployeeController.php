@@ -6,41 +6,60 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Employee;
 use App\Branch;
+use App\FileUploadLog;
 use Carbon\Carbon;
 use Validator;
 use DB;
 use Excel;
+use Auth;
 use App\Imports\EmployeesImport;
 use App\Exports\EmployeesExport;
-
 
 class EmployeeController extends Controller
 {
     public function index()
-    {
+    {   
+        $user_can_employee_list_all = Auth::user()->can('employee-list-all');
      
-        $branches = DB::table('branches')
-                      ->leftJoin('employees', 'branches.id', '=', 'employees.branch_id')
-                      ->select('branches.id', 'branches.name', DB::raw("DATE_FORMAT(max(employees.created_at), '%m/%d/%Y') as last_upload"))
-                      ->groupBy('branches.id', 'branches.name')
-                      ->get();
+        // $branches = DB::table('branches')
+        //               ->leftJoin('employees', 'branches.id', '=', 'employees.branch_id')
+        //               ->select(DB::raw("branches.id as branch_id, branches.name as branch, DATE_FORMAT(employees.created_at, '%m/%d/%Y') as date_uploaded"))
+        //               ->distinct()
+        //               ->groupBy('branches.id', 'branches.name', 'employees.created_at')
+        //               ->get();
+        
+        $branches = Branch::with(['file_upload_logs' => function($query){
+                                $query->select(DB::raw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_uploaded, DATE_FORMAT(docdate, '%m/%d/%Y') as docdate"))
+                                      ->where('docname', '=', 'Employee List');
+                            }])
+                            ->where(function($query) use ($user_can_employee_list_all){
+                                // if user has no permission to view all the branches then select the user's branch only
+                                if(!$user_can_employee_list_all)
+                                {
+                                    $query->where('id', '=', Auth::user()->branch_id);
+                                }
+                            })
+                            ->get();
 
         return response()->json(['branches' => $branches], 200);
     }
 
-    public function list_view($branch_id)
+    public function list_view(Request $request)
     {
+
+        $file_upload_log_id = $request->get('file_upload_log_id');
+        $file_upload_log = FileUploadLog::select(DB::raw("DATE_FORMAT(docdate, '%m/%d/%Y') as docdate, DATE_FORMAT(created_at, '%m/%d/%Y') as date_uploaded"))->find($file_upload_log_id);
         $employees = Employee::with('branch')
-                             ->where('branch_id', '=', $branch_id)
-                             ->select(DB::raw("*, DATE_FORMAT(dob, '%m/%d/%Y') as birth_date, DATE_FORMAT(date_employed, '%m/%d/%Y') as date_employed, 
+                             ->select(DB::raw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_uploaded, DATE_FORMAT(dob, '%m/%d/%Y') as birth_date, DATE_FORMAT(date_employed, '%m/%d/%Y') as date_employed, 
                                                 CONCAT(CAST((TIMESTAMPDIFF(DAY, date_employed, date_format(NOW(),'%Y-%m-%d')) / 365) AS UNSIGNED), ' years(s) ',
                                                 CAST(((TIMESTAMPDIFF(DAY, date_employed, date_format(NOW(),'%Y-%m-%d')) % 365) / 30) AS UNSIGNED), ' month(s) ',
                                                 ((TIMESTAMPDIFF(DAY, date_employed, date_format(NOW(),'%Y-%m-%d')) % 365) % 30), ' day(s)')  as length_of_service"
                                             )
                                     )
+                              ->where('file_upload_log_id', '=', $file_upload_log_id)
                              ->get();  
 
-        return response()->json(['employees' => $employees], 200);
+        return response()->json(['employees' => $employees, 'file_upload_log' => $file_upload_log], 200);
     }
 
     public function create()
@@ -51,6 +70,8 @@ class EmployeeController extends Controller
     public function store(Request $request)
     { 
         $rules = [
+            'file_upload_log_id.required' => 'FileUploadLog ID is required',
+            'file_upload_log_id.integer' => 'FileUploadLog ID must be an integer',
             'branch_id.required' => 'Branch is required',
             'branch_id.integer' => 'Branch must be an integer',
             'employee_code.required' => 'Employee Code is required',
@@ -82,6 +103,7 @@ class EmployeeController extends Controller
         ];
 
         $valid_fields = [
+            'file_upload_log_id' => 'required|integer',
             'branch_id' => 'required|integer',
             'employee_code' => 'required',
             'last_name' => 'required',
@@ -119,6 +141,7 @@ class EmployeeController extends Controller
         }
 
         $employee = new Employee();
+        $employee->file_upload_log_id = $request->get('file_upload_log_id');
         $employee->branch_id = $request->get('branch_id');
         $employee->employee_code = $request->get('employee_code');
         $employee->last_name = $request->get('last_name');
@@ -282,7 +305,7 @@ class EmployeeController extends Controller
 
     public function import_employee(Request $request, $branch_id) 
     {   
-
+      
         try {
             $file_extension = '';
             $path = '';
@@ -297,13 +320,17 @@ class EmployeeController extends Controller
             $validator = Validator::make(
                 [
                     'file' => strtolower($file_extension),
+                    'docdate' => $request->get('docdate'),
                 ],
                 [
                     'file' => 'required|in:xlsx,xls,ods,odsx',
+                    'docdate' => 'required|date_format:Y-m-d',
                 ], 
                 [
                     'file.required' => 'File is required',
                     'file.in' => 'File type must be xlsx/xls/ods/odsx.',
+                    'docdate.required' => 'Document date is required',
+                    'docdate.date_format' => 'Invalid date. Format: (YYYY-MM-DD)',
                 ]
             );  
             
@@ -315,7 +342,8 @@ class EmployeeController extends Controller
             if ($request->file('file')) {
                     
                 // $array = Excel::toArray(new ProjectsImport, $request->file('file'));
-                $collection = Excel::toCollection(new EmployeesImport($branch_id), $request->file('file'))[0];
+                $params = ['branch_id' => $branch_id, 'file_upload_log_id' => 0];
+                $collection = Excel::toCollection(new EmployeesImport($params), $request->file('file'))[0];
                 $ctr_collection = count($collection);
                 $columns = [
                     'employee_code',
@@ -458,7 +486,7 @@ class EmployeeController extends Controller
                     // if file has no row data
                     return response()->json(['error_empty' => 'File is Empty'], 200);
                 }
-                
+
                 // if row data has errors
                 if(count($collection_errors))
                 {
@@ -466,11 +494,22 @@ class EmployeeController extends Controller
                 }
                 else
                 {   
+                    // file upload logs
+                    $file_upload_log = new FileUploadLog();
+                    $file_upload_log->branch_id = $branch_id;
+                    $file_upload_log->docdate = $request->get('docdate');
+                    $file_upload_log->docname = "Employee List";
+                    $file_upload_log->save();
+
+                    $params = ['branch_id' => $branch_id, 'file_upload_log_id' => $file_upload_log->id];
                     // import excel file
-                    Excel::import(new EmployeesImport($branch_id), $path);
+                    Excel::import(new EmployeesImport($params), $path);
                 }
                     
-                return response()->json(['success' => 'Record has successfully imported'], 200);
+                return response()->json([
+                    'success' => 'Record has successfully imported', 
+                    'file_upload_log_id' => $file_upload_log->id
+                ], 200);
             }
             else
             {
@@ -484,38 +523,34 @@ class EmployeeController extends Controller
         
     }
 
-    public function export_employee($branch_id)
+    public function export_employee($file_upload_log_id)
     {   
-        return Excel::download(new EmployeesExport($branch_id), 'employees.xls');
+        return Excel::download(new EmployeesExport($file_upload_log_id), 'employees.xls');
     }
 
     public function delete(Request $request)
     {   
         
         $branch_id = $request->get('branch_id');
-
-        $employees = DB::table('employees')
-                        ->where(function($query) use ($branch_id){
-                            if($branch_id <> 0)
-                            {
-                                $query->where('employees.branch_id', '=', $branch_id);
-                            }
-                        });
         
         if($request->get('clear_list'))
         {   
             
-            $employees = DB::table('employees')
-                      ->where('branch_id', '=', $request->get('branch_id'));
+            $file_upload_log_id = $request->get('file_upload_log_id');
             
-            if(!$employees->count('id'))
+            $file_upload_log = FileUploadLog::find($file_upload_log_id);
+
+            $employees = DB::table('employees')
+                           ->where('file_upload_log_id', '=', $file_upload_log_id);
+
+            if(empty($file_upload_log->id))
             {
-                return response()->json('No record found', 200);
+                return abort(404, 'Not Found');
             }
-            else
-            {
-                $employees->delete();
-            }
+
+            $file_upload_log->delete();
+
+            $employees->delete();
 
         }
         else

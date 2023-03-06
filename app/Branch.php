@@ -15,9 +15,33 @@ class Branch extends Model
         //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
     }
 
+    public function employee_loans()
+    {
+        return $this->hasMany('App\EmployeeLoan', 'branch_id', 'id');
+        //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
+    }
+
+    public function employee_premiums()
+    {
+        return $this->hasMany('App\EmployeePremium', 'branch_id', 'id');
+        //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
+    }
+
+    public function employee_attlogs()
+    {
+        return $this->hasMany('App\EmployeeAttlog', 'branch_id', 'id');
+        //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
+    }
+
     public function company()
     {
         return $this->hasOne('App\Company', 'id', 'company_id');
+        //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
+    }
+
+    public function file_upload_logs()
+    {
+        return $this->hasMany('App\FileUploadLog', 'branch_id', 'id');
         //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
     }
 

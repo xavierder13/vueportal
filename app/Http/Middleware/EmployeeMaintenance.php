@@ -19,7 +19,7 @@ class EmployeeMaintenance
         $user = Auth::user();
 
         //Employee Record
-        if($request->is('api/employee/index') || $request->is('api/employee/list/view/*')){
+        if($request->is('api/employee/index') || $request->is('api/employee/list/view')){
             if($user->can('employee-list')){
                 return $next($request); 
             }

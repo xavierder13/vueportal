@@ -10,10 +10,13 @@ use App\Brand;
 use App\Branch;
 use App\InventoryReconciliation;
 use App\InventoryReconciliationMap;
+use App\SapDatabase;
 use DB;
 use Validator;
 use Auth;
 use Excel;
+use Crypt;
+use Config;
 use App\Imports\InventoryReconMapImport;
 use Carbon\Carbon;
 
@@ -22,6 +25,33 @@ class InventoryReconciliationController extends Controller
     public function index()
     {   
 
+        // Config::set('database.connections.progtbl', array(
+        //     'driver' => 'sqlsrv',
+        //     'host' => '192.168.1.13',
+        //     'port' => '1433',
+        //     'database' => 'ReportsFinance',
+        //     'username' => 'sapprog105',
+        //     'password' => '105*Prog',   
+        // ));
+
+        // $progtble = DB::connection('progtbl')->select("select * from [@PROGTBL] where U_Branch1 = 'Alaminos'");
+
+        $databases = SapDatabase::all();
+
+        foreach ($databases as $key => $db) {
+            $password = Crypt::decrypt($db->password);
+
+            Config::set('database.connections.'.$db->database, array(
+                'driver' => 'sqlsrv',
+                'host' => $db->server,
+                'port' => '1433',
+                'database' => $db->database,
+                'username' => $db->username,
+                'password' => $password,   
+            ));
+            
+        }
+    
         $user = Auth::user();
         $branches = Branch::all();
         $inventory_reconciliations = InventoryReconciliation::with('user')
@@ -42,16 +72,18 @@ class InventoryReconciliationController extends Controller
                                                 // if user has role Inventory Branch then show record with branch_id = user's branch
                                                 else if($user->hasRole('Inventory Branch'))
                                                 {
-                                                    $query->where('branch_id', '=', $user->branch_id);
+                                                    $query->where('branch_id', '=', $user->branch_id)
+                                                          ->where('inventory_group', '=', 'Admin-Branch');
                                                 }
                                             }
                                         })
                                         ->select(DB::raw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_created, DATE_FORMAT(date_reconciled, '%m/%d/%Y') as date_reconciled"))
                                         ->get();
-
+                                        
         return response()->json([
             'inventory_reconciliations' => $inventory_reconciliations,
-            'branches' => $branches
+            'branches' => $branches,
+            'databases' => $databases
         ], 200);
     }
 
@@ -166,7 +198,7 @@ class InventoryReconciliationController extends Controller
                 'product_category' => $product['product_category'],
                 'sap_qty' => $ctr1,
                 'physical_qty' => $ctr2,
-                'qty_diff' => $ctr1 - $ctr2,
+                'qty_diff' => $ctr2 - $ctr1, // physical - sap quantity
                 'sap_discrepancy' => join(', ', $sap_discrepancy),
                 'physical_discrepancy' => join(', ', $physical_discrepancy ),
             ];
@@ -186,7 +218,7 @@ class InventoryReconciliationController extends Controller
 
     public function breakdown($inventory_recon_id)
     {   
-        
+
         $reconciliation = InventoryReconciliation::with('branch')
                                                  ->with('user')
                                                  ->with('user.position')
@@ -276,7 +308,9 @@ class InventoryReconciliationController extends Controller
             $path = '';
             if($request->file('file'))
             {   
-                $path = $request->file('file')->getRealPath();
+                $path1 = $request->file('file')->store('temp'); 
+                $path=storage_path('app').'/'.$path1;  
+                // $path = $request->file('file')->getRealPath();
                 $file_extension = $request->file('file')->getClientOriginalExtension();
             }
 
@@ -285,7 +319,7 @@ class InventoryReconciliationController extends Controller
                     'file' => strtolower($file_extension),
                 ],
                 [
-                    'file' => 'required|in:xlsx,xls,',
+                    'file' => 'required|in:xlxs,xls,',
                 ], 
                 [
                     'file.required' => 'File is required',
@@ -303,11 +337,18 @@ class InventoryReconciliationController extends Controller
                 // $array = Excel::toArray(new ProjectsImport, $request->file('file'));
                 $collection = Excel::toCollection(new InventoryReconMapImport(''), $request->file('file'))[0];
                 $ctr_collection = count($collection);
+                // $columns = [
+                //     'brand',
+                //     'model',
+                //     'product_category',
+                //     'serial',
+                // ];
+                
                 $columns = [
-                    'brand',
-                    'model',
-                    'product_category',
-                    'serial',
+                    'BRAND',
+                    'MODEL',
+                    'CATEGORY',
+                    'SERIAL',
                 ]; 
 
                 $collection_errors = [];
@@ -350,18 +391,25 @@ class InventoryReconciliationController extends Controller
 
                     } 
 
+                    // $rules = [
+                    //     '*.brand.required' => 'Brand is required',
+                    //     '*.model.required' => 'Model is required',
+                    //     '*.product_category.required' => 'Product Category is required',
+                    //     '*.serial.required' => 'Serial is required',
+                    // ];
+
                     $rules = [
-                        '*.brand_.required' => 'Brand is required',
-                        '*.model.required' => 'Model is required',
-                        '*.product_category.required' => 'Product Category is required',
-                        '*.serial.required' => 'Serial is required',
+                        '*.BRAND.required' => 'Brand is required',
+                        '*.MODEL.required' => 'Model is required',
+                        '*.CATEGORY.required' => 'Product Category is required',
+                        '*.SERIAL.required' => 'Serial is required',
                     ];
             
                     $valid_fields = [
-                        '*.brand' => 'required',
-                        '*.model' => 'required|',
-                        '*.product_category' => 'required',
-                        '*.serial' => 'required',
+                        '*.BRAND' => 'required',
+                        '*.MODEL' => 'required|',
+                        '*.CATEGORY' => 'required',
+                        '*.SERIAL' => 'required',
                     ];
                     
                     $validator = Validator::make($fields, $valid_fields, $rules);  
@@ -509,6 +557,75 @@ class InventoryReconciliationController extends Controller
         return response()->json(['success' => 'Record has been saved'], 200);
         
     } 
+
+    public function sync_inventory_recon(Request $request)
+    {   
+        $user = Auth::user();
+        $branch_id = $request->get('branch_id');
+        $branch = Branch::find($branch_id);
+        $inventory_group = $request->get('inventory_group');
+
+        $database = $request->get('database');
+        $db = SapDatabase::where('database', '=', $database)->get()->first();
+        $password = Crypt::decrypt($db->password);
+        Config::set('database.connections.'.$db->database, array(
+                    'driver' => 'sqlsrv',
+                    'host' => $db->server,
+                    'port' => '1433',
+                    'database' => $db->database,
+                    'username' => $db->username,
+                    'password' => $password,   
+                ));
+
+        $inventory_onhand = DB::connection($database)->select("
+            SELECT 
+                d.FirmName BRAND, 
+                c.ItemName MODEL,
+                c.FrgnName CATEGORY, 
+                b.IntrSerial SERIAL,
+                cast(1 as numeric(19,2)) as 'Qty'
+            FROM 
+            OITW a
+                LEFT JOIN OSRI b on (a.ItemCode = b.ItemCode and a.WhsCode = b.WhsCode)
+                INNER JOIN OITM c on a.ItemCode = c.ItemCode
+                INNER JOIN OMRC d on c.FirmCode = d.FirmCode
+                INNER JOIN OWHS e on a.WhsCode = e.WhsCode 
+                INNER JOIN [@PROGTBL] f on UPPER(e.Street) = CASE WHEN DB_NAME() = 'ReportsFinance' THEN f.U_Branch2 ELSE f.U_Branch1 END
+            WHERE a.OnHand <> 0 and b.Status = '0' and f.U_Branch1 = :branch
+            ORDER by 1, 2, 3, 4
+        ",
+        ['branch' => $branch->name]);
+
+        if(!count($inventory_onhand))
+        {
+            return response()->json(['empty' => 'No record found', $db], 200);
+        }
+
+        $inventory_reconciliation = new InventoryReconciliation();
+        $inventory_reconciliation->branch_id = $branch_id;
+        $inventory_reconciliation->user_id = $user->id;
+        $inventory_reconciliation->date_reconciled = null;
+        $inventory_reconciliation->status = 'unreconciled';
+        $inventory_reconciliation->inventory_group = $inventory_group;
+        $inventory_reconciliation->save();
+
+
+        foreach ($inventory_onhand as $key => $value) {
+            InventoryReconciliationMap::create([
+                'inventory_recon_id' => $inventory_reconciliation->id,
+                'user_id' => $user->id,
+                'inventory_type' => 'SAP',
+                'brand' => $value->BRAND,
+                'model' => $value->MODEL,
+                'product_category' => $value->CATEGORY,
+                'serial' => $value->SERIAL,
+                'quantity' => 1,
+            ]);
+        }
+
+
+        return response()->json(['success' => 'Record has been synced'], 200);
+    }
     
     public function delete(Request $request)
     {   

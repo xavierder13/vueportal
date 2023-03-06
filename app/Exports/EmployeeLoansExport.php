@@ -13,16 +13,16 @@ class EmployeeLoansExport implements FromCollection, WithHeadings
     * @return \Illuminate\Support\Collection
     */
 
-    protected $branch_id;
+    protected $file_upload_log_id;
 
-    public function __construct($branch_id)
+    public function __construct($file_upload_log_id)
     {
-        $this->branch_id = $branch_id;
+        $this->file_upload_log_id = $file_upload_log_id;
     }
 
     public function collection()
     {
-        $branch_id = $this->branch_id;
+        $file_upload_log_id = $this->file_upload_log_id;
 
         $employee_loans = DB::table('employee_loans')
                       ->join('branches', 'employee_loans.branch_id', '=', 'branches.id')
@@ -47,12 +47,13 @@ class EmployeeLoansExport implements FromCollection, WithHeadings
                                 'employee_loans.balance',
                                 'employee_loans.remaining_term',
                                 'employee_loans.or_number')
-                      ->where(function($query) use ($branch_id){
-                          if($branch_id <> 0)
-                          {
-                              $query->where('employee_loans.branch_id', '=', $branch_id);
-                          }
-                      })
+                    //   ->where(function($query) use ($branch_id){
+                    //       if($branch_id <> 0)
+                    //       {
+                    //           $query->where('employee_loans.branch_id', '=', $branch_id);
+                    //       }
+                    //   })
+                      ->where('employee_loans.file_upload_log_id','=', $file_upload_log_id)
                       ->get();
         return $employee_loans;
     }

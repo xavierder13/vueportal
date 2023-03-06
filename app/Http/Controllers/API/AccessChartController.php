@@ -26,7 +26,7 @@ class AccessChartController extends Controller
         
         $access_modules = AccessModule::all();
         $access_level = AccessLevel::first();
-        $users = User::all();
+        $users = User::all();                                             
         
         return response()->json(
             [

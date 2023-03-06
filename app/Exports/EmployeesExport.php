@@ -12,16 +12,16 @@ class EmployeesExport implements FromCollection, WithHeadings
     /**
     * @return \Illuminate\Support\Collection
     */
-    protected $branch_id;
+    protected $file_upload_log_id;
 
-    public function __construct($branch_id)
+    public function __construct($file_upload_log_id)
     {
-        $this->branch_id = $branch_id;
+        $this->file_upload_log_id = $file_upload_log_id;
     }
     
     public function collection()
     {   
-        $branch_id = $this->branch_id;
+        $file_upload_log_id = $this->file_upload_log_id;
 
         $employees = DB::table('employees')
                       ->join('branches', 'employees.branch_id', '=', 'branches.id')
@@ -57,12 +57,13 @@ class EmployeesExport implements FromCollection, WithHeadings
                                 DB::raw("CONCAT(CAST((TIMESTAMPDIFF(DAY, employees.date_employed, date_format(NOW(),'%Y-%m-%d')) / 365) AS UNSIGNED), ' years(s) ',
                                         CAST(((TIMESTAMPDIFF(DAY, employees.date_employed, date_format(NOW(),'%Y-%m-%d')) % 365) / 30) AS UNSIGNED), ' month(s) ',
                                         ((TIMESTAMPDIFF(DAY, employees.date_employed, date_format(NOW(),'%Y-%m-%d')) % 365) % 30), ' day(s)')  as length_of_service"))
-                      ->where(function($query) use ($branch_id){
-                          if($branch_id <> 0)
-                          {
-                              $query->where('employees.branch_id', '=', $branch_id);
-                          }
-                      })
+                    //   ->where(function($query) use ($branch_id){
+                    //       if($branch_id <> 0)
+                    //       {
+                    //           $query->where('employees.branch_id', '=', $branch_id);
+                    //       }
+                    //   })
+                      ->where('employees.file_upload_log_id','=', $file_upload_log_id)
                       ->get();
         return $employees;
     }

@@ -9,11 +9,16 @@ use App\ProductCategory;
 use App\Brand;
 use App\Branch;
 use App\ProductModel;
+use App\SapDatabase;
+use App\InventoryReconciliationMap;
 use DB;
 use Validator;
 use Auth;
 use Excel;
+use Config;
+use Crypt;
 use App\Exports\ProductsExport;
+
 
 class ProductController extends Controller
 {
@@ -57,8 +62,42 @@ class ProductController extends Controller
         return response()->json(['product_models' => $product_models], 200);
     }
 
+    public function search_serial(Request $request){
+        $user = Auth::user();
+        $inventory_group = $request->get('inventory_group');
+        $product = InventoryReconciliationMap::with('inventory_recon')
+                                             ->where('serial', '=', $request->get('serial'))
+                                             ->whereHas('inventory_recon', function($query) use ($user, $inventory_group) {
+                                                
+                                                if($user->id !== 1)
+                                                {
+                                                    if($user->hasRole('Audit Admin'))
+                                                    {
+                                                        $inventory_group = 'Audit-Branch';
+                                                    }
+                                                    else
+                                                    {
+                                                        $inventory_group = 'Admin-Branch';
+                                                    }
+                                                }
+
+                                                $query->where('status', '=', 'unreconciled')
+                                                      ->where(function($q) use ($inventory_group, $user) {
+                                                        if($user->id !== 1)
+                                                        {
+                                                            $q->where('inventory_group', '=', $inventory_group);
+                                                        }
+                                                      });
+                                                
+                                             })
+                                             ->get()->first();
+
+        return response()->json(['product' => $product], 200);
+    }
+
     public function create()
     {   
+        
         $user = Auth::user();
         $brands = Brand::all();
         $branches = Branch::all();
@@ -220,7 +259,7 @@ class ProductController extends Controller
             'brand_id.required' => 'Brand field is required',
             'brand_id.integer' => 'Brand must be an integer',
             'model.required' => 'This field is required',
-            'product_category_id.required' => 'Product Category field is required',
+            'product_category_id.required' => 'Product Categ    ory field is required',
             'product_category_id.integer' => 'Product Category must be an integer',
             'products.required' => 'Please enter product details'
         ];
@@ -322,13 +361,290 @@ class ProductController extends Controller
             $product->delete();
         }
 
-
         return response()->json(['success' => 'Record has been deleted'], 200);
     }
 
 
-    public function export($branch_id)
+    public function export($branch_id, $user_id)
     {   
-        return Excel::download(new ProductsExport($branch_id), 'products.xls');
+
+        $params = ['user_id' => $user_id, 'branch_id' => $branch_id];
+
+        return Excel::download(new ProductsExport($params), 'products.xls');
+    }
+
+    public function serial_number_details (Request $request)
+    {   
+        try {
+
+            $databases = SapDatabase::all();
+
+            foreach ($databases as $key => $db) {
+                
+                $password = Crypt::decrypt($db->password);
+
+                Config::set('database.connections.'.$db->database, array(
+                    'driver' => 'sqlsrv',
+                    'host' => $db->server,
+                    'port' => '1433',
+                    'database' => $db->database,
+                    'username' => $db->username,
+                    'password' => $password,   
+                ));
+    
+                $serial = $request->get('serial');
+
+                $data[$db->database] = DB::connection($db->database)
+                               ->select("SELECT	
+                                            top 5
+                                            CASE WHEN a.BaseType = N'20' THEN 'GRPO' ELSE 'GOODS ISSUE' END DocType,
+                                            CASE WHEN a.BaseType = N'20' THEN h.DocNum ELSE i.DocNum END DocNum,
+                                            CAST(a.DocDate as Date) as DocDate,
+                                            c.ItemName as Model,
+                                            c.FrgnName as ProductCategory,
+                                            d.FirmName as Brand,
+                                            e.ItmsGrpNam as ItemGroup,
+                                            b.IntrSerial as Serial,
+                                            j.CardName as Supplier,
+                                            f.U_branch1 as Branch,
+                                            g.Name as Company,
+                                            isnull(h.Comments, i.Comments) as Remarks
+                                        FROM
+                                            SRI1 a
+                                            INNER JOIN OSRI b on a.ItemCode = b.ItemCode and a.SysSerial = b.SysSerial
+                                            INNER JOIN OITM c on a.ItemCode = c.ItemCode
+                                            INNER JOIN OMRC d on c.FirmCode = d.FirmCode
+                                            INNER JOIN OITB e on c.ItmsGrpCod = e.ItmsGrpCod
+                                            LEFT JOIN [@PROGTBL] f on CASE WHEN LEFT(a.WhsCode, 4) = 'CMLG' THEN 'CAMI' ELSE LEFT(a.WhsCode, 4) END = f.Name
+                                            LEFT JOIN [@ACOMPANY] g on f.U_Company = g.Code
+                                            LEFT JOIN OPDN h on a.BaseType = h.ObjType and h.DocEntry = a.BaseEntry
+                                            LEFT JOIN OIGE i on a.BaseType = i.ObjType and i.DocEntry = a.BaseEntry
+                                            LEFT JOIN OCRD j on c.CardCode = j.CardCode
+                                        WHERE a.BaseType in (60, 20) and b.IntrSerial like '%" . $serial . "%'");
+            }
+
+            $filtered_data = array_filter($data);
+            $database = "";
+
+            $product = [
+                'branch' => '',
+                'date_purchase' => '',
+                'grpo_number' => '',
+                'gi_number' => '',
+                'date_issued' => '',
+                'supplier' => '',
+                'model' => '',
+                'brand' => '',
+                'product_category' => '',
+                'item_group' => '',
+                'serial' => '',
+                'grpo_remarks' => '',
+                'gi_remarks' => '',
+            ];
+            
+            $products = [];
+            $databases = [];
+
+            foreach ($filtered_data as $key => $data) {
+
+                $databases[] = $key; //database
+
+                foreach ($data as $i => $value) {
+                    if($value->DocType === 'GRPO')
+                    {
+                        $product['date_purchase'] = $value->DocDate;
+                        $product['grpo_number'] = $value->DocNum;
+                        $product['grpo_remarks'] = $value->Remarks;
+                    }
+                    else {
+                        $product['date_issued'] = $value->DocDate;
+                        $product['gi_number'] = $value->DocNum;
+                        $product['gi_remarks'] = $value->Remarks;
+                        $product['branch'] = $value->Branch;
+                        $product['company'] = $value->Company;
+                    }
+
+                    $product['supplier'] = $value->Supplier;
+                    $product['model'] = $value->Model;
+                    $product['brand'] = $value->Brand;
+                    $product['product_category'] = $value->ProductCategory;
+                    $product['item_group'] = $value->ItemGroup;
+                    $product['serial'] = $value->Serial;
+                    
+                    $products[] = $product;
+                }
+
+                
+            }
+
+            return response()->json(['databases' => $databases, 'products' => $products, $filtered_data], 200);
+
+            
+        } catch (\Exception $e) {
+            
+            return response()->json(['error' => $e->getMessage()], 200);
+        }
+
+    }
+
+    public function sync_item_master_data()
+    {   
+        $db = SapDatabase::where('database', '=', 'ReportsFinance')->get()->first();
+
+        $password = Crypt::decrypt($db->password);
+
+        Config::set('database.connections.'.$db->database, array(
+            'driver' => 'sqlsrv',
+            'host' => $db->server,
+            'port' => '1433',
+            'database' => $db->database,
+            'username' => $db->username,
+            'password' => $password,   
+        ));
+
+        $brands = Brand::all();
+
+        $models = ProductModel::all();
+
+        $categories = ProductCategory::all();
+
+        $createBrandsTemp = DB::connection("ReportsFinance")->unprepared(
+            DB::raw("CREATE TABLE #brands_temp (FirmName varchar(250))")
+        );
+
+        $createModelsTemp = DB::connection("ReportsFinance")->unprepared(
+            DB::raw("CREATE TABLE #models_temp (ItemName varchar(250))")
+        );
+
+        $createCategoriesTemp = DB::connection("ReportsFinance")->unprepared(
+            DB::raw("CREATE TABLE #categories_temp (FrgnName varchar(250))")
+        );
+
+        // remedy for inserting apostrophe (') into database
+        foreach ($brands as $key => $value) {
+
+            // explode apostrophe (')
+            $firm_name_explode = explode("'", $value->name);
+            $firm_name = "";
+
+            // concat explode value with apostrophe (') and add double apostrophe ('')
+            foreach ($firm_name_explode as $key => $val) {
+
+                if((count($firm_name_explode) - 1) > $key)
+                {
+                    $firm_name .= $val ."''" ; // add double apostrophe ('')
+                }
+                else
+                {
+                    $firm_name .= $val; 
+                }
+                
+            }
+
+            if(count($firm_name_explode ) === 1)
+            {
+                $firm_name = $value->name;
+            }
+
+            DB::connection("ReportsFinance")->insert(
+                "insert into #brands_temp (FirmName) values ('". $firm_name ."')"
+            );
+            
+        }
+        
+        // remedy for inserting apostrophe (') into database
+        foreach ($models as $key => $value) {
+
+            // explode apostrophe (')
+            $item_name_explode = explode("'", $value->name);
+            $item_name = "";
+
+            // concat explode value with apostrophe (') and add double apostrophe ('')
+            foreach ($item_name_explode as $key => $val) {
+
+                if((count($item_name_explode) - 1) > $key)
+                {
+                    $item_name .= $val ."''" ; // add double apostrophe ('')
+                }
+                else
+                {
+                    $item_name .= $val; 
+                }
+                
+            }
+
+            if(count($item_name_explode ) === 1)
+            {
+                $item_name = $value->name;
+            }
+
+            DB::connection("ReportsFinance")->insert(
+                "insert into #models_temp (ItemName) values ('". $item_name ."')"
+            );
+            
+        }
+
+        // remedy for inserting apostrophe (') into database
+        foreach ($categories as $key => $value) {
+
+            // explode apostrophe (')
+            $category_explode = explode("'", $value->name);
+            $category = "";
+
+            // concat explode value with apostrophe (') and add double apostrophe ('')
+            foreach ($category_explode as $key => $val) {
+
+                if((count($category_explode) - 1) > $key)
+                {
+                    $category .= $val ."''" ; // add double apostrophe ('')
+                }
+                else
+                {
+                    $category .= $val; 
+                }
+                
+            }
+
+            if(count($item_name_explode ) === 1)
+            {
+                $item_name = $value->name;
+            }
+
+            DB::connection("ReportsFinance")->insert(
+                "insert into #categories_temp (FrgnName) values ('". $item_name ."')"
+            );
+            
+        }
+
+
+        $brands_sap = DB::connection("ReportsFinance")
+                     ->select("SELECT distinct FirmName as brand from OMRC where FirmName not in (select FirmName from #brands_temp)");
+
+        $models_sap = DB::connection("ReportsFinance")
+                     ->select("SELECT distinct ItemName as model from OITM where ItemName not in (select ItemName from #models_temp)");
+
+        $categories_sap = DB::connection("ReportsFinance")
+                     ->select("SELECT distinct FrgnName as category from OITM where FrgnName not in (select FrgnName from #categories_temp)");
+        
+
+        // if brands_sap models_sap and categories_sap has no record then Item Master Date is up to date
+        if(!count($brands_sap) && !count($models_sap) && !count($categories_sap))
+        {
+            return response()->json(['empty' => 'Item Master Data is up to date'], 200);
+        }
+
+        foreach ($brands_sap as $key => $value) {
+            Brand::create(['name' => $value->brand, 'active' => 'Y']);
+        }
+
+        foreach ($models_sap as $key => $value) {
+            ProductModel::create(['name' => $value->model, 'active' => 'Y']);
+        }
+
+        foreach ($categories_sap as $key => $value) {
+            ProductCategory::create(['name' => $value->category, 'active' => 'Y']);     
+        }
+
+        return response()->json(['success' => 'Item master Data has been synced'], 200);
     }
 }

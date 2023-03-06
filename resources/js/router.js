@@ -8,6 +8,7 @@ import UserCreate from './views/user/UserCreate.vue';
 import UserProfile from './views/user/UserProfile.vue';
 import ProductIndex from './views/inventory/ProductIndex.vue';
 import ScanProduct from './views/inventory/ScanProduct.vue';
+import SerialNumberDetails from './views/inventory/SerialNumberDetails.vue';
 import InventoryReconciliation from './views/inventory/InventoryReconciliation.vue';
 import InventoryDiscrepancy from './views/inventory/InventoryDiscrepancy.vue';
 import InventoryBreakdown from './views/inventory/InventoryBreakdown.vue';
@@ -20,6 +21,8 @@ import BranchIndex from './views/branch/BranchIndex.vue';
 import CompanyIndex from './views/company/CompanyIndex.vue';
 import EmployeeIndex from './views/employee/EmployeeIndex.vue';
 import EmployeeListView from './views/employee/EmployeeListView.vue';
+import EmployeeAttlogIndex from './views/employee/attlog/EmployeeAttlogIndex.vue';
+import EmployeeAttlogListView from './views/employee/attlog/EmployeeAttlogListView.vue';
 import EmployeeLoansIndex from './views/employee/loans/EmployeeLoansIndex.vue';
 import EmployeeLoansListView from './views/employee/loans/EmployeeLoansListView.vue';
 import EmployeePremiumsIndex from './views/employee/premiums/EmployeePremiumsIndex.vue';
@@ -40,6 +43,7 @@ import Permission from './views/permission/PermissionIndex.vue';
 import RoleIndex from './views/role/RoleIndex.vue';
 import RoleCreate from './views/role/RoleCreate.vue';
 import RoleView from './views/role/RoleView.vue';
+import SAPDatabaseIndex from './views/sap_database/SAPDatabaseIndex.vue';
 import ActivityLogs from './views/activity_logs/ActivityLogs.vue';
 import PageNotFound from './404/PageNotFound.vue';
 import Unauthorize from './401/Unauthorize.vue';
@@ -108,6 +112,11 @@ const routes = [
         component: ProductModelIndex
       },
       {
+        path: '/serial_number_details',
+        name: 'serial_number_details',
+        component: SerialNumberDetails
+      },
+      {
         path: '/branch/index',
         name: 'branch.index',
         component: BranchIndex
@@ -133,9 +142,19 @@ const routes = [
         component: EmployeeIndex
       },
       {
-        path: '/employee/view/list/:branch_id',
+        path: '/employee/view/list/:branch_id/:file_upload_log_id',
         name: 'employee.list.view',
         component: EmployeeListView
+      },
+      {
+        path: '/employee/attlog/list',
+        name: 'employee.attlog.list',
+        component: EmployeeAttlogIndex
+      },
+      {
+        path: '/employee/attlog/view/list/:branch_id/:file_upload_log_id',
+        name: 'employee.attlog.list.view',
+        component: EmployeeAttlogListView
       },
       {
         path: '/employee/loans/list',
@@ -143,7 +162,7 @@ const routes = [
         component: EmployeeLoansIndex
       },
       {
-        path: '/employee/loans/view/list/:branch_id',
+        path: '/employee/loans/view/list/:branch_id/:file_upload_log_id',
         name: 'employee.loans.list.view',
         component: EmployeeLoansListView
       },
@@ -153,7 +172,7 @@ const routes = [
         component: EmployeePremiumsIndex
       },
       {
-        path: '/employee/premiums/view/list/:branch_id',
+        path: '/employee/premiums/view/list/:branch_id/:file_upload_log_id',
         name: 'employee.premiums.list.view',
         component: EmployeePremiumsListView
       },
@@ -236,6 +255,11 @@ const routes = [
         path: '/role/view/:roleid',
         name: 'role.view',
         component: RoleView
+      },
+      {
+        path: '/sap_database/index',
+        name: 'sap.database.index',
+        component: SAPDatabaseIndex
       },
       {
         path: '/activity_logs',

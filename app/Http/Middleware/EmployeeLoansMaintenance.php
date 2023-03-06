@@ -19,7 +19,7 @@ class EmployeeLoansMaintenance
         $user = Auth::user();
 
         //Employee Loans Record
-        if($request->is('api/employee_loans/index') || $request->is('api/employee_loans/list/view/*')){
+        if($request->is('api/employee_loans/index') || $request->is('api/employee_loans/list/view')){
             if($user->can('employee-loans-list')){
                 return $next($request); 
             }

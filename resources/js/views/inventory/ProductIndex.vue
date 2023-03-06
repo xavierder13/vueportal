@@ -668,7 +668,7 @@ export default {
     exportData() {
       if (this.filteredProducts.length) {
         window.open(
-          location.origin + "/api/product/export/" + this.search_branch,
+          location.origin + "/api/product/export/" + this.search_branch + "/" + this.user.id,
           "_blank"
         );
       } else {
@@ -908,7 +908,6 @@ export default {
 
       return headers;
     },
-
     ...mapState("userRolesPermissions", ["userRoles", "userPermissions"]),
   },
   created() {

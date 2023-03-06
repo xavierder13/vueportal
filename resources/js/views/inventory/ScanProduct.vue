@@ -29,17 +29,29 @@
             </v-chip>
             <v-divider vertical class="mr-3"></v-divider>
             <v-switch
-              class="ma-0 pa-0"
+              class="ma-0 pa-0 mr-4"
               hide-details=""
               inset
               v-model="switch1"
               @click="resetFields()"
             ></v-switch>
+            <v-spacer></v-spacer>
+            <v-autocomplete
+              v-model="inventory_group"
+              :items="inventory_groups"
+              item-text="name"
+              item-value="name"
+              label="Inventory Group"
+              v-if="user.id === 1"
+              hide-details=""
+              class="ma-0"
+            >
+            </v-autocomplete>
           </v-card-title>
           <v-divider></v-divider>
           <v-card-text class="pa-6">
             <v-row>
-              <v-col class="my-0 py-0" sm="6" md="4" lg="4" xl="4">
+              <v-col class="my-0 py-0" xs="12" sm="12" md="12" lg="4" xl="4">
                 <v-autocomplete
                   v-model="editedItem.brand_id"
                   :items="brands"
@@ -48,13 +60,9 @@
                   label="Brand"
                   required
                   :error-messages="brandErrors"
-                  @input="
-                    $v.editedItem.brand_id.$touch() + (fieldsActive = true)
-                  "
-                  @blur="
-                    $v.editedItem.brand_id.$touch() + (fieldsActive = false)
-                  "
-                  @focus="fieldsActive = true"
+                  @input="(fieldsActive = true)"
+                  @blur="(fieldsActive = false)"
+                  @focus="(fieldsActive = true)"
                   @change="clearSerialExistStatus()"
                 >
                 </v-autocomplete>
@@ -79,7 +87,7 @@
               </v-col>
             </v-row> -->
             <v-row>
-              <v-col class="my-0 py-0" sm="6" md="4" lg="4" xl="4">
+              <v-col class="my-0 py-0" xs="12" sm="12" md="12" lg="4" xl="4">
                 <v-autocomplete
                   :items="product_models"
                   v-model="editedItem.model"
@@ -90,11 +98,10 @@
                   required
                   :error-messages="modelErrors"
                   @input="
-                    $v.editedItem.model.$touch() +
                       (fieldsActive = true) +
                       clearSerialExistStatus()
                   "
-                  @blur="$v.editedItem.model.$touch() + (fieldsActive = false)"
+                  @blur="(fieldsActive = false)"
                   @focus="fieldsActive = true"
                 >
                   <template v-slot:append-outer>
@@ -124,7 +131,7 @@
             </v-row>
 
             <v-row>
-              <v-col class="my-0 py-0" sm="6" md="4" lg="4" xl="4">
+              <v-col class="my-0 py-0" xs="12" sm="12" md="12" lg="4" xl="4">
                 <v-autocomplete
                   v-model="editedItem.product_category_id"
                   :items="product_categories"
@@ -133,22 +140,16 @@
                   label="Product Category"
                   required
                   :error-messages="product_categoryErrors"
-                  @input="
-                    $v.editedItem.product_category_id.$touch() +
-                      (fieldsActive = true)
-                  "
-                  @blur="
-                    $v.editedItem.product_category_id.$touch() +
-                      (fieldsActive = false)
-                  "
-                  @focus="fieldsActive = true"
+                  @input="(fieldsActive = true)"
+                  @blur="(fieldsActive = false)"
+                  @focus="(fieldsActive = true)"
                   @change="clearSerialExistStatus()"
                 >
                 </v-autocomplete>
               </v-col>
             </v-row>
             <v-row v-if="!switch1">
-              <v-col class="my-0 py-0" sm="6" md="4" lg="4" xl="4">
+              <v-col class="my-0 py-0" xs="12" sm="12" md="12" lg="4" xl="4">
                 <v-text-field
                   name="serial"
                   label="Serial"
@@ -156,13 +157,11 @@
                   readonly
                   required
                   :error-messages="serialErrors"
-                  @input="$v.editedItem.serial.$touch()"
-                  @blur="$v.editedItem.serial.$touch()"
                 ></v-text-field>
               </v-col>
             </v-row>
             <v-row>
-              <v-col class="my-0 py-0" sm="6" md="4" lg="4" xl="4">
+              <v-col class="my-0 py-0" xs="12" sm="12" md="12" lg="4" xl="4">
                 <v-autocomplete
                   v-model="editedItem.branch_id"
                   :items="branches"
@@ -171,13 +170,9 @@
                   label="Branch"
                   required
                   :error-messages="branchErrors"
-                  @input="
-                    $v.editedItem.branch_id.$touch() + (fieldsActive = true)
-                  "
-                  @blur="
-                    $v.editedItem.branch_id.$touch() + (fieldsActive = false)
-                  "
-                  @focus="fieldsActive = true"
+                  @input="(fieldsActive = true)"
+                  @blur="(fieldsActive = false)"
+                  @focus="(fieldsActive = true)"
                   @change="clearSerialExistStatus()"
                   v-if="user.id === 1 || userRoles.audit_admin"
                 >
@@ -186,7 +181,7 @@
             </v-row>
 
             <v-row v-if="switch1">
-              <v-col class="my-0 py-0" sm="6" md="4" lg="4" xl="4">
+              <v-col class="my-0 py-0" xs="12" sm="12" md="12" lg="4" xl="4">
                 <v-responsive class="overflow-y-auto" max-height="350px" id="serial-table">
                   <v-simple-table dense class="mt-2">
                     <thead class="grey darken-1 white--text font-weight-bold">
@@ -237,7 +232,7 @@
               </v-col>
             </v-row>
             <v-row v-if="serialsEmpty">
-              <v-col sm="6" md="4" lg="4" xl="4">
+              <v-col xs="12" sm="12" md="12" lg="4" xl="4">
                 <!-- <span class="v-messages error--text">Please enter serials</span> -->
                 <v-alert dense outlined type="error">
                   Please enter serials
@@ -246,7 +241,7 @@
             </v-row>
 
             <v-row v-if="serialExists || serialHasDuplicate">
-              <v-col sm="6" md="4" lg="4" xl="4">
+              <v-col  xs="12" sm="12" md="12" lg="4" xl="4">
                 <!-- <span class="v-messages error--text">{{
                   multiSerialErrors
                 }}</span> -->
@@ -256,17 +251,17 @@
               </v-col>
             </v-row>
           </v-card-text>
-
-          <v-card-actions>
+          <v-divider class="mb-3 mt-0"></v-divider>
+          <v-card-actions class="pa-0">
             <v-btn
               color="primary"
               @click="save()"
               :disabled="disabled"
-              class="ml-4 mb-4 mr-1"
+              class="ml-6 mb-3 mr-1"
             >
               Save
             </v-btn>
-            <v-btn color="#E0E0E0" class="mb-4" @click="clear()"> Clear </v-btn>
+            <v-btn color="#E0E0E0" class="mb-3" @click="clear()"> Clear </v-btn>
           </v-card-actions>
         </v-card>
       </v-main>
@@ -351,6 +346,9 @@ export default {
       itemsPerPage: 100,
       search: "",
       currSearch: "",
+      inventory_groups: [{ name: "Admin-Branch" }, { name: "Audit-Branch" }],
+      inventory_group: "Admin-Branch",
+      noRecordFound: false,
     };
   },
 
@@ -358,6 +356,7 @@ export default {
     getProductOptions() {
       axios.get("/api/product/create").then(
         (response) => {
+          console.log(response.data);
           this.brands = response.data.brands;
           this.branches = response.data.branches;
           this.product_categories = response.data.product_categories;
@@ -386,13 +385,19 @@ export default {
             )
             .then(
               (response) => {
-                console.log(response);
+        
                 let product_models = response.data.product_models.data;
                 this.last_page = response.data.product_models.last_page;
 
                 product_models.forEach((value, index) => {
                   this.product_models.push(value);
                 });
+
+                // if product_models has no record and no serial number details found
+                // if(!product_models && !this.noRecordFound)
+                // {
+                //   this.product_models.push(this.currSearch);
+                // }
 
                 this.loading = false;
               },
@@ -426,6 +431,78 @@ export default {
       }
 
       this.getProductModel();
+    },
+    searchSerialDetails(barcode) {
+      this.noRecordFound = false;
+      this.disabled = true;
+      this.overlay = true;
+      
+      const data = { serial: barcode, inventory_group: this.inventory_group};
+
+      axios.post("/api/product/search_serial", data).then(
+        (response) => {
+          
+         
+          let product = response.data.product;
+
+          if(product)
+          {
+            this.noRecordFound = false;
+            console.log(product);
+            let brand = product.brand;
+            let model = product.model;
+            let product_category = product.product_category;
+            let branch_id = product.inventory_recon.branch_id;
+            
+            this.search = model;
+            // call function searchModel to get the Produce Model List
+            this.searchModel();
+            
+            this.brands.forEach(value => {
+              if(value.name === brand)
+              {
+                this.editedItem.brand_id = value.id;
+              }
+            });
+
+            this.product_categories.forEach(value => {
+              if(value.name === product_category)
+              {
+                this.editedItem.product_category_id = value.id;
+              }
+            });
+          
+            this.editedItem.model = model;
+            this.editedItem.branch_id = branch_id;
+
+          }
+          else
+          {
+            
+            this.$swal({
+              position: "center",
+              icon: "warning",
+              title: "No record found",
+              showConfirmButton: false,
+              timer: 2500,
+            });
+            this.noRecordFound = true;
+            this.editedItem.brand_id = null;
+            this.editedItem.brand = null;
+            this.search = null;
+            this.editedItem.model = null;
+            this.editedItem.product_category_id = null;
+          }
+          this.disabled = false;
+          this.overlay = false;
+        
+        },
+        (error) => {
+          this.isUnauthorized(error);
+          this.disabled = false;
+          this.overlay = false;
+        }
+      );
     },
     showAlert() {
       this.$swal({
@@ -630,10 +707,12 @@ export default {
 
     // Create callback function to receive barcode when the scanner is already done
     async onBarcodeScanned(barcode) {
+
       // if form field is not active then push barcode data
       if (!this.fieldsActive) {
         this.serialsEmpty = false;
 
+        // if Scan Mode is multiple
         if (this.switch1) {
           this.serials.push({
             serial: barcode,
@@ -659,6 +738,7 @@ export default {
         } else {
           this.editedItem.serial = barcode;
           this.serialExists = false;
+          this.searchSerialDetails(barcode)
         }
       }
 

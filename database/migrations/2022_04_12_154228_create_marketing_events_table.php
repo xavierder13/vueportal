@@ -16,6 +16,7 @@ class CreateMarketingEventsTable extends Migration
         Schema::create('marketing_events', function (Blueprint $table) {
             $table->id();
             $table->string('event_name');
+            $table->integer('max_approval_level')->nullable();
             $table->string('active');
             $table->string('attachment_required');
             $table->timestamps();

@@ -237,7 +237,12 @@
                     4. PICTURES OF PREVIOUS ACTIVITY STATED HEREIN
                   </p>
                 </div>
-                <v-btn color="primary" small @click="dialog_attach_file = true"><v-icon small>mdi-attachment</v-icon> Attach Files {{ attachmentLength }}</v-btn> 
+                <div class="d-flex justify-start">
+                  <v-btn color="primary" small @click="dialog_attach_file = true">
+                    <v-icon small>mdi-attachment</v-icon> Attach Files {{ attachmentLength }}
+                  </v-btn> 
+                  <p class="ml-2 font-weight-bold font-italic red--text text--darken-1"> {{ fileErrors }} </p>
+                </div>
               </v-col>
             </v-row>
             <v-divider></v-divider>
@@ -1506,6 +1511,12 @@ export default {
       }
       return errors;
     },
+    fileErrors(){
+      if(!this.attachmentLength)
+      {
+        return "Attachment is required!";
+      }
+    },
     computedPeriodFromFormatted() {
       return this.formatDate(this.editedItem.period_from);
     },
@@ -1535,7 +1546,7 @@ export default {
     },
     attachmentLength(){
       let ctr = this.editedItem.file.length + this.tactical_attachments.length;
-      let length = null;
+      let length = "";
 
       if(ctr)
       {

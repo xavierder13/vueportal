@@ -24,6 +24,7 @@
                   label="Role"
                   @input="$v.editedItem.name.$touch() + (roleError.name = [])"
                   @blur="$v.editedItem.name.$touch()"
+                  :readonly="roleid == 1 ? true : false"
                 ></v-text-field>
               </v-col>
             </v-row>
@@ -74,12 +75,12 @@
                         v-on="on"
                         :indeterminate="props.indeterminate"
                         color="primary"
-                         v-if="roleid != 1"
+                        v-if="roleid != 1"
                       />
                     </template>
                   
                     <template v-slot:item.data-table-select="{ isSelected, select }">
-                      <v-simple-checkbox color="primary" v-ripple :value="isSelected" @input="select($event)"></v-simple-checkbox>
+                      <v-simple-checkbox color="primary" v-ripple :value="isSelected" @input="select($event)" :disabled="roleid == 1 ? true : false"></v-simple-checkbox>
                     </template>
                   </v-data-table>
                 </v-card>

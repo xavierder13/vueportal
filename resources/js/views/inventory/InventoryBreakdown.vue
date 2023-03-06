@@ -49,7 +49,7 @@
                       :data="products"
                       :fields="json_fields"
                       type="xls"
-                      :name="branch + '_Reconciliations.xls'"
+                      :name="branch + '_Reconciliations - Breakdown.xls'"
                     >
                       <v-btn class="ma-2" color="success" width="120px" small>
                         <v-icon class="mr-1" small>
@@ -82,7 +82,7 @@
         </div>
         <v-card>
           <v-card-title>
-            Inventory Reconciliation Breakdown- {{ branch }}
+            Inventory Reconciliation Breakdown - {{ branch }}
             <v-chip
               :color="
                 status == 'unreconciled' ? 'red white--text' : 'success'
@@ -102,6 +102,7 @@
           </v-card-title>
           <v-data-table
             :headers="headers"
+            :search="search"
             :items="products"
             :loading="loading"
             loading-text="Loading... Please wait"
@@ -196,6 +197,8 @@ export default {
             this.prepared_by = reconciliation.user.name;
             this.prepared_by_position = reconciliation.user.position ? reconciliation.user.position.name : '  ';
             this.loading = false;
+
+            console.log(data);
             
           },
           (error) => {

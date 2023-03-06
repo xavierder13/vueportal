@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\ExpenseParticular;
 use App\ExpenseSubParticular;
 use App\MarketingEvent;
+use App\AccessLevel;
+use App\User;
 use Validator;
 use DB;
 
@@ -16,16 +18,20 @@ class MarketingEventController extends Controller
     {       
         $marketing_events = MarketingEvent::with('expense_particulars')
                                           ->with('expense_particulars.expense_sub_particulars')
+                                          ->with('marketing_event_user_maps')
+                                          ->with('marketing_event_user_maps.user')
+                                          ->with('marketing_event_user_maps.user.branch')
+                                          ->with('approver_per_level')
                                           ->get();
 
-        // $marketing_events = DB::table('marketing_events')
-        //                       ->leftJoin('expense_particulars', 'marketing_events.id', '=', 'expense_particulars.marketing_event_id')
-        //                       ->leftJoin('expense_sub_particulars', 'expense_particulars.id', '=', 'expense_sub_particulars.expense_particular_id')
-        //                       ->select(DB::raw('marketing_events.id as marketing_event_id, marketing_events.event_name, expense_particulars.description as expense_particular, 
-        //                                         expense_sub_particulars.description as expense_sub_particular'))
-        //                       ->get();
+        $access_level = AccessLevel::first();
+        $users = User::all();
 
-        return response()->json(['marketing_events' => $marketing_events], 200);
+        return response()->json([
+            'marketing_events' => $marketing_events,
+            'access_level' => $access_level,
+            'users' => $users,
+        ], 200);
     }
 
     public function create()

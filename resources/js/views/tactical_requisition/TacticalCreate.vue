@@ -234,7 +234,7 @@
                   <v-btn color="primary" small @click="dialog_attach_file = true">
                     <v-icon small>mdi-attachment</v-icon> Attach Files {{ editedItem.file.length ? '(' + editedItem.file.length + ')' : '' }}
                   </v-btn> 
-                  <p class="ml-2 font-weight-bold font-italic red--text text--darken-1" v-if="fileIsRequired"> {{ fileErrors }} </p>
+                  <p class="ml-2 font-weight-bold font-italic red--text text--darken-1" v-if="fileErrors.length"> {{ fileErrors[0] }} </p>
                 </div>
               </v-col>
             </v-row>
@@ -417,7 +417,7 @@
                   <tbody
                     v-for="(item, index) in editedItem.expense_particulars"
                   >
-                    <tr class="pa-0">
+                    <tr>
                       <td class="font-weight-bold border-0">
                         {{ item.description }}
                       </td>
@@ -665,6 +665,9 @@
                         prepend-icon="mdi-paperclip"
                         required
                         multiple
+                        :error-messages="fileErrors"
+                        @input="$v.editedItem.file.$touch()"
+                        @blur="$v.editedItem.file.$touch()"
                       >
                         <template v-slot:selection="{ index, text }">
                           <v-chip small label color="primary" close @click:close="removeFile(index, text)">
@@ -726,11 +729,12 @@ export default {
       period_to: { required },
       operating_from: { required },
       operating_to: { required },
-      file: {
-        required: requiredIf(function () {
-          return this.fileIsRequired;
-        }),
-      },
+      file: { required },
+      // file: {
+      //   required: requiredIf(function () {
+      //     return this.fileIsRequired;
+      //   }),
+      // },
     },
   },
   data() {
@@ -1218,13 +1222,20 @@ export default {
       return errors;
     },
     fileErrors() {
-      if(this.fileIsRequired)
-      {
-        if(this.$v.editedItem.file.$dirty)
-        { 
-          return "Attachment is required!";
-        }
-      }
+      // if(this.fileIsRequired)
+      // {
+      //   if(this.$v.editedItem.file.$dirty)
+      //   { 
+      //     return "Attachment is required!";
+      //   }
+      // }
+
+      const errors = [];
+
+      if (!this.$v.editedItem.file.$dirty) return errors;
+      !this.$v.editedItem.file.required &&
+        errors.push("Attachment is required!");
+      return errors;
       
     },
     computedPeriodFromFormatted() {

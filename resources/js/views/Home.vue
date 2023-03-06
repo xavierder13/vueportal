@@ -124,7 +124,8 @@
             userPermissions.product_category_list ||
             userPermissions.product_category_create ||
             userPermissions.product_model_list ||
-            userPermissions.product_model_create
+            userPermissions.product_model_create ||
+            userPermissions.serial_number_details
           "
         >
           <!-- List Group Icon-->
@@ -199,11 +200,21 @@
               <v-list-item-title>Product Category</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
+          <v-list-item
+            link
+            to="/serial_number_details"
+            v-if="userPermissions.serial_number_details"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Serial Number Details</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
         </v-list-group>
         <v-list-group
           no-action
           v-if="
             userPermissions.employee_list ||
+            userPermissions.employee_atlog_list ||
             userPermissions.employee_resigned_list ||
             userPermissions.employee_payroll_list ||
             userPermissions.employee_absences_list ||
@@ -232,6 +243,15 @@
           >
             <v-list-item-content>
               <v-list-item-title>Employee Lists</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
+            to="/employee/attlog/list"
+            v-if="userPermissions.employee_attlog_list"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Attlog Reports</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
           <v-list-item
@@ -446,7 +466,9 @@
             userPermissions.role_list ||
             userPermissions.role_create ||
             userPermissions.permission_list ||
-            userPermissions.permission_create
+            userPermissions.permission_create || 
+            userPermissions.sap_database_list ||
+            userPermissions.sap_database_create
           "
         >
           <!-- List Group Icon-->
@@ -516,10 +538,27 @@
           <v-list-item
             link
             to="/permission/index"
-            v-if="userPermissions.permission_list"
+            v-if="userPermissions.permission_list || userPermissions.permission_create"
           >
             <v-list-item-content>
               <v-list-item-title>Permission</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
+            to="/sap_database/index"
+            v-if="userPermissions.sap_database_list || userPermissions.sap_database_create"
+          >
+            <v-list-item-content>
+              <v-list-item-title>SAP Database</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            v-if="userPermissions.sap_database_create"
+            @click="confirmSyncItemMasterData()"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Sync Item Master data</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
         </v-list-group>
@@ -535,6 +574,33 @@
         </v-list-item> -->
       </v-list>
     </v-navigation-drawer>
+    <v-dialog v-model="dialog_sync" max-width="500px" persistent>
+      <v-card>
+        <v-card-text>
+          <v-container>
+            <v-row
+              class="fill-height"
+              align-content="center"
+              justify="center"
+              v-if="uploading"
+            >
+              <v-col class="subtitle-1 font-weight-bold text-center mt-4" cols="12">
+                Syncing Item Master Data...
+              </v-col>
+              <v-col cols="6">
+                <v-progress-linear
+                  color="primary"
+                  indeterminate
+                  rounded
+                  height="6"
+                ></v-progress-linear>
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+    
     <v-overlay :absolute="absolute" :value="overlay">
       <v-progress-circular
         :size="70"
@@ -555,9 +621,7 @@
 </template>
 
 <style>
-html {
-  overflow-y: auto;
-} /* show scrollbar when overflow */
+  html { overflow-y: auto !important } /* show scrollbar when overflow */
 </style>
 
 <script>
@@ -573,7 +637,8 @@ export default {
       mini: false,
       right: null,
       selectedItem: 1,
-      loading: null,
+      uploading: false,
+      dialog_sync: false,
     };
   },
 
@@ -619,6 +684,66 @@ export default {
 
     userProfile() {
       this.$router.push({ name: "user.profile" }).catch((e) => {});
+    },
+
+    confirmSyncItemMasterData()
+    {
+      this.$swal({
+        title: "Sync Item Master Data",
+        text: "You are about to sync Item Master Data!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "primary",
+        cancelButtonColor: "#6c757d",
+        confirmButtonText: "Proceed",
+      }).then((result) => {
+        // <--
+
+        if (result.value) {
+          // <-- if confirmed
+
+          this.syncItemMasterData();
+        }
+      });
+    },
+
+    syncItemMasterData() {
+      this.uploading = true;
+      this.dialog_sync = true;
+      axios.get('/api/product/sync_item_master_data').then(
+        (response) => {
+          console.log(response.data);
+          this.uploading = false;
+          this.dialog_sync = false;
+
+          if(response.data.success)
+          {
+            this.$swal({
+              position: "center",
+              icon: "success",
+              title: "Item Master Data has been synced",
+              showConfirmButton: false,
+              // timer: 2500,
+            });
+          }
+          else if(response.data.empty)
+          {
+            this.$swal({
+              position: "center",
+              icon: "info",
+              title: "Item Master Data is up to date",
+              showConfirmButton: false,
+              // timer: 20000,
+            });
+          }
+          
+        },
+        (error) => {
+          console.log(error);
+          this.uploading = false;
+          this.dialog_sync = false;
+        }
+      )
     },
 
     websocket() {

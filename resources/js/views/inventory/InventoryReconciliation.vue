@@ -10,11 +10,53 @@
           </template>
         </v-breadcrumbs>
         <div class="d-flex justify-content-end mb-3">
-          <div v-if="userPermissions.inventory_recon_create">
-            <v-btn color="primary" class="ml-4" small @click="importExcel()">
-              <v-icon class="mr-1" small> mdi-import </v-icon>
-              Import
-            </v-btn>
+          <div>
+            <v-menu offset-y>
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn small v-bind="attrs" v-on="on" color="primary">
+                  Actions
+                  <v-icon small> mdi-menu-down </v-icon>
+                </v-btn>
+              </template>
+              <v-list class="pa-1">
+                <v-list-item
+                  class="ma-0 pa-0"
+                  style="min-height: 25px"
+                  v-if="userPermissions.inventory_recon_create"
+                >
+                  <v-list-item-title>
+                    <v-btn
+                      color="primary"
+                      class="ma-2"
+                      width="120px"
+                      small
+                      @click="openImportDialog({ importIsClicked: true })"
+                    >
+                      <v-icon class="mr-1" small> mdi-import </v-icon>
+                      Import
+                    </v-btn>
+                  </v-list-item-title>
+                </v-list-item>
+                <v-list-item
+                  class="ma-0 pa-0"
+                  style="min-height: 25px"
+                  v-if="userPermissions.inventory_recon_sync"
+                >
+                  <v-list-item-title>
+                    <v-btn
+                      color="info"
+                      class="ma-2"
+                      width="120px"
+                      small
+                      @click="openImportDialog({ syncIsClicked: true })"
+                    >
+                      <v-icon class="mr-1" small> mdi-sync </v-icon>
+                      Sync
+                    </v-btn>
+                  </v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-menu>
           </div>
         </div>
         <v-card>
@@ -123,7 +165,7 @@
           <v-dialog v-model="dialog_import" max-width="500px" persistent>
             <v-card>
               <v-card-title class="pa-4">
-                <span class="headline">Import Data from SAP</span>
+                <span class="headline">{{ dialogHeaderTitle }}</span>
               </v-card-title>
               <v-divider class="mt-0"></v-divider>
               <v-card-text>
@@ -144,7 +186,23 @@
                       </v-autocomplete>
                     </v-col>
                   </v-row>
-                  <v-row>
+                  <v-row v-if="syncIsClicked"> 
+                    <v-col class="my-0 py-0">
+                      <v-autocomplete
+                        v-model="database"
+                        :items="databases"
+                        item-text="database"
+                        item-value="database"
+                        label="SAP Database"
+                        required
+                        :error-messages="databaseErrors"
+                        @input="$v.database.$touch()"
+                        @blur="$v.database.$touch()"
+                      >
+                      </v-autocomplete>
+                    </v-col>
+                  </v-row>
+                  <v-row v-if="importIsClicked">
                     <v-col class="my-0 py-0">
                       <v-file-input
                         v-model="file"
@@ -171,7 +229,7 @@
                     v-if="uploading"
                   >
                     <v-col class="subtitle-1 text-center" cols="12">
-                      Uploading...
+                      {{ loadingLabel }}
                     </v-col>
                     <v-col cols="6">
                       <v-progress-linear
@@ -189,22 +247,24 @@
                 <v-spacer></v-spacer>
                 <v-btn
                   color="#E0E0E0"
-                  @click="clear() + (dialog_import = false)"
+                  @click="closeImportDialog()"
                   class="mb-3"
+                  :disabled="uploadDisabled"
                 >
                   Cancel
                 </v-btn>
                 <v-btn
                   color="primary"
                   class="mb-3 mr-4"
-                  @click="uploadFile()"
+                  @click="submit()"
                   :disabled="uploadDisabled"
                 >
-                  Upload
+                  {{ btnLabel }}
                 </v-btn>
               </v-card-actions>
             </v-card>
           </v-dialog>
+
           <v-dialog v-model="dialog_error_list" max-width="1000px" persistent>
             <v-card>
               <v-card-title class="pa-4">
@@ -247,7 +307,7 @@
 <script>
 import axios from "axios";
 import { validationMixin } from "vuelidate";
-import { required, maxLength, email } from "vuelidate/lib/validators";
+import { required, requiredIf, maxLength, email } from "vuelidate/lib/validators";
 import { mapState } from "vuex";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
@@ -256,7 +316,16 @@ export default {
   mixins: [validationMixin],
 
   validations: {
-    file: { required },
+    file: { 
+      required: requiredIf(function () {
+        return this.importIsClicked;
+      }) 
+    },
+    database: { 
+      required: requiredIf(function () {
+        return this.syncIsClicked;
+      }) 
+    },
     branch_id: { required },
   },
   data() {
@@ -294,6 +363,7 @@ export default {
       uploadDisabled: false,
       uploading: false,
       dialog_import: false,
+      dialog_sync: false,
       dialog_error_list: false,
       errors_array: [],
       branch_id: "",
@@ -307,6 +377,10 @@ export default {
       bm_oic: "",
       prepared_by: "",
       prepared_by_position: "",
+      importIsClicked: false,
+      syncIsClicked: false,
+      database: "",
+      databases: [],
     };
   },
 
@@ -315,10 +389,14 @@ export default {
       this.loading = true;
       axios.get("/api/inventory_reconciliation/index").then(
         (response) => {
-          this.inventory_reconciliations =
-            response.data.inventory_reconciliations;
-          this.branches = response.data.branches;
+          let data = response.data;
+
+          this.inventory_reconciliations = data.inventory_reconciliations;
+          this.branches = data.branches;
+          this.databases = data.databases;
           this.loading = false;
+          console.log(data);
+
         },
         (error) => {
           this.isUnauthorized(error);
@@ -348,6 +426,33 @@ export default {
           }
         );
       await this.setPDFData();
+    },
+
+    openImportDialog(action) {
+      
+      if(action.importIsClicked)
+      {
+        this.importIsClicked = true;
+      }
+      else
+      {
+        this.syncIsClicked = true;
+      }
+      this.dialog_import = true;
+      this.clear();
+    },
+
+    closeImportDialog() {
+      this.$v.$reset();
+      this.file = [];
+      this.branch_id = "";
+      this.importIsClicked = false;
+      this.syncIsClicked = false;
+      this.dialog_import = false;
+      this.uploadDisabled = false;
+      this.uploading = false;
+      this.fileIsEmpty = false;
+      this.fileIsInvalid = false;
     },
 
     showAlert() {
@@ -426,10 +531,11 @@ export default {
       });
     },
 
-
     clear() {
       this.$v.$reset();
+      this.file = [];
       this.branch_id = "";
+      this.database = "";
     },
 
     isUnauthorized(error) {
@@ -439,95 +545,161 @@ export default {
       }
     },
 
-    importExcel() {
-      this.dialog_import = true;
-      this.clear();
+    async submit() {
+      await this.$v.$touch();
+
+      if (!this.$v.$error) {
+        this.uploadDisabled = true;
+        this.uploading = true;
+        if(this.importIsClicked)
+        {
+          await this.uploadFile(); //upload file
+        }
+        else {
+          await this.syncInventoryRecon(); //sync data from SAP
+        }
+      }
+      
+
+    },
+
+    syncInventoryRecon() {
+      this.syncIsClicked = true;
+
+      const data = { 
+        branch_id: this.branch_id, 
+        database: this.database, 
+        inventory_group: this.inventory_group, 
+      };
+
+      axios.post("api/inventory_reconciliation/sync", data).then(
+          (response) => {
+            
+            console.log(response.data);
+
+            if (response.data.success) {
+              // send data to Socket.IO Server
+              // this.$socket.emit("sendData", { action: "import-project" });
+              this.getInventory();
+              this.$swal({
+                position: "center",
+                icon: "success",
+                title: "Record has been synced",
+                showConfirmButton: false,
+                timer: 2500,
+              });
+              this.$v.$reset();
+              this.dialog_import = false;
+            } else if (response.data.empty) {
+              this.$swal({
+                position: "center",
+                icon: "warning",
+                title: "No record found from SAP",
+                showConfirmButton: false,
+                timer: 2500,
+              });
+            } else {
+              this.$swal({
+                position: "center",
+                icon: "error",
+                title: "Some error occurred",
+                showConfirmButton: false,
+                timer: 2500,
+              });
+            }
+
+            this.uploadDisabled = false;
+            this.uploading = false;
+          },
+          (error) => {
+            console.log(error);
+            this.isUnauthorized(error);
+            this.uploadDisabled = false;
+          }
+        );
     },
 
     uploadFile() {
-      this.$v.$touch();
+      
       this.fileIsEmpty = false;
       this.fileIsInvalid = false;
 
-      if (!this.$v.file.$error) {
-        this.uploadDisabled = true;
-        this.uploading = true;
-        let formData = new FormData();
+      let formData = new FormData();
 
-        formData.append("file", this.file);
-        formData.append("inventory_group", this.inventory_group);
-        formData.append("branch_id", this.branch_id);
+      formData.append("file", this.file);
+      formData.append("inventory_group", this.inventory_group);
+      formData.append("branch_id", this.branch_id);
 
-        axios
-          .post("api/inventory_reconciliation/import", formData, {
-            headers: {
-              Authorization: "Bearer " + localStorage.getItem("access_token"),
-              "Content-Type": "multipart/form-data",
-            },
-          })
-          .then(
-            (response) => {
-              this.errors_array = [];
+      axios
+        .post("api/inventory_reconciliation/import", formData, {
+          headers: {
+            Authorization: "Bearer " + localStorage.getItem("access_token"),
+            "Content-Type": "multipart/form-data",
+          },
+        })
+        .then(
+          (response) => {
+            this.errors_array = [];
+            console.log(response.data);
+            if (response.data.success) {
+              // send data to Socket.IO Server
+              // this.$socket.emit("sendData", { action: "import-project" });
+              this.getInventory();
+              this.$swal({
+                position: "center",
+                icon: "success",
+                title: "Record has been imported",
+                showConfirmButton: false,
+                timer: 2500,
+              });
+              this.$v.$reset();
+              this.dialog_import = false;
+              this.file = [];
+              this.fileIsEmpty = false;
+            } else if (response.data.error_column) {
+              this.errors_array = response.data.error_column;
+              this.dialog_error_list = true;
+            } else if (response.data.error_row_data) {
+              let error_keys = Object.keys(response.data.error_row_data);
+              let errors = response.data.error_row_data;
+              let field_values = response.data.field_values;
+              let row = "";
+              let col = "";
 
-              if (response.data.success) {
-                // send data to Socket.IO Server
-                // this.$socket.emit("sendData", { action: "import-project" });
-                this.getInventory();
-                this.$swal({
-                  position: "center",
-                  icon: "success",
-                  title: "Record has been imported",
-                  showConfirmButton: false,
-                  timer: 2500,
+              error_keys.forEach((value, index) => {
+                row = value.split(".")[0];
+                col = value.split(".")[1];
+                errors[value].forEach((val, i) => {
+                  this.errors_array.push(
+                    "Error on row: <label class='text-info'>" +
+                      (parseInt(row) + 1) +
+                      "</label>; Column: <label class='text-primary'>" +
+                      col +
+                      "</label>; Msg: <label class='text-danger'>" +
+                      val +
+                      "</label>; Value: <label class='text-success'>" +
+                      field_values[row][col] +
+                      "</label>"
+                  );
                 });
-                this.$v.$reset();
-                this.dialog_import = false;
-                this.file = [];
-                this.fileIsEmpty = false;
-              } else if (response.data.error_column) {
-                this.errors_array = response.data.error_column;
-                this.dialog_error_list = true;
-              } else if (response.data.error_row_data) {
-                let error_keys = Object.keys(response.data.error_row_data);
-                let errors = response.data.error_row_data;
-                let field_values = response.data.field_values;
-                let row = "";
-                let col = "";
+              });
 
-                error_keys.forEach((value, index) => {
-                  row = value.split(".")[0];
-                  col = value.split(".")[1];
-                  errors[value].forEach((val, i) => {
-                    this.errors_array.push(
-                      "Error on row: <label class='text-info'>" +
-                        (parseInt(row) + 1) +
-                        "</label>; Column: <label class='text-primary'>" +
-                        col +
-                        "</label>; Msg: <label class='text-danger'>" +
-                        val +
-                        "</label>; Value: <label class='text-success'>" +
-                        field_values[row][col] +
-                        "</label>"
-                    );
-                  });
-                });
-
-                this.dialog_error_list = true;
-              } else if (response.data.error_empty) {
-                this.fileIsEmpty = true;
-              } else {
-                this.fileIsInvalid = true;
-              }
-
-              this.uploadDisabled = false;
-              this.uploading = false;
-            },
-            (error) => {
-              this.isUnauthorized(error);
-              this.uploadDisabled = false;
+              this.dialog_error_list = true;
+            } else if (response.data.error_empty) {
+              this.fileIsEmpty = true;
+            } else {
+              this.fileIsInvalid = true;
             }
-          );
-      }
+
+            this.uploadDisabled = false;
+            this.uploading = false;
+          },
+          (error) => {
+            this.isUnauthorized(error);
+            this.uploadDisabled = false;
+          }
+        );
+      
     },
     printPDF(item) {
       this.getInventoryReconcilation(item.id);
@@ -810,6 +982,13 @@ export default {
       !this.$v.branch_id.required && errors.push("Branch is required.");
       return errors;
     },
+    databaseErrors() {
+      const errors = [];
+      if (!this.$v.database.$dirty) return errors;
+      !this.$v.database.required && errors.push("SAP Database is required.");
+      return errors;
+    },
+
     tableData() {
       let table_data = [];
       this.products.forEach((value, index) => {
@@ -827,6 +1006,15 @@ export default {
       });
 
       return table_data;
+    },
+    btnLabel(){
+      return this.importIsClicked ? 'Upload' : 'Sync';
+    },
+    loadingLabel(){
+      return this.importIsClicked ? 'Uploading...' : 'Syncing...';
+    },
+    dialogHeaderTitle(){
+      return this.importIsClicked ? 'Import Excel Data From SAP' : 'Sync Data From SAP';
     },
     ...mapState("auth", ["user"]),
     ...mapState("userRolesPermissions", ["userRoles", "userPermissions"]),

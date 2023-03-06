@@ -38,9 +38,10 @@ class InventoryReconMapImport implements ToModel
                 'brand' => @$row[0],
                 'model' => @$row[1],
                 'product_category' => @$row[2],
-                'serial' => @$row[3],
+                'serial' => is_numeric(@$row[3]) ? (integer) @$row[3] : @$row[3], // if serial is numeric then convert it to integer due to long serial details
                 'quantity' => 1,
             ]);
+  
         }
 
         ++$this->rows;
