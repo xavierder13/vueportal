@@ -46,7 +46,7 @@
                     </v-btn> -->
 
                     <export-excel
-                      :data="products"
+                      :data="formattedProducts"
                       :fields="json_fields"
                       type="xls"
                       :name="branch + '_Reconciliations - Breakdown.xls'"
@@ -197,8 +197,6 @@ export default {
             this.prepared_by = reconciliation.user.name;
             this.prepared_by_position = reconciliation.user.position ? reconciliation.user.position.name : '  ';
             this.loading = false;
-
-            console.log(data);
             
           },
           (error) => {
@@ -505,6 +503,7 @@ export default {
       }
     },
     exportData() {
+      console.log(this.products);
       if (this.products.length) {
       } else {
         this.$swal({
@@ -550,6 +549,26 @@ export default {
       });
 
       return table_data;
+    },
+    formattedProducts(){
+
+      // add apostrophe (') special character if serial number is numeric and character length is greater than 15 digits
+      // excel numeric format cell only reads maximum of 15 digits
+
+      let products = [];
+      this.products.forEach(value => {
+        products.push({
+          brand: value.brand,
+          model: value.model,
+          physical_serial: !isNaN(value.physical_serial) && value.physical_serial.length > 15 ? "'" + value.physical_serial : value.physical_serial,
+          product_category: value.product_category,
+          sap_serial: !isNaN(value.sap_serial) && value.sap_serial.length > 15 ? "'" + value.sap_serial : value.sap_serial,
+        });
+       
+      });
+
+      
+      return products;
     },
     ...mapState("userRolesPermissions", ["userRoles", "userPermissions"]),
   },

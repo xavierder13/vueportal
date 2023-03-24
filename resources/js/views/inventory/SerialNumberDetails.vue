@@ -149,7 +149,6 @@
                   label="GRPO Remarks"
                   readonly
                   rows="4"
-
                 >
                 </v-textarea>
               </v-col>
@@ -171,7 +170,7 @@
           </v-card-actions>
         </v-card>
       </v-main>
-      <v-dialog v-model="dialog" max-width="1200px" persistent>
+      <v-dialog v-model="dialog" max-width="1500px" persistent>
         <v-card>
           <v-card-title>
             <span class="headline">Products</span>
@@ -187,16 +186,16 @@
               <v-icon @click="dialog = false">mdi-close</v-icon>
           </v-card-title>
           <v-card-text>
-            <v-container>
               <v-data-table
                 :headers="headers"
                 :items="products"
                 :search="search"
                 :loading="loading"
                 loading-text="Loading... Please wait"
+                class="elevation-1 "
               > 
                 <template v-slot:item="{ item }">
-                  <tr>
+                  <tr @click="selectProduct(item)" style="cursor: pointer;">
                     <td>
                       {{ item.branch }}
                     </td>
@@ -224,7 +223,6 @@
                   </tr>
                 </template>
               </v-data-table>
-            </v-container>
           </v-card-text>
         </v-card>
       </v-dialog>
@@ -325,41 +323,43 @@ export default {
         axios.post("/api/product/serial_number_details", data).then(
           (response) => {
             console.log(response.data);
-
+            let data = response.data
             // if products is more than 1 rows then show the product list table for selection
-            if(response.data.products.length > 1)
+            if(data.products.length > 1)
             {
               this.dialog = true;
-              this.products = response.data.products;
+              this.products = data.products;
             }
-            
-            console.log('products_count', response.data.products.length);
-
-            // if(response.data.product.serial)
-            // {
-            //   this.editedItem = response.data.product;
-            // }
-            // else if(!response.data.error)
-            // {
-            //   this.$swal({
-            //     position: "center",
-            //     icon: "warning",
-            //     title: "No record found",
-            //     showConfirmButton: false,
-            //     timer: 2500,
-            //   });
-            // }
-            // else
-            // {
-            //   this.$swal({
-            //     position: "center",
-            //     icon: "error",
-            //     title: "Error",
-            //     text: response.data.error,
-            //     showConfirmButton: false,
-            //     timer: 2500,
-            //   });
-            // }
+            else
+            {
+              let serial = data.products[0].serial
+              if(serial)
+              {
+                this.serial = serial;
+                this.editedItem = data.products[0];
+              }
+              else if(!response.data.error)
+              {
+                this.$swal({
+                  position: "center",
+                  icon: "warning",
+                  title: "No record found",
+                  showConfirmButton: false,
+                  timer: 2500,
+                });
+              }
+              else
+              {
+                this.$swal({
+                  position: "center",
+                  icon: "error",
+                  title: "Error",
+                  text: response.data.error,
+                  showConfirmButton: false,
+                  timer: 2500,
+                });
+              }
+            }
 
             this.overlay = false;
 
@@ -367,6 +367,15 @@ export default {
           (error) => {
             this.isUnauthorized(error);
             console.log(error);
+            this.$swal({
+                position: "center",
+                icon: "error",
+                title: error,
+                text: error.response.data.message,
+                showConfirmButton: false,
+                timer: 10000,
+              });
+            this.overlay = false;
           }
         );
       }
@@ -376,6 +385,7 @@ export default {
     searchBySerial(){
       this.$v.model.$reset(); //reset validation for model when serial field is searched
       this.$v.serial.$touch();
+      this.editedItem = Object.assign({}, this.defaultItem);
       const data = { serial: this.serial }
       this.getSerialNumberDetails(data);
     },
@@ -388,6 +398,13 @@ export default {
       const data = { model: this.model };
       this.getSerialNumberDetails(data);
 
+    },
+
+    selectProduct(item)
+    {
+      this.serial = item.serial;
+      this.editedItem = item;
+      this.dialog = false;
     },
 
     showAlert() {
@@ -403,6 +420,7 @@ export default {
     clear() {
       this.$v.$reset();
       this.editedItem = Object.assign({}, this.defaultItem);
+      this.serial = '';
     },
 
     isUnauthorized(error) {

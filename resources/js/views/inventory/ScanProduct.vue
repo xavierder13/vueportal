@@ -356,7 +356,7 @@ export default {
     getProductOptions() {
       axios.get("/api/product/create").then(
         (response) => {
-          console.log(response.data);
+         
           this.brands = response.data.brands;
           this.branches = response.data.branches;
           this.product_categories = response.data.product_categories;
@@ -448,7 +448,7 @@ export default {
           if(product)
           {
             this.noRecordFound = false;
-            console.log(product);
+         
             let brand = product.brand;
             let model = product.model;
             let product_category = product.product_category;

@@ -396,7 +396,6 @@ class ProductController extends Controller
 
                 $data[$db->database] = DB::connection($db->database)
                                ->select("SELECT	
-                                            top 5
                                             CASE WHEN a.BaseType = N'20' THEN 'GRPO' ELSE 'GOODS ISSUE' END DocType,
                                             CASE WHEN a.BaseType = N'20' THEN h.DocNum ELSE i.DocNum END DocNum,
                                             CAST(a.DocDate as Date) as DocDate,
@@ -415,7 +414,7 @@ class ProductController extends Controller
                                             INNER JOIN OITM c on a.ItemCode = c.ItemCode
                                             INNER JOIN OMRC d on c.FirmCode = d.FirmCode
                                             INNER JOIN OITB e on c.ItmsGrpCod = e.ItmsGrpCod
-                                            LEFT JOIN [@PROGTBL] f on CASE WHEN LEFT(a.WhsCode, 4) = 'CMLG' THEN 'CAMI' ELSE LEFT(a.WhsCode, 4) END = f.Name
+                                            LEFT JOIN [@PROGTBL] f on CASE WHEN LEFT(a.WhsCode, 4) = 'CMLG' THEN 'CAMI' ELSE LEFT(a.WhsCode, 4) END COLLATE database_default = f.Name COLLATE database_default
                                             LEFT JOIN [@ACOMPANY] g on f.U_Company = g.Code
                                             LEFT JOIN OPDN h on a.BaseType = h.ObjType and h.DocEntry = a.BaseEntry
                                             LEFT JOIN OIGE i on a.BaseType = i.ObjType and i.DocEntry = a.BaseEntry
@@ -426,58 +425,65 @@ class ProductController extends Controller
             $filtered_data = array_filter($data);
             $database = "";
 
-            $product = [
-                'branch' => '',
-                'date_purchase' => '',
-                'grpo_number' => '',
-                'gi_number' => '',
-                'date_issued' => '',
-                'supplier' => '',
-                'model' => '',
-                'brand' => '',
-                'product_category' => '',
-                'item_group' => '',
-                'serial' => '',
-                'grpo_remarks' => '',
-                'gi_remarks' => '',
-            ];
-            
+            $product = [];
             $products = [];
             $databases = [];
+            $serials = [];
+            $data = [];
 
-            foreach ($filtered_data as $key => $data) {
+            // assing value into $serials - used for distinct serial/eliminate duplicate serials
+            foreach ($filtered_data as $key => $row) {
 
                 $databases[] = $key; //database
 
-                foreach ($data as $i => $value) {
-                    if($value->DocType === 'GRPO')
-                    {
-                        $product['date_purchase'] = $value->DocDate;
-                        $product['grpo_number'] = $value->DocNum;
-                        $product['grpo_remarks'] = $value->Remarks;
-                    }
-                    else {
-                        $product['date_issued'] = $value->DocDate;
-                        $product['gi_number'] = $value->DocNum;
-                        $product['gi_remarks'] = $value->Remarks;
-                        $product['branch'] = $value->Branch;
-                        $product['company'] = $value->Company;
-                    }
-
-                    $product['supplier'] = $value->Supplier;
-                    $product['model'] = $value->Model;
-                    $product['brand'] = $value->Brand;
-                    $product['product_category'] = $value->ProductCategory;
-                    $product['item_group'] = $value->ItemGroup;
-                    $product['serial'] = $value->Serial;
-                    
-                    $products[] = $product;
+                foreach ($row as $i => $value) {
+                    $serials[] = $value->Serial;
+                    $data[] = $value; // insert into $data array all values from nested array ($filtered_data) ; $filtered_data is from different databases
                 }
 
-                
             }
 
-            return response()->json(['databases' => $databases, 'products' => $products, $filtered_data], 200);
+            $distinct_serials = array_unique($serials);
+
+            foreach ($distinct_serials as $key => $serial) {
+                $GI_branch = '';
+                $GI_company = '';
+
+                foreach ($data as $i => $value) {
+                    if($serial === $value->Serial)
+                    {   
+
+                        if($value->DocType === 'GRPO')
+                        {
+                            $product['date_purchase'] = $value->DocDate;
+                            $product['grpo_number'] = $value->DocNum;
+                            $product['grpo_remarks'] = $value->Remarks;
+                        }
+                        else {
+                            $product['date_issued'] = $value->DocDate;
+                            $product['gi_number'] = $value->DocNum;
+                            $product['gi_remarks'] = $value->Remarks;
+                            $GI_branch = $value->Branch;
+                            $GI_company = $value->Company;
+                        }
+
+                        $product['branch'] = $GI_branch ? $GI_branch : $value->Branch;
+                        $product['company'] = $GI_company ? $GI_company : $value->Company;
+
+                        $product['supplier'] = $value->Supplier;
+                        $product['model'] = $value->Model;
+                        $product['brand'] = $value->Brand;
+                        $product['product_category'] = $value->ProductCategory;
+                        $product['item_group'] = $value->ItemGroup;
+                        $product['serial'] = $value->Serial;
+                        
+                    }
+                }
+
+                $products[] = $product;
+            }
+
+            return response()->json(['databases' => $databases, 'products' => $products, 'filtered_data' => $filtered_data, 'serials' => array_unique($serials)], 200);
 
             
         } catch (\Exception $e) {

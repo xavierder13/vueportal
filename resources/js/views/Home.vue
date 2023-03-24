@@ -742,6 +742,14 @@ export default {
           console.log(error);
           this.uploading = false;
           this.dialog_sync = false;
+          this.$swal({
+            position: "center",
+            icon: "error",
+            title: error,
+            text: error.response.data.message,
+            showConfirmButton: false,
+            timer: 10000,
+          });
         }
       )
     },

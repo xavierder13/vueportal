@@ -53,7 +53,7 @@ class InventoryReconciliationController extends Controller
         }
     
         $user = Auth::user();
-        $branches = Branch::all();
+        $branches = Branch::orderBy('name')->get();
         $inventory_reconciliations = InventoryReconciliation::with('user')
                                         ->with('branch')
                                         ->where(function($query) use ($user) {
@@ -200,7 +200,7 @@ class InventoryReconciliationController extends Controller
                 'physical_qty' => $ctr2,
                 'qty_diff' => $ctr2 - $ctr1, // physical - sap quantity
                 'sap_discrepancy' => join(', ', $sap_discrepancy),
-                'physical_discrepancy' => join(', ', $physical_discrepancy ),
+                'physical_discrepancy' => join(', ', $physical_discrepancy),
             ];
 
         }
@@ -590,7 +590,7 @@ class InventoryReconciliationController extends Controller
                 INNER JOIN OITM c on a.ItemCode = c.ItemCode
                 INNER JOIN OMRC d on c.FirmCode = d.FirmCode
                 INNER JOIN OWHS e on a.WhsCode = e.WhsCode 
-                INNER JOIN [@PROGTBL] f on UPPER(e.Street) = CASE WHEN DB_NAME() = 'ReportsFinance' THEN f.U_Branch2 ELSE f.U_Branch1 END
+                INNER JOIN [@PROGTBL] f on UPPER(e.Street) COLLATE DATABASE_DEFAULT = CASE WHEN DB_NAME() = 'ReportsFinance' THEN f.U_Branch2 ELSE f.U_Branch1 END
             WHERE a.OnHand <> 0 and b.Status = '0' and f.U_Branch1 = :branch
             ORDER by 1, 2, 3, 4
         ",
@@ -611,6 +611,7 @@ class InventoryReconciliationController extends Controller
 
 
         foreach ($inventory_onhand as $key => $value) {
+            
             InventoryReconciliationMap::create([
                 'inventory_recon_id' => $inventory_reconciliation->id,
                 'user_id' => $user->id,
@@ -621,6 +622,7 @@ class InventoryReconciliationController extends Controller
                 'serial' => $value->SERIAL,
                 'quantity' => 1,
             ]);
+            
         }
 
 

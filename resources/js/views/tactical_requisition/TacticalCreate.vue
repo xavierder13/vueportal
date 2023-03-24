@@ -240,7 +240,7 @@
             </v-row>
             <v-divider></v-divider>
             <v-row>
-              <v-col class="mb-0 py-0">
+              <v-col class="mb-0 py-0 mt-2">
                 <p class="font-weight-bold subtitle-1">
                   PREVIOUS TACTICAL ACTIVITY
                 </p>

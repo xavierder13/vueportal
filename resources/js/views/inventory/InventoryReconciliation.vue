@@ -395,7 +395,6 @@ export default {
           this.branches = data.branches;
           this.databases = data.databases;
           this.loading = false;
-          console.log(data);
 
         },
         (error) => {
@@ -612,7 +611,14 @@ export default {
             this.uploading = false;
           },
           (error) => {
-            console.log(error);
+            this.$swal({
+                position: "center",
+                icon: "error",
+                title: error,
+                text: error.response.data.message,
+                showConfirmButton: false,
+                timer: 10000,
+              });
             this.isUnauthorized(error);
             this.uploadDisabled = false;
           }
