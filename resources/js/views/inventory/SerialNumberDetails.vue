@@ -322,8 +322,22 @@ export default {
         
         axios.post("/api/product/serial_number_details", data).then(
           (response) => {
-            console.log(response.data);
+            this.overlay = false;
+            
             let data = response.data
+
+            if(data.error)
+            {
+              this.$swal({
+                position: "center",
+                icon: "error",
+                title: "Error",
+                text: response.data.error,
+                showConfirmButton: false,
+                timer: 10000,
+              });
+            }
+            
             // if products is more than 1 rows then show the product list table for selection
             if(data.products.length > 1)
             {
@@ -338,7 +352,7 @@ export default {
                 this.serial = serial;
                 this.editedItem = data.products[0];
               }
-              else if(!response.data.error)
+              else if(!data.error)
               {
                 this.$swal({
                   position: "center",
@@ -348,25 +362,11 @@ export default {
                   timer: 2500,
                 });
               }
-              else
-              {
-                this.$swal({
-                  position: "center",
-                  icon: "error",
-                  title: "Error",
-                  text: response.data.error,
-                  showConfirmButton: false,
-                  timer: 2500,
-                });
-              }
             }
-
-            this.overlay = false;
-
           },
           (error) => {
             this.isUnauthorized(error);
-            console.log(error);
+            this.overlay = false;
             this.$swal({
                 position: "center",
                 icon: "error",
@@ -375,7 +375,7 @@ export default {
                 showConfirmButton: false,
                 timer: 10000,
               });
-            this.overlay = false;
+            
           }
         );
       }

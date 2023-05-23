@@ -22,7 +22,7 @@
                 <v-list-item
                   class="ma-0 pa-0"
                   style="min-height: 25px"
-                  v-if="userPermissions.product_reconcile"
+                  v-if="hasPermission('product-reconcile')"
                 >
                   <v-list-item-title>
                     <v-btn
@@ -40,7 +40,7 @@
                 <v-list-item
                   class="ma-0 pa-0"
                   style="min-height: 25px"
-                  v-if="userPermissions.product_export"
+                  v-if="hasPermission('product-export')"
                 >
                   <v-list-item-title>
                     <v-btn
@@ -58,7 +58,7 @@
                 <v-list-item
                   class="ma-0 pa-0"
                   style="min-height: 25px"
-                  v-if="userPermissions.product_clear_list"
+                  v-if="hasPermission('product-clear-list')"
                 >
                   <v-list-item-title>
                     <v-btn
@@ -94,7 +94,7 @@
               item-text="name"
               item-value="id"
               label="Branch"
-              v-if="user.id === 1 || userPermissions.product_list_all"
+              v-if="user.id === 1 || hasPermission('product-list-all')"
             >
             </v-autocomplete>
             <template>
@@ -308,7 +308,7 @@
             :search="search"
             :loading="loading"
             loading-text="Loading... Please wait"
-            v-if="userPermissions.product_list"
+            v-if="hasPermission('product-list')"
           >
             <template v-slot:item.actions="{ item }">
               <v-icon
@@ -316,7 +316,7 @@
                 class="mr-2"
                 color="green"
                 @click="editProduct(item)"
-                v-if="userPermissions.product_edit"
+                v-if="hasPermission('product-edit')"
               >
                 mdi-pencil
               </v-icon>
@@ -324,7 +324,7 @@
                 small
                 color="red"
                 @click="showConfirmAlert(item)"
-                v-if="userPermissions.product_delete"
+                v-if="hasPermission('product-delete')"
               >
                 mdi-delete
               </v-icon>
@@ -339,7 +339,7 @@
 import axios from "axios";
 import { validationMixin } from "vuelidate";
 import { required, maxLength, email } from "vuelidate/lib/validators";
-import { mapState } from "vuex";
+import { mapState, mapGetters } from "vuex";
 
 export default {
   mixins: [validationMixin],
@@ -874,11 +874,11 @@ export default {
 
       if (this.user.id !== 1) {
         // if user has role Audit Admin
-        if (this.userRoles.audit_admin) {
+        if (this.hasRole('Audit Admin')) {
           this.inventory_group = "Audit-Branch";
         }
         // if user has role Inventory Admin
-        else if (this.userRoles.inventory_admin) {
+        else if (this.hasRole('Inventory Admin')) {
           this.inventory_group = "Admin-Branch";
         }
       }
@@ -900,15 +900,15 @@ export default {
 
       // remove Actions column if user is not permitted
       if (
-        !this.userPermissions.product_edit &&
-        !this.userPermissions.product_delete
+        !this.hasPermission('product-edit') &&
+        !this.hasPermission('product-delete')
       ) {
         headers.splice(5, 1);
       }
 
       return headers;
     },
-    ...mapState("userRolesPermissions", ["userRoles", "userPermissions"]),
+    ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission"]),
   },
   created() {
     // Add barcode scan listener and pass the callback function

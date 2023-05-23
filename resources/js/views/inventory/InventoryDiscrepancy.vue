@@ -63,7 +63,7 @@
                 <!-- <v-list-item
                   class="ma-0 pa-0"
                   style="min-height: 25px"
-                  v-if="userPermissions.inventory_recon_delete"
+                  v-if="hasPermission('inventory-recon-delete')"
                 >
                   <v-list-item-title>
                     <v-btn
@@ -165,7 +165,7 @@
 </template>
 <script>
 import axios from "axios";
-import { mapState } from "vuex";
+import { mapState, mapGetters } from "vuex";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 
@@ -618,7 +618,7 @@ export default {
 
       return table_data;
     },
-    ...mapState("userRolesPermissions", ["userRoles", "userPermissions"]),
+    ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission"]),
   },
 
   mounted() {

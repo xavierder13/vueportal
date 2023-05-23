@@ -11,7 +11,7 @@
         </v-breadcrumbs>
         <div class="d-flex justify-content-end mb-3">
           <div>
-            <v-menu offset-y>
+            <v-menu offset-y v-if="hasPermission('inventory-recon-create') || hasPermission('inventory-recon-sync')">
               <template v-slot:activator="{ on, attrs }">
                 <v-btn small v-bind="attrs" v-on="on" color="primary">
                   Actions
@@ -22,7 +22,7 @@
                 <v-list-item
                   class="ma-0 pa-0"
                   style="min-height: 25px"
-                  v-if="userPermissions.inventory_recon_create"
+                  v-if="hasPermission('inventory-recon-create')"
                 >
                   <v-list-item-title>
                     <v-btn
@@ -40,7 +40,7 @@
                 <v-list-item
                   class="ma-0 pa-0"
                   style="min-height: 25px"
-                  v-if="userPermissions.inventory_recon_sync"
+                  v-if="hasPermission('inventory-recon-sync')"
                 >
                   <v-list-item-title>
                     <v-btn
@@ -88,7 +88,7 @@
             :search="search"
             :loading="loading"
             loading-text="Loading... Please wait"
-            v-if="userPermissions.inventory_recon_list"
+            v-if="hasPermission('inventory-recon-list')"
           >
             <template v-slot:item.status="{ item }">
               <v-chip
@@ -150,7 +150,7 @@
                     small
                     color="red"
                     @click="showConfirmAlert(item)"
-                    v-if="userPermissions.inventory_recon_delete"
+                    v-if="hasPermission('inventory-recon-delete')"
                     v-bind="attrs"
                     v-on="on"
                   >
@@ -308,7 +308,7 @@
 import axios from "axios";
 import { validationMixin } from "vuelidate";
 import { required, requiredIf, maxLength, email } from "vuelidate/lib/validators";
-import { mapState } from "vuex";
+import { mapState, mapGetters } from "vuex";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 
@@ -429,14 +429,11 @@ export default {
 
     openImportDialog(action) {
       
-      if(action.importIsClicked)
-      {
-        this.importIsClicked = true;
-      }
-      else
-      {
-        this.syncIsClicked = true;
-      }
+      // object_name either importIsClicked or syncIsClicked
+      let object_name = Object.keys(action)[0];
+
+      // set importIsClicked or syncIsClicked to true
+      this[object_name] = true;
       this.dialog_import = true;
       this.clear();
     },
@@ -454,13 +451,24 @@ export default {
       this.fileIsInvalid = false;
     },
 
-    showAlert() {
+    showAlert(title, icon) {
       this.$swal({
         position: "center",
-        icon: "success",
-        title: "Record has been saved",
+        icon: icon,
+        title: title,
         showConfirmButton: false,
         timer: 2500,
+      });
+    },
+
+    showErrorAlert(title, text) {
+      this.$swal({
+        position: "center",
+        icon: "error",
+        title: title,
+        text: text,
+        showConfirmButton: false,
+        timer: 10000,
       });
     },
 
@@ -505,13 +513,8 @@ export default {
           //Remove item from array inventories
           this.inventory_reconciliations.splice(index, 1);
 
-          this.$swal({
-            position: "center",
-            icon: "success",
-            title: "Record has been deleted",
-            showConfirmButton: false,
-            timer: 2500,
-          });
+          this.showAlert('Record has been deleted', 'success');
+
         }
       });
     },
@@ -575,52 +578,35 @@ export default {
           (response) => {
             
             console.log(response.data);
+            this.dialog_import = false;
+            this.uploadDisabled = false;
+            this.uploading = false;
+
+            if(data.error)
+            {
+              this.showErrorAlert('Error', response.data.error);
+            }
 
             if (response.data.success) {
               // send data to Socket.IO Server
               // this.$socket.emit("sendData", { action: "import-project" });
               this.getInventory();
-              this.$swal({
-                position: "center",
-                icon: "success",
-                title: "Record has been synced",
-                showConfirmButton: false,
-                timer: 2500,
-              });
-              this.$v.$reset();
-              this.dialog_import = false;
-            } else if (response.data.empty) {
-              this.$swal({
-                position: "center",
-                icon: "warning",
-                title: "No record found from SAP",
-                showConfirmButton: false,
-                timer: 2500,
-              });
-            } else {
-              this.$swal({
-                position: "center",
-                icon: "error",
-                title: "Some error occurred",
-                showConfirmButton: false,
-                timer: 2500,
-              });
-            }
 
-            this.uploadDisabled = false;
-            this.uploading = false;
+              this.showAlert('Record has been synced', 'success');
+
+              this.$v.$reset();
+              
+            } else if (response.data.empty) {
+
+              this.showAlert('No record found from SAP', 'warning');
+            } 
+
           },
           (error) => {
-            this.$swal({
-                position: "center",
-                icon: "error",
-                title: error,
-                text: error.response.data.message,
-                showConfirmButton: false,
-                timer: 10000,
-              });
-            this.isUnauthorized(error);
             this.uploadDisabled = false;
+            this.showErrorAlert(error, error.response.data.message);
+            this.isUnauthorized(error);
+           
           }
         );
     },
@@ -651,13 +637,9 @@ export default {
               // send data to Socket.IO Server
               // this.$socket.emit("sendData", { action: "import-project" });
               this.getInventory();
-              this.$swal({
-                position: "center",
-                icon: "success",
-                title: "Record has been imported",
-                showConfirmButton: false,
-                timer: 2500,
-              });
+              
+              this.showAlert('Record has been imported', 'success');
+
               this.$v.$reset();
               this.dialog_import = false;
               this.file = [];
@@ -1023,7 +1005,7 @@ export default {
       return this.importIsClicked ? 'Import Excel Data From SAP' : 'Sync Data From SAP';
     },
     ...mapState("auth", ["user"]),
-    ...mapState("userRolesPermissions", ["userRoles", "userPermissions"]),
+    ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission"]),
   },
 
   mounted() {

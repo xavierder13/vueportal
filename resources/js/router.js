@@ -270,7 +270,7 @@ const routes = [
         path: '/unauthorize',
         name: 'unauthorize',
         component: Unauthorize,
-      }
+      },
     ],
     beforeEnter(to, from, next) {
 

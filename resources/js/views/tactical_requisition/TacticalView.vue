@@ -644,14 +644,14 @@
               @click="showConfirmAlert()"
               :disabled="disabled"
               class="mb-4 mr-1"
-              v-if="userPermissions.tactical_requisition_edit"
+              v-if="hasPermission('tactical-requisition-edit')"
             >
               Save
             </v-btn>
-            <v-btn color="success" class="mb-4 mr-1" @click="confirmApproval()" v-if="userPermissions.tactical_requisition_approve && !isApproved"> Approve </v-btn>
+            <v-btn color="success" class="mb-4 mr-1" @click="confirmApproval()" v-if="hasPermission('tactical-requisition-approve') && !isApproved"> Approve </v-btn>
             <v-btn color="#E0E0E0" to="/tactical_requisition/index" class="mb-4"> Back </v-btn>
             <v-spacer></v-spacer>
-            <v-btn color="error" @click="confirmDelete()" class="mb-4 mr-4" v-if="userPermissions.tactical_requisition_delete"> Delete </v-btn>
+            <v-btn color="error" @click="confirmDelete()" class="mb-4 mr-4" v-if="hasPermission('tactical-requisition-delete')"> Delete </v-btn>
           </v-card-actions>
         </v-card>
         <v-dialog v-model="dialog_attach_file" max-width="500px" persistent>
@@ -674,7 +674,7 @@
                         <v-list-item v-for="item in tactical_attachments" :key="item.id">
                           <v-list-item-content class="pa-0">
                             <v-list-item-title> 
-                              <v-btn icon color="error" @click="confirmRemoveFile(item)" v-if="userPermissions.tactical_attachment_delete">
+                              <v-btn icon color="error" @click="confirmRemoveFile(item)" v-if="hasPermission('tactical-requisition-delete')">
                                 <v-icon> mdi-close-circle </v-icon> 
                               </v-btn>
                               <v-btn x-small text class="blue--text text--darken-2" @click="fileDownload(item)">
@@ -740,7 +740,7 @@ import {
   requiredIf,
 } from "vuelidate/lib/validators";
 import TimeRangePicker from "vuetify-time-range-picker";
-import { mapState } from "vuex";
+import { mapState, mapGetters } from "vuex";
 
 export default {
   mixins: [validationMixin],
@@ -1573,11 +1573,7 @@ export default {
       return isApproved;
     },
     ...mapState("auth", ["user"]),
-    ...mapState("userRolesPermissions", [
-      "userRoles",
-      "userPermissions",
-      "userRolesPermissionsIsLoaded",
-    ]),
+    ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission"]),
   },
   watch: {
     "editedItem.marketing_event"() {

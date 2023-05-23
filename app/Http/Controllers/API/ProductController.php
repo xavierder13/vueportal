@@ -397,8 +397,8 @@ class ProductController extends Controller
                 $data[$db->database] = DB::connection($db->database)
                                ->select("SELECT	
                                             CASE WHEN a.BaseType = N'20' THEN 'GRPO' ELSE 'GOODS ISSUE' END DocType,
-                                            CASE WHEN a.BaseType = N'20' THEN h.DocNum ELSE i.DocNum END DocNum,
-                                            CAST(a.DocDate as Date) as DocDate,
+                                            CASE WHEN a.BaseType = N'20' THEN MAX(h.DocNum) ELSE MAX(i.DocNum) END DocNum,
+                                            CAST(MAX(a.DocDate) as Date) as DocDate,
                                             c.ItemName as Model,
                                             c.FrgnName as ProductCategory,
                                             d.FirmName as Brand,
@@ -407,7 +407,7 @@ class ProductController extends Controller
                                             j.CardName as Supplier,
                                             f.U_branch1 as Branch,
                                             g.Name as Company,
-                                            isnull(h.Comments, i.Comments) as Remarks
+                                            isnull(MAX(h.Comments), (SELECT Comments from OIGE where DocNum = MAX(i.DocNum))) as Remarks
                                         FROM
                                             SRI1 a
                                             INNER JOIN OSRI b on a.ItemCode = b.ItemCode and a.SysSerial = b.SysSerial
@@ -419,7 +419,8 @@ class ProductController extends Controller
                                             LEFT JOIN OPDN h on a.BaseType = h.ObjType and h.DocEntry = a.BaseEntry
                                             LEFT JOIN OIGE i on a.BaseType = i.ObjType and i.DocEntry = a.BaseEntry
                                             LEFT JOIN OCRD j on c.CardCode = j.CardCode
-                                        WHERE a.BaseType in (60, 20) and b.IntrSerial like '%" . $serial . "%'");
+                                        WHERE a.BaseType in (60, 20) and b.IntrSerial like '%" . $serial . "%'
+                                        GROUP BY a.BaseType, c.ItemName, c.FrgnName, d.FirmName, e.ItmsGrpNam, b.IntrSerial, j.CardName, f.U_branch1, g.Name");
             }
 
             $filtered_data = array_filter($data);
@@ -495,162 +496,171 @@ class ProductController extends Controller
 
     public function sync_item_master_data()
     {   
-        $db = SapDatabase::where('database', '=', 'ReportsFinance')->get()->first();
 
-        $password = Crypt::decrypt($db->password);
+        try {
 
-        Config::set('database.connections.'.$db->database, array(
-            'driver' => 'sqlsrv',
-            'host' => $db->server,
-            'port' => '1433',
-            'database' => $db->database,
-            'username' => $db->username,
-            'password' => $password,   
-        ));
+            $db = SapDatabase::where('database', '=', 'ReportsFinance')->get()->first();
 
-        $brands = Brand::all();
+            $password = Crypt::decrypt($db->password);
 
-        $models = ProductModel::all();
+            Config::set('database.connections.'.$db->database, array(
+                'driver' => 'sqlsrv',
+                'host' => $db->server,
+                'port' => '1433',
+                'database' => $db->database,
+                'username' => $db->username,
+                'password' => $password,   
+            ));
 
-        $categories = ProductCategory::all();
+            $brands = Brand::all();
 
-        $createBrandsTemp = DB::connection("ReportsFinance")->unprepared(
-            DB::raw("CREATE TABLE #brands_temp (FirmName varchar(250))")
-        );
+            $models = ProductModel::all();
 
-        $createModelsTemp = DB::connection("ReportsFinance")->unprepared(
-            DB::raw("CREATE TABLE #models_temp (ItemName varchar(250))")
-        );
+            $categories = ProductCategory::all();
 
-        $createCategoriesTemp = DB::connection("ReportsFinance")->unprepared(
-            DB::raw("CREATE TABLE #categories_temp (FrgnName varchar(250))")
-        );
+            $createBrandsTemp = DB::connection("ReportsFinance")->unprepared(
+                DB::raw("CREATE TABLE #brands_temp (FirmName varchar(250))")
+            );
 
-        // remedy for inserting apostrophe (') into database
-        foreach ($brands as $key => $value) {
+            $createModelsTemp = DB::connection("ReportsFinance")->unprepared(
+                DB::raw("CREATE TABLE #models_temp (ItemName varchar(250))")
+            );
 
-            // explode apostrophe (')
-            $firm_name_explode = explode("'", $value->name);
-            $firm_name = "";
+            $createCategoriesTemp = DB::connection("ReportsFinance")->unprepared(
+                DB::raw("CREATE TABLE #categories_temp (FrgnName varchar(250))")
+            );
 
-            // concat explode value with apostrophe (') and add double apostrophe ('')
-            foreach ($firm_name_explode as $key => $val) {
+            // remedy for inserting apostrophe (') into database
+            foreach ($brands as $key => $value) {
 
-                if((count($firm_name_explode) - 1) > $key)
-                {
-                    $firm_name .= $val ."''" ; // add double apostrophe ('')
+                // explode apostrophe (')
+                $firm_name_explode = explode("'", $value->name);
+                $firm_name = "";
+
+                // concat explode value with apostrophe (') and add double apostrophe ('')
+                foreach ($firm_name_explode as $key => $val) {
+
+                    if((count($firm_name_explode) - 1) > $key)
+                    {
+                        $firm_name .= $val ."''" ; // add double apostrophe ('')
+                    }
+                    else
+                    {
+                        $firm_name .= $val; 
+                    }
+                    
                 }
-                else
+
+                if(count($firm_name_explode ) === 1)
                 {
-                    $firm_name .= $val; 
+                    $firm_name = $value->name;
                 }
+
+                DB::connection("ReportsFinance")->insert(
+                    "insert into #brands_temp (FirmName) values ('". $firm_name ."')"
+                );
+                
+            }
+            
+            // remedy for inserting apostrophe (') into database
+            foreach ($models as $key => $value) {
+
+                // explode apostrophe (')
+                $item_name_explode = explode("'", $value->name);
+                $item_name = "";
+
+                // concat explode value with apostrophe (') and add double apostrophe ('')
+                foreach ($item_name_explode as $key => $val) {
+
+                    if((count($item_name_explode) - 1) > $key)
+                    {
+                        $item_name .= $val ."''" ; // add double apostrophe ('')
+                    }
+                    else
+                    {
+                        $item_name .= $val; 
+                    }
+                    
+                }
+
+                if(count($item_name_explode ) === 1)
+                {
+                    $item_name = $value->name;
+                }
+
+                DB::connection("ReportsFinance")->insert(
+                    "insert into #models_temp (ItemName) values ('". $item_name ."')"
+                );
                 
             }
 
-            if(count($firm_name_explode ) === 1)
-            {
-                $firm_name = $value->name;
+            // remedy for inserting apostrophe (') into database
+            foreach ($categories as $key => $value) {
+
+                // explode apostrophe (')
+                $category_explode = explode("'", $value->name);
+                $category = "";
+
+                // concat explode value with apostrophe (') and add double apostrophe ('')
+                foreach ($category_explode as $key => $val) {
+
+                    if((count($category_explode) - 1) > $key)
+                    {
+                        $category .= $val ."''" ; // add double apostrophe ('')
+                    }
+                    else
+                    {
+                        $category .= $val; 
+                    }
+                    
+                }
+
+                if(count($item_name_explode ) === 1)
+                {
+                    $item_name = $value->name;
+                }
+
+                DB::connection("ReportsFinance")->insert(
+                    "insert into #categories_temp (FrgnName) values ('". $item_name ."')"
+                );
+                
             }
 
-            DB::connection("ReportsFinance")->insert(
-                "insert into #brands_temp (FirmName) values ('". $firm_name ."')"
-            );
+
+            $brands_sap = DB::connection("ReportsFinance")
+                        ->select("SELECT distinct FirmName as brand from OMRC where FirmName not in (select FirmName from #brands_temp)");
+
+            $models_sap = DB::connection("ReportsFinance")
+                        ->select("SELECT distinct ItemName as model from OITM where ItemName not in (select ItemName from #models_temp)");
+
+            $categories_sap = DB::connection("ReportsFinance")
+                        ->select("SELECT distinct FrgnName as category from OITM where FrgnName not in (select FrgnName from #categories_temp)");
             
+
+            // if brands_sap models_sap and categories_sap has no record then Item Master Date is up to date
+            if(!count($brands_sap) && !count($models_sap) && !count($categories_sap))
+            {
+                return response()->json(['empty' => 'Item Master Data is up to date'], 200);
+            }
+
+            foreach ($brands_sap as $key => $value) {
+                Brand::create(['name' => $value->brand, 'active' => 'Y']);
+            }
+
+            foreach ($models_sap as $key => $value) {
+                ProductModel::create(['name' => $value->model, 'active' => 'Y']);
+            }
+
+            foreach ($categories_sap as $key => $value) {
+                ProductCategory::create(['name' => $value->category, 'active' => 'Y']);     
+            }
+
+            return response()->json(['success' => 'Item master Data has been synced'], 200);
+
+        } catch (\Exception $e) {
+            
+            return response()->json(['error' => $e->getMessage()], 200);
         }
         
-        // remedy for inserting apostrophe (') into database
-        foreach ($models as $key => $value) {
-
-            // explode apostrophe (')
-            $item_name_explode = explode("'", $value->name);
-            $item_name = "";
-
-            // concat explode value with apostrophe (') and add double apostrophe ('')
-            foreach ($item_name_explode as $key => $val) {
-
-                if((count($item_name_explode) - 1) > $key)
-                {
-                    $item_name .= $val ."''" ; // add double apostrophe ('')
-                }
-                else
-                {
-                    $item_name .= $val; 
-                }
-                
-            }
-
-            if(count($item_name_explode ) === 1)
-            {
-                $item_name = $value->name;
-            }
-
-            DB::connection("ReportsFinance")->insert(
-                "insert into #models_temp (ItemName) values ('". $item_name ."')"
-            );
-            
-        }
-
-        // remedy for inserting apostrophe (') into database
-        foreach ($categories as $key => $value) {
-
-            // explode apostrophe (')
-            $category_explode = explode("'", $value->name);
-            $category = "";
-
-            // concat explode value with apostrophe (') and add double apostrophe ('')
-            foreach ($category_explode as $key => $val) {
-
-                if((count($category_explode) - 1) > $key)
-                {
-                    $category .= $val ."''" ; // add double apostrophe ('')
-                }
-                else
-                {
-                    $category .= $val; 
-                }
-                
-            }
-
-            if(count($item_name_explode ) === 1)
-            {
-                $item_name = $value->name;
-            }
-
-            DB::connection("ReportsFinance")->insert(
-                "insert into #categories_temp (FrgnName) values ('". $item_name ."')"
-            );
-            
-        }
-
-
-        $brands_sap = DB::connection("ReportsFinance")
-                     ->select("SELECT distinct FirmName as brand from OMRC where FirmName not in (select FirmName from #brands_temp)");
-
-        $models_sap = DB::connection("ReportsFinance")
-                     ->select("SELECT distinct ItemName as model from OITM where ItemName not in (select ItemName from #models_temp)");
-
-        $categories_sap = DB::connection("ReportsFinance")
-                     ->select("SELECT distinct FrgnName as category from OITM where FrgnName not in (select FrgnName from #categories_temp)");
-        
-
-        // if brands_sap models_sap and categories_sap has no record then Item Master Date is up to date
-        if(!count($brands_sap) && !count($models_sap) && !count($categories_sap))
-        {
-            return response()->json(['empty' => 'Item Master Data is up to date'], 200);
-        }
-
-        foreach ($brands_sap as $key => $value) {
-            Brand::create(['name' => $value->brand, 'active' => 'Y']);
-        }
-
-        foreach ($models_sap as $key => $value) {
-            ProductModel::create(['name' => $value->model, 'active' => 'Y']);
-        }
-
-        foreach ($categories_sap as $key => $value) {
-            ProductCategory::create(['name' => $value->category, 'active' => 'Y']);     
-        }
-
-        return response()->json(['success' => 'Item master Data has been synced'], 200);
     }
 }

@@ -26,7 +26,7 @@
               append-icon="mdi-magnify"
               label="Search"
               single-line
-              v-if="userPermissions.user_list"
+              v-if="hasPermission('activity-logs')"
             ></v-text-field>
             <v-spacer></v-spacer>
           </v-card-title>
@@ -36,7 +36,7 @@
             :search="search"
             :loading="loading"
             loading-text="Loading... Please wait"
-            v-if="userPermissions.activity_logs"
+            v-if="hasPermission('activity-logs')"
           >
           </v-data-table>
         </v-card>
@@ -47,7 +47,7 @@
 <script>
 
 import axios from "axios";
-import { mapState } from 'vuex';
+import { mapGetters } from 'vuex';
 
 export default {
 
@@ -113,7 +113,7 @@ export default {
     },
   },
   computed: {
-    ...mapState("userRolesPermissions", ["userRoles", "userPermissions"]),
+    ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission"]),
   },
   mounted() {
     axios.defaults.headers.common["Authorization"] = "Bearer " + localStorage.getItem("access_token");

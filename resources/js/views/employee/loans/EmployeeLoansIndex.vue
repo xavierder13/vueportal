@@ -15,7 +15,7 @@
               color="success"
               small
               @click="exportData()"
-              v-if="userPermissions.employee_loans_export && userPermissions.employee_loans_list_all"
+              v-if="hasPermission('employee-loans-export') && hasPermission('employee-loans-list-all')"
             >
               <v-icon class="mr-1" small> mdi-microsoft-excel </v-icon>
               Export All Data
@@ -44,7 +44,7 @@
             class="elevation-1"
             :expanded.sync="expanded"
             loading-text="Loading... Please wait"
-            v-if="userPermissions.employee_loans_list"
+            v-if="hasPermission('employee-loans-list')"
           >
             <template v-slot:item.date_uploaded="{ item }">
               <v-chip color="secondary" v-if="item.date_uploaded">
@@ -77,7 +77,7 @@
                 </v-row>
               </td>
               <td> 
-                <v-btn x-small color="primary" @click="importExcel(items)" v-if="userPermissions.employee_loans_import"> 
+                <v-btn x-small color="primary" @click="importExcel(items)" v-if="hasPermission('employee-loans-import')"> 
                   <v-icon small class="mr-2">mdi-upload</v-icon> import
                 </v-btn> 
               </td>
@@ -124,7 +124,7 @@
                       <v-list-item
                         class="ma-0 pa-0"
                         style="min-height: 25px"
-                        v-if="userPermissions.employee_list_export"
+                        v-if="hasPermission('employee-loans-export')"
                       >
                         <v-list-item-title>
                           <v-btn
@@ -159,7 +159,7 @@
 import axios from "axios";
 import { validationMixin } from "vuelidate";
 import { required, maxLength, email } from "vuelidate/lib/validators";
-import { mapState } from "vuex";
+import { mapState, mapGetters } from "vuex";
 import ImportDialog from "../components/ImportDialog.vue";
 
 export default {
@@ -273,7 +273,7 @@ export default {
       let branches = [];
 
       this.branches.forEach((value) => {
-        if (this.userPermissions.employee_loans_list_all) {
+        if (this.hasPermission('employee-loans-list-all') ) {
           branches.push(value);
         } else {
            if(value.id === this.user.branch_id)
@@ -287,7 +287,7 @@ export default {
     },
     
     ...mapState("auth", ["user"]),
-    ...mapState("userRolesPermissions", ["userRoles", "userPermissions"]),
+    ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission"]),
   },
 
   mounted() {

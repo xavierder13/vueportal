@@ -66,7 +66,7 @@
 import axios from "axios";
 import { validationMixin } from "vuelidate";
 import { required, maxLength, email } from "vuelidate/lib/validators";
-import { mapState } from "vuex";
+import { mapGetters } from "vuex";
 
 export default {
   mixins: [validationMixin],
@@ -184,7 +184,7 @@ export default {
       return errors;
     },
 
-    ...mapState("userRolesPermissions", ["userRoles", "userPermissions"]),
+    ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission"]),
   },
   mounted() {
     axios.defaults.headers.common["Authorization"] =

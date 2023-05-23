@@ -91,7 +91,7 @@
                     :search="search"
                     :loading="loading"
                     loading-text="Loading... Please wait"
-                    v-if="userPermissions.file_list"
+                    v-if="hasPermission('file-list')"
                   >
                     <template v-slot:item.actions="{ item }">
                       <v-btn color="info" x-small @click="fileDownload(item)">
@@ -143,7 +143,7 @@ import Media from "@dongido/vue-viaudio";
 import axios from "axios";
 import { validationMixin } from "vuelidate";
 import { required, maxLength, email } from "vuelidate/lib/validators";
-import { mapState } from "vuex";
+import { mapState, mapGetters } from "vuex";
 export default {
   mixins: [validationMixin],
   components: {
@@ -314,11 +314,7 @@ export default {
       }
     },
     ...mapState("auth", ["user", "userIsLoaded"]),
-    ...mapState("userRolesPermissions", [
-      "userRoles",
-      "userPermissions",
-      "userRolesPermissionsIsLoaded",
-    ]),
+    ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission"]),
   },
   mounted() {
     axios.defaults.headers.common["Authorization"] =

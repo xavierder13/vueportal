@@ -18,7 +18,7 @@
               append-icon="mdi-magnify"
               label="Search"
               single-line
-              v-if="userPermissions.tactical_requisition_list"
+              v-if="hasPermission('tactical-requisition-list')"
             ></v-text-field>
             <template>
               <v-toolbar flat>
@@ -29,7 +29,7 @@
                   dark
                   class="mb-2"
                   @click="createTacticalRequisition()"
-                  v-if="userPermissions.tactical_requisition_create"
+                  v-if="hasPermission('tactical-requisition-create')"
                 >
                   <v-icon>mdi-plus</v-icon>
                 </v-btn>
@@ -42,7 +42,7 @@
             :search="search"
             :loading="loading"
             loading-text="Loading... Please wait"
-            v-if="userPermissions.tactical_requisition_list"
+            v-if="hasPermission('tactical-requisition-list')"
           >
             <template v-slot:item.progress="{ item }">
               <template v-for="(item, index) in item.approval_progress">
@@ -72,7 +72,7 @@
                 class="mr-2"
                 color="info"
                 @click="viewTacticalRequisition(item)"
-                v-if="userPermissions.tactical_requisition_edit || userPermissions.tactical_requisition_approve"
+                v-if="hasPermission('tactical-requisition-edit') || hasPermission('tactical-requisition-approve')"
               >
                 mdi-eye
               </v-icon>
@@ -81,7 +81,7 @@
                 small
                 color="red"
                 @click="showConfirmAlert(item)"
-                v-if="userPermissions.tactical_requisition_delete"
+                v-if="hasPermission('tactical-requisition-delete')"
               >
                 mdi-delete
               </v-icon>
@@ -96,7 +96,7 @@
 import axios from "axios";
 import { validationMixin } from "vuelidate";
 import { required, maxLength, email } from "vuelidate/lib/validators";
-import { mapState } from "vuex";
+import { mapState, mapGetters } from "vuex";
 
 export default {
   mixins: [validationMixin],
@@ -274,7 +274,7 @@ export default {
 
       return tactical_requisitions;
     },
-    ...mapState("userRolesPermissions", ["userRoles", "userPermissions"]),
+    ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission"]),
   },
   mounted() {
     axios.defaults.headers.common["Authorization"] =

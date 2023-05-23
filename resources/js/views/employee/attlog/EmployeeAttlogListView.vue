@@ -22,7 +22,7 @@
                 <v-list-item
                   class="ma-0 pa-0"
                   style="min-height: 25px"
-                  v-if="userPermissions.employee_attlog_import"
+                  v-if="hasPermission('employee-attlog-import')"
                 >
                   <v-list-item-title>
                     <v-btn
@@ -40,7 +40,7 @@
                 <v-list-item
                   class="ma-0 pa-0"
                   style="min-height: 25px"
-                  v-if="userPermissions.employee_attlog_export"
+                  v-if="hasPermission('employee-attlog-export')"
                 >
                   <v-list-item-title>
                     <v-btn
@@ -58,7 +58,7 @@
                 <v-list-item
                   class="ma-0 pa-0"
                   style="min-height: 25px"
-                  v-if="userPermissions.employee_attlog_export"
+                  v-if="hasPermission('employee-attlog-export')"
                 >
                   <v-list-item-title>
                     <v-btn
@@ -76,7 +76,7 @@
                 <v-list-item
                   class="ma-0 pa-0"
                   style="min-height: 25px"
-                  v-if="userPermissions.employee_attlog_clear_list"
+                  v-if="hasPermission('employee-attlog-clear-list')"
                 >
                   <v-list-item-title>
                     <v-btn
@@ -112,7 +112,7 @@
               dark
               class="mb-2"
               @click="clear() + (dialog = true)"
-              v-if="userPermissions.employee_attlog_create"
+              v-if="hasPermission('employee-attlog-create')"
             >
               <v-icon>mdi-plus</v-icon>
             </v-btn>
@@ -124,7 +124,7 @@
             :search="search"
             :loading="loading"
             loading-text="Loading... Please wait"
-            v-if="userPermissions.employee_attlog_list"
+            v-if="hasPermission('employee-attlog-list')"
           > 
             <template v-slot:top v-if="file_upload_log">
               <v-toolbar
@@ -143,7 +143,7 @@
                 class="mr-2"
                 color="green"
                 @click="editEmployeeAttlog(item)"
-                v-if="userPermissions.employee_attlog_edit"
+                v-if="hasPermission('employee-attlog-edit')"
               >
                 mdi-pencil
               </v-icon>
@@ -151,7 +151,7 @@
                 small
                 color="red"
                 @click="showConfirmAlert(item)"
-                v-if="userPermissions.employee_attlog_delete"
+                v-if="hasPermission('employee-attlog-delete')"
               >
                 mdi-delete
               </v-icon>
@@ -172,7 +172,7 @@
 import axios from "axios";
 import { validationMixin } from "vuelidate";
 import { required, maxLength, email } from "vuelidate/lib/validators";
-import { mapState } from "vuex";
+import { mapState, mapGetters } from "vuex";
 import ImportDialog from "../components/ImportDialog.vue";
 
 export default {
@@ -272,7 +272,7 @@ export default {
           // if user has no permission to view overall list
           
           if (
-            !this.userPermissions.employee_attlog_list_all &&
+            !this.hasPermission('employee-attlog-list-all') &&
             this.user.branch_id != this.branch_id
           ) {
             this.$router.push({ name: "unauthorize" });
@@ -516,11 +516,8 @@ export default {
       return this.errors_array.sort();
     },
     ...mapState("auth", ["user", "userIsLoaded"]),
-    ...mapState("userRolesPermissions", [
-      "userRoles",
-      "userPermissions",
-      "userRolesPermissionsIsLoaded",
-    ]),
+    ...mapState("userRolesPermissions", ["userRolesPermissionsIsLoaded"]),
+    ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission"]),
   },
 
   mounted() {

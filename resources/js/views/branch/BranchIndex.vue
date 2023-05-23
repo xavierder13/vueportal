@@ -18,7 +18,7 @@
               append-icon="mdi-magnify"
               label="Search"
               single-line
-              v-if="userPermissions.branch_list"
+              v-if="hasPermission('branch-list')"
             ></v-text-field>
             <template>
               <v-toolbar flat>
@@ -29,7 +29,7 @@
                   dark
                   class="mb-2"
                   @click="clear() + (dialog = true)"
-                  v-if="userPermissions.branch_create"
+                  v-if="hasPermission('branch-create')"
                 >
                   <v-icon>mdi-plus</v-icon>
                 </v-btn>
@@ -129,7 +129,7 @@
             :search="search"
             :loading="loading"
             loading-text="Loading... Please wait"
-            v-if="userPermissions.branch_list"
+            v-if="hasPermission('branch-list')"
           >
             <template v-slot:item.actions="{ item }">
               <v-icon
@@ -137,7 +137,7 @@
                 class="mr-2"
                 color="green"
                 @click="editBranch(item)"
-                v-if="userPermissions.branch_edit"
+                v-if="hasPermission('branch-edit')"
               >
                 mdi-pencil
               </v-icon>
@@ -145,7 +145,7 @@
                 small
                 color="red"
                 @click="showConfirmAlert(item)"
-                v-if="userPermissions.branch_delete"
+                v-if="hasPermission('branch-delete')"
               >
                 mdi-delete
               </v-icon>
@@ -160,7 +160,7 @@
 import axios from "axios";
 import { validationMixin } from "vuelidate";
 import { required, maxLength, email } from "vuelidate/lib/validators";
-import { mapState } from "vuex";
+import { mapState, mapGetters } from "vuex";
 
 export default {
   mixins: [validationMixin],
@@ -223,6 +223,7 @@ export default {
       this.loading = true;
       axios.get("/api/branch/index").then(
         (response) => {
+          console.log(response.data);
           this.branches = response.data.branches;
           this.companies = response.data.companies;
           this.loading = false;
@@ -407,7 +408,7 @@ export default {
           action == "branch-edit" ||
           action == "branch-delete"
         ) {
-          this.userRolesPermissions();
+          this.getBranch();
         }
       };
     },
@@ -445,7 +446,7 @@ export default {
         errors.push("Company is required.");
       return errors;
     },
-    ...mapState("userRolesPermissions", ["userRoles", "userPermissions"]),
+    ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission"]),
   },
   mounted() {
     axios.defaults.headers.common["Authorization"] =

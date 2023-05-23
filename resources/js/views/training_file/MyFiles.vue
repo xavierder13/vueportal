@@ -20,7 +20,7 @@
 
         <div class="d-flex justify-content-end mb-3">
           <div>
-            <v-menu offset-y v-if="userPermissions.file_create">
+            <v-menu offset-y v-if="hasPermission('file-create')">
               <template v-slot:activator="{ on, attrs }">
                 <v-btn small v-bind="attrs" v-on="on" color="primary">
                   Actions
@@ -31,7 +31,7 @@
                 <v-list-item
                   class="ma-0 pa-0"
                   style="min-height: 25px"
-                  v-if="userPermissions.file_create"
+                  v-if="hasPermission('file-create')"
                 >
                   <v-list-item-title>
                     <v-btn
@@ -104,8 +104,8 @@
                               v-if="
                                 user.id !== 1
                                   ? user.id === item.user_id &&
-                                    (userPermissions.file_edit ||
-                                      userPermissions.file_delete)
+                                    (hasPermission('file-edit') ||
+                                      hasPermission('file-delete'))
                                   : true
                               "
                             >
@@ -114,7 +114,7 @@
                             <v-btn
                               icon
                               v-if="
-                                userPermissions.file_edit &&
+                                hasPermission('file-edit') &&
                                 (user.id !== 1
                                   ? user.id === item.user_id
                                   : true)
@@ -127,7 +127,7 @@
                             <v-btn
                               icon
                               v-if="
-                                userPermissions.file_delete &&
+                                hasPermission('file-delete') &&
                                 (user.id !== 1
                                   ? user.id === item.user_id
                                   : true)
@@ -151,7 +151,7 @@
                     :search="search"
                     :loading="loading"
                     loading-text="Loading... Please wait"
-                    v-if="userPermissions.file_list"
+                    v-if="hasPermission('file-list')"
                   >
                     <template v-slot:item.actions="{ item }">
                       <v-icon
@@ -168,7 +168,7 @@
                         class="mr-2"
                         color="green"
                         @click="editFile(item)"
-                        v-if="userPermissions.position_edit"
+                        v-if="hasPermission('file-edit')"
                       >
                         mdi-pencil
                       </v-icon>
@@ -176,7 +176,7 @@
                         small
                         color="red"
                         @click="showConfirmAlert(item)"
-                        v-if="userPermissions.position_delete"
+                        v-if="hasPermission('file-delete')"
                       >
                         mdi-delete
                       </v-icon>
@@ -340,7 +340,7 @@ import Media from "@dongido/vue-viaudio";
 import axios from "axios";
 import { validationMixin } from "vuelidate";
 import { required, maxLength, email } from "vuelidate/lib/validators";
-import { mapState } from "vuex";
+import { mapState, mapGetters } from "vuex";
 export default {
   mixins: [validationMixin],
   components: {
@@ -763,11 +763,7 @@ export default {
       return errors;
     },
     ...mapState("auth", ["user", "userIsLoaded"]),
-    ...mapState("userRolesPermissions", [
-      "userRoles",
-      "userPermissions",
-      "userRolesPermissionsIsLoaded",
-    ]),
+    ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission"]),
   },
   mounted() {
     axios.defaults.headers.common["Authorization"] =

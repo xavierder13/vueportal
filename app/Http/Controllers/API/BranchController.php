@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Branch;
 use App\Company;
+use App\SapDatabase;
 use Validator;
 use DB;
 
@@ -13,6 +14,26 @@ class BranchController extends Controller
 {
     public function index()
     {       
+
+        // $databases = SapDatabase::all();
+
+        // foreach ($databases as $key => $db) {
+            
+        //     $password = Crypt::decrypt($db->password);
+
+        //     Config::set('database.connections.'.$db->database, array(
+        //         'driver' => 'sqlsrv',
+        //         'host' => $db->server,
+        //         'port' => '1433',
+        //         'database' => $db->database,
+        //         'username' => $db->username,
+        //         'password' => $password,   
+        //     ));
+
+        //     $data[$db->database] = DB::connection($db->database)
+        //                             ->select("SELECT U_Branch1 FROM [@PROGTBL]");
+        // }
+
         $branches = Branch::with('company')->get();
         $companies = Company::all();
         return response()->json(['branches' => $branches, 'companies' => $companies], 200);

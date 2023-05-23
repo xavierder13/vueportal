@@ -92,7 +92,7 @@ export default {
       if (!this.$v.email.$dirty) return errors;
       // !this.$v.lastname.maxLength &&
       // errors.push("Name must be at most 10 characters long");
-      !this.$v.email.required && errors.push("email is required.");
+      !this.$v.email.required && errors.push("Email is required.");
       return errors;
     },
 

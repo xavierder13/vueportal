@@ -81,56 +81,491 @@
           </v-list-item-icon>
           <v-list-item-title>Dashboard</v-list-item-title>
         </v-list-item> -->
-        <template v-for=" (menu, i) in menuList " v-if="menu.hasPermission">
-          <v-divider v-if="i > 0"></v-divider>
-          <span class="subtitle-2 font-weight-bold ml-4 blue--text text--lighten-4"> {{ menu.group_header_title }} </span>
-  
-          <template v-for=" list in menu.list_items ">
-            <v-list-group
-              :class="i === 0 ? 'mt-4' : ''"
-              no-action
-              v-if="list.children.length && list.hasPermission"
-            >
-              <template v-slot:activator>
-                <v-list-item-content>
-                  <v-list-item-title>
-                    <v-icon class="mr-2">{{ list.icon }}</v-icon>
-                    {{ list.title }}
-                  </v-list-item-title>
-                </v-list-item-content>
-              </template>
-              <template v-for=" child in list.children ">
-                <v-list-item
-                  link
-                  :to="child.link"
-                  v-if="child.hasPermission"
-                >
-                  <v-list-item-content>
-                    <v-list-item-title>{{ child.title }}</v-list-item-title>
-                  </v-list-item-content>
-                </v-list-item>
-              </template>
-            </v-list-group>
-            <v-list-item
-              class="mt-4"
-              link
-              :to="list.link"
-              v-if="!list.children.length && list.hasPermission"
-            >
-              <v-list-item-icon class="mr-2">
-                <v-icon>{{ list.icon }}</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>{{ list.title }}</v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
+        <v-list-group
+          no-action
+          v-if="userPermissions.user_list || userPermissions.user_create"
+        >
+          <!-- List Group Icon-->
+          <!-- <v-icon slot="prependIcon" class="ma-0">mdi-account-arrow-right-outline</v-icon> -->
+          <!-- List Group Title -->
+          <template v-slot:activator>
+            <v-list-item-content>
+              <v-list-item-title>
+                <v-icon class="mr-4">mdi-account-arrow-right-outline</v-icon>
+                User Management</v-list-item-title
+              >
+            </v-list-item-content>
           </template>
-        </template>
-        
+          <!-- List Group Items -->
+          <v-list-item link to="/user/index" v-if="userPermissions.user_list">
+            <v-list-item-content>
+              <v-list-item-title>User Accounts</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
+            to="/user/create"
+            v-if="userPermissions.user_create"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Create New</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list-group>
+        <v-list-group
+          no-action
+          v-if="
+            userPermissions.product_list ||
+            userPermissions.product_create ||
+            userPermissions.inventory_recon_list ||
+            userPermissions.inventory_recon_create ||
+            userPermissions.brand_list ||
+            userPermissions.brand_create ||
+            userPermissions.product_category_list ||
+            userPermissions.product_category_create ||
+            userPermissions.product_model_list ||
+            userPermissions.product_model_create ||
+            userPermissions.serial_number_details
+          "
+        >
+          <!-- List Group Icon-->
+          <!-- <v-icon slot="prependIcon">mdi-barcode-scan</v-icon> -->
+          <!-- List Group Title -->
+          <template v-slot:activator>
+            <v-list-item-content>
+              <v-list-item-title>
+                <v-icon class="mr-4">mdi-barcode-scan</v-icon>
+                Inventory</v-list-item-title
+              >
+            </v-list-item-content>
+          </template>
+          <!-- List Group Items -->
+          <v-list-item
+            link
+            to="/inventory/reconciliation"
+            v-if="userPermissions.inventory_recon_list"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Reconciliation</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
+            to="/product/index"
+            v-if="userPermissions.product_list"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Product Lists</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
+            to="/scan_product"
+            v-if="userPermissions.product_create"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Scan Product</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
+            to="/brand/index"
+            v-if="userPermissions.brand_list || userPermissions.brand_create"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Brand</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
+            to="/product_model/index"
+            v-if="
+              userPermissions.product_model_list ||
+              userPermissions.product_model_create
+            "
+          >
+            <v-list-item-content>
+              <v-list-item-title>Product Model</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
+            to="/product_category/index"
+            v-if="
+              userPermissions.product_category_list ||
+              userPermissions.product_category_create
+            "
+          >
+            <v-list-item-content>
+              <v-list-item-title>Product Category</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
+            to="/serial_number_details"
+            v-if="userPermissions.serial_number_details"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Serial Number Details</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list-group>
+        <v-list-group
+          no-action
+          v-if="
+            userPermissions.employee_list ||
+            userPermissions.employee_atlog_list ||
+            userPermissions.employee_resigned_list ||
+            userPermissions.employee_payroll_list ||
+            userPermissions.employee_absences_list ||
+            userPermissions.employee_overtime_list ||
+            userPermissions.employee_holiday_pay_list ||
+            userPermissions.employee_loans_list ||
+            userPermissions.employee_premiums_list
+          "
+        >
+          <!-- List Group Icon-->
+          <!-- <v-icon slot="prependIcon">mdi-account-multiple</v-icon> -->
+          <!-- List Group Title -->
+          <template v-slot:activator>
+            <v-list-item-content>
+              <v-list-item-title>
+                <v-icon class="mr-4">mdi-account-multiple</v-icon>
+                Employee</v-list-item-title
+              >
+            </v-list-item-content>
+          </template>
+          <!-- List Group Items -->
+          <v-list-item
+            link
+            to="/employee/list"
+            v-if="userPermissions.employee_list"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Employee Lists</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
+            to="/employee/attlog/list"
+            v-if="userPermissions.employee_attlog_list"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Attlog Reports</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
+            to="/employee/resigned/list"
+            v-if="userPermissions.employee_resigned_list"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Resigned</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
+            to="/employee/payroll/list"
+            v-if="userPermissions.employee_payroll_list"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Payroll</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
+            to="/employee/absences/list"
+            v-if="userPermissions.employee_absences_list"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Absences</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
+            to="/employee/overtime/list"
+            v-if="userPermissions.employee_overtime_list"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Overtime</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
+            to="/employee/holiday_pay/list"
+            v-if="userPermissions.employee_holiday_pay_list"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Holiday Pay</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
+            to="/employee/loans/list"
+            v-if="userPermissions.employee_loans_list"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Loans</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
+            to="/employee/premiums/list"
+            v-if="userPermissions.employee_premiums_list"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Premiums</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list-group>
+        <v-list-group
+          no-action
+          v-if="
+            userPermissions.file_list ||
+            userPermissions.file_create ||
+            userPermissions.user_files
+          "
+        >
+          <!-- List Group Icon-->
+          <!-- <v-icon slot="prependIcon">mdi-folder-multiple-outline</v-icon> -->
+          <!-- List Group Title -->
+          <template v-slot:activator>
+            <v-list-item-content>
+              <v-list-item-title>
+                <v-icon class="mr-4">mdi-folder-multiple-outline</v-icon>
+                Training</v-list-item-title
+              >
+            </v-list-item-content>
+          </template>
+          <!-- List Group Items -->
+          <v-list-item
+            link
+            to="/training/my_files"
+            v-if="userPermissions.user_files && userPermissions.user_files"
+          >
+            <v-list-item-content>
+              <v-list-item-title>My Files</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
+            to="/training/files_tutorials"
+            v-if="userPermissions.file_list"
+          >
+            <v-list-item-content>
+              <v-list-item-title>{{ "Files & Tutorials" }}</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list-group>
+        <v-list-group
+          no-action
+          v-if="
+            userPermissions.tactical_requisition_list ||
+            userPermissions.tactical_requisition_create ||
+            userPermissions.marketing_event_list ||
+            userPermissions.marketing_event_create
+          "
+        >
+          <!-- List Group Icon-->
+          <!-- <v-icon slot="prependIcon">mdi-file-multiple-outline</v-icon> -->
+          <!-- List Group Title -->
+          <template v-slot:activator>
+            <v-list-item-content>
+              <v-list-item-title>
+                <v-icon class="mr-4">mdi-file-multiple-outline</v-icon> Tactical
+                Req.</v-list-item-title
+              >
+            </v-list-item-content>
+          </template>
+          <!-- List Group Items -->
+          <v-list-item
+            link
+            to="/tactical_requisition/index"
+            v-if="userPermissions.tactical_requisition_list"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Tactical List</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
+            to="/tactical_requisition/create"
+            v-if="userPermissions.tactical_requisition_create"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Create Tactical</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
+            to="/marketing_event/index"
+            v-if="userPermissions.marketing_event_list || userPermissions.marketing_event_create"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Marketing Event</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list-group>
+        <v-list-group
+          no-action
+          v-if="
+            userPermissions.access_chart_list ||
+            userPermissions.access_chart_create || 
+            userPermissions.access_module_list ||
+            userPermissions.access_module_create ||
+            userPermissions.access_level_edit
+          "
+        >
+          <!-- List Group Icon-->
+          <!-- <v-icon slot="prependIcon">mdi-file-multiple-outline</v-icon> -->
+          <!-- List Group Title -->
+          <template v-slot:activator>
+            <v-list-item-content>
+              <v-list-item-title>
+                <v-icon class="mr-4">mdi-chart-arc</v-icon> Access
+                Chart</v-list-item-title
+              >
+            </v-list-item-content>
+          </template>
+          <!-- List Group Items -->
+          <v-list-item
+            link
+            to="/access_chart/index"
+            v-if="userPermissions.access_chart_list"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Access Chart Lists</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
+            to="/access_module/index"
+            v-if="userPermissions.access_module_list || userPermissions.access_module_create"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Access Module Lists</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
+            to="/access_level"
+            v-if="userPermissions.access_level_edit"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Access Level</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list-group>
+        <v-list-group
+          no-action
+          v-if="
+            userPermissions.branch_list ||
+            userPermissions.branch_create ||
+            userPermissions.position_list ||
+            userPermissions.position_create ||
+            userPermissions.role_list ||
+            userPermissions.role_create ||
+            userPermissions.permission_list ||
+            userPermissions.permission_create || 
+            userPermissions.sap_database_list ||
+            userPermissions.sap_database_create
+          "
+        >
+          <!-- List Group Icon-->
+          <!-- <v-icon slot="prependIcon">mdi-cog</v-icon> -->
+          <!-- List Group Title -->
+          <template v-slot:activator>
+            <v-list-item-content>
+              <v-list-item-title>
+                <v-icon class="mr-4">mdi-cog</v-icon>
+                Settings</v-list-item-title
+              >
+            </v-list-item-content>
+          </template>
+          <!-- List Group Items -->
+          <v-list-item
+            link
+            to="/branch/index"
+            v-if="userPermissions.branch_list || userPermissions.branch_create"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Branch</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
+            to="/company/index"
+            v-if="
+              userPermissions.company_list || userPermissions.company_create
+            "
+          >
+            <v-list-item-content>
+              <v-list-item-title>Company</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
+            to="/position/index"
+            v-if="
+              userPermissions.position_list || userPermissions.position_create
+            "
+          >
+            <v-list-item-content>
+              <v-list-item-title>Position</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
+            to="/department/index"
+            v-if="
+              userPermissions.department_list ||
+              userPermissions.department_create
+            "
+          >
+            <v-list-item-content>
+              <v-list-item-title>Department</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
+            to="/role/index"
+            v-if="userPermissions.role_list || userPermissions.role_create"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Role</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
+            to="/permission/index"
+            v-if="userPermissions.permission_list || userPermissions.permission_create"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Permission</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            link
+            to="/sap_database/index"
+            v-if="userPermissions.sap_database_list || userPermissions.sap_database_create"
+          >
+            <v-list-item-content>
+              <v-list-item-title>SAP Database</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            v-if="userPermissions.sap_database_create"
+            @click="confirmSyncItemMasterData()"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Sync Item Master data</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list-group>
         <!-- <v-list-item
           link
           to="/activity_logs"
-          v-if="hasPermission('activity-logs')"
+          v-if="userPermissions.activity_logs"
         >
           <v-list-item-icon>
             <v-icon>mdi-history</v-icon>
@@ -191,7 +626,7 @@
 
 <script>
 import axios from "axios";
-import { mapState, mapActions, mapGetters } from "vuex";
+import { mapState, mapActions } from "vuex";
 
 export default {
   data() {
@@ -204,7 +639,6 @@ export default {
       selectedItem: 1,
       uploading: false,
       dialog_sync: false,
-      menu_items: []
     };
   },
 
@@ -320,7 +754,7 @@ export default {
         }
       )
     },
-    
+
     showAlert(title, icon) {
       this.$swal({
         position: "center",
@@ -373,362 +807,12 @@ export default {
   },
 
   computed: {
-    menuList() {
-      let menu = [];
-
-      // START Inventory / Purchasing group menu
-      let invtyPurchMenuList = {
-        group_header_title: 'Inventory / Purchasing',
-        hasPermission: false,
-        list_items: [
-          {
-            title: 'Inventory',
-            icon: 'mdi-barcode-scan',
-            link: '',
-            hasPermission: false,
-            children: [
-              { 
-                title: 'Reconciliation',
-                link: '/inventory/reconciliation',
-                hasPermission: this.hasPermission('inventory-recon-list'),
-              },
-              { 
-                title: 'Product Lists',
-                link: '/product/index',
-                hasPermission: this.hasPermission('product-list'),
-              },
-              { 
-                title: 'Scan Product',
-                link: '/scan_product',
-                hasPermission: this.hasPermission('product-create'),
-              },
-              { 
-                title: 'Brand',
-                link: '/brand/index',
-                hasPermission: this.hasPermission('brand-list') || this.hasPermission('brand-create'),
-              },
-              { 
-                title: 'Product Model',
-                link: '/product_model/index',
-                hasPermission: this.hasPermission('product-model-list') || this.hasPermission('product-model-create'),
-              },
-              { 
-                title: 'Product Category',
-                link: '/product_category/index',
-                hasPermission: this.hasPermission('product-model-list') || this.hasPermission('product-model-create'),
-              },
-              { 
-                title: 'Serial Number Details',
-                link: '/serial_number_details',
-                hasPermission: this.hasPermission('serial-number-details'),
-              },
-            ] 
-          },
-        ]
-      };
-
-      // scan if list has permission
-      invtyPurchMenuList.list_items.forEach(list => {
-
-        list.children.forEach(child => {
-          if(child.hasPermission)
-          {
-            list.hasPermission = true;
-
-            // assign hasPermission to group menu
-            invtyPurchMenuList.hasPermission = true;
-          }
-        }); 
-
-      });
-
-      menu.push(invtyPurchMenuList);
-
-      // END Inventory / Purchasing group menu
-
-      // START HR/ Payroll group menu
-      let HRPayrollMenuList = {
-        group_header_title: 'HR / Payroll',
-        hasPermission: false,
-        list_items: [
-          {
-            title: 'Employee',
-            icon: 'mdi-account-multiple',
-            link: '',
-            hasPermission: false,
-            children: [
-              { 
-                title: 'Employee Lists',
-                link: '/employee/list',
-                hasPermission: this.hasPermission('employee-list'),
-              },
-              { 
-                title: 'Attlog Reports',
-                link: '/employee/attlog/list',
-                hasPermission: this.hasPermission('employee-attlog-list'),
-              },
-              { 
-                title: 'Resigned',
-                link: '/employee/resigned/list',
-                hasPermission: this.hasPermission('employee-resigned-list'),
-              },
-              { 
-                title: 'Payroll',
-                link: '/employee/payroll/list',
-                hasPermission: this.hasPermission('employee-payroll-list'),
-              },
-              { 
-                title: 'Absences',
-                link: '/employee/absences/list',
-                hasPermission: this.hasPermission('employee-absences-list'),
-              },
-              { 
-                title: 'Overtime',
-                link: '/employee/overtime/list',
-                hasPermission: this.hasPermission('employee-overtime-list'),
-              },
-              { 
-                title: 'Holiday Pay',
-                link: '/employee/holiday_pay/list',
-                hasPermission: this.hasPermission('employee-holiday-pay-list'),
-              },
-              { 
-                title: 'Loans',
-                link: '/employee/loans/list',
-                hasPermission: this.hasPermission('employee-loans-list'),
-              },
-              { 
-                title: 'Premiums',
-                link: '/employee/premiums/list',
-                hasPermission: this.hasPermission('employee-premiums-list'),
-              },
-            ],
-          },
-          {
-            title: 'Training',
-            icon: 'mdi-folder-multiple-outline',
-            link: '',
-            hasPermission: false,
-            children: [
-              { 
-                title: 'My Files',
-                link: '/training/my_files',
-                hasPermission: this.hasPermission('user-files') && this.hasPermission('file-create'),
-              },
-              { 
-                title: 'Files & Tutorials',
-                link: '/training/files_tutorials',
-                hasPermission: this.hasPermission('file-list'),
-              },
-            ],
-          }
-        ]
-      };
-
-      // scan if list has permission
-      HRPayrollMenuList.list_items.forEach(list => {
-
-        list.children.forEach(child => {
-          if(child.hasPermission)
-          {
-            list.hasPermission = true;
-
-            // assign hasPermission to group menu
-            HRPayrollMenuList.hasPermission = true;
-          }
-        }); 
-
-      });
-
-      menu.push(HRPayrollMenuList);
-
-      // END HR/ Payroll group menu
-
-      // START Sales & Marketing group menu
-      let salesMktgMenuList = {
-        group_header_title: 'Sales & Marketing',
-        hasPermission: false,
-        list_items: [
-          {
-            title: 'Tactical Req.',
-            icon: 'mdi-file-multiple-outline',
-            link: '',
-            hasPermission: false,
-            children: [
-              { 
-                title: 'Tactical List',
-                link: '/tactical_requisition/index',
-                hasPermission: this.hasPermission('tactical-requisition-list'),
-              },
-              { 
-                title: 'Create Tactical',
-                link: '/tactical_requisition/create',
-                hasPermission: this.hasPermission('tactical-requisition-create'),
-              },
-              { 
-                title: 'Marketing Event',
-                link: '/marketing_event/index',
-                hasPermission: this.hasPermission('marketing-event-list') || this.hasPermission('marketing-event-create'),
-              },
-            ]
-          }
-        ]
-      };
-
-      // scan if list has permission
-      salesMktgMenuList.list_items.forEach(list => {
-
-        list.children.forEach(child => {
-          if(child.hasPermission)
-          {
-            list.hasPermission = true;
-
-            // assign hasPermission to group menu
-            salesMktgMenuList.hasPermission = true;
-          }
-        }); 
-
-      });
-
-      menu.push(salesMktgMenuList);
-
-      // START Set Up & Athorization group menu
-      let setUpAuthorizationMenuList = {
-        group_header_title: 'Set Up & Authorizations',
-        hasPermission: false,
-        list_items: [
-          {
-            title: 'User Management',
-            icon: 'mdi-account-arrow-right-outline',
-            link: '',
-            hasPermission: false,
-            children: [
-              { 
-                title: 'User Accounts',
-                link: '/user/index',
-                hasPermission: this.hasPermission('user-list'),
-              },
-              { 
-                title: 'Create New',
-                link: '/user/create',
-                hasPermission: this.hasPermission('user-create'),
-              },
-            ],
-          },
-          {
-            title: 'Access Chart',
-            icon: 'mdi-chart-arc',
-            link: '',
-            hasPermission: false,
-            children: [
-              { 
-                title: 'Access Chart Lists',
-                link: '/access_chart/index',
-                hasPermission: this.hasPermission('access-chart-list'),
-              },
-              { 
-                title: 'Access Module Lists',
-                link: '/access_module/index',
-                hasPermission: this.hasPermission('access-module-list') || this.hasPermission('access-module-create'),
-              },
-              { 
-                title: 'Access Level',
-                link: '/access_level',
-                hasPermission: this.hasPermission('access-level-edit'),
-              },
-            ],
-          },
-          {
-            title: 'Settings',
-            icon: 'mdi-cog',
-            link: '',
-            hasPermission: false,
-            children: [
-              { 
-                title: 'Branch',
-                link: '/branch/index',
-                hasPermission: this.hasPermission('branch-list') || this.hasPermission('branch-create'),
-              },
-              { 
-                title: 'Company',
-                link: '/company/index',
-                hasPermission: this.hasPermission('company-list') || this.hasPermission('company-create'),
-              },
-              { 
-                title: 'Position',
-                link: '/position/index',
-                hasPermission: this.hasPermission('position-list') || this.hasPermission('position-create'),
-              },
-              { 
-                title: 'Department',
-                link: '/department/index',
-                hasPermission: this.hasPermission('department-list') || this.hasPermission('department-create'),
-              },
-              { 
-                title: 'Role',
-                link: '/role/index',
-                hasPermission: this.hasPermission('role-list') || this.hasPermission('role-create'),
-              },
-              { 
-                title: 'Permission',
-                link: '/permission/index',
-                hasPermission: this.hasPermission('permission-list') || this.hasPermission('permission-create'),
-              },
-            ],
-          },
-        ],
-      };
-
-      // scan if list has permission
-      setUpAuthorizationMenuList.list_items.forEach(list => {
-
-        list.children.forEach(child => {
-          if(child.hasPermission)
-          {
-            list.hasPermission = true;
-
-            // assign hasPermission to group menu
-            setUpAuthorizationMenuList.hasPermission = true;
-          }
-        }); 
-
-      });
-
-      menu.push(setUpAuthorizationMenuList);    
-      // END Set Up & Athorization group menu  
-
-      // START SAP Business One group menu
-      let SAPB1MenuList = {
-        group_header_title: 'Set Up & Authorizations',
-        hasPermission: false,
-        list_items: [
-          {
-            title: 'SAP Database',
-            icon: 'mdi-database',
-            link: '/sap_database/index',
-            hasPermission: this.hasPermission('sap-database-list') || this.hasPermission('sap-database-create'),
-            children: [],
-          },
-          {
-            title: 'Sync Item Master data',
-            icon: 'mdi-sync',
-            link: '',
-            hasPermission: this.hasPermission('sap-database-list') || this.hasPermission('sap-database-create'),
-            children: [],
-          },
-        ]
-      };
-
-      menu.push(SAPB1MenuList);
-
-      return menu;
-
-    },
     isIdle() {
+
 			return this.$store.state.idleVue.isIdle;
 		},
     ...mapState("auth", ["user"]),
-    ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission"]),
+    ...mapState("userRolesPermissions", ["userRoles", "userPermissions"]),
   },
   // watch: {
   //   isIdle(){

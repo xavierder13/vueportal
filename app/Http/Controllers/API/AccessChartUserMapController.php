@@ -72,7 +72,6 @@ class AccessChartUserMapController extends Controller
     public function update(Request $request, $approver_id)
     {
         
-
         $rules = [
             'user_id.required' => 'User ID is required',
             'user_id.integer' => 'User ID must be integer',

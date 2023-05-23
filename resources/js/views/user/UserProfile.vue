@@ -110,7 +110,8 @@ import {
   minLength,
   sameAs,
 } from "vuelidate/lib/validators";
-import { mapState } from "vuex";
+import { mapState, mapGetters } from "vuex";
+
 export default {
   mixins: [validationMixin],
 
@@ -308,7 +309,7 @@ export default {
       }
     },
     ...mapState("auth", ["user", "userIsLoaded"]),
-    ...mapState("userRolesPermissions", ["userRoles", "userPermissions"]),
+    ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission"]),
   },
   mounted() {
     axios.defaults.headers.common["Authorization"] =

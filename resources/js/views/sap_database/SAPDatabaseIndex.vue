@@ -26,7 +26,7 @@
               append-icon="mdi-magnify"
               label="Search"
               single-line
-              v-if="userPermissions.sap_database_list"
+              v-if="hasPermission('sap-database-list')"
             ></v-text-field>
             <template>
               <v-toolbar flat>
@@ -37,7 +37,7 @@
                   dark
                   class="mb-2"
                   @click="clear() + (dialog = true)"
-                  v-if="userPermissions.sap_database_create"
+                  v-if="hasPermission('sap-database-create')"
                 >
                   <v-icon>mdi-plus</v-icon>
                 </v-btn>
@@ -146,7 +146,7 @@
             :search="search"
             :loading="loading"
             loading-text="Loading... Please wait"
-            v-if="userPermissions.sap_database_list"
+            v-if="hasPermission('sap-database-list')"
           >
             <template v-slot:item.actions="{ item }">
               <v-icon
@@ -154,7 +154,7 @@
                 class="mr-2"
                 color="green"
                 @click="editSAPDatabase(item)"
-                v-if="userPermissions.sap_database_edit"
+                v-if="hasPermission('sap-database-edit')"
               >
                 mdi-pencil
               </v-icon>
@@ -162,7 +162,7 @@
                 small
                 color="red"
                 @click="showConfirmAlert(item)"
-                v-if="userPermissions.sap_database_delete"
+                v-if="hasPermission('sap-database-delete')"
               >
                 mdi-delete
               </v-icon>
@@ -186,7 +186,7 @@ import {
   minLength,
   sameAs,
 } from "vuelidate/lib/validators";
-import { mapState } from "vuex";
+import { mapState, mapGetters } from "vuex";
 
 export default {
   mixins: [validationMixin],
@@ -424,7 +424,7 @@ export default {
       this.passwordHasChanged = false;
     },
     onFocus() {
-      if (this.editedIndex > -1 && this.editedItem.id != 1) {
+      if (this.editedIndex > -1) {
         if (!this.passwordHasChanged) {
           this.password = "";
           this.confirm_password = "";
@@ -521,7 +521,7 @@ export default {
         }
       }
     },
-    ...mapState("userRolesPermissions", ["userRoles", "userPermissions"]),
+    ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission"]),
   },
   mounted() {
     axios.defaults.headers.common["Authorization"] =

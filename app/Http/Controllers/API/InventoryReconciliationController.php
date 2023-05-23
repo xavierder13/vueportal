@@ -560,73 +560,82 @@ class InventoryReconciliationController extends Controller
 
     public function sync_inventory_recon(Request $request)
     {   
-        $user = Auth::user();
-        $branch_id = $request->get('branch_id');
-        $branch = Branch::find($branch_id);
-        $inventory_group = $request->get('inventory_group');
 
-        $database = $request->get('database');
-        $db = SapDatabase::where('database', '=', $database)->get()->first();
-        $password = Crypt::decrypt($db->password);
-        Config::set('database.connections.'.$db->database, array(
-                    'driver' => 'sqlsrv',
-                    'host' => $db->server,
-                    'port' => '1433',
-                    'database' => $db->database,
-                    'username' => $db->username,
-                    'password' => $password,   
-                ));
+        try{
 
-        $inventory_onhand = DB::connection($database)->select("
-            SELECT 
-                d.FirmName BRAND, 
-                c.ItemName MODEL,
-                c.FrgnName CATEGORY, 
-                b.IntrSerial SERIAL,
-                cast(1 as numeric(19,2)) as 'Qty'
-            FROM 
-            OITW a
-                LEFT JOIN OSRI b on (a.ItemCode = b.ItemCode and a.WhsCode = b.WhsCode)
-                INNER JOIN OITM c on a.ItemCode = c.ItemCode
-                INNER JOIN OMRC d on c.FirmCode = d.FirmCode
-                INNER JOIN OWHS e on a.WhsCode = e.WhsCode 
-                INNER JOIN [@PROGTBL] f on UPPER(e.Street) COLLATE DATABASE_DEFAULT = CASE WHEN DB_NAME() = 'ReportsFinance' THEN f.U_Branch2 ELSE f.U_Branch1 END
-            WHERE a.OnHand <> 0 and b.Status = '0' and f.U_Branch1 = :branch
-            ORDER by 1, 2, 3, 4
-        ",
-        ['branch' => $branch->name]);
+            $user = Auth::user();
+            $branch_id = $request->get('branch_id');
+            $branch = Branch::find($branch_id);
+            $inventory_group = $request->get('inventory_group');
+    
+            $database = $request->get('database');
+            $db = SapDatabase::where('database', '=', $database)->get()->first();
+            $password = Crypt::decrypt($db->password);
+            Config::set('database.connections.'.$db->database, array(
+                        'driver' => 'sqlsrv',
+                        'host' => $db->server,
+                        'port' => '1433',
+                        'database' => $db->database,
+                        'username' => $db->username,
+                        'password' => $password,   
+                    ));
+    
+            $inventory_onhand = DB::connection($database)->select("
+                SELECT 
+                    d.FirmName BRAND, 
+                    c.ItemName MODEL,
+                    c.FrgnName CATEGORY, 
+                    b.IntrSerial SERIAL,
+                    cast(1 as numeric(19,2)) as 'Qty'
+                FROM 
+                OITW a
+                    LEFT JOIN OSRI b on (a.ItemCode = b.ItemCode and a.WhsCode = b.WhsCode)
+                    INNER JOIN OITM c on a.ItemCode = c.ItemCode
+                    INNER JOIN OMRC d on c.FirmCode = d.FirmCode
+                    INNER JOIN OWHS e on a.WhsCode = e.WhsCode 
+                    INNER JOIN [@PROGTBL] f on UPPER(e.Street) COLLATE DATABASE_DEFAULT = CASE WHEN DB_NAME() = 'ReportsFinance' THEN f.U_Branch2 ELSE f.U_Branch1 END
+                WHERE a.OnHand <> 0 and b.Status = '0' and f.U_Branch1 = :branch
+                ORDER by 1, 2, 3, 4
+            ",
+            ['branch' => $branch->name]);
+    
+            if(!count($inventory_onhand))
+            {
+                return response()->json(['empty' => 'No record found', $db], 200);
+            }
+    
+            $inventory_reconciliation = new InventoryReconciliation();
+            $inventory_reconciliation->branch_id = $branch_id;
+            $inventory_reconciliation->user_id = $user->id;
+            $inventory_reconciliation->date_reconciled = null;
+            $inventory_reconciliation->status = 'unreconciled';
+            $inventory_reconciliation->inventory_group = $inventory_group;
+            $inventory_reconciliation->save();
+    
+    
+            foreach ($inventory_onhand as $key => $value) {
+                
+                InventoryReconciliationMap::create([
+                    'inventory_recon_id' => $inventory_reconciliation->id,
+                    'user_id' => $user->id,
+                    'inventory_type' => 'SAP',
+                    'brand' => $value->BRAND,
+                    'model' => $value->MODEL,
+                    'product_category' => $value->CATEGORY,
+                    'serial' => $value->SERIAL,
+                    'quantity' => 1,
+                ]);
+                
+            }
+    
+    
+            return response()->json(['success' => 'Record has been synced'], 200);
 
-        if(!count($inventory_onhand))
-        {
-            return response()->json(['empty' => 'No record found', $db], 200);
+        } catch (\Exception $e) {
+                
+            return response()->json(['error' => $e->getMessage()], 200);
         }
 
-        $inventory_reconciliation = new InventoryReconciliation();
-        $inventory_reconciliation->branch_id = $branch_id;
-        $inventory_reconciliation->user_id = $user->id;
-        $inventory_reconciliation->date_reconciled = null;
-        $inventory_reconciliation->status = 'unreconciled';
-        $inventory_reconciliation->inventory_group = $inventory_group;
-        $inventory_reconciliation->save();
-
-
-        foreach ($inventory_onhand as $key => $value) {
-            
-            InventoryReconciliationMap::create([
-                'inventory_recon_id' => $inventory_reconciliation->id,
-                'user_id' => $user->id,
-                'inventory_type' => 'SAP',
-                'brand' => $value->BRAND,
-                'model' => $value->MODEL,
-                'product_category' => $value->CATEGORY,
-                'serial' => $value->SERIAL,
-                'quantity' => 1,
-            ]);
-            
-        }
-
-
-        return response()->json(['success' => 'Record has been synced'], 200);
     }
     
     public function delete(Request $request)

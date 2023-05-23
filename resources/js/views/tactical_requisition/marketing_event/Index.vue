@@ -18,7 +18,7 @@
               append-icon="mdi-magnify"
               label="Search"
               single-line
-              v-if="userPermissions.marketing_event_list"
+              v-if="hasPermission('marketing-event-list')"
             ></v-text-field>
             <template>
               <v-toolbar flat>
@@ -29,7 +29,7 @@
                   dark
                   class="mb-2"
                   @click="createMarketingEvent()"
-                  v-if="userPermissions.marketing_event_create"
+                  v-if="hasPermission('marketing-event-create')"
                 >
                   <v-icon>mdi-plus</v-icon>
                 </v-btn>
@@ -43,7 +43,7 @@
             :search="search"
             :loading="loading"
             loading-text="Loading... Please wait"
-            v-if="userPermissions.marketing_event_list"
+            v-if="hasPermission('marketing-event-list')"
           >
             <template v-slot:item.actions="{ item }">
               <v-icon
@@ -51,7 +51,7 @@
                 class="mr-2"
                 color="info"
                 @click="viewApprovingOfficer(item)"
-                v-if="userPermissions.approving_officer_list"
+                v-if="hasPermission('approving-officer-list')"
               >
                 mdi-eye
               </v-icon>
@@ -60,7 +60,7 @@
                 class="mr-2"
                 color="green"
                 @click="editMarketingEvent(item)"
-                v-if="userPermissions.marketing_event_edit"
+                v-if="hasPermission('marketing-event-edit')"
               >
                 mdi-pencil
               </v-icon>
@@ -68,7 +68,7 @@
                 small
                 color="red"
                 @click="showConfirmAlert(item, 'Marketing Event')"
-                v-if="userPermissions.marketing_event_delete"
+                v-if="hasPermission('marketing-event-delete')"
               >
                 mdi-delete
               </v-icon>
@@ -156,7 +156,7 @@
                           class="primary ml-4"
                           small
                           @click="newApprovingOfficer()"
-                          v-if="userPermissions.approving_officer_list"
+                          v-if="hasPermission('approving-officer-list')"
                         >
                           <v-icon> mdi-plus</v-icon> New
                         </v-btn>
@@ -229,7 +229,7 @@
                               color="green"
                               @click="editApprover(item)"
                               v-if="
-                                userPermissions.access_chart_edit &&
+                                hasPermission('access-chart-edit') &&
                                 index !== editedIndex2 &&
                                 item.status !== 'New'
                               "
@@ -245,7 +245,7 @@
                                 showConfirmAlert(item, 'Approving Officer')
                               "
                               v-if="
-                                userPermissions.access_chart_delete &&
+                                hasPermission('access-chart-delete') &&
                                 index !== editedIndex2 &&
                                 item.status !== 'New'
                               "
@@ -305,7 +305,7 @@
 import axios from "axios";
 import { validationMixin } from "vuelidate";
 import { required, maxLength, email } from "vuelidate/lib/validators";
-import { mapState } from "vuex";
+import { mapState, mapGetters } from "vuex";
 
 export default {
   mixins: [validationMixin],
@@ -866,7 +866,7 @@ export default {
     {
       return this.hasChanges ? 'Update' : 'OK';
     },
-    ...mapState("userRolesPermissions", ["userRoles", "userPermissions"]),
+    ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission"]),
   },
   watch: {
     "editedItem.max_approval_level"() {
@@ -896,7 +896,6 @@ export default {
       }
    
       this.editedItem.approver_per_level = approver_per_level;
-
 
       // START validate if current data has changes 
 

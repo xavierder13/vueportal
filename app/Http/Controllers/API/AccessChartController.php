@@ -134,7 +134,7 @@ class AccessChartController extends Controller
         $access_chart = AccessChart::find($access_chart_id);
         $access_chart->name = $request->get('name');
         $access_chart->access_for = $request->get('access_for');
-        // $access_chart->save();
+        $access_chart->save();
 
         $approver_per_level = $request->get('approver_per_level');
         
@@ -142,11 +142,23 @@ class AccessChartController extends Controller
         $approver_per_level_2_count = count($approver_per_level);
 
         foreach ($approver_per_level as $i => $value) {
-            $approver_per_level = new ApproverPerLevel();
-            $approver_per_level->module_id = $request->get('access_for');
-            $approver_per_level->level = $value['level'];
-            $approver_per_level->num_of_approvers = $value['num_of_approvers'];
-            // $approver_per_level->save();
+            $approver_per_level = ApproverPerLevel::find($value['id']);
+
+            // if approver_per_level exists on the table then update
+            if($approver_per_level)
+            {
+                $approver_per_level->module_id = $request->get('access_for');
+                $approver_per_level->level = $value['level'];
+                $approver_per_level->num_of_approvers = $value['num_of_approvers'];
+            }
+            else // if approver_per_level does not exist on the table then add
+            {
+                $approver_per_level = new ApproverPerLevel();
+                $approver_per_level->module_id = $request->get('access_for');
+                $approver_per_level->level = $value['level'];
+                $approver_per_level->num_of_approvers = $value['num_of_approvers'];
+            }
+            $approver_per_level->save();
         }
 
         $access_chart = AccessChart::with('access_chart_user_maps')

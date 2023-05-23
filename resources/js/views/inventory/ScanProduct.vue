@@ -279,7 +279,7 @@ import {
   minLength,
   sameAs,
 } from "vuelidate/lib/validators";
-import { mapState } from "vuex";
+import { mapState, mapGetters } from "vuex";
 import goTo from "vuetify/lib/services/goto";
 export default {
   mixins: [validationMixin],
@@ -833,7 +833,7 @@ export default {
       return isRequired;
     },
     ...mapState("auth", ["user"]),
-    ...mapState("userRolesPermissions", ["userRoles", "userPermissions"]),
+    ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission"]),
   },
   created() {
     // Add barcode scan listener and pass the callback function

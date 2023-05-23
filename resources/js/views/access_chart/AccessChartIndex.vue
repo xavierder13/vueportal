@@ -18,7 +18,7 @@
               append-icon="mdi-magnify"
               label="Search"
               single-line
-              v-if="userPermissions.access_chart_list"
+              v-if="hasPermission('access-chart-list')"
             ></v-text-field>
             <template>
               <v-toolbar flat>
@@ -29,7 +29,7 @@
                   dark
                   class="mb-2"
                   @click="clear() + (dialog = true)"
-                  v-if="userPermissions.access_chart_create"
+                  v-if="hasPermission('access-chart-create')"
                 >
                   <v-icon>mdi-plus</v-icon>
                 </v-btn>
@@ -184,7 +184,7 @@
             :search="search"
             :loading="loading"
             loading-text="Loading... Please wait"
-            v-if="userPermissions.access_chart_list"
+            v-if="hasPermission('access-chart-list')"
           >
             <template v-slot:item.access_chart_user_maps.length="{ item }">
               <v-chip
@@ -201,7 +201,7 @@
                 class="mr-2"
                 color="info"
                 @click="viewApprovingOfficer(item)"
-                v-if="userPermissions.approving_officer_list"
+                v-if="hasPermission('approving-officer-list')"
               >
                 mdi-eye
               </v-icon>
@@ -210,7 +210,7 @@
                 class="mr-2"
                 color="green"
                 @click="editAccessChart(item)"
-                v-if="userPermissions.access_chart_edit"
+                v-if="hasPermission('access-chart-edit')"
               >
                 mdi-pencil
               </v-icon>
@@ -218,7 +218,7 @@
                 small
                 color="red"
                 @click="showConfirmAlert(item, 'Access Chart')"
-                v-if="userPermissions.access_chart_delete"
+                v-if="hasPermission('access-chart-delete')"
               >
                 mdi-delete
               </v-icon>
@@ -250,7 +250,7 @@
                           class="primary ml-4"
                           small
                           @click="newApprovingOfficer()"
-                          v-if="userPermissions.approving_officer_list"
+                          v-if="hasPermission('approving-officer-list')"
                         >
                           <v-icon> mdi-plus</v-icon> New
                         </v-btn>
@@ -264,32 +264,11 @@
                           loading-text="Loading... Please wait"
                           hide-default-footer
                         >
-                          <template
-                            v-slot:item.approving_officer="{ item, index }"
-                          >
-                            <span
-                              v-if="
-                                editedIndex2 === -1 || editedIndex2 !== index
-                              "
-                            >
-                              {{
-                                item.status !== "New"
-                                  ? item.user
-                                    ? "Approving Officer " +
-                                      item.access_level +
-                                      " - " +
-                                      item.user.name
-                                    : "No User"
-                                  : ""
-                              }}
+                          <template v-slot:item.approving_officer="{ item, index }">
+                            <span v-if="!rowFieldIsActive(index, item)">
+                              {{ item.user ? "Approving Officer " +  " - " + item.user.name : "No User" }}
                             </span>
-                            <v-row
-                              v-if="
-                                index === editedIndex2
-                                  ? true
-                                  : false || item.status === 'New'
-                              "
-                            >
+                            <v-row v-if="rowFieldIsActive(index, item)">
                               <v-col class="pb-0">
                                 <v-autocomplete
                                   v-model="approvingOfficer.user_id"
@@ -317,63 +296,47 @@
                           </template>
 
                           <template v-slot:item.actions="{ item, index }">
-                            <v-icon
-                              small
-                              class="mr-2"
-                              color="green"
-                              @click="editApprover(item)"
-                              v-if="
-                                userPermissions.access_chart_edit &&
-                                index !== editedIndex2 &&
-                                item.status !== 'New'
-                              "
-                              :disabled="addEditMode === 'Add' ? true : false"
-                            >
-                              mdi-pencil
-                            </v-icon>
+                            <template v-if="!rowFieldIsActive(index, item)">
+                              <v-icon
+                                small
+                                class="mr-2"
+                                color="green"
+                                @click="editApprover(item)"
+                                v-if="hasPermission('access-chart-edit')"
+                                :disabled="addEditMode === 'Add' ? true : false"
+                              >
+                                mdi-pencil
+                              </v-icon>
 
-                            <v-icon
-                              small
-                              color="red"
-                              @click="
-                                showConfirmAlert(item, 'Approving Officer')
-                              "
-                              v-if="
-                                userPermissions.access_chart_delete &&
-                                index !== editedIndex2 &&
-                                item.status !== 'New'
-                              "
-                              :disabled="['Add', 'Edit'].includes(addEditMode)"
-                            >
-                              mdi-delete
-                            </v-icon>
+                              <v-icon
+                                small
+                                color="red"
+                                @click="showConfirmAlert(item, 'Approving Officer')"
+                                v-if="hasPermission('access-chart-delete')"
+                                :disabled="['Add', 'Edit'].includes(addEditMode)"
+                              >
+                                mdi-delete
+                              </v-icon>
+                            </template>
+                            
+                            <template v-if="rowFieldIsActive(index, item)">
+                              <v-btn
+                                class="primary"
+                                x-small
+                                :disabled="disabled"
+                                @click="saveApprovingOfficer()"
+                              >
+                                save
+                              </v-btn>
 
-                            <v-btn
-                              class="primary"
-                              x-small
-                              v-if="
-                                index === editedIndex2
-                                  ? true
-                                  : false || item.status === 'New'
-                              "
-                              :disabled="disabled"
-                              @click="saveApprovingOfficer()"
-                            >
-                              save
-                            </v-btn>
-
-                            <v-btn
-                              x-small
-                              v-if="
-                                index === editedIndex2
-                                  ? true
-                                  : false || item.status === 'New'
-                              "
-                              color="#E0E0E0"
-                              @click="cancelEvent(item)"
-                            >
-                              cancel
-                            </v-btn>
+                              <v-btn
+                                x-small
+                                color="#E0E0E0"
+                                @click="cancelEvent(item)"
+                              >
+                                cancel
+                              </v-btn>
+                            </template>
                           </template>
                         </v-data-table>
                       </v-card-text>
@@ -403,7 +366,7 @@
 import axios from "axios";
 import { validationMixin } from "vuelidate";
 import { required, maxLength, email } from "vuelidate/lib/validators";
-import { mapState } from "vuex";
+import { mapState, mapGetters } from "vuex";
 
 export default {
   mixins: [validationMixin],
@@ -860,6 +823,9 @@ export default {
       this.editedIndex = -1;
       this.hasApprovers = false;
     },
+    rowFieldIsActive(index, item) {
+      return  index === this.editedIndex2 || item.status === 'New';
+    },
     isUnauthorized(error) {
       // if unauthenticated (401)
       if (error.response.status == "401") {
@@ -1010,6 +976,7 @@ export default {
       return approver_access_levels;
     },
     ...mapState("userRolesPermissions", ["userRoles", "userPermissions"]),
+    ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission"]),
   },
   mounted() {
     axios.defaults.headers.common["Authorization"] =

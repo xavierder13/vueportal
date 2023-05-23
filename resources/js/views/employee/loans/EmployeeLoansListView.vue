@@ -22,7 +22,7 @@
                 <v-list-item
                   class="ma-0 pa-0"
                   style="min-height: 25px"
-                  v-if="userPermissions.employee_loans_import"
+                  v-if="hasPermission('employee-loans-import')"
                 >
                   <v-list-item-title>
                     <v-btn
@@ -40,7 +40,7 @@
                 <v-list-item
                   class="ma-0 pa-0"
                   style="min-height: 25px"
-                  v-if="userPermissions.employee_loans_export"
+                  v-if="hasPermission('employee-loans-export')"
                 >
                   <v-list-item-title>
                     <v-btn
@@ -58,7 +58,7 @@
                 <v-list-item
                   class="ma-0 pa-0"
                   style="min-height: 25px"
-                  v-if="userPermissions.employee_clear_list"
+                  v-if="hasPermission('employee-loans-clear-list')"
                 >
                   <v-list-item-title>
                     <v-btn
@@ -94,7 +94,7 @@
               dark
               class="mb-2"
               @click="clear() + (dialog = true)"
-              v-if="userPermissions.employee_loans_create"
+              v-if="hasPermission('employee-loans-create')"
             >
               <v-icon>mdi-plus</v-icon>
             </v-btn>
@@ -106,7 +106,7 @@
             :search="search"
             :loading="loading"
             loading-text="Loading... Please wait"
-            v-if="userPermissions.employee_loans_list"
+            v-if="hasPermission('employee-loans-list')"
           >
             <template v-slot:top v-if="file_upload_log">
               <v-toolbar
@@ -122,7 +122,7 @@
                 class="mr-2"
                 color="green"
                 @click="editEmployeeLoans(item)"
-                v-if="userPermissions.employee_loans_edit"
+                v-if="hasPermission('employee-loans-edit')"
               >
                 mdi-pencil
               </v-icon>
@@ -130,7 +130,7 @@
                 small
                 color="red"
                 @click="showConfirmAlert(item)"
-                v-if="userPermissions.employee_loans_delete"
+                v-if="hasPermission('employee-loans-delete')"
               >
                 mdi-delete
               </v-icon>
@@ -547,7 +547,7 @@
 import axios from "axios";
 import { validationMixin } from "vuelidate";
 import { required, maxLength, email } from "vuelidate/lib/validators";
-import { mapState } from "vuex";
+import { mapState, mapGetters } from "vuex";
 import ImportDialog from "../components/ImportDialog.vue";
 
 export default {
@@ -723,8 +723,7 @@ export default {
       
           // if user has no permission to view overall list
           // console.log(response.data);
-          if (
-            !this.userPermissions.employee_loans_list_all &&
+          if (!this.hasPermission('employee-loans-list-all') &&
             this.user.branch_id != this.branch_id
           ) {
             this.$router.push({ name: "unauthorize" });
@@ -1405,11 +1404,8 @@ export default {
       return (total_loan - total_paid).toFixed(2);
     },
     ...mapState("auth", ["user", "userIsLoaded"]),
-    ...mapState("userRolesPermissions", [
-      "userRoles",
-      "userPermissions",
-      "userRolesPermissionsIsLoaded",
-    ]),
+    ...mapState("userRolesPermissions", ["userRolesPermissionsIsLoaded"]),
+    ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission"]),
   },
 
   mounted() {

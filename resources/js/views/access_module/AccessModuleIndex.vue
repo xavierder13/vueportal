@@ -18,7 +18,7 @@
               append-icon="mdi-magnify"
               label="Search"
               single-line
-              v-if="userPermissions.access_module_list"
+              v-if="hasPermission('access-module-list')"
             ></v-text-field>
             <template>
               <v-toolbar flat>
@@ -29,7 +29,7 @@
                   dark
                   class="mb-2"
                   @click="clear() + (dialog = true)"
-                  v-if="userPermissions.access_module_create"
+                  v-if="hasPermission('access-module-create')"
                 >
                   <v-icon>mdi-plus</v-icon>
                 </v-btn>
@@ -86,7 +86,7 @@
             :search="search"
             :loading="loading"
             loading-text="Loading... Please wait"
-            v-if="userPermissions.access_module_list"
+            v-if="hasPermission('access-module-list')"
           >
             <template v-slot:item.actions="{ item }">
               <v-icon
@@ -94,7 +94,7 @@
                 class="mr-2"
                 color="green"
                 @click="editModule(item)"
-                v-if="userPermissions.access_module_edit"
+                v-if="hasPermission('access-module-edit')"
               >
                 mdi-pencil
               </v-icon>
@@ -102,7 +102,7 @@
                 small
                 color="red"
                 @click="showConfirmAlert(item)"
-                v-if="userPermissions.access_module_delete"
+                v-if="hasPermission('access-module-delete')"
               >
                 mdi-delete
               </v-icon>
@@ -117,7 +117,7 @@
 import axios from "axios";
 import { validationMixin } from "vuelidate";
 import { required, maxLength, email } from "vuelidate/lib/validators";
-import { mapState } from "vuex";
+import { mapState, mapGetters } from "vuex";
 
 export default {
   mixins: [validationMixin],
@@ -350,7 +350,7 @@ export default {
           action == "access-module-edit" ||
           action == "access-module-delete"
         ) {
-          this.userRolesPermissions();
+          this.getAccessModule();
         }
       };
     },
@@ -358,9 +358,7 @@ export default {
 
   computed: {
     formTitle() {
-      return this.editedIndex === -1
-        ? "New Access Module"
-        : "Edit Access Module";
+      return this.editedIndex === -1 ? "New " : "Edit " + "Access Module";
     },
     moduleErrors() {
       const errors = [];
@@ -369,7 +367,7 @@ export default {
       return errors;
     },
 
-    ...mapState("userRolesPermissions", ["userRoles", "userPermissions"]),
+    ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission"]),
   },
   mounted() {
     axios.defaults.headers.common["Authorization"] =
