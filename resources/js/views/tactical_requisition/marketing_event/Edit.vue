@@ -49,8 +49,6 @@
                   <v-treeview
                     v-model="tree"
                     :items="expense_particulars"
-                    expand-icon="mdi-plus" 
-                    open-all
                     hoverable
                   >
                     <template v-slot:prepend="{ item, open }">
@@ -218,6 +216,8 @@ export default {
               });
             }
           });
+
+          console.log(this.expense_particulars);
         },
         (error) => {
           this.isUnauthorized(error);

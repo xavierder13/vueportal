@@ -28,27 +28,37 @@ class TacticalRequisitionController extends Controller
         $user_can_view_tactical_list = Auth::user()->can('tactical-requisition-list');
 
         // Access chart Tactical Requisition
-        $access_chart = AccessChart::with('access_chart_user_maps')
-                                   ->with('access_module')
-                                   ->with('approver_per_level')
-                                //    ->where('access_for', '=', 5) //ID of Tactital Requisition from Access Module
-                                   ->whereHas('access_module', function($query){
-                                         $query->where('name', '=', 'Tactical Requisition');
-                                   })
-                                   ->first();
+        // $access_chart = AccessChart::with('access_chart_user_maps')
+        //                            ->with('access_module')
+        //                            ->with('approver_per_level')
+        //                         //    ->where('access_for', '=', 5) //ID of Tactital Requisition from Access Module
+        //                            ->whereHas('access_module', function($query){
+        //                                  $query->where('name', '=', 'Tactical Requisition');
+        //                            })
+        //                            ->first();
         
-        $approvers = $access_chart->access_chart_user_maps;
+        // $approvers = $access_chart->access_chart_user_maps;
+
+        $approvers = [];
+
+
 
         $approver_per_level = $access_chart->approver_per_level;
 
         // check if Auth is approver on access chart tactical requisition
-        $approver_ctr = AccessChart::with('access_chart_user_maps')
-                                    ->whereHas('access_module', function($query){
-                                        $query->where('name', '=', 'Tactical Requisition');
-                                    })
-                                    ->whereHas('access_chart_user_maps', function($query){
-                                        $query->whereIn('user_id', [Auth::id()]);
-                                    })->get()->count();
+        // $approver_ctr = AccessChart::with('access_chart_user_maps')
+        //                             ->whereHas('access_module', function($query){
+        //                                 $query->where('name', '=', 'Tactical Requisition');
+        //                             })
+        //                             ->whereHas('access_chart_user_maps', function($query){
+        //                                 $query->whereIn('user_id', [Auth::id()]);
+        //                             })->get()->count();
+
+        // check if Auth is approver marketing events
+        $approver_ctr = MarketingEvent::with('marketing_evenet_user_maps')
+                                        ->whereHas('marketing_evenet_user_maps', function($query){
+                                            $query->whereIn('user_id', [Auth::id()]);
+                                        })->get()->count();
         
         $tactical_requisitions = TacticalRequisition::with('branch')
                                                     ->with('user')
@@ -76,31 +86,31 @@ class TacticalRequisitionController extends Controller
         $curr_level_approvers = [];
         
         // get the required current level approvers for each record
-        foreach ($tactical_requisitions as $key => $value) {
+        foreach ($tactical_requisitions as $tactical) {
 
             $level = [];
 
-            foreach ($approver_per_level as $key2 => $value2) {
+            foreach ($approver_per_level as $apprvr_per_lvl) {
             
                 $approver_ctr_per_level = 0;
                 
                 // approved_logs for each record
-                foreach ($value->approved_logs as $key3 => $value3) {
+                foreach ($tactical->approved_logs as $log) {
 
                     // scan if approved_logs is equal to approver_per_level (from access_charts table relations)
-                    if($value2->level === $value3->level)
+                    if($apprvr_per_lvl->level === $log->level)
                     {   
                         // count the logs of approver per level for each record - used to validate if tactical requisition has already approved by the required approver for each level
                         $approver_ctr_per_level += 1;
 
-                        $approver [] = $value3->approver->name;
+                        $approver [] = $log->approver->name;
                     }
                 }
                 
                 // count 
-                if($value2->num_of_approvers !== $approver_ctr_per_level)
+                if($apprvr_per_lvl->num_of_approvers !== $approver_ctr_per_level)
                 {
-                    $level [] = $value2->level;
+                    $level [] = $apprvr_per_lvl->level;
                 }
                 
             }
@@ -110,21 +120,21 @@ class TacticalRequisitionController extends Controller
             $current_level = $access_chart->max_approval_level;
             
             // if tactical requisition status is Pending then set the required level approver to show the for approval tactical requisition
-            if($value->status === 'Pending')
+            if($tactical->status === 'Pending')
             {
                 $current_level = min($level);
             }
 
             // get the approver id (user_id) where level == min($level)
-            foreach ($approvers as $key2 => $value2) {
+            foreach ($approvers as $approver) {
 
-                if($value2->access_level === $current_level)
+                if($approver->access_level === $current_level)
                 {
-                    $approvers_arr[] = $value2->user_id;
+                    $approvers_arr[] = $approver->user_id;
                 }
             }
 
-            $curr_level_approvers [] = ['tactical_requisition_id' => $value->id, 'level' => $current_level, 'approver_id' => $approvers_arr];
+            $curr_level_approvers [] = ['tactical_requisition_id' => $tactical->id, 'level' => $current_level, 'approver_id' => $approvers_arr];
 
         }
         
@@ -137,22 +147,22 @@ class TacticalRequisitionController extends Controller
             $tactical_requisitions = []; // if user is approver then reset the $tactical_requisitions
 
             // filter record if approver has already approved the record
-            foreach ($data as $key => $value) {
+            foreach ($data as $value) {
 
                 $approved_by_user = false;
                 $current_level_approver = false;
 
                 // check if user(approver) already approved the record based from approved_logs table
-                foreach ($value->approved_logs as $key2 => $value2) {
-                    if(Auth::id() ===  $value2->approver_id)
+                foreach ($value->approved_logs as $log) {
+                    if(Auth::id() ===  $log->approver_id)
                     {
                         $approved_by_user = true;                        
                     }
                 }
 
                 // check if user(approver) is the current level approver
-                foreach ($curr_level_approvers as $key2 => $value2) {
-                    if($value2['tactical_requisition_id'] === $value->id && in_array(Auth::id(), $value2['approver_id']) )
+                foreach ($curr_level_approvers as $approver) {
+                    if($approver['tactical_requisition_id'] === $value->id && in_array(Auth::id(), $approver['approver_id']) )
                     {
                         $current_level_approver = true;
                     }
@@ -171,33 +181,33 @@ class TacticalRequisitionController extends Controller
         $approval_progress = [];
         
         // get the approval progress per record
-        foreach ($tactical_requisitions as $key => $value) {
+        foreach ($tactical_requisitions as $tactical) {
             $progress = [];
 
-            foreach ($approver_per_level as $key2 => $value2) {
+            foreach ($approver_per_level as $apprvr_per_lvl) {
             
                 $approver_ctr_per_level = 0;
                 $approver = [];
                 $done = false;
                 
                 // approved_logs for each record
-                foreach ($value->approved_logs as $key3 => $value3) {
-                    if($value2->level === $value3->level)
+                foreach ($tactical->approved_logs as $value3) {
+                    if($apprvr_per_lvl->level === $value3->level)
                     {
                         $approver_ctr_per_level += 1;
                         $approver [] = $value3->approver->name;
                     }
                 }
     
-                if($value2->num_of_approvers === $approver_ctr_per_level)
+                if($apprvr_per_lvl->num_of_approvers === $approver_ctr_per_level)
                 {
                     $done = true;
                 }
     
-                $progress [] = ['level' => $value2->level, 'done' => $done, 'approver' => $approver];
+                $progress [] = ['level' => $apprvr_per_lvl->level, 'done' => $done, 'approver' => $approver];
             }
 
-            $approval_progress [] = ['tactical_requisition_id' => $value->id, 'progress' => $progress];
+            $approval_progress [] = ['tactical_requisition_id' => $tactical->id, 'progress' => $progress];
 
         }
                                      
