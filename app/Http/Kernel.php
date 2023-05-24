@@ -82,6 +82,7 @@ class Kernel extends HttpKernel
         'inventory_reconciliation.maintenance' => \App\Http\Middleware\InventoryReconciliationMaintenance::class,
         'tactical_requisition.maintenance' => \App\Http\Middleware\TacticalRequisitionMaintenance::class,
         'marketing_event.maintenance' => \App\Http\Middleware\MarketingEventMaintenance::class,
+        'marketing_event_user_map.maintenance' => \App\Http\Middleware\MarketingEventUserMapMaintenance::class,
         'access_module.maintenance' => \App\Http\Middleware\AccessModuleMaintenance::class,
         'access_chart.maintenance' => \App\Http\Middleware\AccessChartMaintenance::class,
         'access_chart_user_map.maintenance' => \App\Http\Middleware\AccessChartUserMapMaintenance::class,

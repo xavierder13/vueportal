@@ -101,7 +101,11 @@ class AccessChartUserMapController extends Controller
                                       
         $max_access_level = $this->max_access_level($approver->access_chart_id);
 
-        return response()->json(['success' => 'Record has been added', 'approver' => $approver, 'max_access_level' => $max_access_level], 200);
+        return response()->json([
+            'success' => 'Record has been updated', 
+            'approver' => $approver, 
+            'max_access_level' => $max_access_level
+        ], 200);
     }
 
     public function delete(Request $request)

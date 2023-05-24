@@ -33,7 +33,10 @@ class MarketingEventUserMapMaintenance
         }
 
         //Marketing Event Edit
-        if($request->is('api/marketing_event_user_map/edit/*') || $request->is('api/marketing_event_user_map/update/*')){
+        if($request->is('api/marketing_event_user_map/edit/*') || 
+           $request->is('api/marketing_event_user_map/update/*') ||
+           $request->is('api/marketing_event_user_map/update_approver_per_level')
+            ){
             if($user->can('marketing-event-edit')){
                 return $next($request); 
             }

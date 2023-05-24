@@ -39,7 +39,9 @@ class TacticalRequisitionController extends Controller
         
         // $approvers = $access_chart->access_chart_user_maps;
 
-        $approvers = [];
+        return $mktg_event_approvers = MarketingEvent::with('marketing_event_user_maps')
+                                              ->with('approver_per_level') 
+                                              ->get();
 
 
 

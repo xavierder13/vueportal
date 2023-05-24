@@ -68,8 +68,6 @@ class MarketingEventUserMapController extends Controller
 
     public function update(Request $request, $approver_id)
     {
-        
-
         $rules = [
             'user_id.required' => 'User ID is required',
             'user_id.integer' => 'User ID must be integer',
@@ -99,7 +97,20 @@ class MarketingEventUserMapController extends Controller
                                       
         $max_access_level = $this->max_access_level($approver->marketing_event_id);
 
-        return response()->json(['success' => 'Record has been added', 'approver' => $approver, 'max_access_level' => $max_access_level], 200);
+        return response()->json([
+            'success' => 'Record has been updated', 
+            'approver' => $approver, 
+            'max_access_level' => $max_access_level
+        ], 200);
+    }
+
+    public function update_approver_per_level(Request $request)
+    {   
+        
+        MarketingEvent::where('id', '=', $request->get('id'))
+                      ->update(['max_approval_level' => $request->get('max_approval_level')]);
+
+        return response()->json(['success' => 'Record has been updated'], 200);
     }
 
     public function delete(Request $request)

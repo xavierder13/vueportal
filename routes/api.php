@@ -723,6 +723,10 @@ Route::group(['prefix' => 'marketing_event_user_map', 'middleware' => ['auth:api
         'uses' => 'API\MarketingEventUserMapController@update',
         'as' => 'marketing_event_user_map.update',
     ]);
+    Route::post('/update_approver_per_level', [
+        'uses' => 'API\MarketingEventUserMapController@update_approver_per_level',
+        'as' => 'marketing_event_user_map.update_approver_per_level',
+    ]);
     Route::post('/delete', [
         'uses' => 'API\MarketingEventUserMapController@delete',
         'as' => 'marketing_event_user_map.delete',

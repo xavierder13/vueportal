@@ -74,14 +74,13 @@
               </v-icon>
             </template>
           </v-data-table>
-
+          
           <!-- Approving Officers per Marketing Event -->
           <v-dialog
             v-model="dialog_approving_officer"
             max-width="1000px"
-            hide-overlay
-            transition="dialog-bottom-transition"
             scrollable
+            persistent
           >
             <v-card>
               <v-card-title>
@@ -134,7 +133,6 @@
                                     : null,
                                     messages: '',
                                   }"
-                                  @input="getFieldValue(index, item)"
                                   required
                                 >
                                 </v-text-field-integer>
@@ -170,116 +168,73 @@
                           loading-text="Loading... Please wait"
                           hide-default-footer
                         >
-                          <template
-                            v-slot:item.approving_officer="{ item, index }"
-                          >
-                            <span
-                              v-if="
-                                editedIndex2 === -1 || editedIndex2 !== index
-                              "
-                            >
-                              {{
-                                item.status !== "New"
-                                  ? item.user
-                                    ? "Approving Officer " +
-                                      item.access_level +
-                                      " - " +
-                                      item.user.name
-                                    : "No User"
-                                  : ""
-                              }}
-                            </span>
-                            <v-row
-                              v-if="
-                                index === editedIndex2
-                                  ? true
-                                  : false || item.status === 'New'
-                              "
-                            >
-                              <v-col class="pb-0">
-                                <v-autocomplete
-                                  v-model="approvingOfficer.user_id"
-                                  :items="filteredUsers"
-                                  item-text="name"
-                                  item-value="id"
-                                  label="User"
-                                  :error-messages="approvingOfficerErrors"
-                                  @input="$v.approvingOfficer.user_id.$touch()"
-                                  @blur="$v.approvingOfficer.user_id.$touch()"
-                                  hide-details=""
-                                >
-                                </v-autocomplete>
-                              </v-col>
-                              <v-col class="pb-0">
-                                <v-autocomplete
-                                  v-model="approvingOfficer.access_level"
-                                  :items="approverAccessLevels"
-                                  item-text="level"
-                                  label="Access Level"
-                                >
-                                </v-autocomplete>
-                              </v-col>
-                            </v-row>
-                          </template>
+                          <template v-slot:item="{ item, index }">
+                            <tr>
+                              <td>{{ index + 1 }}</td>
+                              <template v-if="!rowFieldIsActive(index, item)">
+                                <td>{{ item.user ? "Approving Officer " +  " - " + item.user.name : "No User" }}</td>
+                                <td>{{ item.access_level }}</td>
+                                <td>
+                                  <v-icon
+                                    small
+                                    class="mr-2"
+                                    color="green"
+                                    @click="editApprover(item)"
+                                    v-if="hasPermission('marketing-event-edit')"
+                                    :disabled="addEditMode === 'Add' ? true : false"
+                                  >
+                                    mdi-pencil
+                                  </v-icon>
 
-                          <template v-slot:item.actions="{ item, index }">
-                            <v-icon
-                              small
-                              class="mr-2"
-                              color="green"
-                              @click="editApprover(item)"
-                              v-if="
-                                hasPermission('access-chart-edit') &&
-                                index !== editedIndex2 &&
-                                item.status !== 'New'
-                              "
-                              :disabled="addEditMode === 'Add' ? true : false"
-                            >
-                              mdi-pencil
-                            </v-icon>
+                                  <v-icon
+                                    small
+                                    color="red"
+                                    @click="showConfirmAlert(item, 'Approving Officer')"
+                                    v-if="hasPermission('marketing-event-delete')"
+                                    :disabled="['Add', 'Edit'].includes(addEditMode)"
+                                  >
+                                    mdi-delete
+                                  </v-icon>
+                                </td>
+                              </template>
+                              <template v-if="rowFieldIsActive(index, item)">
+                                <td>
+                                  <v-autocomplete
+                                    class="mb-2"
+                                    v-model="approvingOfficer.user_id"
+                                    :items="filteredUsers"
+                                    item-text="name"
+                                    item-value="id"
+                                    label="User"
+                                    :error-messages="approvingOfficerErrors"
+                                    @input="$v.approvingOfficer.user_id.$touch()"
+                                    @blur="$v.approvingOfficer.user_id.$touch()"
+                                    hide-details=""
+                                  >
+                                  </v-autocomplete>
+                                </td>
+                                <td>
+                                  <v-autocomplete
+                                    class="mb-2"
+                                    v-model="approvingOfficer.access_level"
+                                    :items="approverAccessLevels"
+                                    item-text="level"
+                                    label="Access Level"
+                                    hide-details=""
+                                  >
+                                  </v-autocomplete>
+                                </td>
+                                <td>
+                                  <v-btn x-small :disabled="disabled" @click="saveApprovingOfficer()" icon>
+                                    <v-icon color="primary">mdi-content-save</v-icon>
+                                  </v-btn>
 
-                            <v-icon
-                              small
-                              color="red"
-                              @click="
-                                showConfirmAlert(item, 'Approving Officer')
-                              "
-                              v-if="
-                                hasPermission('access-chart-delete') &&
-                                index !== editedIndex2 &&
-                                item.status !== 'New'
-                              "
-                              :disabled="['Add', 'Edit'].includes(addEditMode)"
-                            >
-                              mdi-delete
-                            </v-icon>
-
-                            <v-btn
-                              class="primary"
-                              x-small
-                              v-if="
-                                index === editedIndex2
-                                  ? true
-                                  : false || item.status === 'New'
-                              "
-                              :disabled="disabled"
-                              @click="saveApprovingOfficer()"
-                            >
-                              save
-                            </v-btn>
-
-                            <v-btn
-                              x-small
-                              v-if="
-                                index === editedIndex2
-                                  ? true
-                                  : false || item.status === 'New'
-                              "
-                              color="#E0E0E0"
-                              @click="cancelEvent(item)"
-                            >
-                              cancel
-                            </v-btn>
+                                  <v-btn x-small @click="cancelEvent(item)" icon>
+                                    <v-icon color="red">mdi-cancel</v-icon>
+                                  </v-btn>
+                                </td>
+                              </template>
+                            </tr>
                           </template>
                         </v-data-table>
                       </v-card-text>
@@ -290,8 +245,12 @@
               <v-divider class="mb-3 mt-0"></v-divider>
               <v-card-actions class="pa-0">
                 <v-spacer></v-spacer>
-                <v-btn color="primary" class="mb-3 mr-4" @click="close()">
-                  {{ btnText }}
+                <v-btn color="#E0E0E0" @click="close" class="mb-3">
+                  Cancel
+                </v-btn>
+                <v-btn color="primary" class="mb-3 mr-4" @click="updateApproverPerLevel()">
+                  <!-- {{ btnText }} -->
+                  Update
                 </v-btn>
               </v-card-actions>
             </v-card>
@@ -330,7 +289,9 @@ export default {
         { text: "Actions", value: "actions", sortable: false, width: "120px" },
       ],
       headers2: [
+        { text: "#", value: "row", sortable: false, width: "20px" },
         { text: "Approving Officer", value: "approving_officer" },
+        { text: "Approver Level", value: "access_level" },
         { text: "Actions", value: "actions", sortable: false, width: "120px" },
       ],
 
@@ -359,16 +320,9 @@ export default {
       hasApprovers: false,
       approverPerLevelHasError: false,
       dialog_approving_officer: false,
-      access_modules: [],
-      access_charts: [],
       approver_access_levels: [],
       access_level: "",
       users: [],
-      currItem: {
-        event_name: "",
-        max_approval_level: "",
-        approver_per_level: [],
-      },
       editedItem: {
         event_name: "",
         max_approval_level: "",
@@ -380,9 +334,9 @@ export default {
         approver_per_level: [],
       },
       approver_per_level: [],
-      hasChanges: false,
       errorFields: [],
       approvingOfficer: {
+        marketing_event_id: "",
         user_id: "",
         access_level: 1,
       },
@@ -430,11 +384,207 @@ export default {
       );
     },
 
-    showAlert() {
+    viewApprovingOfficer(item) {
+
+      this.editedIndex = this.marketing_events.indexOf(item);
+
+      this.editedItem = {
+        id: item.id,
+        event_name: item.event_name,
+        max_approval_level: item.max_approval_level,
+        approver_per_level: [],
+      };
+
+      this.approvingOfficer.marketing_event_id = item.id;
+      
+      let approver_per_level = item.approver_per_level
+      approver_per_level.forEach(value => {
+        
+        this.editedItem.approver_per_level.push({
+          level: value.level, 
+          marketing_event_id: value.marketing_event_id, 
+          num_of_approvers: value.num_of_approvers
+        });
+ 
+      });
+
+      this.dialog_approving_officer = true;
+
+      let approving_officers = item.marketing_event_user_maps;
+
+      approving_officers.forEach((value) => {
+        this.approving_officers.push(value);
+      });
+
+    },
+
+    updateApproverPerLevel() {
+      console.log(this.editedItem);
+      axios.post("/api/marketing_event_user_map/update_approver_per_level", this.editedItem).then(
+        (response) => {
+          console.log(response);
+        },
+        (error) => {
+          console.log(error);
+        }
+      );
+
+    },
+
+    saveApprovingOfficer() {
+      this.$v.approvingOfficer.$touch();
+
+      if (!this.$v.approvingOfficer.$error) {
+        this.disabled = true;
+
+        let user_maps = this.marketing_events[this.editedIndex].marketing_event_user_maps;
+        let officers = this.approving_officers;
+
+        let url = "";
+        let mode = "";
+
+        if (this.editedIndex2 > -1)
+        { 
+          mode = "Edit";
+          url = "/api/marketing_event_user_map/update/" + this.approvingOfficer.id;
+        }
+        else
+        {
+          mode = "Add";
+          url = "/api/marketing_event_user_map/store";
+        }
+
+        const data = this.approvingOfficer;
+        
+        axios.post(url, data).then(
+          (response) => {
+            console.log(response.data);
+            let data = response.data;
+
+            if (data.success) {
+              
+              if(mode === 'Edit')
+              {
+                // send data to Sockot.IO Server
+                // this.$socket.emit("sendData", { action: "approving-officer-edit" });
+                let index = this.editedIndex2;
+
+                Object.assign(officers[index], data.approver);
+                Object.assign(user_maps, officers);
+              }
+              else
+              {
+                // send data to Sockot.IO Server
+                // this.$socket.emit("sendData", { action: "approving-officer-create" });
+
+                //push recently added data from database
+                let index = officers.length - 1;
+                officers.splice(index, 1, data.approver);
+                user_maps.push(data.approver);
+              }
+
+              this.clearApprovingOfficer();
+              this.showAlert(data.success);
+              
+            } else {
+              let errors = data;
+              let errorNames = Object.keys(data);
+            }
+
+            this.disabled = false;
+          },
+          (error) => {
+            this.isUnauthorized(error);
+            this.disabled = false;
+          }
+        );
+        
+      }
+    },
+
+    newApprovingOfficer() {
+      this.clearApprovingOfficer();
+
+      this.addEditMode = "Add";
+
+      let hasNew = false;
+
+      this.approving_officers.forEach((value, index) => {
+        if (value.status === "New") {
+          hasNew = true;
+        }
+      });
+
+      if (!hasNew) {
+        this.approving_officers.push({ status: "New" });
+      }
+    },
+
+    editApprover(item) {
+      this.addEditMode = "Edit";
+      this.editedIndex2 = this.approving_officers.indexOf(item);
+      this.approvingOfficer = Object.assign(
+        {},
+        { id: item.id, user_id: item.user.id, access_level: item.access_level }
+      );
+    },
+
+    cancelEvent(item) {
+      let officers = this.approving_officers;
+      this.editedIndex2 = officers.indexOf(item);
+
+      if (this.addEditMode === "Edit") {
+        this.editedIndex2 = -1;
+      } else {
+        officers.splice(this.editedIndex2, 1);
+      }
+
+      this.addEditMode = "";
+    },
+
+    clearApprovingOfficer() {
+      this.$v.approvingOfficer.$reset();
+      this.addEditMode = "";
+      this.disabled = false;
+      this.editedIndex2 = -1;
+      this.approvingOfficer = Object.assign(
+        {},
+        {
+          user_id: "",
+          access_level: 1,
+        }
+      );
+    },
+
+    deleteApprover(approver_id) {
+      const data = { approver_id: approver_id };
+      this.loading = true;
+
+      axios.post("/api/marketing_event_user_map/delete", data).then(
+        (response) => {
+          if (response.data.success) {
+            // send data to Sockot.IO Server
+            // this.$socket.emit("sendData", { action: "approving-officer-delete" });
+
+            let user_maps = this.marketing_events[this.editedIndex].marketing_event_user_maps;
+            let officers = this.approving_officers;
+
+            Object.assign(user_maps, officers)
+
+          }
+          this.loading = false;
+        },
+        (error) => {
+          this.isUnauthorized(error);
+        }
+      );
+    },
+
+    showAlert(msg) {
       this.$swal({
         position: "center",
         icon: "success",
-        title: "Record has been saved",
+        title: msg,
         showConfirmButton: false,
         timer: 2500,
       });
@@ -500,16 +650,14 @@ export default {
             //Remove item from array marketing_events
             this.marketing_events.splice(index, 1);
           } else {
+            let officers = this.approving_officers
             const approver_id = item.id;
-            const index = this.approving_officers.indexOf(item);
+            const index = officers.indexOf(item);
 
             //Remove item from array approving_officers
-            this.approving_officers.splice(index, 1);
+            officers.splice(index, 1);
 
-            this.access_charts[this.editedIndex].access_chart_user_maps.splice(
-              index,
-              1
-            );
+            this.marketing_events[this.editedIndex].marketing_event_user_maps.splice(index, 1);
 
             this.deleteApprover(approver_id);
           }
@@ -523,216 +671,6 @@ export default {
           });
         }
       });
-    },
-
-    viewApprovingOfficer(item) {
-
-      this.editedIndex = this.marketing_events.indexOf(item);
-      
-      this.currItem = {
-        id: item.id,
-        event_name: item.event_name,
-        max_approval_level: item.max_approval_level,
-        approver_per_level: [],
-      };
-
-      this.editedItem = {
-        id: item.id,
-        event_name: item.event_name,
-        max_approval_level: item.max_approval_level,
-        approver_per_level: [],
-      };
-      
-
-      let approver_per_level = item.approver_per_level
-      approver_per_level.forEach(value => {
-        
-        this.editedItem.approver_per_level.push({
-          level: value.level, 
-          marketing_event_id: value.marketing_event_id, 
-          num_of_approvers: value.num_of_approvers
-        });
-
-        // currItem object is used to compare if editedItem has changes - used for btn text change from 'OK' to 'Upated'
-        this.currItem.approver_per_level.push({
-          level: value.level, 
-          marketing_event_id: value.marketing_event_id, 
-          num_of_approvers: value.num_of_approvers
-        });
- 
-      });
-
-      this.dialog_approving_officer = true;
-
-      let approving_officers = item.marketing_event_user_maps;
-
-      approving_officers.forEach((value) => {
-        this.approving_officers.push(value);
-      });
-
-    },
-    saveApprovingOfficer() {
-      this.$v.approvingOfficer.$touch();
-      if (!this.$v.approvingOfficer.$error) {
-        this.disabled = true;
-
-        if (this.editedIndex2 > -1) {
-          const data = this.approvingOfficer;
-          const approver_id = this.approvingOfficer.id;
-
-          axios
-            .post("/api/access_chart_user_map/update/" + approver_id, data)
-            .then(
-              (response) => {
-                console.log(response.data);
-                if (response.data.success) {
-                  // send data to Sockot.IO Server
-                  // this.$socket.emit("sendData", { action: "approving-officer-edit" });
-
-                  let index = this.editedIndex2;
-
-                  Object.assign(
-                    this.approving_officers[index],
-                    response.data.approver
-                  );
-
-                  Object.assign(
-                    this.access_charts[this.editedIndex].access_chart_user_maps[
-                      index
-                    ],
-                    response.data.approver
-                  );
-
-                  this.clearApprovingOfficer();
-
-                  this.showAlert();
-                } else {
-                  let errors = response.data;
-                  let errorNames = Object.keys(response.data);
-                }
-
-                this.disabled = false;
-              },
-              (error) => {
-                this.isUnauthorized(error);
-                this.disabled = false;
-              }
-            );
-        } else {
-          const data = this.approvingOfficer;
-
-          data["access_chart_id"] = this.editedItem.id;
-
-          axios.post("/api/access_chart_user_map/store", data).then(
-            (response) => {
-              console.log(response);
-              if (response.data.success) {
-                // send data to Sockot.IO Server
-                // this.$socket.emit("sendData", { action: "approving-officer-create" });
-
-                this.showAlert();
-
-                //push recently added data from database
-
-                let index = this.approving_officers.length - 1;
-
-                this.approving_officers.splice(
-                  index,
-                  1,
-                  response.data.approver
-                );
-
-                this.access_charts[
-                  this.editedIndex
-                ].access_chart_user_maps.push(response.data.approver);
-
-                this.clearApprovingOfficer();
-              } else {
-                let errors = response.data;
-                let errorNames = Object.keys(response.data);
-              }
-              this.disabled = false;
-            },
-            (error) => {
-              this.isUnauthorized(error);
-              this.disabled = false;
-            }
-          );
-        }
-      }
-    },
-
-    newApprovingOfficer() {
-      this.clearApprovingOfficer();
-
-      this.addEditMode = "Add";
-
-      let hasNew = false;
-
-      this.approving_officers.forEach((value, index) => {
-        if (value.status === "New") {
-          hasNew = true;
-        }
-      });
-
-      if (!hasNew) {
-        this.approving_officers.push({ status: "New" });
-      }
-    },
-
-    editApprover(item) {
-      this.addEditMode = "Edit";
-      this.editedIndex2 = this.approving_officers.indexOf(item);
-      this.approvingOfficer = Object.assign(
-        {},
-        { id: item.id, user_id: item.user.id, access_level: item.access_level }
-      );
-    },
-
-    cancelEvent(item) {
-      this.editedIndex2 = this.approving_officers.indexOf(item);
-      if (this.addEditMode === "Edit") {
-        this.editedIndex2 = -1;
-      } else {
-        this.approving_officers.splice(this.editedIndex2, 1);
-      }
-
-      this.addEditMode = "";
-    },
-
-    clearApprovingOfficer() {
-      this.$v.approvingOfficer.$reset();
-      this.addEditMode = "";
-      this.disabled = false;
-      this.editedIndex2 = -1;
-      this.approvingOfficer = Object.assign(
-        {},
-        {
-          user_id: "",
-          access_level: 1,
-        }
-      );
-    },
-
-    deleteApprover(approver_id) {
-      const data = { approver_id: approver_id };
-      this.loading = true;
-      axios.post("/api/access_chart_user_map/delete", data).then(
-        (response) => {
-          if (response.data.success) {
-            // send data to Sockot.IO Server
-            // this.$socket.emit("sendData", { action: "approving-officer-delete" });
-            Object.assign(
-              this.access_charts[this.editedIndex].access_chart_user_maps,
-              this.approving_officers
-            );
-          }
-          this.loading = false;
-        },
-        (error) => {
-          this.isUnauthorized(error);
-        }
-      );
     },
 
     close() {
@@ -765,6 +703,10 @@ export default {
       this.hasApprovers = false;
     },
 
+    rowFieldIsActive(index, item) {
+      return  index === this.editedIndex2 || item.status === 'New';
+    },
+    
     isUnauthorized(error) {
       // if unauthenticated (401)
       if (error.response.status == "401") {
@@ -786,9 +728,6 @@ export default {
       };
     },
 
-    getFieldValue(index, item){
-      console.log(index, item);
-    }
   },
   computed: {
     
@@ -862,49 +801,33 @@ export default {
         errors.push("User is required.");
       return errors;
     },
-    btnText()
-    {
-      return this.hasChanges ? 'Update' : 'OK';
-    },
+
     ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission"]),
   },
   watch: {
     "editedItem.max_approval_level"() {
       let approver_per_level_length = this.editedItem.approver_per_level.length;
       let max_approval_level = this.editedItem.max_approval_level;
-      let approval_level_diff = approver_per_level_length - max_approval_level;
       let approver_per_level = this.editedItem.approver_per_level;
 
       if (max_approval_level < approver_per_level_length) {
-        for (let i = 0; i < approval_level_diff; i++) {
-          let index = approval_level_diff - i;
-          approver_per_level.splice(index, 1);
+        for (let i = approver_per_level_length; i > max_approval_level; i--) {
+          approver_per_level.splice(i - 1, 1);
         }
       } 
       else 
       {
-        // approval_level_diff is negative - add with max_approval_level to subtract and get the number of additional approval level
-
-        for (let i = max_approval_level + approval_level_diff; i < max_approval_level; i++) {
+        for (let i = approver_per_level_length; i < max_approval_level; i++) {
           approver_per_level.push({ 
-            level: i,
+            level: i + 1,
             marketing_event_id: this.editedItem.id, 
             num_of_approvers: "",
-            });
+          });
         }
 
       }
    
       this.editedItem.approver_per_level = approver_per_level;
-
-      // START validate if current data has changes 
-
-      this.hasChanges = false;
-
-      if(JSON.stringify(this.editedItem) !== JSON.stringify(this.currItem)){
-        this.hasChanges = true;
-      }
-
     },
 
   },
