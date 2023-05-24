@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\MarketingApproverPerLevel;
 use Illuminate\Http\Request;
 use App\MarketingEvent;
 use App\MarketingEventUserMap;
@@ -106,9 +107,17 @@ class MarketingEventUserMapController extends Controller
 
     public function update_approver_per_level(Request $request)
     {   
-        
-        MarketingEvent::where('id', '=', $request->get('id'))
+        return $request;
+        $marketing_event_id =  $request->get('id');
+        MarketingEvent::where('id', '=', $marketing_event_id)
                       ->update(['max_approval_level' => $request->get('max_approval_level')]);
+        $approver_per_level = $request->get('approver_per_level');
+
+        $mktg_approver_per_level = MarketingApproverPerLevel::where('marketing_event_id', '=', $marketing_event_id)->get();
+
+        foreach ($approver_per_level as $value) {
+            
+        }
 
         return response()->json(['success' => 'Record has been updated'], 200);
     }
