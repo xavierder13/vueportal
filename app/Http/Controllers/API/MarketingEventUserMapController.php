@@ -107,19 +107,65 @@ class MarketingEventUserMapController extends Controller
 
     public function update_approver_per_level(Request $request)
     {   
-        return $request;
+    
         $marketing_event_id =  $request->get('id');
         MarketingEvent::where('id', '=', $marketing_event_id)
                       ->update(['max_approval_level' => $request->get('max_approval_level')]);
         $approver_per_level = $request->get('approver_per_level');
-
+  
         $mktg_approver_per_level = MarketingApproverPerLevel::where('marketing_event_id', '=', $marketing_event_id)->get();
+        
+        $approver_levels = $mktg_approver_per_level->pluck('level')->toArray();
+        
+        $levels = [];
 
-        foreach ($approver_per_level as $value) {
-            
+        // if MarketingApproverPerLevel has no record then add all
+        if(!$mktg_approver_per_level->count())
+        {
+            foreach ($approver_per_level as $value) {
+                MarketingApproverPerLevel::create([
+                    'marketing_event_id' => $marketing_event_id,
+                    'level' => $value['level'],
+                    'num_of_approvers' => $value['num_of_approvers'],
+                ]);
+            }
         }
+        else
+        {
+            foreach ($mktg_approver_per_level as $value1) {
+                foreach ($approver_per_level as $value2) {
 
-        return response()->json(['success' => 'Record has been updated'], 200);
+                    $level = $value2['level'];
+                    $num_or_approvers = $value2['num_of_approvers'];
+                    $levels[] = $level;
+    
+                    if(in_array($level, $approver_levels))
+                    {   
+                        MarketingApproverPerLevel::where('marketing_event_id', '=', $marketing_event_id)
+                                                 ->where('level', '=', $level)
+                                                 ->update(['num_of_approvers' => $num_or_approvers]);
+                    }
+                    else
+                    {
+                        MarketingApproverPerLevel::create([
+                            'marketing_event_id' => $marketing_event_id,
+                            'level' => $level,
+                            'num_of_approvers' => $num_or_approvers,
+                        ]);
+                    }
+                }
+            }
+    
+            MarketingApproverPerLevel::where('marketing_event_id', '=', $marketing_event_id)    
+                                     ->whereNotIn('level', $levels)
+                                     ->delete();
+        }
+        
+        
+
+        $approver_per_level = MarketingApproverPerLevel::where('marketing_event_id', '=', $marketing_event_id)->get();
+
+        return response()->json(['success' => 'Record has been updated', 'approver_per_level' => $approver_per_level], 200);
     }
 
     public function delete(Request $request)

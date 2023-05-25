@@ -61,7 +61,7 @@
 
     <!-- Sidebar -->
     <v-navigation-drawer v-model="drawer" dark app>
-      <v-list>
+      <v-list class="pb-0">
         <v-list-item class="px-2">
           <v-list-item-avatar class="rounded-5" height="60" width="60">
             <v-img src="/img/addessa.jpg"></v-img>
@@ -73,11 +73,9 @@
         </v-list-item>
       </v-list>
 
-      <v-divider class="mb-2"></v-divider>
-
-      <v-list dense>
+      <v-list dense class="pt-0">
         <template v-for=" (menu, index) in menuList " v-if="menu.hasPermission">
-          <v-divider v-if="index > 0"></v-divider>
+          <v-divider></v-divider>
           <span class="subtitle-2 font-weight-bold ml-4 blue--text text--lighten-4"> 
             {{ menu.group_header_title }} 
           </span>

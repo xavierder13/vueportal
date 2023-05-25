@@ -248,7 +248,7 @@
                 <v-btn color="#E0E0E0" @click="close" class="mb-3">
                   Cancel
                 </v-btn>
-                <v-btn color="primary" class="mb-3 mr-4" @click="updateApproverPerLevel()">
+                <v-btn color="primary" class="mb-3 mr-4" :disabled="disabled" @click="updateApproverPerLevel()">
                   <!-- {{ btnText }} -->
                   Update
                 </v-btn>
@@ -419,13 +419,33 @@ export default {
     },
 
     updateApproverPerLevel() {
-      console.log(this.editedItem);
+   
+      this.loading = true;
+      this.disabled = true;
       axios.post("/api/marketing_event_user_map/update_approver_per_level", this.editedItem).then(
         (response) => {
-          console.log(response);
+         console.log(response.data);
+          let data = response.data;
+
+          this.loading = false;
+          this.disabled = false;
+
+          if(data.success)
+          {  
+            let value  = {
+              max_approval_level:  this.editedItem.max_approval_level,
+              approver_per_level: data.approver_per_level,
+            };
+            let marketing_event = this.marketing_events[this.editedIndex];
+            marketing_event = Object.assign(marketing_event, value)
+            
+            this.showAlert(data.success)
+          }
         },
         (error) => {
           console.log(error);
+          this.loading = false;
+          this.disabled = false;
         }
       );
 
@@ -453,12 +473,12 @@ export default {
           mode = "Add";
           url = "/api/marketing_event_user_map/store";
         }
-
-        const data = this.approvingOfficer;
         
-        axios.post(url, data).then(
+        this.approvingOfficer.marketing_event_id = this.editedItem.id;
+        axios.post(url, this.approvingOfficer).then(
           (response) => {
             console.log(response.data);
+  
             let data = response.data;
 
             if (data.success) {
@@ -523,10 +543,11 @@ export default {
     editApprover(item) {
       this.addEditMode = "Edit";
       this.editedIndex2 = this.approving_officers.indexOf(item);
-      this.approvingOfficer = Object.assign(
-        {},
-        { id: item.id, user_id: item.user.id, access_level: item.access_level }
-      );
+      this.approvingOfficer = Object.assign({}, { 
+        id: item.id, 
+        user_id: item.user.id, 
+        access_level: item.access_level 
+      });
     },
 
     cancelEvent(item) {
@@ -547,13 +568,11 @@ export default {
       this.addEditMode = "";
       this.disabled = false;
       this.editedIndex2 = -1;
-      this.approvingOfficer = Object.assign(
-        {},
-        {
+      this.approvingOfficer = Object.assign({}, {
           user_id: "",
           access_level: 1,
-        }
-      );
+          marketing_event_id: "",
+      });
     },
 
     deleteApprover(approver_id) {
