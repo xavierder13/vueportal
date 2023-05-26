@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Auth;
 use App\Branch;
 use App\MarketingEvent;
+use App\MarketingApproverPerLevel;
 use App\TacticalRequisition;
 use App\TacticalRequisitionRow;
 use App\TacticalRequisitionSubRow;
@@ -68,9 +69,7 @@ class TacticalRequisitionController extends Controller
         $curr_level_approvers = [];
 
         $approval_progress = [];
-        $arr = [];
-        $ctr = 0;
-        
+
         // get the required current level approvers for each record
         foreach ($tactical_requisitions as $tactical) {
             
@@ -117,7 +116,7 @@ class TacticalRequisitionController extends Controller
 
                 if($approver->access_level === $current_level)
                 {
-                    $approvers_arr[] = $approver->user_id;
+                    $approvers_arr [] = $approver->user_id;
                 }
             }
             
@@ -156,7 +155,7 @@ class TacticalRequisitionController extends Controller
                 // if Auth is hasnt approved the record and is current approver level
                 if(!$approved_by_user && $current_level_approver)
                 {
-                    $tactical_requisitions[] = $tactical;
+                    $tactical_requisitions [] = $tactical;
                 }
                 
             }
@@ -168,6 +167,8 @@ class TacticalRequisitionController extends Controller
         // get the approval progress per record
         foreach ($tactical_requisitions as $tactical) {
             $progress = [];
+
+            $approver_per_level =  $tactical->marketing_event->approver_per_level;
 
             foreach ($approver_per_level as $apprvr_per_lvl) {
             
@@ -536,36 +537,49 @@ class TacticalRequisitionController extends Controller
         $date_now = Carbon::now()->format('Y-m-d');
         $user_can_approve_tactical = Auth::user()->can('tactical-requisition-approve');
 
+        $tactical_requisition = TacticalRequisition::where('id', '=', $tactical_requisition_id)
+                                                    ->with('marketing_event')
+                                                    ->with('marketing_event.marketing_event_user_maps')
+                                                    ->with('marketing_event.marketing_event_user_maps.user')
+                                                    ->get()->first();
+        $marketing_event_id = $tactical_requisition->marketing_event->id;
         // get access chart tactical requisition approver
-        $access_chart = AccessChart::with('access_chart_user_maps')
-                                    ->whereHas('access_chart_user_maps', function($query){
-                                        $query->whereIn('user_id', [Auth::id()]);
-                                    })
-                                    ->where('name', '=', 'Tactical Requisition')
-                                    ->get();
+        $access_chart = AccessChart::where('name', '=', 'Tactical Requisition')->get()->first();
 
-        $approver_ctr = $access_chart->count();
+        $approver_ctr = MarketingEvent::where('id', '=', $marketing_event_id)
+                                      ->with('marketing_event_user_maps')
+                                      ->get()
+                                      ->first()
+                                      ->marketing_event_user_maps
+                                      ->where('user_id', '=', Auth::id())
+                                      ->count();
 
         if($approver_ctr=== 0 || !$user_can_approve_tactical)
         {
             return response()->json(['error' => "You don't have permission to do this action", $approver_ctr], 200);
         }
 
-        $access_level = AccessChart::with('access_chart_user_maps')
-                                     ->where('name', '=', 'Tactical Requisition')
-                                     ->first()
-                                     ->access_chart_user_maps
-                                     ->where('user_id', Auth::id())
-                                     ->first()
-                                     ->access_level;
-
-        $max_approval_level = $access_chart->first()->max_approval_level;
-        $module_id = $access_chart->first()->access_for;
+        // $access_level = AccessChart::with('access_chart_user_maps')
+        //                              ->where('name', '=', 'Tactical Requisition')
+        //                              ->first()
+        //                              ->access_chart_user_maps
+        //                              ->where('user_id', Auth::id())
+        //                              ->first()
+        //                              ->access_level;
+        
+        $access_level = $tactical_requisition->marketing_event
+                                            ->marketing_event_user_maps
+                                            ->where('user_id', Auth::id())
+                                            ->first()
+                                            ->access_level;
+        
+        $max_approval_level = MarketingEvent::find($marketing_event_id)->max_approval_level;
+        $module_id = $access_chart->access_for;
         
         // get the required number of approvers (max level)
-        $num_of_approvers_max_level = ApproverPerLevel::where('module_id', '=', $module_id)
-                                              ->where('level', '=', $max_approval_level)
-                                              ->max('num_of_approvers');
+        $num_of_approvers_max_level = MarketingApproverPerLevel::where('marketing_event_id', '=', $marketing_event_id)
+                                                                ->where('level', '=', $max_approval_level)
+                                                                ->max('num_of_approvers');
 
         $approved_log = new ApprovedLog();
         $approved_log->module_id = $module_id; //Tactical Requisition
@@ -581,7 +595,7 @@ class TacticalRequisitionController extends Controller
         $approved_logs_max_level = $approved_logs->where('level', '=', $max_approval_level)->count();   
 
         $status = 'Pending';
-
+   
         //approval logs of maximum level is equal or greater than required number of approval then update status 
         if($approved_logs_max_level >= $num_of_approvers_max_level)
         {       
