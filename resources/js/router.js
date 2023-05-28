@@ -57,6 +57,11 @@ const routes = [
     component: Home,
     children: [
       {
+        path: '/dashboard',
+        name: 'dashboard',
+        component: Dashboard
+      },
+      {
         path: '/user/index',
         name: 'user.index',
         component: UserIndex

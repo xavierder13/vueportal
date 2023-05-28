@@ -375,6 +375,20 @@ export default {
   computed: {
     menuList() {
       let menu = [
+        { // START Dashboard
+          group_header_title: 'Dashboard',
+          hasPermission: false,
+          list_items: [
+            {
+              title: 'Dashboard',
+              icon: 'mdi-view-dashboard',
+              link: '/dashboard',
+              method: '',
+              hasPermission: true,
+              children: [],
+            },
+          ]
+        }, // END Dashboard
         { // START Inventory / Purchasing group menu
           group_header_title: 'Inventory / Purchasing',
           hasPermission: false,
@@ -534,6 +548,26 @@ export default {
             }
           ]
         }, // END Sales & Marketing group menu
+        { // START Motorpool
+          group_header_title: 'Motorpool',
+          hasPermission: false,
+          list_items: [
+            {
+              title: 'Gasoline',
+              icon: 'mdi-gas-station',
+              link: '',
+              method: '',
+              hasPermission: false,
+              children: [
+                { 
+                  title: 'P.O Requests',
+                  link: '/tactical_requisition/index',
+                  hasPermission: this.hasPermission('tactical-requisition-list'),
+                },
+              ],
+            },
+          ]
+        }, // END Motorpool
         { // START Set Up & Athorization group menu
           group_header_title: 'Set Up & Authorizations',
           hasPermission: false,

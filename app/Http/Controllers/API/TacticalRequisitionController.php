@@ -47,7 +47,7 @@ class TacticalRequisitionController extends Controller
                                                     ->with('marketing_event.approver_per_level') 
                                                     ->with('approved_logs')
                                                     ->with('approved_logs.approver')
-                                                    ->selectRaw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_created")
+                                                    ->selectRaw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_created, DATE_FORMAT(date_approve, '%m/%d/%Y') as date_approved")
                                                     ->whereHas('user', function($query) use ($approver_ctr, $user_can_view_tactical_list){    
                                                         
                                                         // if approver_ctr === 0 (no approver) or not admin user then select record where user_id == Auth::id()

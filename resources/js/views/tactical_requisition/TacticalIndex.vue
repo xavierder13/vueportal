@@ -116,6 +116,7 @@ export default {
         { text: "Progress", value: "progress" },
         { text: "Status", value: "status" },
         { text: "Date Created", value: "date_created" },
+        { text: "Date Approved", value: "date_approved" },
         { text: "Actions", value: "actions", sortable: false, width: "80px" },
       ],
 
