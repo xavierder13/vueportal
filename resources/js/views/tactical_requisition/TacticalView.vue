@@ -48,12 +48,11 @@
                       item-value="id"
                       label="Branch"
                       required
-                      :readonly="user.id === 1 ? false :  true  || isReadOnly"
+                      :readonly="isReadOnly ? true : user.id === 1 ? false :  true "
                     >
                     </v-autocomplete>
                   </v-col>
                   <v-col class="mb-0 py-0">
-                    {{ editedItem.status }}
                     <v-menu
                       ref="menu"
                       v-model="date_menu_date_submit"
@@ -62,7 +61,7 @@
                       transition="scale-transition"
                       offset-y
                       min-width="auto"
-                      :readonly="isReadOnly"
+                      :disabled="isReadOnly"
                     >
                       <template v-slot:activator="{ on, attrs }">
                         <v-text-field
@@ -72,7 +71,6 @@
                           readonly
                           v-bind="attrs"
                           v-on="on"
-                          :readonly="isReadOnly"
                         ></v-text-field>
                       </template>
                       <v-date-picker
@@ -107,6 +105,7 @@
                       label="Sponsor"
                       @input="$v.editedItem.sponsor.$touch()"
                       @blur="$v.editedItem.sponsor.$touch()"
+                      :readonly="isReadOnly"
                     ></v-text-field>
                   </v-col>
                 </v-row>
@@ -119,6 +118,7 @@
                       label="Venue"
                       @input="$v.editedItem.venue.$touch()"
                       @blur="$v.editedItem.venue.$touch()"
+                      :readonly="isReadOnly"
                     ></v-text-field>
                   </v-col>
                 </v-row>
@@ -134,6 +134,7 @@
                           transition="scale-transition"
                           offset-y
                           min-width="auto"
+                          :disabled="isReadOnly"
                         >
                           <template v-slot:activator="{ on, attrs }">
                             <v-text-field
@@ -163,6 +164,7 @@
                           transition="scale-transition"
                           offset-y
                           min-width="auto"
+                          :disabled="isReadOnly"
                         >
                           <template v-slot:activator="{ on, attrs }">
                             <v-text-field
@@ -197,6 +199,7 @@
                           :error-messages="hrFromErrors"
                           @input="$v.editedItem.operating_from.$touch()"
                           @blur="$v.editedItem.operating_from.$touch()"
+                          :readonly="isReadOnly"
                         >
                         </v-autocomplete>
                       </v-col>
@@ -210,6 +213,7 @@
                           :error-messages="hrToErrors"
                           @input="$v.editedItem.operating_to.$touch()"
                           @blur="$v.editedItem.operating_to.$touch()"
+                          :readonly="isReadOnly"
                         >
                         </v-autocomplete>
                       </v-col>
@@ -268,6 +272,7 @@
                   transition="scale-transition"
                   offset-y
                   min-width="auto"
+                  :disabled="isReadOnly"
                 >
                   <template v-slot:activator="{ on, attrs }">
                     <v-text-field
@@ -297,6 +302,7 @@
                   transition="scale-transition"
                   offset-y
                   min-width="auto"
+                  :disable="isReadOnly"
                 >
                   <template v-slot:activator="{ on, attrs }">
                     <v-text-field
@@ -323,6 +329,7 @@
                   name="prev_venue"
                   v-model="editedItem.prev_venue"
                   label="Venue"
+                  :readonly="isReadOnly"
                 ></v-text-field>
               </v-col>
               <v-col class="my-0 py-0">
@@ -330,6 +337,7 @@
                   name="prev_sponsor"
                   v-model="editedItem.prev_sponsor"
                   label="Sponsor"
+                  :readonly="isReadOnly"
                 ></v-text-field>
               </v-col>
             </v-row>
@@ -343,6 +351,7 @@
                     placeholder: '0',
                     error: prevQuotaErrors.length ? true : false,
                     messages: prevQuotaErrors,
+                    readonly: isReadOnly
                   }"
                   v-bind:options="{
                     length: 16,
@@ -362,6 +371,7 @@
                     placeholder: '0',
                     error: prevTotalSalesErrors.length ? true : false,
                     messages: prevTotalSalesErrors,
+                    readonly: isReadOnly
                   }"
                   v-bind:options="{
                     length: 16,
@@ -380,6 +390,7 @@
                     placeholder: '0',
                     error: prevSalesAchvmntErrors.length ? true : false,
                     messages: prevSalesAchvmntErrors,
+                    readonly: isReadOnly
                   }"
                   v-bind:options="{
                     length: 16,
@@ -398,6 +409,7 @@
                     placeholder: '0',
                     error: prevTotalExpenseErrors.length ? true : false,
                     messages: prevTotalExpenseErrors,
+                    readonly: isReadOnly
                   }"
                   v-bind:options="{
                     length: 16,
@@ -438,6 +450,7 @@
                             @input="getFieldValue(item, '', 'resource_person')"
                             @blur="getFieldValue(item, '', 'resource_person')"
                             :error-messages="errorField(index, 'resource_person')"
+                            :readonly="isReadOnly"
                           ></v-text-field>
                         </td>
                         <td class="border-0">
@@ -450,6 +463,7 @@
                             @input="getFieldValue(item, '', 'contact')"
                             @blur="getFieldValue(item, '', 'contact')"
                             :error-messages="errorField(index, 'contact')"
+                            :readonly="isReadOnly"
                           ></v-text-field>
                         </td>
                         <td class="border-0">
@@ -464,6 +478,7 @@
                               dense: true,
                               error: errorField(index, 'qty'),
                               messages: '',
+                              readonly: isReadOnly
                             }"
                             v-bind:options="{
                               length: 16,
@@ -487,6 +502,7 @@
                               dense: true,
                               error: errorField(index, 'unit_cost'),
                               messages: '',
+                              readonly: isReadOnly
                             }"
                             v-bind:options="{
                               length: 11,
@@ -517,6 +533,7 @@
                           @input="getFieldValue(item, subItem, 'resource_person')"
                           @blur="getFieldValue(item, subItem, 'resource_person')"
                           :error-messages="errorSubField(index, i, 'resource_person')"
+                          :readonly="isReadOnly"
                         ></v-text-field>
                       </td>
                       <td class="border-0">
@@ -529,6 +546,7 @@
                           @input="getFieldValue(item, subItem, 'contact')"
                           @blur="getFieldValue(item, subItem, 'contact')"
                           :error-messages="errorSubField(index, i, 'contact')"
+                          :readonly="isReadOnly"
                         ></v-text-field>
                       </td>
                       <td class="border-0">
@@ -543,6 +561,7 @@
                             dense: true,
                             error: errorSubField(index, i, 'qty'),
                             messages: '',
+                            readonly: isReadOnly
                           }"
                           v-bind:options="{
                             length: 16,
@@ -566,6 +585,7 @@
                             dense: true,
                             error: errorSubField(index, i, 'unit_cost'),
                             messages: '',
+                            readonly: isReadOnly
                           }"
                           v-bind:options="{
                             length: 11,
@@ -636,7 +656,7 @@
                           <tr v-for="(item, i) in tactical_attachments" :key="item.id">
                             <td>{{ i + 1 }}</td>
                             <td> 
-                              <v-btn class="ma-0" small icon color="error" @click="confirmRemoveFile(item)" v-if="hasPermission('tactical-attachment-delete')">
+                              <v-btn class="ma-0" small icon color="error" @click="confirmRemoveFile(item)" v-if="hasPermission('tactical-attachment-delete') && !isReadOnly">
                                 <v-icon> mdi-close-circle </v-icon> 
                               </v-btn>
                               <v-btn x-small text class="blue--text text--darken-2 ma-0" @click="fileDownload(item)">
@@ -800,6 +820,7 @@ export default {
         prev_total_sales: "",
         prev_sales_achievement: "",
         prev_total_expense: "",
+        status: "",
         file: [],
       },
       defaultItem: {
@@ -832,6 +853,7 @@ export default {
         prev_total_sales: "",
         prev_sales_achievement: "",
         prev_total_expense: "",
+        status: "",
         file: [],
       },
       grand_total: "0.00",
