@@ -39,7 +39,7 @@
                     id="password"
                     label="Password"
                     name="password"
-                    type="password"
+                    :type=" password_visible ? 'text' : 'password'"
                     v-model="password"
                     prepend-icon="mdi-key"
                     required
@@ -47,6 +47,8 @@
                     @change="$v.password.$touch()"
                     @blur="$v.password.$touch()"
                     @keyup="isInvalid = false"
+                    :append-icon="password_visible ? 'mdi-eye-off' : 'mdi-eye'"
+                    @click:append="password_visible = !password_visible"
                   ></v-text-field>
                 </v-form>
               </v-card-text>
@@ -84,6 +86,7 @@ export default {
       isInvalid: false,
       absolute: true,
       overlay: false,
+      password_visible: false,
     };
   },
   computed: {

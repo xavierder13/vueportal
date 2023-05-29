@@ -650,6 +650,10 @@ Route::group(['prefix' => 'tactical_requisition', 'middleware' => ['auth:api', '
         'uses' => 'API\TacticalRequisitionController@approve',
         'as' => 'tactical_requisition.approve',
     ]);
+    Route::post('/disapprove/{id}', [
+        'uses' => 'API\TacticalRequisitionController@disapprove',
+        'as' => 'tactical_requisition.disapprove',
+    ]);
     Route::post('/delete', [
         'uses' => 'API\TacticalRequisitionController@delete',
         'as' => 'tactical_requisition.delete',

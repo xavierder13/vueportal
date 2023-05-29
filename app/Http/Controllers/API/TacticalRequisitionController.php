@@ -614,6 +614,11 @@ class TacticalRequisitionController extends Controller
 
     }
 
+    public function disapprove(Request $request, $tactical_requisition_id)
+    {   
+
+    }
+
     public function download(Request $request)
     {   
         try {

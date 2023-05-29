@@ -421,107 +421,81 @@
                       <td class="font-weight-bold border-0">
                         {{ item.description }}
                       </td>
-                      <td
-                        class="border-0"
-                        v-if="item.expense_sub_particulars.length === 0"
-                      >
-                        <v-text-field
-                          name="resource_person"
-                          v-model="item.resource_person"
-                          dense
-                          hide-details
-                          outlined
-                          @input="getFieldValue(item, '', 'resource_person')"
-                          :error-messages="
-                            errorFields[index]
-                              ? errorFields[index]['resource_person']
-                              : null
-                          "
-                        ></v-text-field>
-                      </td>
-                      <td
-                        class="border-0"
-                        v-if="item.expense_sub_particulars.length === 0"
-                      >
-                        <v-text-field
-                          name="contact"
-                          v-model="item.contact"
-                          dense
-                          hide-details
-                          outlined
-                          @input="getFieldValue(item, '', 'contact')"
-                          :error-messages="
-                            errorFields[index]
-                              ? errorFields[index]['contact']
-                              : null
-                          "
-                        ></v-text-field>
-                      </td>
-                      <td
-                        class="border-0"
-                        v-if="item.expense_sub_particulars.length === 0"
-                      >
-                        <v-text-field-money
-                          class="mb-2 mt-2 pa-0"
-                          v-model="item.qty"
-                          v-bind:properties="{
-                            name: 'qty',
-                            placeholder: '0',
-                            'hide-details': true,
-                            outlined: true,
-                            dense: true,
-                            error: errorFields[index]
-                              ? errorFields[index]['qty']
-                              : null,
-                            messages: '',
-                          }"
-                          v-bind:options="{
-                            length: 16,
-                            precision: 0,
-                            empty: null,
-                          }"
-                          @input="
-                            getFieldValue(item, '', 'qty') + computeAmount()
-                          "
-                        >
-                        </v-text-field-money>
-                      </td>
-                      <td
-                        class="border-0"
-                        v-if="item.expense_sub_particulars.length === 0"
-                      >
-                        <v-text-field-dotnumber
-                          class="mb-2 mt-2 pa-0"
-                          v-model="item.unit_cost"
-                          v-bind:properties="{
-                            name: 'unit_cost',
-                            placeholder: '0.00',
-                            'hide-details': true,
-                            outlined: true,
-                            dense: true,
-                            error: errorFields[index]
-                              ? errorFields[index]['unit_cost']
-                              : null,
-                            messages: '',
-                          }"
-                          v-bind:options="{
-                            length: 11,
-                            precision: 2,
-                            empty: null,
-                          }"
-                          @input="
-                            getFieldValue(item, '', 'unit_cost') +
-                              computeAmount()
-                          "
-                        >
-                        </v-text-field-dotnumber>
-                      </td>
-                      <td
-                        class="font-weight-bold border-0"
-                        v-if="item.expense_sub_particulars.length === 0"
-                      >
-                        {{ !item.amount ? "0.00" : Number(item.amount).toLocaleString('en', numOpts) }}
-                      </td>
+                      <template v-if="item.expense_sub_particulars.length === 0">
+                        <td class="border-0">
+                          <v-text-field
+                            name="resource_person"
+                            v-model="item.resource_person"
+                            dense
+                            hide-details
+                            outlined
+                            @input="getFieldValue(item, '', 'resource_person')"
+                            @blur="getFieldValue(item, '', 'resource_person')"
+                            :error-messages="errorField(index, 'resource_person')"
+                          ></v-text-field>
+                        </td>
+                        <td class="border-0">
+                          <v-text-field
+                            name="contact"
+                            v-model="item.contact"
+                            dense
+                            hide-details
+                            outlined
+                            @input="getFieldValue(item, '', 'contact')"
+                            @blur="getFieldValue(item, '', 'contact')"
+                            :error-messages="errorField(index, 'contact')"
+                          ></v-text-field>
+                        </td>
+                        <td class="border-0">
+                          <v-text-field-money
+                            class="mb-2 mt-2 pa-0"
+                            v-model="item.qty"
+                            v-bind:properties="{
+                              name: 'qty',
+                              placeholder: '0',
+                              'hide-details': true,
+                              outlined: true,
+                              dense: true,
+                              error: errorField(index, 'qty'),
+                              messages: '',
+                            }"
+                            v-bind:options="{
+                              length: 16,
+                              precision: 0,
+                              empty: null,
+                            }"
+                            @input="getFieldValue(item, '', 'qty') + computeAmount()"
+                            @blur="getFieldValue(item, '', 'qty') + computeAmount()"
+                          >
+                          </v-text-field-money>
+                        </td>
+                        <td class="border-0">
+                          <v-text-field-dotnumber
+                            class="mb-2 mt-2 pa-0"
+                            v-model="item.unit_cost"
+                            v-bind:properties="{
+                              name: 'unit_cost',
+                              placeholder: '0.00',
+                              'hide-details': true,
+                              outlined: true,
+                              dense: true,
+                              error: errorField(index, 'unit_cost'),
+                              messages: '',
+                            }"
+                            v-bind:options="{
+                              length: 11,
+                              precision: 2,
+                              empty: null,
+                            }"
+                            @input="getFieldValue(item, '', 'unit_cost') + computeAmount()"
+                            @blur="getFieldValue(item, '', 'unit_cost') + computeAmount()"
+                          >
+                          </v-text-field-dotnumber>
+                        </td>
+                        <td class="font-weight-bold border-0">
+                          {{ !item.amount ? "0.00" : Number(item.amount).toLocaleString('en', numOpts) }}
+                        </td>
+                      </template>
                     </tr>
                     <tr v-for="(subItem, i) in item.expense_sub_particulars">
                       <td class="border-0">
@@ -534,16 +508,9 @@
                           dense
                           hide-details
                           outlined
-                          @input="
-                            getFieldValue(item, subItem, 'resource_person')
-                          "
-                          :error-messages="
-                            errorFields[index]['errorSubFields'][i]
-                              ? errorFields[index]['errorSubFields'][i][
-                                  'resource_person'
-                                ]
-                              : null
-                          "
+                          @input="getFieldValue(item, subItem, 'resource_person')"
+                          @blur="getFieldValue(item, subItem, 'resource_person')"
+                          :error-messages="errorSubField(index, i, 'resource_person')"
                         ></v-text-field>
                       </td>
                       <td class="border-0">
@@ -554,13 +521,8 @@
                           hide-details
                           outlined
                           @input="getFieldValue(item, subItem, 'contact')"
-                          :error-messages="
-                            errorFields[index]['errorSubFields'][i]
-                              ? errorFields[index]['errorSubFields'][i][
-                                  'contact'
-                                ]
-                              : null
-                          "
+                          @blur="getFieldValue(item, subItem, 'contact')"
+                          :error-messages="errorSubField(index, i, 'contact')"
                         ></v-text-field>
                       </td>
                       <td class="border-0">
@@ -573,9 +535,7 @@
                             'hide-details': true,
                             outlined: true,
                             dense: true,
-                            error: errorFields[index]['errorSubFields'][i]
-                              ? errorFields[index]['errorSubFields'][i]['qty']
-                              : null,
+                            error: errorSubField(index, i, 'qty'),
                             messages: '',
                           }"
                           v-bind:options="{
@@ -583,10 +543,8 @@
                             precision: 0,
                             empty: null,
                           }"
-                          @input="
-                            getFieldValue(item, subItem, 'qty') +
-                              computeAmount()
-                          "
+                          @input="getFieldValue(item, subItem, 'qty') + computeAmount()"
+                          @blur="getFieldValue(item, subItem, 'qty') + computeAmount()"
                         >
                         </v-text-field-money>
                       </td>
@@ -600,11 +558,7 @@
                             'hide-details': true,
                             outlined: true,
                             dense: true,
-                            error: errorFields[index]['errorSubFields'][i]
-                              ? errorFields[index]['errorSubFields'][i][
-                                  'unit_cost'
-                                ]
-                              : null,
+                            error: errorSubField(index, i, 'unit_cost'),
                             messages: '',
                           }"
                           v-bind:options="{
@@ -612,10 +566,8 @@
                             precision: 2,
                             empty: null,
                           }"
-                          @input="
-                            getFieldValue(item, subItem, 'unit_cost') +
-                              computeAmount()
-                          "
+                          @input="getFieldValue(item, subItem, 'unit_cost') + computeAmount()"
+                          @blur="getFieldValue(item, subItem, 'unit_cost') + computeAmount()"
                         >
                         </v-text-field-dotnumber>
                       </td>
@@ -913,6 +865,8 @@ export default {
       this.validateExpenseParticulars();
       // console.log("validationError", this.$v.$error);
       // console.log("expensePaticularHasError", this.expensePaticularHasError);
+      console.log('this.$v.$error', this.$v.$error);
+      console.log('this.$v.$expensePaticularHasError', this.$v.expensePaticularHasError);
       if (!this.$v.$error && !this.expensePaticularHasError) {
         this.disabled = true;
         this.overlay = true;
@@ -1001,6 +955,15 @@ export default {
           }
         }
       }
+    },
+    errorField(index, fieldName) {
+      let errorField = this.errorFields[index];
+      return errorField ? errorField[fieldName] : null;
+    },
+    errorSubField(index, subIndex, fieldName) {
+      let errorField = this.errorFields[index].errorSubFields[subIndex];
+
+      return errorField ? errorField[fieldName] : null;
     },
     computeAmount() {
       let expense_particulars = this.editedItem.expense_particulars;

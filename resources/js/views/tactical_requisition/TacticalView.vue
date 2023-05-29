@@ -48,11 +48,12 @@
                       item-value="id"
                       label="Branch"
                       required
-                      :readonly="user.id === 1 ? false :  true"
+                      :readonly="user.id === 1 ? false :  true  || isReadOnly"
                     >
                     </v-autocomplete>
                   </v-col>
                   <v-col class="mb-0 py-0">
+                    {{ editedItem.status }}
                     <v-menu
                       ref="menu"
                       v-model="date_menu_date_submit"
@@ -61,6 +62,7 @@
                       transition="scale-transition"
                       offset-y
                       min-width="auto"
+                      :readonly="isReadOnly"
                     >
                       <template v-slot:activator="{ on, attrs }">
                         <v-text-field
@@ -70,6 +72,7 @@
                           readonly
                           v-bind="attrs"
                           v-on="on"
+                          :readonly="isReadOnly"
                         ></v-text-field>
                       </template>
                       <v-date-picker
@@ -334,7 +337,7 @@
               <v-col class="my-0 py-0">
                 <v-text-field-dotnumber
                   v-model="editedItem.prev_quota"
-                  label= 'Quota'
+                  label= 'Quota (PHP)'
                   v-bind:properties="{
                     name: 'prev_quota',
                     placeholder: '0',
@@ -353,7 +356,7 @@
               <v-col class="my-0 py-0">
                 <v-text-field-dotnumber
                   v-model="editedItem.prev_total_sales"
-                  label= 'Total Sales'
+                  label= 'Total Sales (PHP)'
                   v-bind:properties="{
                     name: 'prev_total_sales',
                     placeholder: '0',
@@ -371,7 +374,7 @@
               <v-col class="my-0 py-0">
                 <v-text-field-dotnumber
                   v-model="editedItem.prev_sales_achievement"
-                  label= 'Sales Achievement'
+                  label= 'Sales Achievement (PHP)'
                   v-bind:properties="{
                     name: 'prev_sales_achievement',
                     placeholder: '0',
@@ -389,7 +392,7 @@
               <v-col class="my-0 py-0">
                 <v-text-field-dotnumber
                   v-model="editedItem.prev_total_expense"
-                  label= 'Total Expense'
+                  label= 'Total Expense (PHP)'
                   v-bind:properties="{
                     name: 'prev_total_expense',
                     placeholder: '0',
@@ -415,118 +418,90 @@
                       <td>RESOURCE PERSON</td>
                       <td>CONTACT DETAILS</td>
                       <td width="110px">QTY</td>
-                      <td width="150px">UNIT COST</td>
-                      <td>AMOUNT</td>
+                      <td width="150px">UNIT COST (PHP)</td>
+                      <td>AMOUNT (PHP)</td>
                     </tr>
                   </thead>
-                  <tbody
-                    v-for="(item, index) in editedItem.expense_particulars"
-                  >
+                  <tbody v-for="(item, index) in editedItem.expense_particulars">
                     <tr>
                       <td class="font-weight-bold border-0">
                         {{ item.description }}
                       </td>
-                      <td
-                        class="border-0"
-                        v-if="item.expense_sub_particulars.length === 0"
-                      >
-                        <v-text-field
-                          name="resource_person"
-                          v-model="item.resource_person"
-                          dense
-                          hide-details
-                          outlined
-                          @input="getFieldValue(item, '', 'resource_person')"
-                          :error-messages="
-                            errorFields[index]
-                              ? errorFields[index]['resource_person']
-                              : null
-                          "
-                        ></v-text-field>
-                      </td>
-                      <td
-                        class="border-0"
-                        v-if="item.expense_sub_particulars.length === 0"
-                      >
-                        <v-text-field
-                          name="contact"
-                          v-model="item.contact"
-                          dense
-                          hide-details
-                          outlined
-                          @input="getFieldValue(item, '', 'contact')"
-                          :error-messages="
-                            errorFields[index]
-                              ? errorFields[index]['contact']
-                              : null
-                          "
-                        ></v-text-field>
-                      </td>
-                      <td
-                        class="border-0"
-                        v-if="item.expense_sub_particulars.length === 0"
-                      >
-                        <v-text-field-money
-                          class="mb-2 mt-2 pa-0"
-                          v-model="item.qty"
-                          v-bind:properties="{
-                            name: 'qty',
-                            placeholder: '0',
-                            'hide-details': true,
-                            outlined: true,
-                            dense: true,
-                            error: errorFields[index]
-                              ? errorFields[index]['qty']
-                              : null,
-                            messages: '',
-                          }"
-                          v-bind:options="{
-                            length: 16,
-                            precision: 0,
-                            empty: null,
-                          }"
-                          @input="
-                            getFieldValue(item, '', 'qty') + computeAmount()
-                          "
-                        >
-                        </v-text-field-money>
-                      </td>
-                      <td
-                        class="border-0"
-                        v-if="item.expense_sub_particulars.length === 0"
-                      >
-                        <v-text-field-dotnumber
-                          class="mb-2 mt-2 pa-0"
-                          v-model="item.unit_cost"
-                          v-bind:properties="{
-                            name: 'unit_cost',
-                            placeholder: '0.00',
-                            'hide-details': true,
-                            outlined: true,
-                            dense: true,
-                            error: errorFields[index]
-                              ? errorFields[index]['unit_cost']
-                              : null,
-                            messages: '',
-                          }"
-                          v-bind:options="{
-                            length: 11,
-                            precision: 2,
-                            empty: null,
-                          }"
-                          @input="
-                            getFieldValue(item, '', 'unit_cost') +
-                              computeAmount()
-                          "
-                        >
-                        </v-text-field-dotnumber>
-                      </td>
-                      <td
-                        class="font-weight-bold border-0"
-                        v-if="item.expense_sub_particulars.length === 0"
-                      >
-                        {{ !item.amount ? "0.00" : Number(item.amount).toLocaleString('en', numOpts) }}
-                      </td>
+                      <template v-if="item.expense_sub_particulars.length === 0">
+                        <td class="border-0">
+                          <v-text-field
+                            name="resource_person"
+                            v-model="item.resource_person"
+                            dense
+                            hide-details
+                            outlined
+                            @input="getFieldValue(item, '', 'resource_person')"
+                            @blur="getFieldValue(item, '', 'resource_person')"
+                            :error-messages="errorField(index, 'resource_person')"
+                          ></v-text-field>
+                        </td>
+                        <td class="border-0">
+                          <v-text-field
+                            name="contact"
+                            v-model="item.contact"
+                            dense
+                            hide-details
+                            outlined
+                            @input="getFieldValue(item, '', 'contact')"
+                            @blur="getFieldValue(item, '', 'contact')"
+                            :error-messages="errorField(index, 'contact')"
+                          ></v-text-field>
+                        </td>
+                        <td class="border-0">
+                          <v-text-field-money
+                            class="mb-2 mt-2 pa-0"
+                            v-model="item.qty"
+                            v-bind:properties="{
+                              name: 'qty',
+                              placeholder: '0',
+                              'hide-details': true,
+                              outlined: true,
+                              dense: true,
+                              error: errorField(index, 'qty'),
+                              messages: '',
+                            }"
+                            v-bind:options="{
+                              length: 16,
+                              precision: 0,
+                              empty: null,
+                            }"
+                            @input="getFieldValue(item, '', 'qty') + computeAmount()"
+                            @blur="getFieldValue(item, '', 'qty') + computeAmount()"
+                          >
+                          </v-text-field-money>
+                        </td>
+                        <td class="border-0">
+                          <v-text-field-dotnumber
+                            class="mb-2 mt-2 pa-0"
+                            v-model="item.unit_cost"
+                            v-bind:properties="{
+                              name: 'unit_cost',
+                              placeholder: '0.00',
+                              'hide-details': true,
+                              outlined: true,
+                              dense: true,
+                              error: errorField(index, 'unit_cost'),
+                              messages: '',
+                            }"
+                            v-bind:options="{
+                              length: 11,
+                              precision: 2,
+                              empty: null,
+                            }"
+                            @input="getFieldValue(item, '', 'unit_cost') + computeAmount()"
+                            @blur="getFieldValue(item, '', 'unit_cost') + computeAmount()"
+                          >
+                          </v-text-field-dotnumber>
+                        </td>
+                        <td class="font-weight-bold border-0">
+                          {{ !item.amount ? "0.00" : Number(item.amount).toLocaleString('en', numOpts) }}
+                        </td>
+                      </template>
                     </tr>
                     <tr v-for="(subItem, i) in item.expense_sub_particulars">
                       <td class="border-0">
@@ -539,16 +514,9 @@
                           dense
                           hide-details
                           outlined
-                          @input="
-                            getFieldValue(item, subItem, 'resource_person')
-                          "
-                          :error-messages="
-                            errorFields[index]['errorSubFields'][i]
-                              ? errorFields[index]['errorSubFields'][i][
-                                  'resource_person'
-                                ]
-                              : null
-                          "
+                          @input="getFieldValue(item, subItem, 'resource_person')"
+                          @blur="getFieldValue(item, subItem, 'resource_person')"
+                          :error-messages="errorSubField(index, i, 'resource_person')"
                         ></v-text-field>
                       </td>
                       <td class="border-0">
@@ -559,13 +527,8 @@
                           hide-details
                           outlined
                           @input="getFieldValue(item, subItem, 'contact')"
-                          :error-messages="
-                            errorFields[index]['errorSubFields'][i]
-                              ? errorFields[index]['errorSubFields'][i][
-                                  'contact'
-                                ]
-                              : null
-                          "
+                          @blur="getFieldValue(item, subItem, 'contact')"
+                          :error-messages="errorSubField(index, i, 'contact')"
                         ></v-text-field>
                       </td>
                       <td class="border-0">
@@ -578,9 +541,7 @@
                             'hide-details': true,
                             outlined: true,
                             dense: true,
-                            error: errorFields[index]['errorSubFields'][i]
-                              ? errorFields[index]['errorSubFields'][i]['qty']
-                              : null,
+                            error: errorSubField(index, i, 'qty'),
                             messages: '',
                           }"
                           v-bind:options="{
@@ -588,10 +549,8 @@
                             precision: 0,
                             empty: null,
                           }"
-                          @input="
-                            getFieldValue(item, subItem, 'qty') +
-                              computeAmount()
-                          "
+                          @input="getFieldValue(item, subItem, 'qty') + computeAmount()"
+                          @blur="getFieldValue(item, subItem, 'qty') + computeAmount()"
                         >
                         </v-text-field-money>
                       </td>
@@ -605,11 +564,7 @@
                             'hide-details': true,
                             outlined: true,
                             dense: true,
-                            error: errorFields[index]['errorSubFields'][i]
-                              ? errorFields[index]['errorSubFields'][i][
-                                  'unit_cost'
-                                ]
-                              : null,
+                            error: errorSubField(index, i, 'unit_cost'),
                             messages: '',
                           }"
                           v-bind:options="{
@@ -617,10 +572,8 @@
                             precision: 2,
                             empty: null,
                           }"
-                          @input="
-                            getFieldValue(item, subItem, 'unit_cost') +
-                              computeAmount()
-                          "
+                          @input="getFieldValue(item, subItem, 'unit_cost') + computeAmount()"
+                          @blur="getFieldValue(item, subItem, 'unit_cost') + computeAmount()"
                         >
                         </v-text-field-dotnumber>
                       </td>
@@ -640,20 +593,21 @@
             </v-row>
           </v-card-text>
           <v-divider class="mb-3 mt-0"></v-divider>
-          <v-card-actions class="pa-0 pl-4">
-            <v-btn
-              color="primary"
-              @click="showConfirmAlert()"
-              :disabled="disabled"
-              class="mb-4 mr-1"
-              v-if="hasPermission('tactical-requisition-edit') && !isApproved"
-            >
-              Save
-            </v-btn>
-            <v-btn color="success" class="mb-4 mr-1" @click="confirmApproval()" v-if="hasPermission('tactical-requisition-approve') && !isApproved"> Approve </v-btn>
-            <v-btn color="#E0E0E0" to="/tactical_requisition/index" class="mb-4"> Back </v-btn>
-            <v-spacer></v-spacer>
-            <v-btn color="error" @click="confirmDelete()" class="mb-4 mr-4" v-if="hasPermission('tactical-requisition-delete') && !isApproved"> Delete </v-btn>
+          <v-card-actions class="pa-0 pl-4 pb-4">
+            <template v-if="editedItem.status  !== 'Approved'">
+              <v-btn
+                color="primary"
+                @click="showConfirmAlert()"
+                :disabled="disabled"
+                v-if="hasPermission('tactical-requisition-edit') && !isApproved"
+              >
+                Save
+              </v-btn>
+              <v-btn color="success" @click="confirmApproval()" v-if="hasPermission('tactical-requisition-approve') && !isApproved"> Approve </v-btn>
+              <v-btn color="error" @click="confirmDelete()" v-if="hasPermission('tactical-requisition-approve')"> Disapprove </v-btn>
+              <v-btn color="error" @click="confirmDelete()" v-if="hasPermission('tactical-requisition-delete') && !isApproved"> Delete </v-btn>
+            </template>
+            <v-btn color="#E0E0E0" to="/tactical_requisition/index"> Back </v-btn>
           </v-card-actions>
         </v-card>
         <v-dialog v-model="dialog_attach_file" max-width="500px" persistent>
@@ -670,44 +624,69 @@
               <v-container>
                 <v-row v-if="tactical_attachments.length">
                   <v-col class="my-0 py-0">
-                    <v-list dense>
-                      <v-subheader class="font-weight-bold subtitle-2"> UPLOADED FILES</v-subheader>
-                      <v-list-item-group>
-                        <v-list-item v-for="item in tactical_attachments" :key="item.id">
-                          <v-list-item-content class="pa-0">
-                            <v-list-item-title> 
-                              <v-btn icon color="error" @click="confirmRemoveFile(item)" v-if="hasPermission('tactical-requisition-delete')">
+                    <v-simple-table class="elevation-1 file_table" dense>
+                      <template v-slot:default>
+                        <thead>
+                          <tr>
+                            <th width="10px"> # </th>
+                            <th> Uploaded Files </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr v-for="(item, i) in tactical_attachments" :key="item.id">
+                            <td>{{ i + 1 }}</td>
+                            <td> 
+                              <v-btn class="ma-0" small icon color="error" @click="confirmRemoveFile(item)" v-if="hasPermission('tactical-attachment-delete')">
                                 <v-icon> mdi-close-circle </v-icon> 
                               </v-btn>
-                              <v-btn x-small text class="blue--text text--darken-2" @click="fileDownload(item)">
+                              <v-btn x-small text class="blue--text text--darken-2 ma-0" @click="fileDownload(item)">
+                                {{ item.file_name.length > 50 ? item.file_name.substr(0, 40) + "..." : item.file_name }}
+                              </v-btn> 
+                            </td>
+                          </tr>
+                        </tbody>
+                      </template>
+                    </v-simple-table>
+                    <!-- <v-list dense>
+                      
+                      <v-list-item-group>
+                        <v-list-item v-for="item in tactical_attachments" :key="item.id" class="pa-0 ma-0">
+                          <v-list-item-content class="pa-0 ma-0">
+                            <v-list-item-title class="pa-0 ma-0"> 
+                              <v-btn class="ma-0" icon color="error" @click="confirmRemoveFile(item)" v-if="hasPermission('tactical-requisition-delete')">
+                                <v-icon> mdi-close-circle </v-icon> 
+                              </v-btn>
+                              <v-btn x-small text class="blue--text text--darken-2 ma-0" @click="fileDownload(item)">
                                 {{ item.file_name.length > 50 ? item.file_name.substr(0, 45) + "..." : item.file_name }}
                               </v-btn>
                             </v-list-item-title>
                           </v-list-item-content>
                         </v-list-item>
                       </v-list-item-group>
-                    </v-list>
+                    </v-list> -->
                   </v-col>
                 </v-row>
-                <v-divider v-if="tactical_attachments.length && !isApproved"></v-divider>
-                <v-row v-if="!isApproved">
-                  <v-col class="my-0 py-0">
-                    <v-file-input
-                      v-model="editedItem.file"
-                      show-size
-                      label="File input"
-                      prepend-icon="mdi-paperclip"
-                      required
-                      multiple
-                    >
-                      <template v-slot:selection="{ index, text }">
-                        <v-chip small label color="primary" close @click:close="removeFile(index, text)">
-                          {{ text }}
-                        </v-chip>
-                      </template>
-                    </v-file-input>
-                  </v-col>
-                </v-row>
+                <template v-if="hasPermission('tactical-requisition-edit') && !isApproved">
+                  <v-divider class="mt-4 mb-0" v-if="tactical_attachments.length"></v-divider>
+                  <v-row v-if="!isApproved ">
+                    <v-col class="my-0 py-0">
+                      <v-file-input
+                        v-model="editedItem.file"
+                        show-size
+                        label="File input"
+                        prepend-icon="mdi-paperclip"
+                        required
+                        multiple
+                      >
+                        <template v-slot:selection="{ index, text }">
+                          <v-chip small label color="primary" close @click:close="removeFile(index, text)">
+                            {{ text }}
+                          </v-chip>
+                        </template>
+                      </v-file-input>
+                    </v-col>
+                  </v-row>
+                </template>
               </v-container>
             </v-card-text>
             <v-divider class="mb-3 mt-0"></v-divider>
@@ -734,6 +713,9 @@
     </div>
   </div>
 </template>
+<style>
+.file_table th, .file_table td { border:1px solid #dddddd; border-bottom:1px solid #dddddd;}
+</style>
 <script>
 import axios from "axios";
 import { validationMixin } from "vuelidate";
@@ -1249,51 +1231,66 @@ export default {
       let expense_particulars = this.editedItem.expense_particulars;
       let index = expense_particulars.indexOf(item);
       let expense_particular = expense_particulars[index];
-
+      let field_value = expense_particular[fieldName];
+      let errorFields = this.errorFields[index];
+      let error = "";
+    
       // validate parent row if there is no child data
       if (!expense_particular.expense_sub_particulars.length) {
-        if (!expense_particular[fieldName]) {
-          this.errorFields[index][fieldName] = "error";
+        if (!field_value) {
+          error = "error";
         } else {
           // validate unit_cost if numeric
           if (fieldName == "unit_cost") {
-            if (expense_particular[fieldName] % 1 >= 0) {
-              this.errorFields[index][fieldName] = null;
+            if (field_value % 1 >= 0) {
+              error = null;
             } else {
-              this.errorFields[index][fieldName] = "error";
+              error = "error";
             }
           } else {
-            this.errorFields[index][fieldName] = null;
+            error = null;
           }
         }
       }
+
+      errorFields[fieldName] = error;
 
       // input for expense sub particulars
       if (subItem) {
-        let expense_sub_particulars =
-          expense_particulars[index]["expense_sub_particulars"];
+        let expense_sub_particulars =  expense_particulars[index]["expense_sub_particulars"];
         let subIndex = expense_sub_particulars.indexOf(subItem);
         let expense_sub_particular = expense_sub_particulars[subIndex];
 
-        if (!expense_sub_particular[fieldName]) {
-          this.errorFields[index]["errorSubFields"][subIndex][fieldName] =
-            "error";
+        field_value = expense_sub_particular[fieldName]
+        error = "";
+
+        if (!field_value) {
+          error = "error";
         } else {
           // validate unit_cost if numeric
           if (fieldName == "unit_cost") {
-            if (expense_sub_particular[fieldName] % 1 >= 0) {
-              this.errorFields[index]["errorSubFields"][subIndex][fieldName] =
-                null;
+            if (field_value % 1 >= 0) {
+              error = null;
             } else {
-              this.errorFields[index]["errorSubFields"][subIndex][fieldName] =
-                "error";
+              error = "error";
             }
           } else {
-            this.errorFields[index]["errorSubFields"][subIndex][fieldName] =
-              null;
+            error = null;
           }
         }
+
+        errorFields.errorSubFields[subIndex][fieldName] = error;
+        
       }
+    },
+    errorField(index, fieldName) {
+      let errorField = this.errorFields[index];
+      return errorField ? errorField[fieldName] : null;
+    },
+    errorSubField(index, subIndex, fieldName) {
+      let errorField = this.errorFields[index].errorSubFields[subIndex];
+
+      return errorField ? errorField[fieldName] : null;
     },
     computeAmount() {
       let expense_particulars = this.editedItem.expense_particulars;
@@ -1407,7 +1404,7 @@ export default {
           object_names = Object.keys(value);
           object_names.forEach((fieldName) => {
             if (
-              this.errorFields[index]["errorSubFields"][i][fieldName] == "error"
+              this.errorFields[index].errorSubFields[i][fieldName] == "error"
             ) {
               this.expensePaticularHasError = true;
             }
@@ -1574,6 +1571,9 @@ export default {
       });
 
       return isApproved;
+    },
+    isReadOnly(){
+      return this.editedItem.status === 'Approved' || this.editedItem.status === 'Disapproved' ? true : false;
     },
     ...mapState("auth", ["user"]),
     ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission"]),

@@ -45,7 +45,7 @@ class TacticalRequisitionMaintenance
         }
 
         //Tactical Requisition Approve
-        if($request->is($request->is('api/tactical_requisition/approve/*'))){
+        if($request->is($request->is('api/tactical_requisition/approve/*')) || $request->is($request->is('api/tactical_requisition/approve/*'))){
             if($user->can('tactical-requisition-approve')){
                 return $next($request); 
             }
