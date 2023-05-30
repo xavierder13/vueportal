@@ -39,7 +39,7 @@
           <v-card-text class="px-6 pt-0">
             <v-row>
               <v-col cols="8">
-                <v-row v-if="user.id === 1">
+                <v-row>
                   <v-col class="my-0 py-0">
                     <v-autocomplete
                       v-model="editedItem.branch_id"
@@ -48,7 +48,7 @@
                       item-value="id"
                       label="Branch"
                       required
-                      :readonly="isReadOnly ? true : user.id === 1 ? false :  true "
+                      :readonly="isReadOnly || user.id !== 1 "
                     >
                     </v-autocomplete>
                   </v-col>
@@ -61,7 +61,7 @@
                       transition="scale-transition"
                       offset-y
                       min-width="auto"
-                      :disabled="isReadOnly"
+                      disabled
                     >
                       <template v-slot:activator="{ on, attrs }">
                         <v-text-field
@@ -77,7 +77,7 @@
                         v-model="editedItem.date_submit"
                         no-title
                         scrollable
-                        :max="editedItem.date_submit"
+                        :max="date_now"
                         readonly
                       >
                       </v-date-picker>
@@ -249,7 +249,7 @@
                     <v-icon small>mdi-attachment</v-icon> Attach Files {{ attachmentLength }}
                   </v-btn> 
                   <p class="ml-2 font-weight-bold font-italic red--text text--darken-1" v-if="fileIsRequired"> 
-                    {{ fileErrors }} 
+                    {{ fileErrors[0] }} 
                   </p>
                 </div>
               </v-col>
@@ -279,7 +279,7 @@
                       v-model="computedPrevPeriodFromFormatted"
                       label="Period From"
                       prepend-icon="mdi-calendar"
-                      readonly
+                      :readonly="isReadOnly"
                       v-bind="attrs"
                       v-on="on"
                     ></v-text-field>
@@ -302,7 +302,7 @@
                   transition="scale-transition"
                   offset-y
                   min-width="auto"
-                  :disable="isReadOnly"
+                  :disabled="isReadOnly"
                 >
                   <template v-slot:activator="{ on, attrs }">
                     <v-text-field
@@ -614,18 +614,36 @@
           </v-card-text>
           <v-divider class="mb-3 mt-0"></v-divider>
           <v-card-actions class="pa-0 pl-4 pb-4">
-            <template v-if="editedItem.status  !== 'Approved'">
+            <template v-if="editedItem.status  === 'Pending' && !isApproved">
               <v-btn
                 color="primary"
-                @click="showConfirmAlert()"
+                @click="showConfirmAlert('Update', 'updateTactical')"
                 :disabled="disabled"
-                v-if="hasPermission('tactical-requisition-edit') && !isApproved"
+                v-if="hasPermission('tactical-requisition-edit') && !approved_logs.length"
               >
                 Save
               </v-btn>
-              <v-btn color="success" @click="confirmApproval()" v-if="hasPermission('tactical-requisition-approve') && !isApproved"> Approve </v-btn>
-              <v-btn color="error" @click="confirmDelete()" v-if="hasPermission('tactical-requisition-approve')"> Disapprove </v-btn>
-              <v-btn color="error" @click="confirmDelete()" v-if="hasPermission('tactical-requisition-delete') && !isApproved"> Delete </v-btn>
+              <v-btn 
+                color="success" 
+                @click="showConfirmAlert('Approve', 'approveTactical')" 
+                v-if="hasPermission('tactical-requisition-approve')"
+              > 
+                Approve 
+              </v-btn>
+              <v-btn 
+                color="error" 
+                @click="showConfirmAlert('Disapprove', 'disapproveTactical')" 
+                v-if="hasPermission('tactical-requisition-approve')"
+              > 
+                Disapprove 
+              </v-btn>
+              <v-btn 
+                color="error" 
+                @click="showConfirmAlert('Delete', 'deleteTactical')" 
+                v-if="hasPermission('tactical-requisition-delete')"
+              > 
+                Delete 
+              </v-btn>
             </template>
             <v-btn color="#E0E0E0" to="/tactical_requisition/index"> Back </v-btn>
           </v-card-actions>
@@ -646,7 +664,7 @@
                   <v-col class="my-0 py-0">
                     <v-simple-table class="elevation-1 file_table" dense>
                       <template v-slot:default>
-                        <thead>
+                        <thead class="grey lighten-3 font-weight-bold">
                           <tr>
                             <th width="10px"> # </th>
                             <th> Uploaded Files </th>
@@ -656,7 +674,11 @@
                           <tr v-for="(item, i) in tactical_attachments" :key="item.id">
                             <td>{{ i + 1 }}</td>
                             <td> 
-                              <v-btn class="ma-0" small icon color="error" @click="confirmRemoveFile(item)" v-if="hasPermission('tactical-attachment-delete') && !isReadOnly">
+                              <v-btn class="ma-0" 
+                                small icon color="error" 
+                                @click="confirmRemoveFile(item)" 
+                                v-if="hasPermission('tactical-attachment-delete') && !isReadOnly && !approved_logs.length"
+                              >
                                 <v-icon> mdi-close-circle </v-icon> 
                               </v-btn>
                               <v-btn x-small text class="blue--text text--darken-2 ma-0" @click="fileDownload(item)">
@@ -686,8 +708,8 @@
                     </v-list> -->
                   </v-col>
                 </v-row>
-                <template v-if="hasPermission('tactical-requisition-edit') && !isApproved">
-                  <v-divider class="mt-4 mb-0" v-if="tactical_attachments.length"></v-divider>
+                <template v-if="hasPermission('tactical-requisition-edit') && !isApproved && !approved_logs.length">
+                  <v-divider class="mt-6" v-if="tactical_attachments.length"></v-divider>
                   <v-row v-if="!isApproved ">
                     <v-col class="my-0 py-0">
                       <v-file-input
@@ -729,6 +751,23 @@
             </v-card-actions>
           </v-card>
         </v-dialog>
+        <v-snackbar
+          v-model="snackbar"
+          color="error"
+        >
+          {{ fileErrors[0] }}
+
+          <template v-slot:action="{ attrs }">
+            <v-btn
+              color="white"
+              text
+              v-bind="attrs"
+              @click="snackbar = false"
+            >
+              Close
+            </v-btn>
+          </template>
+        </v-snackbar>
       </v-main>
     </div>
   </div>
@@ -856,6 +895,7 @@ export default {
         status: "",
         file: [],
       },
+      date_now: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().substr(0, 10),
       grand_total: "0.00",
       errorFields: [],
       time_options: [],
@@ -873,6 +913,7 @@ export default {
       dialog_attach_file: false,
       tactical_requisition_id: null,
       approved_logs: [],
+      snackbar: false,
     };
   },
 
@@ -973,17 +1014,17 @@ export default {
         });
       });
     },
-    showAlert() {
+    showAlert(msg) {
       this.$swal({
         position: "center",
         icon: "success",
-        title: "Record has been saved",
+        title: msg,
         showConfirmButton: false,
         timer: 2500,
       });
     },
 
-    save() {
+    saveTactical() {
       this.$v.$touch();
      
       this.validateExpenseParticulars();
@@ -1001,7 +1042,7 @@ export default {
               // send data to Sockot.IO Server
               // this.$socket.emit("sendData", { action: "tactical-requisition-edit" });
 
-              this.showAlert();
+              this.showAlert(response.data.success);
 
             } else {
               let errors = response.data;
@@ -1018,6 +1059,7 @@ export default {
           }
         );
       }
+      this.overlay = false;
     },
 
     uploadFile(){
@@ -1030,18 +1072,21 @@ export default {
             }
         }).then(
           (response) => {
+            
+            let data = response.data;
             console.log(response.data);
-            if (response.data.success) {
+
+            if (data.success) {
               // send data to Sockot.IO Server
               // this.$socket.emit("sendData", { action: "tactical-requisition-edit" });
-              this.tactical_attachments = response.data.tactical_attachments;
+              this.tactical_attachments =data.tactical_attachments;
               this.editedItem.file = [];
 
-              this.showAlert();
+              this.showAlert(data.success);
 
             } else {
-              let errors = response.data;
-              let errorNames = Object.keys(response.data);
+              let errors = data;
+              let errorNames = Object.keys(data);
             }
             this.overlay = false;
             this.disabled = false;
@@ -1067,77 +1112,59 @@ export default {
       const data = this.editedItem;
 
       axios.post("/api/tactical_requisition/approve/" + this.tactical_requisition_id, data).then(
-          (response) => {
-            console.log(response);
-            if (response.data.success) {
-              // send data to Sockot.IO Server
-              // this.$socket.emit("sendData", { action: "tactical-requisition-approve" });
+        (response) => {
+          console.log(response);
+          let data = response.data;
+          if (data.success) {
+            // send data to Sockot.IO Server
+            // this.$socket.emit("sendData", { action: "tactical-requisition-approve" });
 
-              this.$swal({
-                position: "center",
-                icon: "success",
-                title: "Record has been approved!",
-                showConfirmButton: false,
-                timer: 2500,
-              });
+            this.showAlert(data.success);
 
-              this.approved_logs = response.data.approved_logs;
-              this.editedItem.status = response.data.status;
+            this.approved_logs = data.approved_logs;
+            this.editedItem.status = data.status;
 
-            } else {
-              let errors = response.data;
-              let errorNames = Object.keys(response.data);
-            }
-            this.overlay = false;
-            this.disabled = false;
-          },
-          (error) => {
-            this.isUnauthorized(error);
-
-            this.overlay = false;
-            this.disabled = false;
+          } else {
+            let errors = data;
+            let errorNames = Object.keys(data);
           }
-        );
-    },
+          this.overlay = false;
+          this.disabled = false;
+        },
+        (error) => {
+          this.isUnauthorized(error);
 
-    confirmApproval(item) {
-      this.$swal({
-        title: "Approve Tactical Requisition",
-        text: "You won't be able to revert this!",
-        icon: "question",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#6c757d",
-        confirmButtonText: "Yes",
-      }).then((result) => {
-        // <--
-
-        if (result.value) {
-          this.approveTactical();
+          this.overlay = false;
+          this.disabled = false;
         }
-      });
+      );
+      
+      this.overlay = false;
     },
 
-    showConfirmAlert(item) {
-      this.$swal({
-        title: "Do you want to save changes?",
-        icon: "question",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#6c757d",
-        confirmButtonText: "Yes",
-      }).then((result) => {
-        // <--
+    disapproveTactical() {
+      const data = { tactical_requisition_id: this.tactical_requisition_id };
+      axios.post('/api/tactical_requisition/disapprove', data).then(
+        (response) => {
+          let data = response.data;
+          if(data.success)
+          {
+            this.showAlert(data.success);
+            this.editedItem.status = 'Disapproved';
+          }
+          console.log(data);
+        },
+        (error) => {
+          console.log(response.data);
+        },
+      )
 
-        if (result.value) {
-          this.save();
-        }
-      });
+      this.overlay = false;
     },
-    
-    deleteTacticalRequisition() {
 
-      const data = { tactical_requisition_id: this.this.tactical_requisition_id };
+    deleteTactical() {
+
+      const data = { tactical_requisition_id: this.tactical_requisition_id };
 
       axios.post("/api/tactical_requisition/delete", data).then(
         (response) => {
@@ -1146,13 +1173,7 @@ export default {
             // send data to Sockot.IO Server
             // this.$socket.emit("sendData", { action: "tactical-requisition-delete" });
 
-            this.$swal({
-              position: "center",
-              icon: "success",
-              title: "Record has been deleted",
-              showConfirmButton: false,
-              timer: 2500,
-            });
+            this.showAlert(response.data.success);
 
             setTimeout(() => {
               this.$router.push({ name: 'tactical.index' })
@@ -1166,24 +1187,35 @@ export default {
       );
     },
 
-    confirmDelete() {
+    showConfirmAlert(action, method) {
+
+      let icon = 'question';
+      let title = `${action} Tactital Requistion`;
+      let text = action !== 'Update' ? "You won't be able to revert this!" : '';
+      let confirmButtonColor = "#3085d6";
+      let actionArr = ['Delete', 'Disapprove'];
+
+      if(actionArr.includes(action))
+      {
+        icon = 'warning';
+        confirmButtonColor = "#d33"
+      }
+
       this.$swal({
-        title: "Are you sure you?",
-        text: "You won't be able to revert this!",
-        icon: "warning",
+        title: title,
+        text: text,
+        icon: icon,
         showCancelButton: true,
-        confirmButtonColor: "#d33",
+        confirmButtonColor: confirmButtonColor,
         cancelButtonColor: "#6c757d",
-        confirmButtonText: "Delete record!",
+        confirmButtonText: action,
       }).then((result) => {
-        // <--
 
         if (result.value) {
-          // <-- if confirmed
-          
-          this.deleteTacticalRequisition();
-          
+          this.overlay = true;
+          this[method]();
         }
+
       });
     },
 
@@ -1202,13 +1234,7 @@ export default {
             //Remove item from array tactical_attachements
             this.tactical_attachments.splice(index, 1);
 
-            this.$swal({
-              position: "center",
-              icon: "success",
-              title: "File attachment has been deleted",
-              showConfirmButton: false,
-              timer: 2500,
-            });
+            this.showAlert(response.data.success);
 
           }
         },
@@ -1249,6 +1275,7 @@ export default {
       this.editedItem = Object.assign({}, this.defaultItem);
       this.grand_total = "0.00";
     },
+
     getFieldValue(item, subItem, fieldName) {
       let expense_particulars = this.editedItem.expense_particulars;
       let index = expense_particulars.indexOf(item);
@@ -1281,9 +1308,8 @@ export default {
       if (subItem) {
         let expense_sub_particulars =  expense_particulars[index]["expense_sub_particulars"];
         let subIndex = expense_sub_particulars.indexOf(subItem);
-        let expense_sub_particular = expense_sub_particulars[subIndex];
+        let field_value = expense_sub_particulars[subIndex][fieldName];
 
-        field_value = expense_sub_particular[fieldName]
         error = "";
 
         if (!field_value) {
@@ -1406,7 +1432,14 @@ export default {
         value.expense_sub_particulars.forEach((val, i) => {
           object_names = Object.keys(expense_particulars[index]);
           object_names.forEach((fieldName) => {
-            this.getFieldValue(value, val, fieldName);
+
+            // exclude validation for expense_sub_particulars and expense_particular_id object name
+            let objArr = ['expense_sub_particulars', 'expense_particular_id'];
+            if(!objArr.includes(fieldName))
+            {
+              this.getFieldValue(value, val, fieldName);
+            }
+
           });
         });
       });
@@ -1534,10 +1567,18 @@ export default {
       return errors;
     },
     fileErrors(){
-      if(!this.attachmentLength)
-      {
-        return "Attachment is required!";
-      }
+      // if(!this.attachmentLength)
+      // {
+      //   return "Attachment is required!";
+      // }
+
+      const errors = [];
+
+      if (!this.$v.editedItem.file.$dirty) return errors;
+      !this.$v.editedItem.file.required &&
+        errors.push("Attachment is required!");
+      
+      return errors;
     },
     computedPeriodFromFormatted() {
       return this.formatDate(this.editedItem.period_from);
@@ -1594,8 +1635,11 @@ export default {
 
       return isApproved;
     },
+    hasApprovedLogs(){
+
+    },
     isReadOnly(){
-      return this.editedItem.status === 'Approved' || this.editedItem.status === 'Disapproved' ? true : false;
+      return this.editedItem.status === 'Approved' || this.editedItem.status === 'Disapproved' || !this.hasPermission('tactical-requisition-edit');
     },
     ...mapState("auth", ["user"]),
     ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission"]),

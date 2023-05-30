@@ -614,9 +614,13 @@ class TacticalRequisitionController extends Controller
 
     }
 
-    public function disapprove(Request $request, $tactical_requisition_id)
+    public function disapprove(Request $request)
     {   
+        $tactical = TacticalRequisition::find($request->get('tactical_requisition_id'));
+        $tactical->status = 'Disapproved';
+        $tactical->save();
 
+        return response()->json(['success' => 'Record has been disapproved', 'status' => 'Disapproved'], 200);
     }
 
     public function download(Request $request)

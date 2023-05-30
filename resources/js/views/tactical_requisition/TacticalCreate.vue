@@ -26,7 +26,7 @@
           <v-card-text class="px-6 pt-0">
             <v-row>
               <v-col cols="8">
-                <v-row v-if="user.id === 1">
+                <v-row>
                   <v-col class="mb-0 py-0">
                     <v-autocomplete
                       v-model="editedItem.branch_id = user.branch_id"
@@ -38,6 +38,7 @@
                       :error-messages="branchErrors"
                       @input="$v.editedItem.branch_id.$touch()"
                       @blur="$v.editedItem.branch_id.$touch()"
+                      :readonly="user.id !== 1"
                     >
                     </v-autocomplete>
                   </v-col>
@@ -50,6 +51,7 @@
                       transition="scale-transition"
                       offset-y
                       min-width="auto"
+                      disabled
                     >
                       <template v-slot:activator="{ on, attrs }">
                         <v-text-field
@@ -65,8 +67,8 @@
                         v-model="editedItem.date_submit"
                         no-title
                         scrollable
-                        :max="editedItem.date_submit"
                         readonly
+                        :max="date_now"
                       >
                       </v-date-picker>
                     </v-menu>
@@ -599,58 +601,74 @@
             <v-btn color="#E0E0E0" to="/" class="mb-4"> Cancel </v-btn>
           </v-card-actions>
         </v-card>
-
         <v-dialog v-model="dialog_attach_file" max-width="500px" persistent>
-            <v-card>
-              <v-card-title class="pa-4">
-                <span class="headline">Attach file</span>
-              </v-card-title>
-              <v-divider class="mt-0"></v-divider>
-              <v-card-text>
-                <v-container>
-                  <v-row>
-                    <v-col class="my-0 py-0">
-                      <v-file-input
-                        v-model="editedItem.file"
-                        show-size
-                        label="File input"
-                        prepend-icon="mdi-paperclip"
-                        required
-                        multiple
-                        :error-messages="fileErrors"
-                        @input="$v.editedItem.file.$touch()"
-                        @blur="$v.editedItem.file.$touch()"
-                      >
-                        <template v-slot:selection="{ index, text }">
-                          <v-chip small label color="primary" close @click:close="removeFile(index, text)">
-                            {{ text }}
-                          </v-chip>
-                        </template>
-                      </v-file-input>
-                    </v-col>
-                  </v-row>
-                </v-container>
-              </v-card-text>
-              <v-divider class="mb-3 mt-0"></v-divider>
-              <v-card-actions class="pa-0">
-                <v-spacer></v-spacer>
-                <!-- <v-btn
-                  color="#E0E0E0"
-                  @click="(dialog_attach_file = false)"
-                  class="mb-4"
-                >
-                  Close
-                </v-btn> -->
-                <v-btn
-                  color="primary"
-                  class="mb-3 mr-4"
-                  @click="(dialog_attach_file = false)"
-                >
-                  OK
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-dialog>
+          <v-card>
+            <v-card-title class="pa-4">
+              <span class="headline">Attach file</span>
+            </v-card-title>
+            <v-divider class="mt-0"></v-divider>
+            <v-card-text>
+              <v-container>
+                <v-row>
+                  <v-col class="my-0 py-0">
+                    <v-file-input
+                      v-model="editedItem.file"
+                      show-size
+                      label="File input"
+                      prepend-icon="mdi-paperclip"
+                      required
+                      multiple
+                      :error-messages="fileErrors"
+                      @input="$v.editedItem.file.$touch()"
+                      @blur="$v.editedItem.file.$touch()"
+                    >
+                      <template v-slot:selection="{ index, text }">
+                        <v-chip small label color="primary" close @click:close="removeFile(index, text)">
+                          {{ text }}
+                        </v-chip>
+                      </template>
+                    </v-file-input>
+                  </v-col>
+                </v-row>
+              </v-container>
+            </v-card-text>
+            <v-divider class="mb-3 mt-0"></v-divider>
+            <v-card-actions class="pa-0">
+              <v-spacer></v-spacer>
+              <!-- <v-btn
+                color="#E0E0E0"
+                @click="(dialog_attach_file = false)"
+                class="mb-4"
+              >
+                Close
+              </v-btn> -->
+              <v-btn
+                color="primary"
+                class="mb-3 mr-4"
+                @click="(dialog_attach_file = false)"
+              >
+                OK
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+        <v-snackbar
+          v-model="snackbar"
+          color="error"
+        >
+          {{ fileErrors[0] }}
+
+          <template v-slot:action="{ attrs }">
+            <v-btn
+              color="white"
+              text
+              v-bind="attrs"
+              @click="snackbar = false"
+            >
+              Close
+            </v-btn>
+          </template>
+        </v-snackbar>
       </v-main>
     </div>
   </div>
@@ -771,6 +789,7 @@ export default {
         prev_total_expense: "",
         file: [],
       },
+      date_now: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().substr(0, 10),
       grand_total: "0.00",
       errorFields: [],
       time_options: [],
@@ -780,12 +799,13 @@ export default {
       date_menu_prev_period_fr: false,
       date_menu_prev_period_to: false,
       modal: false,
-      expensePaticularHasError: false,
+      expenseParticularHasError: false,
       numOpts: { 
         minimumFractionDigits: 2,
         maximumFractionDigits: 2 
       },
       dialog_attach_file: false,
+      snackbar: false,
     };
   },
 
@@ -803,7 +823,7 @@ export default {
     },
     getMarketingEvent() {
       this.errorFields = [];
-      this.expensePaticularHasError = false;
+      this.expenseParticularHasError = false;
       let expense_particulars = this.editedItem.marketing_event.expense_particulars;
 
       this.editedItem.expense_particulars = [];
@@ -863,11 +883,10 @@ export default {
     save() {
       this.$v.$touch();
       this.validateExpenseParticulars();
-      // console.log("validationError", this.$v.$error);
-      // console.log("expensePaticularHasError", this.expensePaticularHasError);
-      console.log('this.$v.$error', this.$v.$error);
-      console.log('this.$v.$expensePaticularHasError', this.$v.expensePaticularHasError);
-      if (!this.$v.$error && !this.expensePaticularHasError) {
+      this.snackbar = false;
+      console.log(this.$v.$error);
+      console.log(this.expenseParticularHasError);
+      if (!this.$v.$error && !this.expenseParticularHasError) {
         this.disabled = true;
         this.overlay = true;
 
@@ -900,6 +919,12 @@ export default {
           }
         );
       }
+
+      if(this.$v.editedItem.file.$error)
+      {
+        this.snackbar = true;
+      }
+
     },
     clear() {
       this.$v.$reset();
@@ -910,51 +935,58 @@ export default {
       let expense_particulars = this.editedItem.expense_particulars;
       let index = expense_particulars.indexOf(item);
       let expense_particular = expense_particulars[index];
-
+      let field_value = expense_particular[fieldName];
+      let errorFields = this.errorFields[index];
+      let error = "";
+    
       // validate parent row if there is no child data
       if (!expense_particular.expense_sub_particulars.length) {
-        if (!expense_particular[fieldName]) {
-          this.errorFields[index][fieldName] = "error";
+        if (!field_value) {
+          error = "error";
         } else {
           // validate unit_cost if numeric
           if (fieldName == "unit_cost") {
-            if (expense_particular[fieldName] % 1 >= 0) {
-              this.errorFields[index][fieldName] = null;
+            if (field_value % 1 >= 0) {
+              error = null;
             } else {
-              this.errorFields[index][fieldName] = "error";
+              error = "error";
             }
           } else {
-            this.errorFields[index][fieldName] = null;
+            error = null;
           }
         }
       }
+
+      errorFields[fieldName] = error;
 
       // input for expense sub particulars
       if (subItem) {
-        let expense_sub_particulars =
-          expense_particulars[index]["expense_sub_particulars"];
+        let expense_sub_particulars =  expense_particulars[index]["expense_sub_particulars"];
         let subIndex = expense_sub_particulars.indexOf(subItem);
         let expense_sub_particular = expense_sub_particulars[subIndex];
 
-        if (!expense_sub_particular[fieldName]) {
-          this.errorFields[index]["errorSubFields"][subIndex][fieldName] =
-            "error";
+        field_value = expense_sub_particular[fieldName]
+        error = "";
+
+        if (!field_value) {
+          error = "error";
         } else {
           // validate unit_cost if numeric
           if (fieldName == "unit_cost") {
-            if (expense_sub_particular[fieldName] % 1 >= 0) {
-              this.errorFields[index]["errorSubFields"][subIndex][fieldName] =
-                null;
+            if (field_value % 1 >= 0) {
+              error = null;
             } else {
-              this.errorFields[index]["errorSubFields"][subIndex][fieldName] =
-                "error";
+              error = "error";
             }
           } else {
-            this.errorFields[index]["errorSubFields"][subIndex][fieldName] =
-              null;
+            error = null;
           }
         }
+
+        errorFields.errorSubFields[subIndex][fieldName] = error;
+        
       }
+
     },
     errorField(index, fieldName) {
       let errorField = this.errorFields[index];
@@ -962,7 +994,6 @@ export default {
     },
     errorSubField(index, subIndex, fieldName) {
       let errorField = this.errorFields[index].errorSubFields[subIndex];
-
       return errorField ? errorField[fieldName] : null;
     },
     computeAmount() {
@@ -1057,19 +1088,26 @@ export default {
         value.expense_sub_particulars.forEach((val, i) => {
           object_names = Object.keys(expense_particulars[index]);
           object_names.forEach((fieldName) => {
-            this.getFieldValue(value, val, fieldName);
+
+            // exclude validation for expense_sub_particulars and expense_particular_id object name
+            let objArr = ['expense_sub_particulars', 'expense_particular_id'];
+            if(!objArr.includes(fieldName))
+            {
+              this.getFieldValue(value, val, fieldName);
+            }
+            
           });
         });
       });
 
-      this.expensePaticularHasError = false;
+      this.expenseParticularHasError = false;
 
       // check/scan if field has error on errorFields variable
       this.errorFields.forEach((value, index) => {
         object_names = Object.keys(value);
         object_names.forEach((fieldName) => {
           if (this.errorFields[index][fieldName] == "error") {
-            this.expensePaticularHasError = true;
+            this.expenseParticularHasError = true;
           }
         });
 
@@ -1079,11 +1117,12 @@ export default {
             if (
               this.errorFields[index]["errorSubFields"][i][fieldName] == "error"
             ) {
-              this.expensePaticularHasError = true;
+              this.expenseParticularHasError = true;
             }
           });
         });
       });
+      
     },
     isUnauthorized(error) {
       // if unauthenticated (401)
@@ -1198,6 +1237,7 @@ export default {
       if (!this.$v.editedItem.file.$dirty) return errors;
       !this.$v.editedItem.file.required &&
         errors.push("Attachment is required!");
+      
       return errors;
       
     },
