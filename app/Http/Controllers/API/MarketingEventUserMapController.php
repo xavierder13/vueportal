@@ -140,7 +140,6 @@ class MarketingEventUserMapController extends Controller
                 ]);
             }
         }
-        
 
         MarketingApproverPerLevel::where('marketing_event_id', '=', $marketing_event_id)    
                                     ->whereNotIn('level', $levels)
