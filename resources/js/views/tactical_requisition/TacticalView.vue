@@ -260,7 +260,7 @@
             <v-divider></v-divider>
             <v-row>
               <v-col class="mb-0 py-0">
-                <p class="font-weight-bold subtitle-1">
+                <p class="font-weight-bold subtitle-1 mt-2">
                   PREVIOUS TACTICAL ACTIVITY
                 </p>
               </v-col>
@@ -1100,7 +1100,7 @@ export default {
       let title = `${action} Tactital Requistion`;
       let text = action !== 'Update' ? "You won't be able to revert this!" : '';
       let confirmButtonColor = "#3085d6";
-      let actionArr = ['Delete', 'Disapprove', 'Cancel'];
+      let actionArr = ['delete', 'disapprove', 'dancel'];
       let btnText = action === 'Cancel' ? 'Proceed' : action;
 
       if(actionArr.includes(action))
@@ -1116,7 +1116,8 @@ export default {
         showCancelButton: true,
         confirmButtonColor: confirmButtonColor,
         cancelButtonColor: "#6c757d",
-        confirmButtonText: btnText,
+        confirmButtonText: btnText.toUpperCase(),
+        cancelButtonText: "CANCEL"
       }).then((result) => {
 
         if (result.value) {

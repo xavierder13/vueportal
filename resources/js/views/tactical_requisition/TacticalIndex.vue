@@ -9,7 +9,12 @@
             </v-breadcrumbs-item>
           </template>
         </v-breadcrumbs>
-        <v-card>
+        <v-skeleton-loader
+          v-if="skeleton_loading"
+          type="table-heading, table-thead, table-tbody, table-row, table-tfoot"
+          :types=" {'table-thead': 'heading@8', 'table-tbody': 'table-row-divider@5', 'table-row': 'table-cell@8'} "
+        ></v-skeleton-loader>
+        <v-card v-if="!skeleton_loading">
           <v-card-title>
             Tactical Requisition Lists
             <v-spacer></v-spacer>
@@ -140,6 +145,7 @@ export default {
         description: [],
       },
       approval_progress: [],
+      skeleton_loading: true,
     };
   },
 
@@ -157,6 +163,7 @@ export default {
           this.approval_progress = data.approval_progress
 
           this.loading = false;
+          this.skeleton_loading = false;
         },
         (error) => {
           this.isUnauthorized(error);

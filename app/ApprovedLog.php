@@ -9,7 +9,8 @@ class ApprovedLog extends Model
     protected $fillable = [
         'module_id',
         'document_id',
-        'approver_id'
+        'approver_id',
+        'level',
     ];
 
     public function approver()

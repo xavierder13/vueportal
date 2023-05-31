@@ -25,14 +25,7 @@ class TacticalRequisitionController extends Controller
 
     public function index() 
     {   
-
-        $user_can_view_tactical_list = Auth::user()->can('tactical-requisition-list');
-
-        $marketing_events = MarketingEvent::with('marketing_event_user_maps')
-                                                    ->with('marketing_event_user_maps.user')
-                                                    ->with('approver_per_level') 
-                                                    ->get();
-                                                    
+                                          
         // check if Auth is approver marketing events
         $approver_ctr = MarketingEvent::with('marketing_event_user_maps')
                                         ->whereHas('marketing_event_user_maps', function($query){
@@ -48,7 +41,7 @@ class TacticalRequisitionController extends Controller
                                                     ->with('approved_logs')
                                                     ->with('approved_logs.approver')
                                                     ->selectRaw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_created, DATE_FORMAT(date_approve, '%m/%d/%Y') as date_approved")
-                                                    ->whereHas('user', function($query) use ($approver_ctr, $user_can_view_tactical_list){    
+                                                    ->whereHas('user', function($query) use ($approver_ctr){    
                                                         
                                                         // if approver_ctr === 0 (no approver) or not admin user then select record where user_id == Auth::id()
                                                         
@@ -486,7 +479,7 @@ class TacticalRequisitionController extends Controller
                                          ->where('id', '=', $tactical_requisition_id)
                                          ->first();
 
-        return response()->json(['success' => 'Record has successfully added', 'tactical_requisition' => $tactical_requisition]);
+        return response()->json(['success' => 'Record has been updated', 'tactical_requisition' => $tactical_requisition]);
     }
 
     public function delete(Request $request)

@@ -44,6 +44,12 @@ class TacticalRequisition extends Model
         //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
     }
 
+    public function activity_logs()
+    {   
+        return $this->hasMany('App\TacticalActivityLog', 'document_id', 'id');
+        //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
+    }
+
     public function branch()
     {
         return $this->hasOne('App\Branch', 'id', 'branch_id');
