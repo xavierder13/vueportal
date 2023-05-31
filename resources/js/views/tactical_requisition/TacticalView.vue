@@ -628,28 +628,28 @@
               </v-btn>
               <v-btn 
                 color="success" 
-                @click="showConfirmAlert('Approve')" 
+                @click="showConfirmAlert('approve')" 
                 v-if="hasPermission('tactical-requisition-approve')"
               > 
                 Approve 
               </v-btn>
               <v-btn 
                 color="error" 
-                @click="showConfirmAlert('Disapprove')" 
+                @click="showConfirmAlert('disapprove')" 
                 v-if="hasPermission('tactical-requisition-approve')"
               > 
                 Disapprove 
               </v-btn>
               <v-btn 
                 color="error" 
-                @click="showConfirmAlert('Delete')" 
+                @click="showConfirmAlert('delete')" 
                 v-if="hasPermission('tactical-requisition-delete')"
               > 
                 Delete 
               </v-btn>
               <v-btn 
                 color="error" 
-                @click="showConfirmAlert('Cancel')" 
+                @click="showConfirmAlert('cancel')" 
                 v-if="hasPermission('tactical-requisition-cancel')"
               > 
                 Cancel 
@@ -1041,11 +1041,10 @@ export default {
       this.$v.$touch();
      
       this.validateExpenseParticulars();
-      console.log(this.$v.$error);
-      console.log(this.expensePaticularHasError);
+
       if (!this.$v.$error && !this.expensePaticularHasError) {
         
-        this.showConfirmAlert('Update');
+        this.showConfirmAlert('update');
 
       }
 
@@ -1053,13 +1052,13 @@ export default {
 
     async submitTactical(action) {
       
-      action = action.toLowerCase();
+      action = action;
 
       let data = { tactical_requisition_id: this.tactical_requisition_id };
       let url = "/api/tactical_requisition/" + action;
 
       // if action is update then add parameter on url
-      if(action == 'Update')
+      if(action == 'update')
       {
         url += '/' + this.tactical_requisition_id; 
         data = this.editedItem;
@@ -1074,7 +1073,7 @@ export default {
 
             this.showAlert(data.success);
 
-            if(action == 'Delete')
+            if(action == 'delete')
             {
               setTimeout(() => {
                 this.$router.push({ name: 'tactical.index' })
@@ -1091,7 +1090,7 @@ export default {
           this.isUnauthorized(error);
         },
       )
-
+      this.disabled = false;
       this.overlay = false;
     },
 
