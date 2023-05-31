@@ -1039,9 +1039,10 @@ export default {
 
     updateTactical() {
       this.$v.$touch();
-     console.log('asdsad');
+     
       this.validateExpenseParticulars();
-
+      console.log(this.$v.$error);
+      console.log(this.expensePaticularHasError);
       if (!this.$v.$error && !this.expensePaticularHasError) {
         
         this.showConfirmAlert('Update');
@@ -1388,7 +1389,7 @@ export default {
           object_names.forEach((fieldName) => {
 
             // exclude validation for expense_sub_particulars and expense_particular_id object name
-            let objArr = ['expense_sub_particulars', 'expense_particular_id'];
+            let objArr = ['expense_sub_particulars', 'expense_particular_id', 'tactical_requisition_row_id'];
             if(!objArr.includes(fieldName))
             {
               this.getFieldValue(value, val, fieldName);
@@ -1420,6 +1421,7 @@ export default {
           });
         });
       });
+   
     },
     isUnauthorized(error) {
       // if unauthenticated (401)
