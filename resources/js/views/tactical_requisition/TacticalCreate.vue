@@ -589,16 +589,15 @@
             </v-row>
           </v-card-text>
           <v-divider class="mb-3 mt-0"></v-divider>
-          <v-card-actions class="pa-0">
+          <v-card-actions class="pl-6 pb-4">
             <v-btn
               color="primary"
               @click="save"
               :disabled="disabled"
-              class="ml-6 mb-4 mr-1"
             >
               Save
             </v-btn>
-            <v-btn color="#E0E0E0" to="/" class="mb-4"> Cancel </v-btn>
+            <v-btn color="#E0E0E0" to="/"> Cancel </v-btn>
           </v-card-actions>
         </v-card>
         <v-dialog v-model="dialog_attach_file" max-width="500px" persistent>

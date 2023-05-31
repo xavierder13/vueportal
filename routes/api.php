@@ -646,7 +646,7 @@ Route::group(['prefix' => 'tactical_requisition', 'middleware' => ['auth:api', '
         'uses' => 'API\TacticalRequisitionController@update',
         'as' => 'tactical_requisition.update',
     ]);
-    Route::post('/approve/{id}', [
+    Route::post('/approve', [
         'uses' => 'API\TacticalRequisitionController@approve',
         'as' => 'tactical_requisition.approve',
     ]);
@@ -657,6 +657,10 @@ Route::group(['prefix' => 'tactical_requisition', 'middleware' => ['auth:api', '
     Route::post('/delete', [
         'uses' => 'API\TacticalRequisitionController@delete',
         'as' => 'tactical_requisition.delete',
+    ]);
+    Route::post('/cancel', [
+        'uses' => 'API\TacticalRequisitionController@cancel',
+        'as' => 'tactical_requisition.cancel',
     ]);
     Route::post('/add_file/{id}', [
         'uses' => 'API\TacticalRequisitionController@add_file',

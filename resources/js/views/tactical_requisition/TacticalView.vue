@@ -17,8 +17,11 @@
             </v-breadcrumbs-item>
           </template>
         </v-breadcrumbs>
-
-        <v-card>
+        <v-skeleton-loader
+          v-if="loading"
+          type="article, article, table"
+        ></v-skeleton-loader>
+        <v-card v-if="!loading">
           <v-card-title class="mb-0 pb-0">
             <span class="headline mr-2">TACTICAL REQUISITION </span>
             <v-spacer></v-spacer>
@@ -613,11 +616,11 @@
             </v-row>
           </v-card-text>
           <v-divider class="mb-3 mt-0"></v-divider>
-          <v-card-actions class="pa-0 pl-4 pb-4">
+          <v-card-actions class="pl-6 pb-4">
             <template v-if="editedItem.status  === 'Pending' && !isApproved">
               <v-btn
                 color="primary"
-                @click="showConfirmAlert('Update', 'updateTactical')"
+                @click="updateTactical()"
                 :disabled="disabled"
                 v-if="hasPermission('tactical-requisition-edit') && !approved_logs.length"
               >
@@ -625,24 +628,31 @@
               </v-btn>
               <v-btn 
                 color="success" 
-                @click="showConfirmAlert('Approve', 'approveTactical')" 
+                @click="showConfirmAlert('Approve')" 
                 v-if="hasPermission('tactical-requisition-approve')"
               > 
                 Approve 
               </v-btn>
               <v-btn 
                 color="error" 
-                @click="showConfirmAlert('Disapprove', 'disapproveTactical')" 
+                @click="showConfirmAlert('Disapprove')" 
                 v-if="hasPermission('tactical-requisition-approve')"
               > 
                 Disapprove 
               </v-btn>
               <v-btn 
                 color="error" 
-                @click="showConfirmAlert('Delete', 'deleteTactical')" 
+                @click="showConfirmAlert('Delete')" 
                 v-if="hasPermission('tactical-requisition-delete')"
               > 
                 Delete 
+              </v-btn>
+              <v-btn 
+                color="error" 
+                @click="showConfirmAlert('Cancel')" 
+                v-if="hasPermission('tactical-requisition-cancel')"
+              > 
+                Cancel 
               </v-btn>
             </template>
             <v-btn color="#E0E0E0" to="/tactical_requisition/index"> Back </v-btn>
@@ -914,11 +924,13 @@ export default {
       tactical_requisition_id: null,
       approved_logs: [],
       snackbar: false,
+      loading: true,
     };
   },
 
   methods: {
     getTacticalRequisition() {
+      this.loading = true;
       this.tactical_requisition_id = this.$route.params.tactical_requisition_id;
 
       const data = {
@@ -956,7 +968,8 @@ export default {
       
           this.getMarketingEvent();
           this.computeAmount();
-          
+          this.loading = false;
+       
         },
         (error) => {
           this.isUnauthorized(error);
@@ -1024,42 +1037,96 @@ export default {
       });
     },
 
-    saveTactical() {
+    updateTactical() {
       this.$v.$touch();
-     
+     console.log('asdsad');
       this.validateExpenseParticulars();
 
       if (!this.$v.$error && !this.expensePaticularHasError) {
-        this.disabled = true;
-        this.overlay = true;
+        
+        this.showConfirmAlert('Update');
 
-        const data = this.editedItem;
-
-        axios.post("/api/tactical_requisition/update/" + this.tactical_requisition_id, data).then(
-          (response) => {
-            console.log(response);
-            if (response.data.success) {
-              // send data to Sockot.IO Server
-              // this.$socket.emit("sendData", { action: "tactical-requisition-edit" });
-
-              this.showAlert(response.data.success);
-
-            } else {
-              let errors = response.data;
-              let errorNames = Object.keys(response.data);
-            }
-            this.overlay = false;
-            this.disabled = false;
-          },
-          (error) => {
-            this.isUnauthorized(error);
-
-            this.overlay = false;
-            this.disabled = false;
-          }
-        );
       }
+
+    },
+
+    async submitTactical(action) {
+      
+      action = action.toLowerCase();
+
+      let data = { tactical_requisition_id: this.tactical_requisition_id };
+      let url = "/api/tactical_requisition/" + action;
+
+      // if action is update then add parameter on url
+      if(action == 'Update')
+      {
+        url += '/' + this.tactical_requisition_id; 
+        data = this.editedItem;
+      }
+
+      axios.post(url, data).then(
+        (response) => {
+          let data = response.data
+          console.log(response);
+          if(data.success)
+          { 
+
+            this.showAlert(data.success);
+
+            if(action == 'Delete')
+            {
+              setTimeout(() => {
+                this.$router.push({ name: 'tactical.index' })
+              }, 500);
+            }
+            else
+            {
+              this.loading = true;
+              this.getTacticalRequisition();
+            }
+          }
+        },
+        (error) => {
+          this.isUnauthorized(error);
+        },
+      )
+
       this.overlay = false;
+    },
+
+    showConfirmAlert(action) {
+      
+      let icon = 'question';
+      let title = `${action} Tactital Requistion`;
+      let text = action !== 'Update' ? "You won't be able to revert this!" : '';
+      let confirmButtonColor = "#3085d6";
+      let actionArr = ['Delete', 'Disapprove', 'Cancel'];
+      let btnText = action === 'Cancel' ? 'Proceed' : action;
+
+      if(actionArr.includes(action))
+      {
+        icon = 'warning';
+        confirmButtonColor = "#d33"
+      }
+
+      this.$swal({
+        title: title,
+        text: text,
+        icon: icon,
+        showCancelButton: true,
+        confirmButtonColor: confirmButtonColor,
+        cancelButtonColor: "#6c757d",
+        confirmButtonText: btnText,
+      }).then((result) => {
+
+        if (result.value) {
+          this.disabled = true;
+          this.overlay = true;
+
+          this.submitTactical(action);
+        }
+
+      });
     },
 
     uploadFile(){
@@ -1079,7 +1146,7 @@ export default {
             if (data.success) {
               // send data to Sockot.IO Server
               // this.$socket.emit("sendData", { action: "tactical-requisition-edit" });
-              this.tactical_attachments =data.tactical_attachments;
+              this.tactical_attachments = data.tactical_attachments;
               this.editedItem.file = [];
 
               this.showAlert(data.success);
@@ -1104,119 +1171,6 @@ export default {
         this.dialog_attach_file = false;
       }
       
-    },
-
-    approveTactical()
-    {
-      
-      const data = this.editedItem;
-
-      axios.post("/api/tactical_requisition/approve/" + this.tactical_requisition_id, data).then(
-        (response) => {
-          console.log(response);
-          let data = response.data;
-          if (data.success) {
-            // send data to Sockot.IO Server
-            // this.$socket.emit("sendData", { action: "tactical-requisition-approve" });
-
-            this.showAlert(data.success);
-
-            this.approved_logs = data.approved_logs;
-            this.editedItem.status = data.status;
-
-          } else {
-            let errors = data;
-            let errorNames = Object.keys(data);
-          }
-          this.overlay = false;
-          this.disabled = false;
-        },
-        (error) => {
-          this.isUnauthorized(error);
-
-          this.overlay = false;
-          this.disabled = false;
-        }
-      );
-      
-      this.overlay = false;
-    },
-
-    disapproveTactical() {
-      const data = { tactical_requisition_id: this.tactical_requisition_id };
-      axios.post('/api/tactical_requisition/disapprove', data).then(
-        (response) => {
-          let data = response.data;
-          if(data.success)
-          {
-            this.showAlert(data.success);
-            this.editedItem.status = 'Disapproved';
-          }
-          console.log(data);
-        },
-        (error) => {
-          console.log(response.data);
-        },
-      )
-
-      this.overlay = false;
-    },
-
-    deleteTactical() {
-
-      const data = { tactical_requisition_id: this.tactical_requisition_id };
-
-      axios.post("/api/tactical_requisition/delete", data).then(
-        (response) => {
-          console.log(response);
-          if (response.data.success) {
-            // send data to Sockot.IO Server
-            // this.$socket.emit("sendData", { action: "tactical-requisition-delete" });
-
-            this.showAlert(response.data.success);
-
-            setTimeout(() => {
-              this.$router.push({ name: 'tactical.index' })
-            }, 500);
-
-          }
-        },
-        (error) => {
-          this.isUnauthorized(error);
-        }
-      );
-    },
-
-    showConfirmAlert(action, method) {
-
-      let icon = 'question';
-      let title = `${action} Tactital Requistion`;
-      let text = action !== 'Update' ? "You won't be able to revert this!" : '';
-      let confirmButtonColor = "#3085d6";
-      let actionArr = ['Delete', 'Disapprove'];
-
-      if(actionArr.includes(action))
-      {
-        icon = 'warning';
-        confirmButtonColor = "#d33"
-      }
-
-      this.$swal({
-        title: title,
-        text: text,
-        icon: icon,
-        showCancelButton: true,
-        confirmButtonColor: confirmButtonColor,
-        cancelButtonColor: "#6c757d",
-        confirmButtonText: action,
-      }).then((result) => {
-
-        if (result.value) {
-          this.overlay = true;
-          this[method]();
-        }
-
-      });
     },
 
     deleteFile(item) {

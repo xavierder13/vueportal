@@ -45,7 +45,7 @@ class TacticalRequisitionMaintenance
         }
 
         //Tactical Requisition Approve
-        if($request->is($request->is('api/tactical_requisition/approve/*')) || $request->is($request->is('api/tactical_requisition/disapprove'))){
+        if($request->is($request->is('api/tactical_requisition/approve')) || $request->is($request->is('api/tactical_requisition/disapprove'))){
             if($user->can('tactical-requisition-approve')){
                 return $next($request); 
             }
@@ -58,11 +58,17 @@ class TacticalRequisitionMaintenance
             }
         }
 
+        //Tactical Requisition Cancel
+        if($request->is('api/tactical_requisition/cancel')){
+            if($user->can('tactical-requisition-cancel')){
+                return $next($request); 
+            }
+        }
+
         //Tactical Requisition Attachment Download
         if($request->is('api/tactical_requisition/attachment/download')){
             
             return $next($request); 
-            
         }
 
         return abort(401, 'Unauthorized');

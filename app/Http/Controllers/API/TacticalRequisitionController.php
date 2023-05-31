@@ -500,15 +500,25 @@ class TacticalRequisitionController extends Controller
             return abort(404, 'Not Found');
         }
 
-        $tactical_requisition->delete();
+        // $tactical_requisition->delete();
 
-        $tactical_requisition_row_ids = TacticalRequisitionRow::where('tactical_requisition_id', '=', $tactical_requisition_id)->pluck('id');
+        // $tactical_requisition_row_ids = TacticalRequisitionRow::where('tactical_requisition_id', '=', $tactical_requisition_id)->pluck('id');
 
-        TacticalRequisitionRow::where('tactical_requisition_id', '=', $tactical_requisition_id)->delete();
-        TacticalRequisitionSubRow::whereIn('tactical_requisition_row_id', $tactical_requisition_row_ids)->delete();
-        TacticalRequisitionAttachment::where('tactical_requisition_id', '=', $tactical_requisition_id)->delete();
+        // TacticalRequisitionRow::where('tactical_requisition_id', '=', $tactical_requisition_id)->delete();
+        // TacticalRequisitionSubRow::whereIn('tactical_requisition_row_id', $tactical_requisition_row_ids)->delete();
+        // TacticalRequisitionAttachment::where('tactical_requisition_id', '=', $tactical_requisition_id)->delete();
 
         return response()->json(['success' => 'Recard has been deleted'],200);
+    }
+
+    public function cancel(Request $request)
+    {   
+        $date_now = Carbon::now()->format('Y-m-d');
+
+        // TacticalRequisition::where('id', '=', $request->get('tactica_requisition_id'))
+        //                    ->update(['status' => 'Cancelled', 'date_cancelled' => $date_now]);
+
+        return response()->json(['success' => 'Record has been cancelled', 'status' => 'Cancelled'], 200);
     }
 
     public function delete_file(Request $request)
@@ -532,8 +542,10 @@ class TacticalRequisitionController extends Controller
         return response()->json(['success' => 'Record has been deleted'], 200);
     }
 
-    public function approve(Request $request, $tactical_requisition_id)
+    public function approve(Request $request)
     {   
+        $tactical_requisition_id = $request->get('tactical_requisition_id');
+
         $date_now = Carbon::now()->format('Y-m-d');
         $user_can_approve_tactical = Auth::user()->can('tactical-requisition-approve');
 
@@ -618,7 +630,7 @@ class TacticalRequisitionController extends Controller
     {   
         $tactical = TacticalRequisition::find($request->get('tactical_requisition_id'));
         $tactical->status = 'Disapproved';
-        $tactical->save();
+        // $tactical->save();
 
         return response()->json(['success' => 'Record has been disapproved', 'status' => 'Disapproved'], 200);
     }
