@@ -52,9 +52,17 @@
             <template v-slot:item.progress="{ item }">
               <template v-for="(item, index) in item.approval_progress">
                 
-                <v-tooltip top :color=" item.done ? 'success' : '' " v-if="item.approver.length">
+                <v-tooltip 
+                  top :color=" item.status === 'Approved' ? 'success' : item.status === 'Disapproved' ? 'error' : '' " 
+                  v-if="item.approver.length"
+                >
                   <template v-slot:activator="{ on, attrs }">
-                    <v-icon :color=" item.done ? 'success' : '' " v-bind="attrs" v-on="on">mdi-checkbox-marked-circle</v-icon>
+                    <v-icon 
+                      :color=" item.status === 'Approved' ? 'success' : item.status === 'Disapproved' ? 'error' : '' " 
+                      v-bind="attrs" v-on="on"
+                    >
+                      {{ item.status === 'Disapproved' ? 'mdi-close-circle' : 'mdi-checkbox-marked-circle' }}
+                    </v-icon>
                   </template>
                   <span>{{ item.approver.join(', ') }}</span>
                 </v-tooltip>

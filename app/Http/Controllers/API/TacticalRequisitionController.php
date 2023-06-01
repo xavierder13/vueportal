@@ -14,14 +14,21 @@ use App\TacticalRequisitionSubRow;
 use App\TacticalRequisitionAttachment;
 use App\AccessChart;
 use App\AccessChartUserMap;
+use App\AccessModule;
 use App\ApprovedLog;
 use App\ApproverPerLevel;
+use App\ModuleActivityLog;
 use Validator;
 use DB;
 use Carbon\Carbon;
 
 class TacticalRequisitionController extends Controller
 {   
+    
+    public function module()
+    {
+        return AccessModule::where('name', '=', 'Tactical Requisition')->get()->first();
+    }
 
     public function index() 
     {   
@@ -156,18 +163,20 @@ class TacticalRequisitionController extends Controller
         }
     
         $approval_progress = [];
-        
+        $id = [];
         // get the approval progress per record
         foreach ($tactical_requisitions as $tactical) {
+            
             $progress = [];
+            $isDisapproved = false;
+            $approver_per_level = $tactical->marketing_event->approver_per_level;
 
-            $approver_per_level =  $tactical->marketing_event->approver_per_level;
-
-            foreach ($approver_per_level as $apprvr_per_lvl) {
+            foreach ($approver_per_level as $key => $apprvr_per_lvl) {
             
                 $approver_ctr_per_level = 0;
                 $approver = [];
-                $done = false;
+                $id = [];
+                $status = "Pending";
                 
                 // approved_logs for each record
                 foreach ($tactical->approved_logs as $log) {
@@ -177,19 +186,35 @@ class TacticalRequisitionController extends Controller
                         $approver [] = $log->approver->name;
                     }
                 }
-    
+                
                 if($approver_ctr_per_level >= $apprvr_per_lvl->num_of_approvers)
                 {
-                    $done = true;
+                    $status = "Approved";
+                }
+                else if($tactical->status === 'Disapproved')
+                {
+                    $status = "Disapproved";
+                    
+                    if(!$isDisapproved)
+                    {
+                        $approver [] = ModuleActivityLog::with('user')
+                                                    ->where('module_id', '=', $this->module()->id)
+                                                    ->where('document_id', '=', $tactical->id)
+                                                    ->where('description', '=', 'disapprove')
+                                                    ->get()->first()
+                                                    ->user->name;
+                    }
+                    
+                    $isDisapproved = true;
                 }
     
-                $progress [] = ['level' => $apprvr_per_lvl->level, 'done' => $done, 'approver' => $approver];
+                $progress [] = ['level' => $apprvr_per_lvl->level, 'status' => $status, 'approver' => $approver];
             }
 
             $approval_progress [] = ['tactical_requisition_id' => $tactical->id, 'progress' => $progress];
-
+            
         }
-                                     
+
         return response()->json([
             'tactical_requisitions' => $tactical_requisitions, 
             'approval_progress' => $approval_progress
@@ -479,6 +504,8 @@ class TacticalRequisitionController extends Controller
                                          ->where('id', '=', $tactical_requisition_id)
                                          ->first();
 
+        $this->activity_log($id, 'update');
+
         return response()->json(['success' => 'Record has been updated', 'tactical_requisition' => $tactical_requisition]);
     }
 
@@ -493,13 +520,15 @@ class TacticalRequisitionController extends Controller
             return abort(404, 'Not Found');
         }
 
-        // $tactical_requisition->delete();
+        $tactical_requisition->delete();
 
-        // $tactical_requisition_row_ids = TacticalRequisitionRow::where('tactical_requisition_id', '=', $tactical_requisition_id)->pluck('id');
+        $tactical_requisition_row_ids = TacticalRequisitionRow::where('tactical_requisition_id', '=', $tactical_requisition_id)->pluck('id');
 
-        // TacticalRequisitionRow::where('tactical_requisition_id', '=', $tactical_requisition_id)->delete();
-        // TacticalRequisitionSubRow::whereIn('tactical_requisition_row_id', $tactical_requisition_row_ids)->delete();
-        // TacticalRequisitionAttachment::where('tactical_requisition_id', '=', $tactical_requisition_id)->delete();
+        TacticalRequisitionRow::where('tactical_requisition_id', '=', $tactical_requisition_id)->delete();
+        TacticalRequisitionSubRow::whereIn('tactical_requisition_row_id', $tactical_requisition_row_ids)->delete();
+        TacticalRequisitionAttachment::where('tactical_requisition_id', '=', $tactical_requisition_id)->delete();
+
+        $this->activity_log($tactical_requisition_id, 'delete');
 
         return response()->json(['success' => 'Recard has been deleted'],200);
     }
@@ -507,9 +536,11 @@ class TacticalRequisitionController extends Controller
     public function cancel(Request $request)
     {   
         $date_now = Carbon::now()->format('Y-m-d');
-
-        // TacticalRequisition::where('id', '=', $request->get('tactica_requisition_id'))
-        //                    ->update(['status' => 'Cancelled', 'date_cancelled' => $date_now]);
+        $id = $request->get('tactica_requisition_id');
+        TacticalRequisition::where('id', '=', $id)
+                           ->update(['status' => 'Cancelled', 'date_cancelled' => $date_now]);
+        
+        $this->activity_log($id, 'cancel');
 
         return response()->json(['success' => 'Record has been cancelled', 'status' => 'Cancelled'], 200);
     }
@@ -579,19 +610,18 @@ class TacticalRequisitionController extends Controller
                                             ->access_level;
         
         $max_approval_level = MarketingEvent::find($marketing_event_id)->max_approval_level;
-        $module_id = $access_chart->access_for;
         
         // get the required number of approvers (max level)
         $num_of_approvers_max_level = MarketingApproverPerLevel::where('marketing_event_id', '=', $marketing_event_id)
                                                                 ->where('level', '=', $max_approval_level)
                                                                 ->max('num_of_approvers');
 
-        $approved_log = new ApprovedLog();
-        $approved_log->module_id = $module_id; //Tactical Requisition
-        $approved_log->document_id = $tactical_requisition_id;
-        $approved_log->approver_id = Auth::id();
-        $approved_log->level = $access_level;
-        $approved_log->save();
+        ApprovedLog::create([
+            'module_id' => $this->module()->id, //Tactical Requisition
+            'document_id' => $tactical_requisition_id,
+            'approver_id' => Auth::id(),
+            'level' => $access_level,
+        ]);
         
         $approved_logs = ApprovedLog::where('document_id', '=', $tactical_requisition_id)
                                     ->get();
@@ -605,11 +635,12 @@ class TacticalRequisitionController extends Controller
         if($approved_logs_max_level >= $num_of_approvers_max_level)
         {       
             $status = 'Approved';
-            $tactical_requisition = TacticalRequisition::find($tactical_requisition_id);
-            $tactical_requisition->status = 'Approved';
-            $tactical_requisition->date_approve = $date_now;
-            $tactical_requisition->save();
+
+            TacticalRequisition::where('id', '=', $tactical_requisition_id)
+                               ->update(['status' => 'Approved', 'date_approve' => $date_now]);
         }
+
+        $this->activity_log($tactical_requisition_id, 'approve');
 
         return response()->json([
             'success' => 'Record has been approved',
@@ -621,11 +652,27 @@ class TacticalRequisitionController extends Controller
 
     public function disapprove(Request $request)
     {   
-        $tactical = TacticalRequisition::find($request->get('tactical_requisition_id'));
+        $id = $request->get('tactical_requisition_id');
+        $tactical = TacticalRequisition::find($id);
         $tactical->status = 'Disapproved';
-        // $tactical->save();
+        $tactical->save();
+
+        $this->activity_log($id, 'disapprove');
 
         return response()->json(['success' => 'Record has been disapproved', 'status' => 'Disapproved'], 200);
+    }
+
+    public function activity_log($id, $description)
+    {
+        // create activity log for Tactical Requisition
+        $log = new ModuleActivityLog();
+        $log->module_id = $this->module()->id;
+        $log->document_id = $id;
+        $log->user_id = Auth::id();
+        $log->description = $description;
+        $log->save();
+
+        return $log;
     }
 
     public function download(Request $request)

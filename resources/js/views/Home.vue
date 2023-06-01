@@ -562,7 +562,7 @@ export default {
                 { 
                   title: 'P.O Requests',
                   link: '/tactical_requisition/index',
-                  hasPermission: this.hasPermission('tactical-requisition-list'),
+                  hasPermission: this.hasPermission('gasoline-list') || this.hasPermission('gasoline-create'),
                 },
               ],
             },

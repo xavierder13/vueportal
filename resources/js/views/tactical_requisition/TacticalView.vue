@@ -1043,9 +1043,7 @@ export default {
       this.validateExpenseParticulars();
 
       if (!this.$v.$error && !this.expensePaticularHasError) {
-        
         this.showConfirmAlert('update');
-
       }
 
     },
@@ -1097,7 +1095,7 @@ export default {
     showConfirmAlert(action) {
       
       let icon = 'question';
-      let title = `${action} Tactital Requistion`;
+      let title = `${action.toUpperCase()} Tactital Requistion`;
       let text = action !== 'Update' ? "You won't be able to revert this!" : '';
       let confirmButtonColor = "#3085d6";
       let actionArr = ['delete', 'disapprove', 'dancel'];
@@ -1106,7 +1104,7 @@ export default {
       if(actionArr.includes(action))
       {
         icon = 'warning';
-        confirmButtonColor = "#d33"
+        confirmButtonColor = "#d33";
       }
 
       this.$swal({
