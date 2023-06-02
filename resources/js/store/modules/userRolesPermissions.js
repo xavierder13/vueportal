@@ -12,9 +12,22 @@ const getters = {
   hasRole: (state) => (role) => {
       return state.roles.includes(role);
   },
+  hasAnyRole: (state) => (role) => {
+    let hasRole = false;
+    role.forEach(value => {
+      if(state.roles.includes(value))
+      {
+        hasRole = true;
+      }
+    });
+    return hasRole;
+  },
   hasPermission: (state) => (permission) => {
       return state.permissions.includes(permission);
   },
+  hasAnyPermission: (state) => (permission) => {
+
+  }
 };
 
 const actions = {

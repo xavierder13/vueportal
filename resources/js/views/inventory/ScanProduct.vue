@@ -174,7 +174,7 @@
                   @blur="(fieldsActive = false)"
                   @focus="(fieldsActive = true)"
                   @change="clearSerialExistStatus()"
-                  v-if="user.id === 1 || userRoles.audit_admin"
+                  v-if="user.id === 1 || hasRole('Audit Admin').audit_admin"
                 >
                 </v-autocomplete>
               </v-col>

@@ -30,7 +30,7 @@
                       class="ma-2"
                       width="120px"
                       small
-                      @click="openImportDialog({ importIsClicked: true })"
+                      @click="openImportDialog('import')"
                     >
                       <v-icon class="mr-1" small> mdi-import </v-icon>
                       Import
@@ -48,7 +48,7 @@
                       class="ma-2"
                       width="120px"
                       small
-                      @click="openImportDialog({ syncIsClicked: true })"
+                      @click="openImportDialog('sync')"
                     >
                       <v-icon class="mr-1" small> mdi-sync </v-icon>
                       Sync
@@ -161,146 +161,18 @@
               </v-tooltip>
             </template>
           </v-data-table>
-
-          <v-dialog v-model="dialog_import" max-width="500px" persistent>
-            <v-card>
-              <v-card-title class="pa-4">
-                <span class="headline">{{ dialogHeaderTitle }}</span>
-              </v-card-title>
-              <v-divider class="mt-0"></v-divider>
-              <v-card-text>
-                <v-container>
-                  <v-row>
-                    <v-col class="my-0 py-0">
-                      <v-autocomplete
-                        v-model="branch_id"
-                        :items="branches"
-                        item-text="name"
-                        item-value="id"
-                        label="Branch"
-                        required
-                        :error-messages="branchErrors"
-                        @input="$v.branch_id.$touch()"
-                        @blur="$v.branch_id.$touch()"
-                      >
-                      </v-autocomplete>
-                    </v-col>
-                  </v-row>
-                  <v-row v-if="syncIsClicked"> 
-                    <v-col class="my-0 py-0">
-                      <v-autocomplete
-                        v-model="database"
-                        :items="databases"
-                        item-text="database"
-                        item-value="database"
-                        label="SAP Database"
-                        required
-                        :error-messages="databaseErrors"
-                        @input="$v.database.$touch()"
-                        @blur="$v.database.$touch()"
-                      >
-                      </v-autocomplete>
-                    </v-col>
-                  </v-row>
-                  <v-row v-if="importIsClicked">
-                    <v-col class="my-0 py-0">
-                      <v-file-input
-                        v-model="file"
-                        show-size
-                        label="File input"
-                        prepend-icon="mdi-paperclip"
-                        required
-                        :error-messages="fileErrors"
-                        @change="$v.file.$touch() + (fileIsEmpty = false)"
-                        @blur="$v.file.$touch()"
-                      >
-                        <template v-slot:selection="{ text }">
-                          <v-chip small label color="primary">
-                            {{ text }}
-                          </v-chip>
-                        </template>
-                      </v-file-input>
-                    </v-col>
-                  </v-row>
-                  <v-row
-                    class="fill-height"
-                    align-content="center"
-                    justify="center"
-                    v-if="uploading"
-                  >
-                    <v-col class="subtitle-1 text-center" cols="12">
-                      {{ loadingLabel }}
-                    </v-col>
-                    <v-col cols="6">
-                      <v-progress-linear
-                        color="primary"
-                        indeterminate
-                        rounded
-                        height="6"
-                      ></v-progress-linear>
-                    </v-col>
-                  </v-row>
-                </v-container>
-              </v-card-text>
-              <v-divider class="mb-3 mt-0"></v-divider>
-              <v-card-actions class="pa-0">
-                <v-spacer></v-spacer>
-                <v-btn
-                  color="#E0E0E0"
-                  @click="closeImportDialog()"
-                  class="mb-3"
-                  :disabled="uploadDisabled"
-                >
-                  Cancel
-                </v-btn>
-                <v-btn
-                  color="primary"
-                  class="mb-3 mr-4"
-                  @click="submit()"
-                  :disabled="uploadDisabled"
-                >
-                  {{ btnLabel }}
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-dialog>
-
-          <v-dialog v-model="dialog_error_list" max-width="1000px" persistent>
-            <v-card>
-              <v-card-title class="pa-4">
-                <span class="headline">Error List</span>
-                <v-spacer></v-spacer>
-                <v-btn @click="dialog_error_list = false" icon>
-                  <v-icon> mdi-close </v-icon>
-                </v-btn>
-              </v-card-title>
-              <v-divider></v-divider>
-              <v-card-text>
-                <v-container>
-                  <v-row>
-                    <v-col>
-                      <v-simple-table dense>
-                        <thead>
-                          <tr>
-                            <th>#</th>
-                            <th>Error Message</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr v-for="(item, index) in imported_file_errors">
-                            <td>{{ index + 1 }}</td>
-                            <td v-html="item"></td>
-                          </tr>
-                        </tbody>
-                      </v-simple-table>
-                    </v-col>
-                  </v-row>
-                </v-container>
-              </v-card-text>
-            </v-card>
-          </v-dialog>
         </v-card>
       </v-main>
+      <ImportDialog 
+        :api_route="api_route" 
+        :dialog_import="dialog_import"
+        :branches="branches"
+        :databases="databases"
+        :action="action"
+        :inventory_group="inventory_group"
+        @getData="getInventory"
+        @closeImportDialog="closeImportDialog"
+      />
     </div>
   </div>
 </template>
@@ -309,25 +181,17 @@ import axios from "axios";
 import { validationMixin } from "vuelidate";
 import { required, requiredIf, maxLength, email } from "vuelidate/lib/validators";
 import { mapState, mapGetters } from "vuex";
+import ImportDialog from "./components/ImportDialog.vue";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 
 export default {
+  name: "InventoryReconciliation",
+  components: {
+    ImportDialog,
+  },
   mixins: [validationMixin],
 
-  validations: {
-    file: { 
-      required: requiredIf(function () {
-        return this.importIsClicked;
-      }) 
-    },
-    database: { 
-      required: requiredIf(function () {
-        return this.syncIsClicked;
-      }) 
-    },
-    branch_id: { required },
-  },
   data() {
     return {
       search: "",
@@ -377,10 +241,10 @@ export default {
       bm_oic: "",
       prepared_by: "",
       prepared_by_position: "",
-      importIsClicked: false,
-      syncIsClicked: false,
       database: "",
       databases: [],
+      api_route: "",
+      action: "",
     };
   },
 
@@ -428,27 +292,13 @@ export default {
     },
 
     openImportDialog(action) {
-      
-      // object_name either importIsClicked or syncIsClicked
-      let object_name = Object.keys(action)[0];
-
-      // set importIsClicked or syncIsClicked to true
-      this[object_name] = true;
+      this.action = action;
+      this.api_route = action === "sync" ? "/api/inventory_reconciliation/sync" : "/api/inventory_reconciliation/import" ;
       this.dialog_import = true;
-      this.clear();
     },
 
-    closeImportDialog() {
-      this.$v.$reset();
-      this.file = [];
-      this.branch_id = "";
-      this.importIsClicked = false;
-      this.syncIsClicked = false;
+    closeImportDialog() { 
       this.dialog_import = false;
-      this.uploadDisabled = false;
-      this.uploading = false;
-      this.fileIsEmpty = false;
-      this.fileIsInvalid = false;
     },
 
     showAlert(title, icon) {
@@ -533,13 +383,6 @@ export default {
       });
     },
 
-    clear() {
-      this.$v.$reset();
-      this.file = [];
-      this.branch_id = "";
-      this.database = "";
-    },
-
     isUnauthorized(error) {
       // if unauthenticated (401)
       if (error.response.status == "401") {
@@ -547,148 +390,6 @@ export default {
       }
     },
 
-    async submit() {
-      await this.$v.$touch();
-
-      if (!this.$v.$error) {
-        this.uploadDisabled = true;
-        this.uploading = true;
-        if(this.importIsClicked)
-        {
-          await this.uploadFile(); //upload file
-        }
-        else {
-          await this.syncInventoryRecon(); //sync data from SAP
-        }
-      }
-      
-
-    },
-
-    syncInventoryRecon() {
-      this.syncIsClicked = true;
-
-      const data = { 
-        branch_id: this.branch_id, 
-        database: this.database, 
-        inventory_group: this.inventory_group, 
-      };
-
-      axios.post("api/inventory_reconciliation/sync", data).then(
-          (response) => {
-            
-            console.log(response.data);
-            this.dialog_import = false;
-            this.uploadDisabled = false;
-            this.uploading = false;
-
-            if(data.error)
-            {
-              this.showErrorAlert('Error', response.data.error);
-            }
-
-            if (response.data.success) {
-              // send data to Socket.IO Server
-              // this.$socket.emit("sendData", { action: "import-project" });
-              this.getInventory();
-
-              this.showAlert('Record has been synced', 'success');
-
-              this.$v.$reset();
-              
-            } else if (response.data.empty) {
-
-              this.showAlert('No record found from SAP', 'warning');
-            } 
-
-          },
-          (error) => {
-            this.uploadDisabled = false;
-            this.showErrorAlert(error, error.response.data.message);
-            this.isUnauthorized(error);
-           
-          }
-        );
-    },
-
-    uploadFile() {
-      
-      this.fileIsEmpty = false;
-      this.fileIsInvalid = false;
-
-      let formData = new FormData();
-
-      formData.append("file", this.file);
-      formData.append("inventory_group", this.inventory_group);
-      formData.append("branch_id", this.branch_id);
-
-      axios
-        .post("api/inventory_reconciliation/import", formData, {
-          headers: {
-            Authorization: "Bearer " + localStorage.getItem("access_token"),
-            "Content-Type": "multipart/form-data",
-          },
-        })
-        .then(
-          (response) => {
-            this.errors_array = [];
-            console.log(response.data);
-            if (response.data.success) {
-              // send data to Socket.IO Server
-              // this.$socket.emit("sendData", { action: "import-project" });
-              this.getInventory();
-              
-              this.showAlert('Record has been imported', 'success');
-
-              this.$v.$reset();
-              this.dialog_import = false;
-              this.file = [];
-              this.fileIsEmpty = false;
-            } else if (response.data.error_column) {
-              this.errors_array = response.data.error_column;
-              this.dialog_error_list = true;
-            } else if (response.data.error_row_data) {
-              let error_keys = Object.keys(response.data.error_row_data);
-              let errors = response.data.error_row_data;
-              let field_values = response.data.field_values;
-              let row = "";
-              let col = "";
-
-              error_keys.forEach((value, index) => {
-                row = value.split(".")[0];
-                col = value.split(".")[1];
-                errors[value].forEach((val, i) => {
-                  this.errors_array.push(
-                    "Error on row: <label class='text-info'>" +
-                      (parseInt(row) + 1) +
-                      "</label>; Column: <label class='text-primary'>" +
-                      col +
-                      "</label>; Msg: <label class='text-danger'>" +
-                      val +
-                      "</label>; Value: <label class='text-success'>" +
-                      field_values[row][col] +
-                      "</label>"
-                  );
-                });
-              });
-
-              this.dialog_error_list = true;
-            } else if (response.data.error_empty) {
-              this.fileIsEmpty = true;
-            } else {
-              this.fileIsInvalid = true;
-            }
-
-            this.uploadDisabled = false;
-            this.uploading = false;
-          },
-          (error) => {
-            this.isUnauthorized(error);
-            this.uploadDisabled = false;
-          }
-        );
-      
-    },
     printPDF(item) {
       this.getInventoryReconcilation(item.id);
     },
@@ -934,11 +635,11 @@ export default {
 
       if (this.user.id !== 1) {
         // if user has role Audit Admin
-        if (this.userRoles.audit_admin) {
+        if (this.hasRole('Audit Admin')) {
           this.inventory_group = "Audit-Branch";
         }
         // if user has role Inventory Admin
-        else if (this.userRoles.inventory_admin) {
+        else if (this.hasRole('Inventory Admin')) {
           this.inventory_group = "Admin-Branch";
         }
       }
@@ -950,31 +651,6 @@ export default {
       });
 
       return inventory;
-    },
-
-    fileErrors() {
-      const errors = [];
-      if (!this.$v.file.$dirty) return errors;
-      !this.$v.file.required && errors.push("File is required.");
-      this.fileIsEmpty && errors.push("File is empty.");
-      this.fileIsInvalid &&
-        errors.push("File type must be 'xlsx', 'xls' or 'ods'.");
-      return errors;
-    },
-    imported_file_errors() {
-      return this.errors_array.sort();
-    },
-    branchErrors() {
-      const errors = [];
-      if (!this.$v.branch_id.$dirty) return errors;
-      !this.$v.branch_id.required && errors.push("Branch is required.");
-      return errors;
-    },
-    databaseErrors() {
-      const errors = [];
-      if (!this.$v.database.$dirty) return errors;
-      !this.$v.database.required && errors.push("SAP Database is required.");
-      return errors;
     },
 
     tableData() {

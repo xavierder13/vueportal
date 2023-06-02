@@ -143,7 +143,6 @@
               class="fill-height"
               align-content="center"
               justify="center"
-              v-if="uploading"
             >
               <v-col class="subtitle-1 font-weight-bold text-center mt-4" cols="12">
                 Syncing Item Master Data...
@@ -198,7 +197,6 @@ export default {
       mini: false,
       right: null,
       selectedItem: 1,
-      uploading: false,
       dialog_sync: false,
       menu_items: []
     };
@@ -282,12 +280,11 @@ export default {
     },
 
     syncItemMasterData() {
-      this.uploading = true;
+
       this.dialog_sync = true;
       axios.get('/api/product/sync_item_master_data').then(
         (response) => {
          
-          this.uploading = false;
           this.dialog_sync = false;
 
           let data = response.data
@@ -309,7 +306,6 @@ export default {
         },
         (error) => {
           console.log(error);
-          this.uploading = false;
           this.dialog_sync = false;
           
           this.showErrorAlert(error, error.response.data.message);

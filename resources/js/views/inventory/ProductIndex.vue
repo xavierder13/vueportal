@@ -32,8 +32,26 @@
                       small
                       @click="getUnreconciled()"
                     >
-                      <v-icon class="mr-1" small> mdi-import </v-icon>
+                      <v-icon class="mr-1" small> mdi-file-multiple </v-icon>
                       Reconcile
+                    </v-btn>
+                  </v-list-item-title>
+                </v-list-item>
+                <v-list-item
+                  class="ma-0 pa-0"
+                  style="min-height: 25px"
+                  v-if="hasPermission('product-import')"
+                >
+                  <v-list-item-title>
+                    <v-btn
+                      color="primary"
+                      class="ma-2"
+                      width="120px"
+                      small
+                      @click="openImportDialog('import')"
+                    >
+                      <v-icon class="mr-1" small> mdi-import </v-icon>
+                      Import
                     </v-btn>
                   </v-list-item-title>
                 </v-list-item>
@@ -297,6 +315,31 @@
                         Cancel
                       </v-btn>
                     </v-card-actions>
+                    <v-dialog v-model="dialog_recon_loading" max-width="500px" persistent>
+                      <v-card>
+                        <v-card-text>
+                          <v-container>
+                            <v-row
+                              class="fill-height"
+                              align-content="center"
+                              justify="center"
+                            >
+                              <v-col class="subtitle-1 font-weight-bold text-center mt-4" cols="12">
+                                Reconciling Products...
+                              </v-col>
+                              <v-col cols="6">
+                                <v-progress-linear
+                                  color="primary"
+                                  indeterminate
+                                  rounded
+                                  height="6"
+                                ></v-progress-linear>
+                              </v-col>
+                            </v-row>
+                          </v-container>
+                        </v-card-text>
+                      </v-card>
+                    </v-dialog>
                   </v-card>
                 </v-dialog>
               </v-toolbar>
@@ -332,6 +375,13 @@
           </v-data-table>
         </v-card>
       </v-main>
+      <ImportDialog 
+        :api_route="api_route" 
+        :dialog_import="dialog_import"
+        :action="action"
+        @getData="getProduct"
+        @closeImportDialog="closeImportDialog"
+      />
     </div>
   </div>
 </template>
@@ -340,8 +390,13 @@ import axios from "axios";
 import { validationMixin } from "vuelidate";
 import { required, maxLength, email } from "vuelidate/lib/validators";
 import { mapState, mapGetters } from "vuex";
+import ImportDialog from './components/ImportDialog.vue';
 
 export default {
+  name: "ProductIndex",
+  components: {
+    ImportDialog,
+  },
   mixins: [validationMixin],
 
   validations: {
@@ -374,6 +429,7 @@ export default {
       disabled: false,
       dialog: false,
       dialog_unreconciled: false,
+      dialog_recon_loading: false,
       products: [],
       brands: [],
       branches: [],
@@ -419,6 +475,9 @@ export default {
       inventory_group: "Admin-Branch",
       unreconciled_list: [],
       search_unreconciled: "",
+      action: "",
+      api_route: "",
+      dialog_import: false,
     };
   },
 
@@ -445,83 +504,6 @@ export default {
       );
     },
 
-    editProduct(item) {
-      this.editedIndex = this.products.indexOf(item);
-      this.editedItem = Object.assign({}, item);
-      this.dialog = true;
-    },
-
-    deleteProduct(product_id) {
-      const data = { product_id: product_id };
-      this.loading = true;
-      axios.post("/api/product/delete", data).then(
-        (response) => {
-          if (response.data.success) {
-            // send data to Sockot.IO Server
-            // this.$socket.emit("sendData", { action: "product-delete" });
-          }
-          this.loading = false;
-        },
-        (error) => {
-          this.isUnauthorized(error);
-        }
-      );
-    },
-
-    showAlert() {
-      this.$swal({
-        position: "center",
-        icon: "success",
-        title: "Record has been saved",
-        showConfirmButton: false,
-        timer: 2500,
-      });
-    },
-
-    showConfirmAlert(item) {
-      this.$swal({
-        title: "Are you sure?",
-        text: "You won't be able to revert this!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#d33",
-        cancelButtonColor: "#6c757d",
-        confirmButtonText: "Delete record!",
-      }).then((result) => {
-        // <--
-
-        if (result.value) {
-          // <-- if confirmed
-
-          const product_id = item.id;
-          const index = this.products.indexOf(item);
-
-          //Call delete Product function
-          this.deleteProduct(product_id);
-
-          //Remove item from array products
-          this.products.splice(index, 1);
-
-          this.$swal({
-            position: "center",
-            icon: "success",
-            title: "Record has been deleted",
-            showConfirmButton: false,
-            timer: 2500,
-          });
-        }
-      });
-    },
-
-    close() {
-      this.dialog = false;
-      this.clear();
-      this.$nextTick(() => {
-        this.editedItem = Object.assign({}, this.defaultItem);
-        this.editedIndex = -1;
-      });
-    },
-
     save() {
       this.$v.$touch();
 
@@ -540,7 +522,7 @@ export default {
 
                 Object.assign(this.products[this.editedIndex], this.editedItem);
 
-                this.showAlert();
+                this.showAlert(response.data.success, 'success');
                 this.close();
               } else if (response.data.existing_products) {
                 this.serialExists = true;
@@ -581,6 +563,77 @@ export default {
       }
     },
 
+    editProduct(item) {
+      this.editedIndex = this.products.indexOf(item);
+      this.editedItem = Object.assign({}, item);
+      this.dialog = true;
+    },
+
+    deleteProduct(product_id) {
+      const data = { product_id: product_id };
+      this.loading = true;
+      axios.post("/api/product/delete", data).then(
+        (response) => {
+          if (response.data.success) {
+            // send data to Sockot.IO Server
+            // this.$socket.emit("sendData", { action: "product-delete" });
+            this.showAlert(response.data.success, 'success');
+          }
+          this.loading = false;
+        },
+        (error) => {
+          this.isUnauthorized(error);
+        }
+      );
+    },
+
+    showAlert(msg, icon) {
+      this.$swal({
+        position: "center",
+        icon: icon,
+        title: msg,
+        showConfirmButton: false,
+        timer: 2500,
+      });
+    },
+
+    showConfirmAlert(item) {
+      this.$swal({
+        title: "Are you sure?",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#6c757d",
+        confirmButtonText: "Delete record!",
+      }).then(async (result) => {
+        // <--
+
+        if (result.value) {
+          // <-- if confirmed
+
+          const product_id = item.id;
+          const index = this.products.indexOf(item);
+
+          //Call delete Product function
+          await this.deleteProduct(product_id);
+
+          //Remove item from array products
+          await this.products.splice(index, 1);
+
+        }
+      });
+    },
+
+    close() {
+      this.dialog = false;
+      this.clear();
+      this.$nextTick(() => {
+        this.editedItem = Object.assign({}, this.defaultItem);
+        this.editedIndex = -1;
+      });
+    },
+
     clearList() {
       if (this.filteredProducts.length) {
         this.$swal({
@@ -619,21 +672,11 @@ export default {
                     }
                   });
 
-                  this.$swal({
-                    position: "center",
-                    icon: "success",
-                    title: "Record has been cleared",
-                    showConfirmButton: false,
-                    timer: 2500,
-                  });
+                  this.showAlert(response.data.success, 'success');
+
                 } else {
-                  this.$swal({
-                    position: "center",
-                    icon: "warning",
-                    title: "No record found",
-                    showConfirmButton: false,
-                    timer: 2500,
-                  });
+
+                  this.showAlert('No record found', 'warning');
                 }
               },
               (error) => {
@@ -643,28 +686,20 @@ export default {
           }
         });
       } else {
-        this.$swal({
-          position: "center",
-          icon: "warning",
-          title: "No record found",
-          showConfirmButton: false,
-          timer: 2500,
-        });
+        this.showAlert('No record found', 'warning');
       }
     },
 
-    clear() {
-      this.$v.$reset();
-      this.editedItem = Object.assign({}, this.defaultItem);
-      this.editedItem.branch_id = this.user.branch_id;
+    openImportDialog(action) {
+      this.action = action;
+      this.api_route = "/api/product/import";
+      this.dialog_import = true;
     },
 
-    isUnauthorized(error) {
-      // if unauthenticated (401)
-      if (error.response.status == "401") {
-        this.$router.push({ name: "unauthorize" });
-      }
+    closeImportDialog() { 
+      this.dialog_import = false;
     },
+
     exportData() {
       if (this.filteredProducts.length) {
         window.open(
@@ -749,7 +784,7 @@ export default {
 
         if (result.value) {
           // <-- if confirmed
-
+          this.dialog_recon_loading = true;
           let data = {
             inventory_recon_id: item.id,
             products: this.filteredProducts,
@@ -758,6 +793,9 @@ export default {
 
           axios.post("api/inventory_reconciliation/reconcile", data).then(
             (response) => {
+
+              this.dialog_recon_loading = false;
+
               if (response.data.success) {
                 // send data to Sockot.IO Server
                 // this.$socket.emit("sendData", { action: "product-reconcile" });
@@ -783,11 +821,24 @@ export default {
               }
             },
             (error) => {
+              this.dialog_recon_loading = false;
               this.isUnauthorized(error);
             }
           );
         }
       });
+    },
+    clear() {
+      this.$v.$reset();
+      this.editedItem = Object.assign({}, this.defaultItem);
+      this.editedItem.branch_id = this.user.branch_id;
+    },
+
+    isUnauthorized(error) {
+      // if unauthenticated (401)
+      if (error.response.status == "401") {
+        this.$router.push({ name: "unauthorize" });
+      }
     },
     websocket() {
       // Socket.IO fetch data
