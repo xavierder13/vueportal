@@ -98,27 +98,19 @@
                             <span> {{ item.title }} </span>
                           </v-tooltip>
                           <v-card-actions class="justify-center grey lighten-3">
+                            <template v-if="">
+
+                            </template>
                             <v-btn
                               @click="playVideo(item)"
                               icon
-                              v-if="
-                                user.id !== 1
-                                  ? user.id === item.user_id &&
-                                    (hasPermission('file-edit') ||
-                                      hasPermission('file-delete'))
-                                  : true
-                              "
+                              v-if="user.id !== 1 ? user.id === item.user_id && hasAnyPermission(['file-edit', 'file-delete']) : true"
                             >
                               <v-icon color="primary">mdi-play-circle</v-icon>
                             </v-btn>
                             <v-btn
                               icon
-                              v-if="
-                                hasPermission('file-edit') &&
-                                (user.id !== 1
-                                  ? user.id === item.user_id
-                                  : true)
-                              "
+                              v-if="hasPermission('file-edit') && (user.id !== 1 ? user.id === item.user_id : true)"
                               @click="editFile(item)"
                             >
                               <v-icon color="success">mdi-pencil</v-icon>
@@ -126,12 +118,7 @@
 
                             <v-btn
                               icon
-                              v-if="
-                                hasPermission('file-delete') &&
-                                (user.id !== 1
-                                  ? user.id === item.user_id
-                                  : true)
-                              "
+                              v-if="hasPermission('file-delete') && (user.id !== 1 ? user.id === item.user_id : true) "
                               @click="showConfirmAlert(item)"
                             >
                               <v-icon color="red">mdi-delete</v-icon>
@@ -763,7 +750,7 @@ export default {
       return errors;
     },
     ...mapState("auth", ["user", "userIsLoaded"]),
-    ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission"]),
+    ...mapGetters("userRolesPermissions", ["hasRole", "hasAnyRole", "hasPermission", "hasAnyPermission"]),
   },
   mounted() {
     axios.defaults.headers.common["Authorization"] =

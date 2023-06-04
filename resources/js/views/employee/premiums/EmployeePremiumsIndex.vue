@@ -15,7 +15,7 @@
               color="success"
               small
               @click="exportData()"
-              v-if="hasPermission('employee-premiums-export') && hasPermission('employee-premiums-list-all')"
+              v-if="hasPermission('employee-premiums-export', 'employee-premiums-list-all')"
             >
               <v-icon class="mr-1" small> mdi-microsoft-excel </v-icon>
               Export All Data
@@ -292,7 +292,7 @@ export default {
     },
     
     ...mapState("auth", ["user"]),
-    ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission"]),
+    ...mapGetters("userRolesPermissions", ["hasRole", "hasAnyRole", "hasPermission","hasAnyPermission"]),
   },
 
   mounted() {

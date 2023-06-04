@@ -72,7 +72,6 @@
           </v-list-item-content>
         </v-list-item>
       </v-list>
-
       <v-list dense class="pt-0">
         <template v-for=" (menu, index) in menuList " v-if="menu.hasPermission">
           <v-divider></v-divider>
@@ -370,6 +369,7 @@ export default {
 
   computed: {
     menuList() {
+      
       let menu = [
         { // START Dashboard
           group_header_title: 'Dashboard',
@@ -414,17 +414,17 @@ export default {
                 { 
                   title: 'Brand',
                   link: '/brand/index',
-                  hasPermission: this.hasPermission('brand-list') || this.hasPermission('brand-create'),
+                  hasPermission: this.hasAnyPermission('brand-list', 'brand-create'),
                 },
                 { 
                   title: 'Product Model',
                   link: '/product_model/index',
-                  hasPermission: this.hasPermission('product-model-list') || this.hasPermission('product-model-create'),
+                  hasPermission: this.hasAnyPermission('product-model-list', 'product-model-create'),
                 },
                 { 
                   title: 'Product Category',
                   link: '/product_category/index',
-                  hasPermission: this.hasPermission('product-model-list') || this.hasPermission('product-model-create'),
+                  hasPermission: this.hasAnyPermission('product-model-list', 'product-model-create'),
                 },
                 { 
                   title: 'Serial Number Details',
@@ -503,7 +503,7 @@ export default {
                 { 
                   title: 'My Files',
                   link: '/training/my_files',
-                  hasPermission: this.hasPermission('user-files') && this.hasPermission('file-create'),
+                  hasPermission: this.hasPermission('user-files', 'file-create'),
                 },
                 { 
                   title: 'Files & Tutorials',
@@ -538,7 +538,7 @@ export default {
                 { 
                   title: 'Marketing Event',
                   link: '/marketing_event/index',
-                  hasPermission: this.hasPermission('marketing-event-list') || this.hasPermission('marketing-event-create'),
+                  hasPermission: this.hasAnyPermission('marketing-event-list', 'marketing-event-create'),
                 },
               ]
             }
@@ -558,7 +558,7 @@ export default {
                 { 
                   title: 'P.O Requests',
                   link: '/tactical_requisition/index',
-                  hasPermission: this.hasPermission('gasoline-list') || this.hasPermission('gasoline-create'),
+                  hasPermission: this.hasAnyPermission('gasoline-list', 'gasoline-create'),
                 },
               ],
             },
@@ -602,7 +602,7 @@ export default {
                 { 
                   title: 'Access Module Lists',
                   link: '/access_module/index',
-                  hasPermission: this.hasPermission('access-module-list') || this.hasPermission('access-module-create'),
+                  hasPermission: this.hasAnyPermission('access-module-list', 'access-module-create'),
                 },
                 { 
                   title: 'Access Level',
@@ -621,32 +621,32 @@ export default {
                 { 
                   title: 'Branch',
                   link: '/branch/index',
-                  hasPermission: this.hasPermission('branch-list') || this.hasPermission('branch-create'),
+                  hasPermission: this.hasAnyPermission('branch-list', 'branch-create'),
                 },
                 { 
                   title: 'Company',
                   link: '/company/index',
-                  hasPermission: this.hasPermission('company-list') || this.hasPermission('company-create'),
+                  hasPermission: this.hasAnyPermission('company-list', 'company-create'),
                 },
                 { 
                   title: 'Position',
                   link: '/position/index',
-                  hasPermission: this.hasPermission('position-list') || this.hasPermission('position-create'),
+                  hasPermission: this.hasAnyPermission('position-list', 'position-create'),
                 },
                 { 
                   title: 'Department',
                   link: '/department/index',
-                  hasPermission: this.hasPermission('department-list') || this.hasPermission('department-create'),
+                  hasPermission: this.hasAnyPermission('department-list', 'department-create'),
                 },
                 { 
                   title: 'Role',
                   link: '/role/index',
-                  hasPermission: this.hasPermission('role-list') || this.hasPermission('role-create'),
+                  hasPermission: this.hasAnyPermission('role-list', 'role-create'),
                 },
                 { 
                   title: 'Permission',
                   link: '/permission/index',
-                  hasPermission: this.hasPermission('permission-list') || this.hasPermission('permission-create'),
+                  hasPermission: this.hasAnyPermission('permission-list', 'permission-create'),
                 },
               ],
             },
@@ -661,7 +661,7 @@ export default {
               icon: 'mdi-database',
               link: '/sap_database/index',
               method: '',
-              hasPermission: this.hasPermission('sap-database-list') || this.hasPermission('sap-database-create'),
+              hasPermission: this.hasAnyPermission('sap-database-list', 'sap-database-create'),
               children: [],
             },
             {
@@ -669,7 +669,7 @@ export default {
               icon: 'mdi-sync',
               link: '',
               method: 'confirmSyncItemMasterData',
-              hasPermission: this.hasPermission('sap-database-list') || this.hasPermission('sap-database-create'),
+              hasPermission: this.hasAnyPermission('sap-database-list', 'sap-database-create'),
               children: [],
             },
           ]
@@ -694,15 +694,13 @@ export default {
 
         });
       });
-
       return menu;
-
     },
     isIdle() {
 			return this.$store.state.idleVue.isIdle;
 		},
     ...mapState("auth", ["user"]),
-    ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission"]),
+    ...mapGetters("userRolesPermissions", ["hasRole", "hasAnyRole", "hasPermission", "hasAnyPermission"]),
   },
   // watch: {
   //   isIdle(){

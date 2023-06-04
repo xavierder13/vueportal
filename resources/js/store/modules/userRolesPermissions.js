@@ -9,25 +9,21 @@ const state = {
 };
 
 const getters = {
-  hasRole: (state) => (role) => {
-      return state.roles.includes(role);
+  hasRole: (state) => (...role) => {
+    return role.every(value => state.roles.includes(value));
   },
-  hasAnyRole: (state) => (role) => {
-    let hasRole = false;
-    role.forEach(value => {
-      if(state.roles.includes(value))
-      {
-        hasRole = true;
-      }
-    });
-    return hasRole;
-  },
-  hasPermission: (state) => (permission) => {
-      return state.permissions.includes(permission);
-  },
-  hasAnyPermission: (state) => (permission) => {
 
-  }
+  hasAnyRole: (state) => (...role) => {
+    return role.some(value => state.roles.includes(value));
+  },
+
+  hasPermission: (state) => (...permission) => {
+    return permission.every(value => state.permissions.includes(value));
+  },
+
+  hasAnyPermission: (state) => (...permission) => {
+    return permission.some(value => state.permissions.includes(value));
+  },
 };
 
 const actions = {

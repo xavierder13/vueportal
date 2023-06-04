@@ -11,7 +11,7 @@
         </v-breadcrumbs>
         <div class="d-flex justify-content-end mb-3">
           <div>
-            <v-menu offset-y v-if="hasPermission('inventory-recon-create') || hasPermission('inventory-recon-sync')">
+            <v-menu offset-y v-if="hasAnyPermission(['inventory-recon-create', 'inventory-recon-sync'])">
               <template v-slot:activator="{ on, attrs }">
                 <v-btn small v-bind="attrs" v-on="on" color="primary">
                   Actions
@@ -681,7 +681,7 @@ export default {
       return this.importIsClicked ? 'Import Excel Data From SAP' : 'Sync Data From SAP';
     },
     ...mapState("auth", ["user"]),
-    ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission"]),
+    ...mapGetters("userRolesPermissions", ["hasRole", "hasAnyRole", "hasPermission","hasAnyPermission"]),
   },
 
   mounted() {
