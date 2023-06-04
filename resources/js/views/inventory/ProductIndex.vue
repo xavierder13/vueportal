@@ -27,7 +27,7 @@
                   <v-list-item-title>
                     <v-btn
                       class="ma-2"
-                      color="primary"
+                      color="info"
                       width="120px"
                       small
                       @click="getUnreconciled()"
