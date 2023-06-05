@@ -9,7 +9,10 @@
             </v-breadcrumbs-item>
           </template>
         </v-breadcrumbs>
-        <div class="d-flex justify-content-end mb-3">
+        <div 
+          class="d-flex justify-content-end mb-3"
+          v-if="hasAnyPermission('employee-premiums-import', 'employee-premiums-export', 'employee-premiums-clear-list')"
+        >
           <div>
             <v-menu offset-y>
               <template v-slot:activator="{ on, attrs }">
@@ -1490,7 +1493,7 @@ export default {
     },
     ...mapState("auth", ["user", "userIsLoaded"]),
     ...mapState("userRolesPermissions", ["userRolesPermissionsIsLoaded"]),
-    ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission"]),
+    ...mapGetters("userRolesPermissions", ["hasRole", "hasAnyRole", "hasPermission", "hasAnyPermission"]),
   },
 
   mounted() {

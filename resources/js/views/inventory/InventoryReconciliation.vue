@@ -11,7 +11,7 @@
         </v-breadcrumbs>
         <div class="d-flex justify-content-end mb-3">
           <div>
-            <v-menu offset-y v-if="hasAnyPermission(['inventory-recon-create', 'inventory-recon-sync'])">
+            <v-menu offset-y v-if="hasAnyPermission('inventory-recon-create', 'inventory-recon-sync')">
               <template v-slot:activator="{ on, attrs }">
                 <v-btn small v-bind="attrs" v-on="on" color="primary">
                   Actions

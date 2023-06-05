@@ -8,7 +8,7 @@
         <v-divider class="mt-0"></v-divider>
         <v-card-text>
           <v-container>
-            <v-row>
+            <v-row v-if="userHasPermission">
               <v-col class="my-0 py-0">
                 <v-autocomplete
                   v-model="branch_id"
@@ -268,6 +268,7 @@ export default {
         })
         .then(
           (response) => {
+            console.log(response.data);
             this.errors_array = [];
             let data = response.data
             this.$emit('closeImportDialog');
@@ -324,7 +325,9 @@ export default {
             console.log(error);
             this.uploadDisabled = false;
           }
-        );
+        ).catch((error) => {
+          console.log(error);
+        });
       
     },
     closeDialog() {
@@ -394,7 +397,7 @@ export default {
       return this.action === 'import' ? 'Import Excel Data' : 'Sync Data From SAP';
     },
     userHasPermission(){
-      return this.hasRole('Audit Admin')
+      return this.hasAnyRole('Administrator', 'Audit Admin', 'Inventory Admin');
     },
     ...mapState("auth", ["user"]),
     ...mapGetters("userRolesPermissions", ["hasAnyRole", "hasPermission"]),

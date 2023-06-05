@@ -108,7 +108,7 @@
             <v-spacer></v-spacer>
             <v-autocomplete
               v-model="search_branch"
-              :items="branches"
+              :items="branchOptions"
               item-text="name"
               item-value="id"
               label="Branch"
@@ -379,6 +379,7 @@
         :api_route="api_route" 
         :dialog_import="dialog_import"
         :action="action"
+        :branches="branches"
         @getData="getProduct"
         @closeImportDialog="closeImportDialog"
       />
@@ -389,7 +390,7 @@
 import axios from "axios";
 import { validationMixin } from "vuelidate";
 import { required, maxLength, email } from "vuelidate/lib/validators";
-import { mapState, mapGetters } from "vuex";
+import { mapState, mapGetters, mapActions } from "vuex";
 import ImportDialog from './components/ImportDialog.vue';
 
 export default {
@@ -492,7 +493,6 @@ export default {
           this.products = data.products;
           this.brands = data.brands;
           this.branches = data.branches;
-          this.branches.unshift({ id: 0, name: "ALL" });
           this.product_categories = data.product_categories;
           this.editedItem.branch_id = this.user.branch_id;
           this.search_branch = this.user.branch_id;
@@ -509,57 +509,41 @@ export default {
 
       if (!this.$v.$error) {
         this.disabled = true;
+        const data = this.editedItem;
+        const product_id = this.editedItem.id;
+        let url = "/api/product" + (this.editedIndex > -1 ? "/update/" + product_id : "/store");
 
-        if (this.editedIndex > -1) {
-          const data = this.editedItem;
-          const product_id = this.editedItem.id;
+        axios.post(url, data).then(
+          (response) => {
+            let data = response.data;
 
-          axios.post("/api/product/update/" + product_id, data).then(
-            (response) => {
-              if (response.data.success) {
-                // send data to Sockot.IO Server
-                // this.$socket.emit("sendData", { action: "product-edit" });
+            if (data.success) {
+              // send data to Sockot.IO Server
+              // this.$socket.emit("sendData", { action: "product-edit" });
 
+              if(this.editedIndex > -1)
+              {
                 Object.assign(this.products[this.editedIndex], this.editedItem);
-
-                this.showAlert(response.data.success, 'success');
-                this.close();
-              } else if (response.data.existing_products) {
-                this.serialExists = true;
               }
-
-              this.disabled = false;
-            },
-            (error) => {
-              this.isUnauthorized(error);
-              this.disabled = false;
-            }
-          );
-        } else {
-          const data = this.editedItem;
-
-          axios.post("/api/product/store", data).then(
-            (response) => {
-              if (response.data.success) {
-                // send data to Sockot.IO Server
-                // this.$socket.emit("sendData", { action: "product-create" });
-
-                this.showAlert();
-                this.close();
-
-                //push recently added data from database
-                this.products.push(response.data.product);
-              } else if (response.data.existing_products) {
-                this.serialExists = true;
+              else
+              {
+                this.products.push(data.product);
               }
-              this.disabled = false;
-            },
-            (error) => {
-              this.isUnauthorized(error);
-              this.disabled = false;
+              
+              this.showAlert(data.success, 'success');
+              this.close();
+
+            } else if (data.existing_products) {
+              this.serialExists = true;
             }
-          );
-        }
+
+            this.disabled = false;
+          },
+          (error) => {
+            this.isUnauthorized(error);
+            this.disabled = false;
+          }
+        );
       }
     },
 
@@ -707,13 +691,7 @@ export default {
           "_blank"
         );
       } else {
-        this.$swal({
-          position: "center",
-          icon: "warning",
-          title: "No record found",
-          showConfirmButton: false,
-          timer: 2500,
-        });
+        this.showAlert('No record found', 'warning');
       }
     },
     selectedProductCategory() {
@@ -732,13 +710,9 @@ export default {
       if (this.filteredProducts.length) {
         // if Dropdown Branch value is 'ALL'
         if (this.search_branch == 0) {
-          this.$swal({
-            position: "center",
-            icon: "warning",
-            title: "Please select specific branch!",
-            showConfirmButton: false,
-            timer: 4000,
-          });
+
+          this.showAlert('Please select specific branch!', 'warning');
+
         } else {
           this.loading_unreconciled = true;
           this.dialog_unreconciled = true;
@@ -761,13 +735,9 @@ export default {
             );
         }
       } else {
-        this.$swal({
-          position: "center",
-          icon: "warning",
-          title: "Nothing to reconcile",
-          showConfirmButton: false,
-          timer: 2500,
-        });
+
+        this.showAlert('Nothing to reconcile', 'warning');
+        
       }
     },
     reconcileProducts(item) {
@@ -803,21 +773,10 @@ export default {
                 let index = this.unreconciled_list.indexOf(item);
                 this.unreconciled_list.splice(index, 1);
 
-                this.$swal({
-                  position: "center",
-                  icon: "success",
-                  title: "Inventory has been reconciled",
-                  showConfirmButton: false,
-                  timer: 2500,
-                });
+                this.showAlert(response.data.success, "success");
+                
               } else if (response.data.duplicate) {
-                this.$swal({
-                  position: "center",
-                  icon: "warning",
-                  title: "Products already exist",
-                  showConfirmButton: false,
-                  timer: 2500,
-                });
+                this.showAlert(response.data.duplicate, "warning");
               }
             },
             (error) => {
@@ -866,6 +825,11 @@ export default {
       let barcode = this.$barcodeScanner.getPreviousCode();
       // do something...
     },
+    storeData() {
+      let data = this.storeProduct({name: "xavierder"});
+      console.log(data);
+    },
+    ...mapActions("product", ["storeProduct"]),
   },
   computed: {
     formTitle() {
@@ -950,14 +914,17 @@ export default {
       });
 
       // remove Actions column if user is not permitted
-      if (
-        !this.hasPermission('product-edit') &&
-        !this.hasPermission('product-delete')
-      ) {
+      if (!this.hasPermission('product-edit', 'product-delete')) {
         headers.splice(5, 1);
       }
 
       return headers;
+    },
+    branchOptions() {
+      let branches = [{ id: 0, name: "ALL" }];
+      this.branches.forEach(v => branches.push(v));
+
+      return branches;
     },
     ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission"]),
   },

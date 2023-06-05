@@ -30,7 +30,7 @@
                   v-model="editedItem.name"
                   :error-messages="nameErrors + userError.name"
                   label="Full Name"
-                  @input="$v.editedItem.name.$touch() + (userError.name = [])"
+                  @input="$v.editedItem.name.$touch()"
                   @blur="$v.editedItem.name.$touch()"
                   :readonly="editedItem.id == 1 ? true : false"
                 ></v-text-field>

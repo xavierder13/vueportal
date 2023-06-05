@@ -409,7 +409,7 @@ export default {
                 { 
                   title: 'Scan Product',
                   link: '/scan_product',
-                  hasPermission: this.hasPermission('product-create'),
+                  hasPermission: this.hasPermission('product-scan'),
                 },
                 { 
                   title: 'Brand',

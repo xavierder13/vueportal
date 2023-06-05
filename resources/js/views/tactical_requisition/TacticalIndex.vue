@@ -85,7 +85,7 @@
                 class="mr-2"
                 color="info"
                 @click="viewTacticalRequisition(item)"
-                v-if="hasAnyPermission(['tactical-requisition-edit', 'tactical-requisition-approve'])"
+                v-if="hasAnyPermission('tactical-requisition-edit', 'tactical-requisition-approve')"
               >
                 mdi-eye
               </v-icon>
@@ -290,7 +290,7 @@ export default {
 
       return tactical_requisitions;
     },
-    ...mapGetters("userRolesPermissions", ["hasRole", "hasAnyRole", "hasPermission","hasAnyPermission"]),
+    ...mapGetters("userRolesPermissions", ["hasRole", "hasAnyRole", "hasPermission", "hasAnyPermission"]),
   },
   mounted() {
     axios.defaults.headers.common["Authorization"] =

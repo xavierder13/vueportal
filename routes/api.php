@@ -117,6 +117,11 @@ Route::group(['prefix' => 'product', 'middleware' => ['auth:api', 'product.maint
         'as' => 'product.delete',
     ]);
 
+    Route::post('/import', [
+        'uses' => 'API\ProductController@import',
+        'as' => 'product.import',
+    ]);
+
     Route::post('/search_model', [
         'uses' => 'API\ProductController@search_model',
         'as' => 'product.search_model',

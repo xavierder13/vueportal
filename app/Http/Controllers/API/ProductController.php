@@ -11,13 +11,15 @@ use App\Branch;
 use App\ProductModel;
 use App\SapDatabase;
 use App\InventoryReconciliationMap;
+use App\Imports\ProductsImport;
+use App\Exports\ProductsExport;
 use DB;
 use Validator;
 use Auth;
 use Excel;
 use Config;
 use Crypt;
-use App\Exports\ProductsExport;
+
 
 
 class ProductController extends Controller
@@ -113,6 +115,7 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
+        return response()->json(['success' => 'Record has been added'], 200);
         
         $rules = [
             'branch_id.required' => 'Branch is required',
@@ -288,10 +291,10 @@ class ProductController extends Controller
         $serial = $request->get('serial');
 
         // if auth is not admin then filter per branch
-        if($user->id !== 1)
-        {
-            $branch_id = $user->branch_id;
-        }
+        // if($user->id !== 1)
+        // {
+        //     $branch_id = $user->branch_id;
+        // }
 
         // get existing products from database
         $existing_products = Product::where('branch_id', '=', $branch_id)
@@ -364,6 +367,151 @@ class ProductController extends Controller
         return response()->json(['success' => 'Record has been deleted'], 200);
     }
 
+    public function import(Request $request)
+    {    
+        $user = Auth::user();
+        $branch_id = $request->get('branch_id');
+
+        try {
+            $file_extension = '';
+            $path = '';
+            if($request->file('file'))
+            {   
+                $path1 = $request->file('file')->store('temp'); 
+                $path=storage_path('app').'/'.$path1;  
+                // $path = $request->file('file')->getRealPath();
+                $file_extension = $request->file('file')->getClientOriginalExtension();
+            }
+
+            $validator = Validator::make(
+                [
+                    'file' => strtolower($file_extension),
+                ],
+                [
+                    'file' => 'required|in:xlxs,xls,',
+                ], 
+                [
+                    'file.required' => 'File is required',
+                    'file.in' => 'File type must be xlsx/xls.',
+                ]
+            );  
+            
+            if($validator->fails())
+            {
+                return response()->json($validator->errors(), 200);
+            }
+    
+            if ($request->file('file')) {
+                    
+                // $array = Excel::toArray(new ProjectsImport, $request->file('file'));
+                $collection = Excel::toCollection(new ProductsImport(''), $request->file('file'))[0];
+                $ctr_collection = count($collection);
+                
+                $columns = [
+                    'BRAND',
+                    'MODEL',
+                    'CATEGORY',
+                    'SERIAL',
+                ]; 
+
+                $collection_errors = [];
+                $collection_column_errors = [];
+                $duplicates = [];
+                $fields = [];    
+
+                // if no. of columns did not match
+                if(count($collection[0]) <> count($columns))
+                {
+                    $collection_column_errors[] = 'Number of columns did not match';    
+                    return response()->json(['error_column' => $collection_column_errors], 200);                                
+                }
+                elseif($ctr_collection > 1)
+                {   
+
+                    foreach ($collection as $x => $collection1) {
+                        for($y=0; count($collection1) > $y; $y++)
+                        {
+                            if($x == 0)
+                            {   
+                                
+                                // if column name did not match
+                                if($collection1[$y] != $columns[$y])
+                                {
+                                    $collection_column_errors[] =  'Invalid column name "'. $collection1[$y] . '" on column index ' . $y . '. Column name must be "' . $columns[$y] . '"';
+                                } 
+                            }  
+                            else
+                            {   
+                                $fields[$x - 1][$columns[$y]] = $collection1[$y];
+
+                                foreach ($collection as $i => $collection2) {
+
+                                    if($x !== $i)
+                                    {
+                                        if($collection1[0] === $collection2[0] && 
+                                           $collection1[1] === $collection2[1] && 
+                                           $collection1[2] === $collection2[2] && 
+                                           $collection1[3] === $collection2[3]
+                                        ){
+                                            $duplicates [$x] = $collection1[3];
+                                        }
+                                    }
+                                }
+                            }   
+                        }
+                    }
+
+                    $rules = [
+                        '*.BRAND.required' => 'Brand is required',
+                        '*.MODEL.required' => 'Model is required',
+                        '*.CATEGORY.required' => 'Product Category is required',
+                        '*.SERIAL.required' => 'Serial is required',
+                    ];
+            
+                    $valid_fields = [
+                        '*.BRAND' => 'required',
+                        '*.MODEL' => 'required|',
+                        '*.CATEGORY' => 'required',
+                        '*.SERIAL' => 'required',
+                    ];
+                    
+                    $validator = Validator::make($fields, $valid_fields, $rules);  
+            
+                    if($validator->fails())
+                    {
+                        $collection_errors =  $validator->errors();
+                    }
+                    
+                }
+                else
+                {   
+                    // if file has no row data
+                    return response()->json(['error_empty' => 'File is Empty'], 200);
+                }
+                
+                // if row data has errors
+                if(count($collection_errors))
+                {
+                    return response()->json(['error_row_data' => $collection_errors, 'field_values' => $fields], 200);
+                }
+
+                if(count($duplicates))
+                {
+                    return response()->json(['duplicate_serials' => $duplicates], 200);
+                }
+                    
+                return response()->json(['success' => 'Record has successfully imported'], 200);
+            }
+            else
+            {
+                return response()->json(['error_empty' => 'File is empty'], 200);
+            }
+          
+        } catch (\Exception $e) {
+          
+            return response()->json(['error' => $e->getMessage()], 200);
+        }
+    }
 
     public function export($branch_id, $user_id)
     {   

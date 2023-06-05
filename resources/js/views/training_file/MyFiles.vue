@@ -104,7 +104,7 @@
                             <v-btn
                               @click="playVideo(item)"
                               icon
-                              v-if="user.id !== 1 ? user.id === item.user_id && hasAnyPermission(['file-edit', 'file-delete']) : true"
+                              v-if="user.id !== 1 ? user.id === item.user_id && hasAnyPermission('file-edit', 'file-delete') : true"
                             >
                               <v-icon color="primary">mdi-play-circle</v-icon>
                             </v-btn>

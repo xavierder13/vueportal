@@ -50,6 +50,13 @@ class ProductMaintenance
             }
         }
 
+        //Product import
+        if($request->is('api/product/import')){
+            if($user->can('product-import')){
+                return $next($request); 
+            }
+        }
+
         //Product Export
         if($request->is('api/product/export/*/*')){
             // if($user->can('product-export')){
