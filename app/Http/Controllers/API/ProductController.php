@@ -518,7 +518,7 @@ class ProductController extends Controller
                         'branch_id' => $branch_id,
                         'brand_id' => Brand::where('name', '=', $field['BRAND'])->get()->first()->id,
                         'model' => $field['MODEL'],
-                        'product_category' => $field['CATEGORY'],
+                        'product_category_id' => ProductCategory::where('name', '=', $field['CATEGORY'])->get()->first()->id,
                         'serial' => $field['SERIAL'],
                         'quantity' => $field['QTY'],
                     ]);

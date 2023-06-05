@@ -268,7 +268,7 @@ export default {
         })
         .then(
           (response) => {
-            console.log(response.data);
+            
             this.errors_array = [];
             let data = response.data
             this.$emit('closeImportDialog');
@@ -332,6 +332,10 @@ export default {
               });
               
             }
+            else if(data.error)
+            {
+              this.showErrorAlert("ERROR!", data.error);
+            }
             else {
               this.fileIsInvalid = true;
             }
@@ -343,9 +347,7 @@ export default {
             console.log(error);
             this.uploadDisabled = false;
           }
-        ).catch((error) => {
-          console.log(error);
-        });
+        );
       
     },
     closeDialog() {
