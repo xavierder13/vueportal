@@ -412,6 +412,7 @@ class ProductController extends Controller
                     'MODEL',
                     'CATEGORY',
                     'SERIAL',
+                    'QTY'
                 ]; 
 
                 $collection_errors = [];
@@ -435,7 +436,7 @@ class ProductController extends Controller
                             {   
                                 
                                 // if column name did not match
-                                if($collection1[$y] != $columns[$y])
+                                if(strtoupper($collection1[$y]) != $columns[$y])
                                 {
                                     $collection_column_errors[] =  'Invalid column name "'. $collection1[$y] . '" on column index ' . $y . '. Column name must be "' . $columns[$y] . '"';
                                 } 
@@ -446,7 +447,7 @@ class ProductController extends Controller
 
                                 foreach ($collection as $i => $collection2) {
 
-                                    if($x !== $i)
+                                    if($x !== $i && $x > $i)
                                     {
                                         if($collection1[0] === $collection2[0] && 
                                            $collection1[1] === $collection2[1] && 
@@ -459,6 +460,12 @@ class ProductController extends Controller
                                 }
                             }   
                         }
+
+                        // if columns has errors
+                        if(count($collection_column_errors))
+                        {
+                            return response()->json(['error_column' => $collection_column_errors], 200);
+                        }
                     }
 
                     $rules = [
@@ -466,13 +473,17 @@ class ProductController extends Controller
                         '*.MODEL.required' => 'Model is required',
                         '*.CATEGORY.required' => 'Product Category is required',
                         '*.SERIAL.required' => 'Serial is required',
+                        '*.QTY.required' => 'Quantity is required',
+                        '*.QTY.integer' => 'Quantity must be an integer',
+
                     ];
             
                     $valid_fields = [
                         '*.BRAND' => 'required',
-                        '*.MODEL' => 'required|',
+                        '*.MODEL' => 'required',
                         '*.CATEGORY' => 'required',
                         '*.SERIAL' => 'required',
+                        '*.QTY' => 'required|integer',
                     ];
                     
                     $validator = Validator::make($fields, $valid_fields, $rules);  
@@ -494,12 +505,25 @@ class ProductController extends Controller
                 {
                     return response()->json(['error_row_data' => $collection_errors, 'field_values' => $fields], 200);
                 }
-
+                
                 if(count($duplicates))
                 {
                     return response()->json(['duplicate_serials' => $duplicates], 200);
                 }
-                    
+                
+                foreach ($fields as $field) {
+
+                    Product::create([
+                        'user_id' => $user->id,
+                        'branch_id' => $branch_id,
+                        'brand_id' => Brand::where('name', '=', $field['BRAND'])->get()->first()->id,
+                        'model' => $field['MODEL'],
+                        'product_category' => $field['CATEGORY'],
+                        'serial' => $field['SERIAL'],
+                        'quantity' => $field['QTY'],
+                    ]);
+                }
+                
                 return response()->json(['success' => 'Record has successfully imported'], 200);
             }
             else

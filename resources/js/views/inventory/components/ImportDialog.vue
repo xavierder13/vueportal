@@ -118,7 +118,7 @@
                 <v-simple-table dense>
                   <thead>
                     <tr>
-                      <th>#</th>
+                      <th width="10px">#</th>
                       <th>Error Message</th>
                     </tr>
                   </thead>
@@ -283,6 +283,7 @@ export default {
               this.$v.$reset();
               this.file = [];
               this.fileIsEmpty = false;
+              this.branch_id = "";
             } else if (data.error_column) {
               this.errors_array = data.error_column;
               this.dialog_error_list = true;
@@ -314,7 +315,24 @@ export default {
               this.dialog_error_list = true;
             } else if (data.error_empty) {
               this.fileIsEmpty = true;
-            } else {
+            } 
+            else if (data.duplicate_serials)
+            {
+              let error_keys = Object.keys(data.duplicate_serials);
+              let errors = data.duplicate_serials;
+              
+              error_keys.forEach(val => {
+                this.errors_array.push(
+                  "Duplicate Serial # on row: <label class='text-info'>" +
+                    parseInt(val) +
+                    "</label>; Serial: <label class='text-danger'>" +
+                    errors[val] +
+                    "</label>"
+                );
+              });
+              
+            }
+            else {
               this.fileIsInvalid = true;
             }
 
@@ -361,6 +379,9 @@ export default {
         timer: 10000,
       });
     },
+    reset() {
+
+    }
   },
   computed: {
     fileErrors() {
@@ -401,7 +422,7 @@ export default {
     },
     ...mapState("auth", ["user"]),
     ...mapGetters("userRolesPermissions", ["hasAnyRole", "hasPermission"]),
-  }
+  },
   
 }
 
