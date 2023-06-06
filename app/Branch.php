@@ -45,4 +45,10 @@ class Branch extends Model
         //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
     }
 
+    public function sap_db_branch()
+    {
+        return $this->hasMany('App\SapDbBranch', 'sap_database_id', 'id');
+        //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
+    }
+
 }
