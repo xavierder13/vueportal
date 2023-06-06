@@ -30,9 +30,9 @@
                   <v-list-item-title>
                     <v-btn
                       color="primary"
-                      class="ma-2"
-                      width="120px"
-                      small
+                      class="mx-1"
+                      width="100px"
+                      x-small
                       @click="importExcel()"
                     >
                       <v-icon class="mr-1" small> mdi-import </v-icon>
@@ -48,9 +48,9 @@
                   <v-list-item-title>
                     <v-btn
                       color="success"
-                      class="ma-2"
-                      width="120px"
-                      small
+                      class="mx-1"
+                      width="100px"
+                      x-small
                       @click="exportData()"
                     >
                       <v-icon class="mr-1" small> mdi-microsoft-excel </v-icon>
@@ -66,11 +66,11 @@
                   <v-list-item-title>
                     <v-btn
                       color="error"
-                      class="ma-2"
-                      width="120px"
-                      small
+                      class="mx-1"
+                      width="100px"
+                      x-small
                       @click="clearList()"
-                      ><v-icon class="mr-1" small> mdi-delete </v-icon>clear
+                      ><v-icon class="mr-1" x-small> mdi-delete </v-icon>clear
                       list</v-btn
                     >
                   </v-list-item-title>

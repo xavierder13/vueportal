@@ -37,6 +37,12 @@
                   @input="$v.database.$touch()"
                   @blur="$v.database.$touch()"
                 >
+                <template slot="selection" slot-scope="data">
+                  {{ data.item.server + ' - ' + data.item.database }}
+                </template>
+                <template slot="item" slot-scope="data">
+                  {{ data.item.server + ' - ' + data.item.database }}
+                </template>
                 </v-autocomplete>
               </v-col>
             </v-row>
@@ -157,7 +163,11 @@ export default {
 
   mixins: [validationMixin],
   validations: {
-    branch_id: { required },
+    branch_id: { 
+      required: requiredIf(function () {
+        return this.userHasPermission;
+      })
+    },
     file: { 
       required: requiredIf(function () {
         return this.action === 'import';
@@ -215,7 +225,6 @@ export default {
             
             this.uploadDisabled = false;
             this.uploading = false;
-            this.$emit('closeImportDialog');
 
             if(data.error)
             {
@@ -226,7 +235,8 @@ export default {
               // send data to Socket.IO Server
               // this.$socket.emit("sendData", { action: "import-project" });
 
-              this.$emit('getInventory');
+              this.$emit('getData');
+              this.$emit('closeImportDialog');
               
               this.showAlert(data.success, 'success');
 
@@ -252,7 +262,8 @@ export default {
       
       this.fileIsEmpty = false;
       this.fileIsInvalid = false;
-
+      this.branch_id = this.userHasPermission ? this.branch_id : this.user.branch.id;
+      
       let formData = new FormData();
 
       formData.append("file", this.file);
@@ -268,15 +279,15 @@ export default {
         })
         .then(
           (response) => {
-            
+            console.log(response.data);
             this.errors_array = [];
             let data = response.data
-            this.$emit('closeImportDialog');
-       
+            
             if (data.success) {
               // send data to Socket.IO Server
               // this.$socket.emit("sendData", { action: "import-project" });
-              this.$emit('getInventory');
+              this.$emit('getData');
+              this.$emit('closeImportDialog');
               
               this.showAlert(data.success, 'success');
 
@@ -323,13 +334,15 @@ export default {
               
               error_keys.forEach(val => {
                 this.errors_array.push(
-                  "Duplicate Serial # on row: <label class='text-info'>" +
+                  "Duplicate Serial # on row: <span class='text-info'>" +
                     parseInt(val) +
-                    "</label>; Serial: <label class='text-danger'>" +
+                    "</span>; Serial: <span class='text-danger'>" +
                     errors[val] +
-                    "</label>"
+                    "</span>"
                 );
               });
+
+              this.dialog_error_list = true;
               
             }
             else if(data.error)

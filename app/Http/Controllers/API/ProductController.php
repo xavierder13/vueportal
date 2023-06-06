@@ -32,7 +32,12 @@ class ProductController extends Controller
                            ->with('branch')
                            ->with('user')
                            ->with('product_category')
-                           ->where('user_id', '=', $user->id)
+                           ->where(function($query) use ($user){
+                                if(!$user->hasAnyRole('Administrator', 'Audit Admin', 'Inventory Admin'))
+                                {
+                                    $query->where('user_id', '=', $user->id);
+                                }
+                           })
                            ->select(DB::raw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_created"))
                            ->get();
 
@@ -537,11 +542,10 @@ class ProductController extends Controller
         }
     }
 
-    public function export($branch_id, $user_id)
+    public function export(Request $request)
     {   
 
-        $params = ['user_id' => $user_id, 'branch_id' => $branch_id];
-
+        $params = ['branch_id' => $request->get('branch_id')];
         return Excel::download(new ProductsExport($params), 'products.xls');
     }
 

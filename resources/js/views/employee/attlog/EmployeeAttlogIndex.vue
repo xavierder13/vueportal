@@ -114,10 +114,11 @@
                           <v-btn 
                             x-small 
                             @click="viewList(value)" 
-                            class="mx-2 primary--text"
-                            width="120px"
+                            class="mx-1"
+                            width="100px"
+                            color="info"
                           >
-                            <v-icon class="mr-2" small>
+                            <v-icon class="mr-1" small>
                               mdi-eye
                             </v-icon>
                             View
@@ -131,12 +132,13 @@
                       >
                         <v-list-item-title>
                           <v-btn
-                            class="mx-2 my-2 success--text"
+                            class="mx-1"
                             x-small
                             @click="exportData(value)"
-                            width="120px"
+                            width="100px"
+                            color="success"
                           >
-                            <v-icon class="mr-2" small> mdi-microsoft-excel </v-icon>
+                            <v-icon class="mr-1" small> mdi-microsoft-excel </v-icon>
                             Export
                           </v-btn>
                         </v-list-item-title>
@@ -147,12 +149,13 @@
                       >
                         <v-list-item-title>
                           <v-btn
-                            class="mx-2 my-2 primary--text"
+                            class="mx-1"
                             x-small
                             @click="fileDownload(value)"
-                            width="120px"
+                            width="100px"
+                            color="primary"
                           >
-                            <v-icon class="mr-2" small> mdi-download </v-icon>
+                            <v-icon class="mr-1" small> mdi-download </v-icon>
                             Download
                           </v-btn>
                         </v-list-item-title>

@@ -26,14 +26,32 @@
                 >
                   <v-list-item-title>
                     <v-btn
-                      class="ma-2"
+                      class="mx-1"
                       color="info"
-                      width="120px"
-                      small
+                      width="100px"
+                      x-small
                       @click="getUnreconciled()"
                     >
-                      <v-icon class="mr-1" small> mdi-file-multiple </v-icon>
+                      <v-icon class="mr-1" x-small> mdi-file-multiple </v-icon>
                       Reconcile
+                    </v-btn>
+                  </v-list-item-title>
+                </v-list-item>
+                <v-list-item
+                  class="ma-0 pa-0"
+                  style="min-height: 25px"
+                  v-if="hasPermission('product-template-download')"
+                >
+                  <v-list-item-title>
+                    <v-btn
+                      class="mx-1 white--text"
+                      color="#AB47BC"
+                      width="100px"
+                      x-small
+                      @click="getUnreconciled()"
+                    >
+                      <v-icon class="mr-1" x-small> mdi-download </v-icon>
+                      Template
                     </v-btn>
                   </v-list-item-title>
                 </v-list-item>
@@ -45,12 +63,12 @@
                   <v-list-item-title>
                     <v-btn
                       color="primary"
-                      class="ma-2"
-                      width="120px"
-                      small
+                      class="mx-1"
+                      width="100px"
+                      x-small
                       @click="openImportDialog('import')"
                     >
-                      <v-icon class="mr-1" small> mdi-import </v-icon>
+                      <v-icon class="mr-1" x-small> mdi-import </v-icon>
                       Import
                     </v-btn>
                   </v-list-item-title>
@@ -62,13 +80,13 @@
                 >
                   <v-list-item-title>
                     <v-btn
-                      class="ma-2"
+                      class="mx-1"
                       color="success"
-                      width="120px"
-                      small
+                      width="100px"
+                      x-small
                       @click="exportData()"
                     >
-                      <v-icon class="mr-1" small> mdi-microsoft-excel </v-icon>
+                      <v-icon class="mr-1" x-small> mdi-microsoft-excel </v-icon>
                       Export
                     </v-btn>
                   </v-list-item-title>
@@ -80,12 +98,12 @@
                 >
                   <v-list-item-title>
                     <v-btn
-                      class="ma-2"
+                      class="mx-1"
                       color="error"
-                      width="120px"
-                      small
+                      width="100px"
+                      x-small
                       @click="clearList()"
-                      ><v-icon class="mr-1" small> mdi-delete </v-icon>clear
+                      ><v-icon class="mr-1" x-small> mdi-delete </v-icon>clear
                       list</v-btn
                     >
                   </v-list-item-title>
@@ -685,14 +703,31 @@ export default {
     },
 
     exportData() {
+      const data = { branch_id: this.search_branch };
       if (this.filteredProducts.length) {
-        window.open(
-          location.origin + "/api/product/export/" + this.search_branch + "/" + this.user.id,
-          "_blank"
-        );
-      } else {
+
+        axios.post('/api/product/export', data, { responseType: 'arraybuffer'})
+          .then((response) => {
+              var fileURL = window.URL.createObjectURL(new Blob([response.data]));
+              var fileLink = document.createElement('a');
+              fileLink.href = fileURL;
+              fileLink.setAttribute('download', 'test.xls');
+              document.body.appendChild(fileLink);
+              fileLink.click();
+        });
+      }
+      else {
         this.showAlert('No record found', 'warning');
       }
+      
+      // if (this.filteredProducts.length) {
+      //   window.open(
+      //     location.origin + "/api/product/export/" + this.search_branch + "/" + this.user.id,
+      //     "_blank"
+      //   );
+      // } else {
+      //   this.showAlert('No record found', 'warning');
+      // }
     },
     selectedProductCategory() {
       let product_category = {};

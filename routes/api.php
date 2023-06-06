@@ -135,7 +135,19 @@ Route::group(['prefix' => 'product', 'middleware' => ['auth:api', 'product.maint
     Route::post('/serial_number_details', 'API\ProductController@serial_number_details');
     Route::get('/sync_item_master_data', 'API\ProductController@sync_item_master_data');
 
+    // Product Export Route
+    Route::post('/export', [
+        'uses' => 'API\ProductController@export',
+        'as' => 'product.export',
+    ]);
+
 });
+
+// Product Template Download Route
+Route::get('/product/template/download/{branch_id}', [
+    'uses' => 'API\ProductController@template_download',
+    'as' => 'product.template_download',
+])->middleware(['product.maintenance']);
 
 // Product Export Route
 Route::get('/product/export/{branch_id}/{user_id}', [

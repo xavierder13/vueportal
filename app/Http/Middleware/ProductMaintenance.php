@@ -58,12 +58,19 @@ class ProductMaintenance
         }
 
         //Product Export
-        if($request->is('api/product/export/*/*')){
-            // if($user->can('product-export')){
-            //     return $next($request); 
-            // }
-            return $next($request); 
-        }
+        // if($request->is('api/product/export/*/*')){
+        //     // if($user->can('product-export')){
+        //     //     return $next($request); 
+        //     // }
+        //     return $next($request); 
+        // }
+        if($request->is('api/product/export')){
+                if($user->can('product-export')){
+                    return $next($request); 
+                }
+                return $next($request); 
+            }
+    
 
         // Product Serial Number Details
         if($request->is('api/product/serial_number_details')){

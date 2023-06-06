@@ -27,12 +27,12 @@
                   <v-list-item-title>
                     <v-btn
                       color="primary"
-                      class="ma-2"
+                      class="mx-1"
                       width="120px"
-                      small
+                      x-small
                       @click="openImportDialog('import')"
                     >
-                      <v-icon class="mr-1" small> mdi-import </v-icon>
+                      <v-icon class="mr-1" x-small> mdi-import </v-icon>
                       Import
                     </v-btn>
                   </v-list-item-title>
@@ -45,12 +45,12 @@
                   <v-list-item-title>
                     <v-btn
                       color="info"
-                      class="ma-2"
+                      class="mx-1"
                       width="120px"
-                      small
+                      x-small
                       @click="openImportDialog('sync')"
                     >
-                      <v-icon class="mr-1" small> mdi-sync </v-icon>
+                      <v-icon class="mr-1" x-small> mdi-sync </v-icon>
                       Sync
                     </v-btn>
                   </v-list-item-title>

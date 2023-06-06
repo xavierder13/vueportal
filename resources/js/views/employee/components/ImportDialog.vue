@@ -233,15 +233,15 @@ export default {
                   col = value.split(".")[1];
                   errors[value].forEach((val, i) => {
                     this.errors_array[index] =
-                      "Error on row: <label class='text-info'>" +
+                      "Error on row: <span class='text-info'>" +
                       (parseInt(row) + 1) +
-                      "</label>; Column: <label class='text-primary'>" +
+                      "</span>; Column: <span class='text-primary'>" +
                       col +
-                      "</label>; Msg: <label class='text-danger'>" +
+                      "</span>; Msg: <span class='text-danger'>" +
                       val +
-                      "</label>; Value: <label class='text-success'>" +
+                      "</span>; Value: <span class='text-success'>" +
                       field_values[row][col] +
-                      "</label>";
+                      "</span>";
                   });
                 });
 

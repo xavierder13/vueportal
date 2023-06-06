@@ -32,12 +32,7 @@ class ProductsExport implements FromCollection, WithHeadings
                             
                           if($params['branch_id'] <> 0) //select with specific branch and user
                           {
-                              $query->where('products.user_id', '=', $params['user_id'])
-                                    ->where('products.branch_id', '=', $params['branch_id']);
-                          }
-                          else //select with specific user
-                          {
-                              $query->where('products.user_id', '=', $params['user_id']);
+                              $query->where('products.branch_id', '=', $params['branch_id']);
                           }
                           
                       })
