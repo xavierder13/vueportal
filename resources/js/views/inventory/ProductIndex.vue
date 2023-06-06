@@ -48,7 +48,7 @@
                       color="#AB47BC"
                       width="100px"
                       x-small
-                      @click="getUnreconciled()"
+                      @click="downloadTemplate()"
                     >
                       <v-icon class="mr-1" x-small> mdi-download </v-icon>
                       Template
@@ -589,6 +589,127 @@ export default {
       );
     },
 
+    exportData() {
+      const data = { branch_id: this.search_branch };
+      if (this.filteredProducts.length) {
+
+        axios.post('/api/product/export', data, { responseType: 'arraybuffer'})
+          .then((response) => {
+              var fileURL = window.URL.createObjectURL(new Blob([response.data]));
+              var fileLink = document.createElement('a');
+              fileLink.href = fileURL;
+              fileLink.setAttribute('download', 'Products.xls');
+              document.body.appendChild(fileLink);
+              fileLink.click();
+          }, (error) => {
+            console.log(error);
+          }
+        );
+      }
+      else {
+        this.showAlert('No record found', 'warning');
+      }
+
+    },
+
+    downloadTemplate() {
+      axios.post('/api/product/template/download', data, { responseType: 'arraybuffer'})
+          .then((response) => {
+              var fileURL = window.URL.createObjectURL(new Blob([response.data]));
+              var fileLink = document.createElement('a');
+              fileLink.href = fileURL;
+              fileLink.setAttribute('download', 'ProductTemplate.xls');
+              document.body.appendChild(fileLink);
+              fileLink.click();
+          }, (error) => {
+            console.log(error);
+          }
+        );
+    },
+
+    getUnreconciled() {
+      if (this.filteredProducts.length) {
+        // if Dropdown Branch value is 'ALL'
+        if (this.search_branch == 0) {
+
+          this.showAlert('Please select specific branch!', 'warning');
+
+        } else {
+          this.loading_unreconciled = true;
+          this.dialog_unreconciled = true;
+
+          let data = {
+            branch_id: this.search_branch,
+            inventory_group: this.inventory_group,
+          };
+
+          axios
+            .post("/api/inventory_reconciliation/unreconcile/list", data)
+            .then(
+              (response) => {
+                this.unreconciled_list = response.data.unreconciled_list;
+                this.loading_unreconciled = false;
+              },
+              (error) => {
+                console.log(error);
+              }
+            );
+        }
+      } else {
+
+        this.showAlert('Nothing to reconcile', 'warning');
+        
+      }
+    },
+
+    reconcileProducts(item) {
+      this.$swal({
+        title: "Reconcile Products",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "primary",
+        cancelButtonColor: "#6c757d",
+        confirmButtonText: "Proceed",
+      }).then((result) => {
+        // <--
+
+        if (result.value) {
+          // <-- if confirmed
+          this.dialog_recon_loading = true;
+          let data = {
+            inventory_recon_id: item.id,
+            products: this.filteredProducts,
+            inventory_group: this.inventory_group,
+          };
+
+          axios.post("api/inventory_reconciliation/reconcile", data).then(
+            (response) => {
+
+              this.dialog_recon_loading = false;
+
+              if (response.data.success) {
+                // send data to Sockot.IO Server
+                // this.$socket.emit("sendData", { action: "product-reconcile" });
+
+                let index = this.unreconciled_list.indexOf(item);
+                this.unreconciled_list.splice(index, 1);
+
+                this.showAlert(response.data.success, "success");
+                
+              } else if (response.data.duplicate) {
+                this.showAlert(response.data.duplicate, "warning");
+              }
+            },
+            (error) => {
+              this.dialog_recon_loading = false;
+              this.isUnauthorized(error);
+            }
+          );
+        }
+      });
+    },
+
     showAlert(msg, icon) {
       this.$swal({
         position: "center",
@@ -627,14 +748,6 @@ export default {
       });
     },
 
-    close() {
-      this.dialog = false;
-      this.clear();
-      this.$nextTick(() => {
-        this.editedItem = Object.assign({}, this.defaultItem);
-        this.editedIndex = -1;
-      });
-    },
 
     clearList() {
       if (this.filteredProducts.length) {
@@ -691,44 +804,6 @@ export default {
         this.showAlert('No record found', 'warning');
       }
     },
-
-    openImportDialog(action) {
-      this.action = action;
-      this.api_route = "/api/product/import";
-      this.dialog_import = true;
-    },
-
-    closeImportDialog() { 
-      this.dialog_import = false;
-    },
-
-    exportData() {
-      const data = { branch_id: this.search_branch };
-      if (this.filteredProducts.length) {
-
-        axios.post('/api/product/export', data, { responseType: 'arraybuffer'})
-          .then((response) => {
-              var fileURL = window.URL.createObjectURL(new Blob([response.data]));
-              var fileLink = document.createElement('a');
-              fileLink.href = fileURL;
-              fileLink.setAttribute('download', 'test.xls');
-              document.body.appendChild(fileLink);
-              fileLink.click();
-        });
-      }
-      else {
-        this.showAlert('No record found', 'warning');
-      }
-      
-      // if (this.filteredProducts.length) {
-      //   window.open(
-      //     location.origin + "/api/product/export/" + this.search_branch + "/" + this.user.id,
-      //     "_blank"
-      //   );
-      // } else {
-      //   this.showAlert('No record found', 'warning');
-      // }
-    },
     selectedProductCategory() {
       let product_category = {};
 
@@ -740,87 +815,22 @@ export default {
 
       this.editedItem.product_category = product_category;
     },
-
-    getUnreconciled() {
-      if (this.filteredProducts.length) {
-        // if Dropdown Branch value is 'ALL'
-        if (this.search_branch == 0) {
-
-          this.showAlert('Please select specific branch!', 'warning');
-
-        } else {
-          this.loading_unreconciled = true;
-          this.dialog_unreconciled = true;
-
-          let data = {
-            branch_id: this.search_branch,
-            inventory_group: this.inventory_group,
-          };
-
-          axios
-            .post("/api/inventory_reconciliation/unreconcile/list", data)
-            .then(
-              (response) => {
-                this.unreconciled_list = response.data.unreconciled_list;
-                this.loading_unreconciled = false;
-              },
-              (error) => {
-                console.log(error);
-              }
-            );
-        }
-      } else {
-
-        this.showAlert('Nothing to reconcile', 'warning');
-        
-      }
-    },
-    reconcileProducts(item) {
-      this.$swal({
-        title: "Reconcile Products",
-        text: "You won't be able to revert this!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "primary",
-        cancelButtonColor: "#6c757d",
-        confirmButtonText: "Proceed",
-      }).then((result) => {
-        // <--
-
-        if (result.value) {
-          // <-- if confirmed
-          this.dialog_recon_loading = true;
-          let data = {
-            inventory_recon_id: item.id,
-            products: this.filteredProducts,
-            inventory_group: this.inventory_group,
-          };
-
-          axios.post("api/inventory_reconciliation/reconcile", data).then(
-            (response) => {
-
-              this.dialog_recon_loading = false;
-
-              if (response.data.success) {
-                // send data to Sockot.IO Server
-                // this.$socket.emit("sendData", { action: "product-reconcile" });
-
-                let index = this.unreconciled_list.indexOf(item);
-                this.unreconciled_list.splice(index, 1);
-
-                this.showAlert(response.data.success, "success");
-                
-              } else if (response.data.duplicate) {
-                this.showAlert(response.data.duplicate, "warning");
-              }
-            },
-            (error) => {
-              this.dialog_recon_loading = false;
-              this.isUnauthorized(error);
-            }
-          );
-        }
+    close() {
+      this.dialog = false;
+      this.clear();
+      this.$nextTick(() => {
+        this.editedItem = Object.assign({}, this.defaultItem);
+        this.editedIndex = -1;
       });
+    },
+    openImportDialog(action) {
+      this.action = action;
+      this.api_route = "/api/product/import";
+      this.dialog_import = true;
+    },
+
+    closeImportDialog() { 
+      this.dialog_import = false;
     },
     clear() {
       this.$v.$reset();

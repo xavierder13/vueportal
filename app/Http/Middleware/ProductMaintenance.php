@@ -64,12 +64,20 @@ class ProductMaintenance
         //     // }
         //     return $next($request); 
         // }
+
         if($request->is('api/product/export')){
-                if($user->can('product-export')){
-                    return $next($request); 
-                }
+            if($user->can('product-export')){
                 return $next($request); 
             }
+            return $next($request); 
+        }
+
+        if($request->is('api/product/template/download')){
+            if($user->can('product-template-download')){
+                return $next($request); 
+            }
+            return $next($request); 
+        }
     
 
         // Product Serial Number Details

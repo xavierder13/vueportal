@@ -549,6 +549,12 @@ class ProductController extends Controller
         return Excel::download(new ProductsExport($params), 'products.xls');
     }
 
+    public function template_download(Request $request)
+    {
+        $params = ['branch_id' => $request->get('branch_id')];
+        return Excel::download(new ProductsTemplate($params), 'template.xls');
+    }
+
     public function serial_number_details (Request $request)
     {   
         try {

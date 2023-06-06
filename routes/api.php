@@ -141,6 +141,12 @@ Route::group(['prefix' => 'product', 'middleware' => ['auth:api', 'product.maint
         'as' => 'product.export',
     ]);
 
+    // Product Export Route
+    Route::post('/template/download', [
+        'uses' => 'API\ProductController@export',
+        'as' => 'product.export',
+    ]);
+
 });
 
 // Product Template Download Route
