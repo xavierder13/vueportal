@@ -14,7 +14,10 @@ class SAPDatabaseController extends Controller
 {
     public function index()
     {       
-        $sap_databases = SAPDatabase::select('id', 'server', 'database', 'username')->get();
+        $sap_databases = SAPDatabase::with('sap_db_branch')
+                                    ->with('sap_db_branch.branch')
+                                    ->with('sap_db_branch.sap_database')
+                                    ->select('id', 'server', 'database', 'username')->get();
         return response()->json(['sap_databases' => $sap_databases], 200);
     }
 

@@ -118,6 +118,31 @@
                             ></v-text-field>
                           </v-col>
                         </v-row>
+                        <v-row>
+                          <v-col class="my-0 py-0">
+                            <v-autocomplete
+                              v-model="editedItem.branch"
+                              :items="branches"
+                              item-text="name"
+                              item-value="id"
+                              label="Branch"
+                              multiple
+                              chips
+                            >
+                              <template v-slot:selection="data">
+                                <v-chip
+                                  color="secondary"
+                                  v-bind="data.attrs"
+                                  :input-value="data.selected"
+                                  close
+                                  @click:close="removeItem(data.item)"
+                                >
+                                  {{ data.item.name }}
+                                </v-chip>
+                              </template>
+                            </v-autocomplete>
+                          </v-col>
+                        </v-row>
                       </v-container>
                     </v-card-text>
                     <v-divider class="mb-3 mt-0"></v-divider>
@@ -186,7 +211,7 @@ import {
   minLength,
   sameAs,
 } from "vuelidate/lib/validators";
-import { mapState, mapGetters } from "vuex";
+import { mapState, mapGetters, mapActions } from "vuex";
 
 export default {
   mixins: [validationMixin],
@@ -232,11 +257,13 @@ export default {
         server: "",
         database: "",
         username: "",
+        branch: [],
       },
       defaultItem: {
         server: "",
         database: "",
         username: "",
+        branch: [],
       },
       password: "",
       confirm_password: "",
@@ -253,95 +280,12 @@ export default {
           let data = response.data;
           this.sap_databases = data.sap_databases;
           this.loading = false;
+          console.log(data);
         },
         (error) => {
           this.isUnauthorized(error);
         }
       );
-    },
-
-    editSAPDatabase(item) {
-      this.editedIndex = this.sap_databases.indexOf(item);
-      this.editedItem = Object.assign({}, item);
-      this.dialog = true;
-      this.emailReadonly = true;
-      this.password = "password";
-      this.confirm_password = "password";
-      this.switch1 = true;
-      if(this.editedItem.active === 'N')
-      {
-        this.switch1 = false;
-      }
-    },
-
-    deleteUser(sap_database_id) {
-      const data = { sap_database_id: sap_database_id };
-
-      axios.post("/api/sap_database/delete", data).then(
-        (response) => {
-          if (response.data.success) {
-            // send data to Sockot.IO Server
-            // this.$socket.emit("sendData", { action: "sap-database-delete" });
-          }
-        },
-        (error) => {
-          this.isUnauthorized(error);
-        }
-      );
-    },
-
-    showAlert() {
-      this.$swal({
-        position: "center",
-        icon: "success",
-        title: "Record has been saved",
-        showConfirmButton: false,
-        timer: 2500,
-      });
-    },
-
-    showConfirmAlert(item) {
-      this.$swal({
-        title: "Are you sure?",
-        text: "You won't be able to revert this!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#d33",
-        cancelButtonColor: "#6c757d",
-        confirmButtonText: "Delete record!",
-      }).then((result) => {
-        // <--
-
-        if (result.value) {
-          // <-- if confirmed
-
-          const sap_database_id = item.id;
-          const index = this.sap_databases.indexOf(item);
-
-          //Call delete User function
-          this.deleteUser(sap_database_id);
-
-          //Remove item from array services
-          this.sap_databases.splice(index, 1);
-
-          this.$swal({
-            position: "center",
-            icon: "success",
-            title: "Record has been deleted",
-            showConfirmButton: false,
-            timer: 2500,
-          });
-        }
-      });
-    },
-
-    close() {
-      this.dialog = false;
-      this.clear();
-      this.$nextTick(() => {
-        this.editedItem = Object.assign({}, this.defaultItem);
-        this.editedIndex = -1;
-      });
     },
 
     save() {
@@ -416,6 +360,102 @@ export default {
         }
       }
     },
+
+    editSAPDatabase(item) {
+      
+      this.editedIndex = this.sap_databases.indexOf(item);
+      this.editedItem = Object.assign(this.defaultItem, item);
+      this.dialog = true;
+      this.emailReadonly = true;
+      this.password = "password";
+      this.confirm_password = "password";
+      this.switch1 = true;
+      if(this.editedItem.active === 'N')
+      {
+        this.switch1 = false;
+      }
+
+      item.sap_db_branch.forEach(value => {
+        this.editedItem.branch.push(value.branch.id);
+      });
+    },
+
+    deleteUser(sap_database_id) {
+      const data = { sap_database_id: sap_database_id };
+
+      axios.post("/api/sap_database/delete", data).then(
+        (response) => {
+          if (response.data.success) {
+            // send data to Sockot.IO Server
+            // this.$socket.emit("sendData", { action: "sap-database-delete" });
+          }
+        },
+        (error) => {
+          this.isUnauthorized(error);
+        }
+      );
+    },
+
+    removeItem(item) {
+      let index = this.editedItem.branch.indexOf(item.id);
+      
+      this.editedItem.branch.splice(index, 1);
+    },
+
+    showAlert() {
+      this.$swal({
+        position: "center",
+        icon: "success",
+        title: "Record has been saved",
+        showConfirmButton: false,
+        timer: 2500,
+      });
+    },
+
+    showConfirmAlert(item) {
+      this.$swal({
+        title: "Are you sure?",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#6c757d",
+        confirmButtonText: "Delete record!",
+      }).then((result) => {
+        // <--
+
+        if (result.value) {
+          // <-- if confirmed
+
+          const sap_database_id = item.id;
+          const index = this.sap_databases.indexOf(item);
+
+          //Call delete User function
+          this.deleteUser(sap_database_id);
+
+          //Remove item from array services
+          this.sap_databases.splice(index, 1);
+
+          this.$swal({
+            position: "center",
+            icon: "success",
+            title: "Record has been deleted",
+            showConfirmButton: false,
+            timer: 2500,
+          });
+        }
+      });
+    },
+
+    close() {
+      this.dialog = false;
+      this.clear();
+      this.$nextTick(() => {
+        this.editedItem = Object.assign({}, this.defaultItem);
+        this.editedIndex = -1;
+      });
+    },
+
     clear() {
       this.$v.$reset();
       this.emailReadonly = false;
@@ -469,6 +509,7 @@ export default {
         }
       };
     },
+    ...mapActions("branches", ["getBranch"]),
   },
   computed: {
     formTitle() {
@@ -521,12 +562,14 @@ export default {
         }
       }
     },
+    ...mapState("branches", ["branches"]),
     ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission"]),
   },
   mounted() {
     axios.defaults.headers.common["Authorization"] =
       "Bearer " + localStorage.getItem("access_token");
     this.getSAPDatabase();
+    this.getBranch();
     // this.websocket();
   },
 };
