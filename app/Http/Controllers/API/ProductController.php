@@ -38,7 +38,7 @@ class ProductController extends Controller
                                     $query->where('user_id', '=', $user->id);
                                 }
                            })
-                           ->where()
+                        //    ->where()
                            ->select(DB::raw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_created"))
                            ->paginate($request->items_per_page);
 
