@@ -9,7 +9,10 @@
             </v-breadcrumbs-item>
           </template>
         </v-breadcrumbs>
-        <div class="d-flex justify-content-end mb-3">
+        <div 
+          class="d-flex justify-content-end mb-3" 
+          v-if="hasAnyPermission('product-reconcile', 'product-template-download', 'product-import', 'product-export', 'product-clear-list')"
+        >
           <div>
             <v-menu offset-y>
               <template v-slot:activator="{ on, attrs }">
@@ -26,8 +29,8 @@
                 >
                   <v-list-item-title>
                     <v-btn
-                      class="mx-1"
-                      color="info"
+                      class="mx-1 white--text"
+                      color="cyan darken-2"
                       width="100px"
                       x-small
                       @click="getUnreconciled()"
@@ -112,7 +115,6 @@
             </v-menu>
           </div>
         </div>
-
         <v-card>
           <v-card-title>
             Product Lists
@@ -502,11 +504,52 @@ export default {
 
   methods: {
     getProduct() {
+
+      // this.product_models = {};
+      // this.loading = true;
+
+      // const data = { items_per_page: this.itemsPerPage, search: this.search };
+      // axios.post("/api/product_model/index", data).then(
+      //   (response) => {
+
+      //     axios
+      //       .post(
+      //         response.data.product_models.path + "?page=" + this.page,
+      //         data
+      //       )
+      //       .then(
+      //         (response) => {
+          
+      //           let product_models = response.data.product_models;
+      //           this.product_models = product_models;
+      //           this.last_page = product_models.last_page;
+
+      //           this.footerProps.pagination = {
+      //             page: this.page,
+      //             itemsPerPage: this.itemsPerPage,
+      //             pageStart: product_models.from - 1,
+      //             pageStop: product_models.to,
+      //             pageCount: product_models.last_page,
+      //             itemsLength: product_models.total,
+      //           };
+
+      //           this.loading = false;
+      //         },
+      //         (error) => {
+      //           this.isUnauthorized(error);
+      //         }
+      //       );
+      //   },
+      //   (error) => {
+      //     this.isUnauthorized(error);
+      //   }
+      // );
+
       this.loading = true;
       axios.get("/api/product/index").then(
         (response) => {
           let data = response.data;
-
+          console.log(data);
           this.user = data.user;
           this.products = data.products;
           this.brands = data.brands;
@@ -971,7 +1014,7 @@ export default {
 
       return branches;
     },
-    ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission"]),
+    ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission", "hasAnyPermission"]),
   },
   created() {
     // Add barcode scan listener and pass the callback function

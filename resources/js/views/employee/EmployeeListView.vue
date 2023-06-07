@@ -9,76 +9,14 @@
             </v-breadcrumbs-item>
           </template>
         </v-breadcrumbs>
-        <div 
-          class="d-flex justify-content-end mb-3" 
-          v-if="hasAnyPermission('employee-list-import', 'employee-list-export', 'employee-clear-list')"
-        >
-          <div>
-            <v-menu offset-y>
-              <template v-slot:activator="{ on, attrs }">
-                <v-btn small v-bind="attrs" v-on="on" color="primary">
-                  Actions
-                  <v-icon small> mdi-menu-down </v-icon>
-                </v-btn>
-              </template>
-              <v-list class="pa-1">
-                <v-list-item
-                  class="ma-0 pa-0"
-                  style="min-height: 25px"
-                  v-if="hasPermission('employee-list-import')"
-                >
-                  <v-list-item-title>
-                    <v-btn
-                      color="primary"
-                      class="mx-1"
-                      width="100px"
-                      x-small
-                      @click="importExcel()"
-                    >
-                      <v-icon class="mr-1" small> mdi-import </v-icon>
-                      Import
-                    </v-btn>
-                  </v-list-item-title>
-                </v-list-item>
-                <v-list-item
-                  class="ma-0 pa-0"
-                  style="min-height: 25px"
-                  v-if="hasPermission('employee-list-export')"
-                >
-                  <v-list-item-title>
-                    <v-btn
-                      color="success"
-                      class="mx-1"
-                      width="100px"
-                      x-small
-                      @click="exportData()"
-                    >
-                      <v-icon class="mr-1" small> mdi-microsoft-excel </v-icon>
-                      Export
-                    </v-btn>
-                  </v-list-item-title>
-                </v-list-item>
-                <v-list-item
-                  class="ma-0 pa-0"
-                  style="min-height: 25px"
-                  v-if="hasPermission('employee-clear-list')"
-                >
-                  <v-list-item-title>
-                    <v-btn
-                      color="error"
-                      class="mx-1"
-                      width="100px"
-                      x-small
-                      @click="clearList()"
-                      ><v-icon class="mr-1" x-small> mdi-delete </v-icon>clear
-                      list</v-btn
-                    >
-                  </v-list-item-title>
-                </v-list-item>
-              </v-list>
-            </v-menu>
-          </div>
-        </div>
+        <MenuActions
+          :canImport="hasPermission('employee-list-import')"
+          :canExport="hasPermission('employee-list-export')"
+          :canClearList="hasPermission('employee-clear-list')"
+          @import="importExcel"
+          @export="exportData"
+          @clearList="clearList"
+        />
         <v-card>
           <v-card-title>
             Employee Lists
@@ -102,7 +40,6 @@
               <v-icon>mdi-plus</v-icon>
             </v-btn>
           </v-card-title>
-
           <v-data-table
             :headers="headers"
             :items="employees"
@@ -537,12 +474,14 @@ import { validationMixin } from "vuelidate";
 import { required, maxLength, email } from "vuelidate/lib/validators";
 import { mapState, mapGetters } from "vuex";
 import ImportDialog from "./components/ImportDialog.vue";
+import MenuActions from "../components/MenuActions.vue";
 
 export default {
 
   name: "EmployeeListView",
   components: {
     ImportDialog,
+    MenuActions,
   },
   props: {
 
@@ -781,6 +720,7 @@ export default {
           if (response.data.success) {
             // send data to Sockot.IO Server
             // this.$socket.emit("sendData", { action: "employee-delete" });
+             this.showAlert(response.data.success, "success")
           }
         },
         (error) => {
@@ -789,11 +729,68 @@ export default {
       );
     },
 
-    showAlert() {
+    save() {
+      this.$v.editedItem.$touch();
+      if (!this.$v.$error) {
+        this.disabled = true;
+        this.overlay = true;
+        
+        this.editedItem.branch_id = this.branch_id;
+        this.editedItem.file_upload_log_id = this.file_upload_log_id;
+        
+        const data = this.editedItem;
+        const employee_id = this.editedItem.id;
+        let url = "/api/employee" + (this.editedIndex > -1 ? "/update/" + employee_id : "/store");
+
+        axios.post(url, data).then(
+          (response) => {
+            let data = response.data;
+            if (data.success) {
+              // send data to Sockot.IO Server
+              // this.$socket.emit("sendData", { action: "employee-edit" });
+
+              let employee = data.employee;
+              employee.branch = data.branch;
+              
+              // format date_granted
+              let [year, month, day] = employee.dob.split("-");
+              employee.birth_date = `${month}/${day}/${year}`;
+
+              [year, month, day] = employee.date_employed.split("-");
+              employee.date_employed = `${month}/${day}/${year}`;
+
+              if(this.editedIndex > -1)
+              {
+                Object.assign(this.employees[this.editedIndex], employee );
+              }
+              else
+              {
+                this.employees.push(employee);
+              }
+              
+
+              this.showAlert(data.success, "success");
+              this.close();
+            } else {
+            }
+            this.overlay = false;
+            this.disabled = false;
+          },
+          (error) => {
+            this.isUnauthorized(error);
+
+            this.overlay = false;
+            this.disabled = false;
+          }
+        );
+      }
+    },
+
+    showAlert(title, icon) {
       this.$swal({
         position: "center",
-        icon: "success",
-        title: "Record has been saved",
+        icon: icon,
+        title: title,
         showConfirmButton: false,
         timer: 2500,
       });
@@ -822,14 +819,6 @@ export default {
 
           //Remove item from array services
           this.employees.splice(index, 1);
-
-          this.$swal({
-            position: "center",
-            icon: "success",
-            title: "Record has been deleted",
-            showConfirmButton: false,
-            timer: 2500,
-          });
         }
       });
     },
@@ -845,106 +834,6 @@ export default {
 
     closeImportDialog() {
       this.dialog_import = false;
-    },
-
-    save() {
-      this.$v.editedItem.$touch();
-      if (!this.$v.$error) {
-        this.disabled = true;
-        this.overlay = true;
-
-        this.editedItem.branch_id = this.branch_id;
-
-        if (this.editedIndex > -1) {
-          const data = this.editedItem;
-          const employee_id = this.editedItem.id;
-
-          axios.post("/api/employee/update/" + employee_id, data).then(
-            (response) => {
-              if (response.data.success) {
-                // send data to Sockot.IO Server
-                // this.$socket.emit("sendData", { action: "employee-edit" });
-
-                let employee = response.data.employee;
-                employee.branch = response.data.branch;
-                
-                // format date_granted
-                let [year, month, day] = employee.dob.split("-");
-                employee.birth_date = `${month}/${day}/${year}`;
-
-                [year, month, day] = employee.date_employed.split("-");
-                employee.date_employed = `${month}/${day}/${year}`;
-
-                Object.assign(
-                  this.employees[this.editedIndex],
-                  employee
-                );
-
-                this.showAlert();
-                this.close();
-              } else {
-              }
-              this.overlay = false;
-              this.disabled = false;
-            },
-            (error) => {
-              this.isUnauthorized(error);
-
-              this.overlay = false;
-              this.disabled = false;
-            }
-          );
-        } else {
-
-          this.editedItem.file_upload_log_id = this.file_upload_log_id;
-
-          const data = this.editedItem;
-
-          axios.post("/api/employee/store", data).then(
-            (response) => {
-
-              if (response.data.success) {
-                // send data to Sockot.IO Server
-                // this.$socket.emit("sendData", { action: "user-create" });
-
-                this.showAlert();
-                this.close();
-
-                let employee = response.data.employee;
-                
-                // format date_granted
-                let [year, month, day] = employee.dob.split("-");
-                employee.birth_date = `${month}/${day}/${year}`;
-
-                [year, month, day] = employee.date_employed.split("-");
-                employee.date_employed = `${month}/${day}/${year}`;
-
-                //push recently added data from database
-                this.employees.push(employee);
-              } else {
-              }
-              this.overlay = false;
-              this.disabled = false;
-            },
-            (error) => {
-              this.isUnauthorized(error);
-
-              this.overlay = false;
-              this.disabled = false;
-            }
-          );
-        }
-      }
-    },
-
-    showAlert() {
-      this.$swal({
-        position: "center",
-        icon: "success",
-        title: "Record has been saved",
-        showConfirmButton: false,
-        timer: 2500,
-      });
     },
 
     clearList() {
@@ -977,22 +866,10 @@ export default {
 
                   this.employees = [];
                   this.file_upload_log = null;
+                  this.showAlert(response.data.success, "success");
 
-                  this.$swal({
-                    position: "center",
-                    icon: "success",
-                    title: "Record has been cleared",
-                    showConfirmButton: false,
-                    timer: 2500,
-                  });
                 } else {
-                  this.$swal({
-                    position: "center",
-                    icon: "warning",
-                    title: "No record found",
-                    showConfirmButton: false,
-                    timer: 2500,
-                  });
+                  this.showAlert("No record found", "warning");
                 }
               },
               (error) => {
@@ -1003,13 +880,7 @@ export default {
           }
         });
       } else {
-        this.$swal({
-          position: "center",
-          icon: "warning",
-          title: "No record found",
-          showConfirmButton: false,
-          timer: 2500,
-        });
+        this.showAlert("No record found", "warning")
       }
     },
 
@@ -1036,13 +907,7 @@ export default {
           "_blank"
         );
       } else {
-        this.$swal({
-          position: "center",
-          icon: "warning",
-          title: "No record found",
-          showConfirmButton: false,
-          timer: 2500,
-        });
+        this.showAlert("No record found", "warning")
       }
     },
     formatDate(date) {

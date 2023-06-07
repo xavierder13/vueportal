@@ -9,9 +9,9 @@
             </v-breadcrumbs-item>
           </template>
         </v-breadcrumbs>
-        <div class="d-flex justify-content-end mb-3">
+        <div class="d-flex justify-content-end mb-3" v-if="hasAnyPermission('inventory-recon-create', 'inventory-recon-sync')">
           <div>
-            <v-menu offset-y v-if="hasAnyPermission('inventory-recon-create', 'inventory-recon-sync')">
+            <v-menu offset-y>
               <template v-slot:activator="{ on, attrs }">
                 <v-btn small v-bind="attrs" v-on="on" color="primary">
                   Actions
@@ -28,7 +28,7 @@
                     <v-btn
                       color="primary"
                       class="mx-1"
-                      width="120px"
+                      width="100px"
                       x-small
                       @click="openImportDialog('import')"
                     >
@@ -46,7 +46,7 @@
                     <v-btn
                       color="info"
                       class="mx-1"
-                      width="120px"
+                      width="100px"
                       x-small
                       @click="openImportDialog('sync')"
                     >

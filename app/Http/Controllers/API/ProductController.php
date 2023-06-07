@@ -24,7 +24,7 @@ use Crypt;
 
 class ProductController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {   
         $user = Auth::user();
 
@@ -38,8 +38,9 @@ class ProductController extends Controller
                                     $query->where('user_id', '=', $user->id);
                                 }
                            })
+                           ->where()
                            ->select(DB::raw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_created"))
-                           ->get();
+                           ->paginate($request->items_per_page);
 
         $brands = Brand::all();
         $branches = Branch::all();

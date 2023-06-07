@@ -43,7 +43,7 @@ Route::prefix('auth')->group(function(){
 
 // User Routes
 Route::group(['prefix' => 'user', 'middleware' => ['auth:api', 'user.maintenance']], function(){
-    Route::get('/index', [
+    Route::post('/index', [
         'uses' => 'API\UserController@index',
         'as' => 'user.index',
     ]);

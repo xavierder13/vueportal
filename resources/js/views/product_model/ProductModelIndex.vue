@@ -90,7 +90,6 @@
               </v-toolbar>
             </template>
           </v-card-title>
-
           <v-data-table
             :headers="headers"
             :items="product_models.data"
@@ -144,11 +143,11 @@
               >
               <v-btn
                 icon
-                class="mr-2"
                 @click="prevPage()"
                 :disabled="prevBtnDisable"
                 ><v-icon> mdi-chevron-left </v-icon></v-btn
               >
+               <strong> {{ page }} </strong>
               <v-btn icon @click="nextPage()" :disabled="lastBtnDisable"
                 ><v-icon> mdi-chevron-right </v-icon></v-btn
               >
@@ -239,41 +238,31 @@ export default {
       this.loading = true;
 
       const data = { items_per_page: this.itemsPerPage, search: this.search };
-      axios.post("/api/product_model/index", data).then(
+      
+      axios.post("/api/product_model/index?page=" + this.page, data).then(
         (response) => {
-
-          axios
-            .post(
-              response.data.product_models.path + "?page=" + this.page,
-              data
-            )
-            .then(
-              (response) => {
           
-                let product_models = response.data.product_models;
-                this.product_models = product_models;
-                this.last_page = product_models.last_page;
+          let product_models = response.data.product_models;
+          this.product_models = product_models;
+          this.last_page = product_models.last_page;
 
-                this.footerProps.pagination = {
-                  page: this.page,
-                  itemsPerPage: this.itemsPerPage,
-                  pageStart: product_models.from - 1,
-                  pageStop: product_models.to,
-                  pageCount: product_models.last_page,
-                  itemsLength: product_models.total,
-                };
+          this.footerProps.pagination = {
+            page: this.page,
+            itemsPerPage: this.itemsPerPage,
+            pageStart: product_models.from - 1,
+            pageStop: product_models.to,
+            pageCount: product_models.last_page,
+            itemsLength: product_models.total,
+          };
 
-                this.loading = false;
-              },
-              (error) => {
-                this.isUnauthorized(error);
-              }
-            );
+          this.loading = false;
         },
         (error) => {
           this.isUnauthorized(error);
         }
       );
+        
+      
     },
     nextPage() {
       if (this.page < this.last_page) {
@@ -301,6 +290,58 @@ export default {
       this.lastBtnDisable = true;
 
       this.getProductModel();
+    },
+
+    save() {
+      this.$v.$touch();
+      this.product_modelError = {
+        name: [],
+      };
+
+      if (!this.$v.$error) {
+        this.disabled = true;
+        const data = this.editedItem;
+        const product_model_id = this.editedItem.id;
+        let url = "/api/product_model" + (this.editedIndex > -1 ? "/update/" + product_model_id : "/store");
+
+        axios.post(url, data).then(
+          (response) => {
+            let data = response.data;
+            console.log(data);
+            if (data.success) {
+              // send data to Sockot.IO Server
+              // this.$socket.emit("sendData", { action: "product-edit" });
+
+              if(this.editedIndex > -1)
+              {
+                Object.assign(this.product_models.data[this.editedIndex], this.editedItem);
+              }
+              else
+              {
+                this.product_models.data.push(data.product_models);
+              }
+              
+              this.showAlert(data.success, 'success');
+              this.close();
+
+            } 
+            else {
+              let errors = response.data;
+              let errorNames = Object.keys(response.data);
+
+              errorNames.forEach((value) => {
+                this.product_modelError[value].push(errors[value]);
+              });
+            }
+
+            this.disabled = false;
+          },
+          (error) => {
+            this.isUnauthorized(error);
+            this.disabled = false;
+          }
+        );
+      }
     },
 
     editProductModel(item) {
@@ -384,82 +425,6 @@ export default {
         this.editedItem = Object.assign({}, this.defaultItem);
         this.editedIndex = -1;
       });
-    },
-
-    save() {
-      this.$v.$touch();
-      this.product_modelError = {
-        name: [],
-      };
-
-      if (!this.$v.$error) {
-        this.disabled = true;
-
-        if (this.editedIndex > -1) {
-          const data = this.editedItem;
-          const product_model_id = this.editedItem.id;
-
-          axios
-            .post("/api/product_model/update/" + product_model_id, data)
-            .then(
-              (response) => {
-                if (response.data.success) {
-                  // send data to Sockot.IO Server
-                  // this.$socket.emit("sendData", { action: "product-model-edit" });
-
-                  Object.assign(
-                    this.product_models.data[this.editedIndex],
-                    this.editedItem
-                  );
-                  this.showAlert();
-                  this.close();
-                } else {
-                  let errors = response.data;
-                  let errorNames = Object.keys(response.data);
-
-                  errorNames.forEach((value) => {
-                    this.product_modelError[value].push(errors[value]);
-                  });
-                }
-
-                this.disabled = false;
-              },
-              (error) => {
-                this.isUnauthorized(error);
-                this.disabled = false;
-              }
-            );
-        } else {
-          const data = this.editedItem;
-
-          axios.post("/api/product_model/store", data).then(
-            (response) => {
-              if (response.data.success) {
-                // send data to Sockot.IO Server
-                // this.$socket.emit("sendData", { action: "product-model-create" });
-
-                this.showAlert();
-                this.close();
-
-                //push recently added data from database
-                this.product_models.data.push(response.data.product_models);
-              } else {
-                let errors = response.data;
-                let errorNames = Object.keys(response.data);
-
-                errorNames.forEach((value) => {
-                  this.product_modelError[value].push(errors[value]);
-                });
-              }
-              this.disabled = false;
-            },
-            (error) => {
-              this.isUnauthorized(error);
-              this.disabled = false;
-            }
-          );
-        }
-      }
     },
 
     clear() {
