@@ -52,44 +52,6 @@
             @edit="editEmployee"
             @confirmDelete="showConfirmAlert"
           />
-          {{ file_upload_log }}
-          <!-- <v-data-table
-            :headers="headers"
-            :items="employees"
-            :search="search"
-            :loading="loading"
-            loading-text="Loading... Please wait"
-            v-if="hasPermission('employee-list')"
-          > 
-            <template v-slot:top v-if="file_upload_log">
-              <v-toolbar
-                flat
-              >
-                <h6 class="my-0 font-weight-bold">Document Date:</h6>  <v-chip color="secondary" class="ml-2">{{ file_upload_log.docdate }}</v-chip>
-                <h6 class="my-0 font-weight-bold ml-8">Uploaded Date:</h6>  <v-chip color="secondary" class="ml-2">{{ file_upload_log.date_uploaded }}</v-chip>
-              </v-toolbar>
-            </template>
-            <template v-slot:item.actions="{ item }">
-              <v-icon
-                small
-                class="mr-2"
-                color="green"
-                @click="editEmployee(item)"
-                v-if="hasPermission('employee-edit')"
-              >
-                mdi-pencil
-              </v-icon>
-              <v-icon
-                small
-                color="red"
-                @click="showConfirmAlert(item)"
-                v-if="hasPermission('employee-delete')"
-              >
-                mdi-delete
-              </v-icon>
-            </template>
-          </v-data-table> -->
-
           <v-dialog v-model="dialog" max-width="1000px" persistent>
             <v-card>
               <v-card-title class="pa-4">
