@@ -40,14 +40,15 @@
 
 export default {
   name: "MenuActions",
-  props: {
-    canReconcile: Boolean,
-    canDownloadTemplate: Boolean,
-    canImport: Boolean,
-    canSync: Boolean,
-    canExport: Boolean,
-    canClearList: Boolean,
-  },
+  props: [
+    'canReconcile',
+    'canDownloadTemplate',
+    'canImport',
+    'canSync',
+    'canExport',
+    'canDownloadFile',
+    'canClearList',
+  ],
 
   data () {
     return {
@@ -77,6 +78,13 @@ export default {
             color: "#AB47BC", 
             method: "downloadTemplate",
             hasPermission: this.canDownloadTemplate 
+          },
+          { 
+            text: "File", 
+            icon: "mdi-download", 
+            color: "#AB47BC", 
+            method: "downloadFile",
+            hasPermission: this.canDownloadFile 
           },
           { 
             text: "Import", 

@@ -40,7 +40,20 @@
               <v-icon>mdi-plus</v-icon>
             </v-btn>
           </v-card-title>
-          <v-data-table
+          <DataTable
+            :headers="headers"
+            :items="employees"
+            :search="search"
+            :loading="loading"
+            :file_upload_log="file_upload_log" 
+            :canViewList="hasPermission('employee-list')"
+            :canEdit="hasPermission('employee-edit')"
+            :canDelete="hasPermission('employee-delete')"
+            @edit="editEmployee"
+            @confirmDelete="showConfirmAlert"
+          />
+          {{ file_upload_log }}
+          <!-- <v-data-table
             :headers="headers"
             :items="employees"
             :search="search"
@@ -75,7 +88,7 @@
                 mdi-delete
               </v-icon>
             </template>
-          </v-data-table>
+          </v-data-table> -->
 
           <v-dialog v-model="dialog" max-width="1000px" persistent>
             <v-card>
@@ -475,6 +488,7 @@ import { required, maxLength, email } from "vuelidate/lib/validators";
 import { mapState, mapGetters } from "vuex";
 import ImportDialog from "./components/ImportDialog.vue";
 import MenuActions from "../components/MenuActions.vue";
+import DataTable from "./components/DataTable";
 
 export default {
 
@@ -482,6 +496,7 @@ export default {
   components: {
     ImportDialog,
     MenuActions,
+    DataTable,
   },
   props: {
 

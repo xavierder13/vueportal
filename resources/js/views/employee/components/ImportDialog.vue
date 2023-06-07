@@ -150,12 +150,11 @@ import { mapState } from "vuex";
 export default {
   
   name: "ImportDialog",
-  props: {
-    importedData: Object,
-    api_route: String,
-    dialog_import: Boolean,
-  },
-
+  props: [ 
+    'importedData',
+    'api_route',
+    'dialog_import',
+  ],
   mixins: [validationMixin],
   validations: {
     file: { required },

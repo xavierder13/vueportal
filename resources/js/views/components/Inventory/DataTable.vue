@@ -72,10 +72,10 @@
 
 export default {
   name: "DataTable",
-  props:{
-    headers: Array,
-    tableData: Array,
-  },
+  props: [
+    'headers',
+    'items'
+  ],
   data() {
     return {
       page: 1,

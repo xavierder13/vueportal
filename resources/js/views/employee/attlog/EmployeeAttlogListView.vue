@@ -9,7 +9,17 @@
             </v-breadcrumbs-item>
           </template>
         </v-breadcrumbs>
-        <div 
+        <MenuActions
+          :canImport="hasPermission('employee-attlog-import')"
+          :canDownloadFile="hasPermission('employee-attlog-export')"
+          :canExport="hasPermission('employee-attlog-export')"
+          :canClearList="hasPermission('employee-attlog-clear-list')"
+          @import="importExcel"
+          @downloadFile="downloadFile"
+          @export="exportData"
+          @clearList="clearList"
+        />
+        <!-- <div 
           class="d-flex justify-content-end mb-3"
           v-if="hasAnyPermission('employee-attlog-import', 'employee-attlog-export', 'employee-attlog-clear-list')"
         >
@@ -69,7 +79,7 @@
                       class="mx-1"
                       width="100px"
                       x-small
-                      @click="fileDownload()"
+                      @click="downloadFile()"
                     >
                       <v-icon class="mr-1" x-small> mdi-download </v-icon>
                       File
@@ -96,7 +106,7 @@
               </v-list>
             </v-menu>
           </div>
-        </div>
+        </div> -->
         <v-card>
           <v-card-title>
             Employee Attlog Lists
@@ -120,7 +130,18 @@
               <v-icon>mdi-plus</v-icon>
             </v-btn>
           </v-card-title>
-
+          <!-- <DataTable
+            :headers="headers"
+            :items="employee_attlogs"
+            :search="search"
+            :loading="loading"
+            :file_upload_log="file_upload_log" 
+            :canViewList="hasPermission('employee-attlog-list')"
+            :canEdit="hasPermission('employee-attlog-edit')"
+            :canDelete="hasPermission('employee-attlog-delete')"
+            @edit="editEmployeeAttlog"
+            @confirmDelete="showConfirmAlert"
+          /> -->
           <v-data-table
             :headers="headers"
             :items="employee_attlogs"
@@ -177,11 +198,13 @@ import { validationMixin } from "vuelidate";
 import { required, maxLength, email } from "vuelidate/lib/validators";
 import { mapState, mapGetters } from "vuex";
 import ImportDialog from "../components/ImportDialog.vue";
+import MenuActions from '../../components/MenuActions.vue';
 
 export default {
   name: "EmployeeAttlogListView",
   components: {
     ImportDialog,
+    MenuActions
   },
   props: {
 
@@ -477,7 +500,7 @@ export default {
         });
       }
     },
-    fileDownload() {
+    downloadFile() {
       window.open(location.origin + "/api/employee_attlog/file/download?file_upload_log_id=" + this.file_upload_log_id, "_blank");
     },
     formatDate(date) {
