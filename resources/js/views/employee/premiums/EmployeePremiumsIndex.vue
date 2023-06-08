@@ -151,11 +151,11 @@
           </v-data-table>
         </v-card>
         <ImportDialog 
-            :api_route="api_route" 
-            :dialog_import="dialog_import"
-            @getData="getEmployeePremiums"
-            @closeImportDialog="closeImportDialog"
-          />
+          :api_route="api_route" 
+          :dialog_import="dialog_import"
+          @getData="getEmployeePremiums"
+          @closeImportDialog="closeImportDialog"
+        />
       </v-main>
     </div>
   </div>
@@ -241,15 +241,21 @@ export default {
     },
 
     exportData(item) {
-      // window.open(
-      //   location.origin + "/api/employee_premiums/export_premiums/" + 0,
-      //   "_blank"
-      // );
-
-      window.open(
-        location.origin + "/api/employee_premiums/export_premiums/" + item.id,
-        "_blank"
+     
+      const data = { file_upload_log_id: item.id }
+      axios.post('/api/employee_premiums/export_premiums', data, { responseType: 'arraybuffer'})
+        .then((response) => {
+            var fileURL = window.URL.createObjectURL(new Blob([response.data]));
+            var fileLink = document.createElement('a');
+            fileLink.href = fileURL;
+            fileLink.setAttribute('download', 'EmployeePremiums.xls');
+            document.body.appendChild(fileLink);
+            fileLink.click();
+        }, (error) => {
+          console.log(error);
+        }
       );
+      
     },
 
     closeImportDialog() {

@@ -54,11 +54,10 @@ class EmployeeMaintenance
         }
 
         //Employee Export Data
-        if($request->is('api/employee/export_employee/*')){
-            // if($user->can('employee-list-export')){
-            //     return $next($request); 
-            // }
-            return $next($request); 
+        if($request->is('api/employee/export_employee')){
+            if($user->can('employee-list-export')){
+                return $next($request); 
+            }
         }
 
         //Employee Delete All

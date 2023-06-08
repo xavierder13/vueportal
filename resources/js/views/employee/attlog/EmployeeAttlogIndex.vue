@@ -151,7 +151,7 @@
                           <v-btn
                             class="mx-1"
                             x-small
-                            @click="fileDownload(value)"
+                            @click="downloadFile(value)"
                             width="100px"
                             color="primary"
                           >
@@ -255,19 +255,36 @@ export default {
       this.api_route = 'api/employee_attlog/import_attlog/' + this.branch_id;
     },
 
-    exportData(item) {
-      // window.open(
-      //   location.origin + "/api/employee_attlog/export_attlog/" + 0,
-      //   "_blank"
-      // );
+    exportData() {
+      let url = '/api/employee_attlog/export_attlog';
+      let file_type = 'xls';
 
-      window.open(
-        location.origin + "/api/employee_attlog/export_attlog/" + item.id,
-        "_blank"
-      );
+      this.fetchFileResponse(url, file_type);
     },
-    fileDownload(item) {
-      window.open(location.origin + "/api/employee_attlog/file/download?file_upload_log_id=" + item.id, "_blank");
+
+    downloadFile() {
+      let url = '/api/employee_attlog/file/download';
+      let file_type = 'dat';
+
+      this.fetchFileResponse(url, file_type);
+    },
+
+    fetchFileResponse(url, file_type) {
+      const data = { file_upload_log_id: this.file_upload_log_id }
+
+      axios.post(url, data, { responseType: 'arraybuffer'})
+        .then((response) => {
+            var fileURL = window.URL.createObjectURL(new Blob([response.data]));
+            var fileLink = document.createElement('a');
+            fileLink.href = fileURL;
+            fileLink.setAttribute('download', 'EmployeeAttlog.' + file_type);
+            document.body.appendChild(fileLink);
+            fileLink.click();
+        }, (error) => {
+          console.log(error);
+        }
+      );
+
     },
 
     closeImportDialog() {

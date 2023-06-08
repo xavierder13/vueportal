@@ -16,6 +16,9 @@
           <h6 class="my-0 font-weight-bold ml-8">Uploaded Date:</h6>  <v-chip color="secondary" class="ml-2">{{ file_upload_log.date_uploaded }}</v-chip>
         </v-toolbar>
       </template>
+      <template v-slot:item.branch="{ item }">
+        {{ item.branch.name ? item.branch.name : item.branch }}
+      </template>
       <template v-slot:item.actions="{ item }">
         <v-icon
           small

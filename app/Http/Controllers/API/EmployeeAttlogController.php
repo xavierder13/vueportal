@@ -194,9 +194,9 @@ class EmployeeAttlogController extends Controller
         
     }
 
-    public function export_attlog($file_upload_log_id)
+    public function export_attlog(Request $request)
     {   
-        return Excel::download(new EmployeeAttlogExport($file_upload_log_id), 'employee_attlogs.xls');
+        return Excel::download(new EmployeeAttlogExport($request->file_upload_log_id), 'employee_attlogs.xls');
     }
 
     public function delete(Request $request)

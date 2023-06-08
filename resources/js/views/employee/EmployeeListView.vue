@@ -879,10 +879,24 @@ export default {
 
     exportData() {
       if (this.employees.length) {
-        window.open(
-          location.origin + "/api/employee/export_employee/" + this.file_upload_log_id,
-          "_blank"
+        const data = { file_upload_log_id: this.file_upload_log_id }
+        axios.post('/api/employee/export_employee', data, { responseType: 'arraybuffer'})
+          .then((response) => {
+              var fileURL = window.URL.createObjectURL(new Blob([response.data]));
+              var fileLink = document.createElement('a');
+              fileLink.href = fileURL;
+              fileLink.setAttribute('download', 'EmployeeList.xls');
+              document.body.appendChild(fileLink);
+              fileLink.click();
+          }, (error) => {
+            console.log(error);
+          }
         );
+        
+        // window.open(
+        //   location.origin + "/api/employee/export_employee/" + this.file_upload_log_id,
+        //   "_blank"
+        // );
       } else {
         this.showAlert("No record found", "warning")
       }

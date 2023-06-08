@@ -236,15 +236,21 @@ export default {
     },
 
     exportData(item) {
-      // window.open(
-      //   location.origin + "/api/employee_loans/export_loans/" + 0,
-      //   "_blank"
-      // );
-
-      window.open(
-        location.origin + "/api/employee_loans/export_loans/" + item.id,
-        "_blank"
+     
+      const data = { file_upload_log_id: item.id }
+      axios.post('/api/employee_loans/export_loans', data, { responseType: 'arraybuffer'})
+        .then((response) => {
+            var fileURL = window.URL.createObjectURL(new Blob([response.data]));
+            var fileLink = document.createElement('a');
+            fileLink.href = fileURL;
+            fileLink.setAttribute('download', 'EmployeeLoans.xls');
+            document.body.appendChild(fileLink);
+            fileLink.click();
+        }, (error) => {
+          console.log(error);
+        }
       );
+      
     },
 
     closeImportDialog() {

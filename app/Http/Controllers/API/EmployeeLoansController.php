@@ -493,9 +493,9 @@ class EmployeeLoansController extends Controller
         
     }
 
-    public function export_loans($file_upload_log_id)
+    public function export_loans(Request $request)
     {   
-        return Excel::download(new EmployeeLoansExport($file_upload_log_id), 'employee_loans.xls');
+        return Excel::download(new EmployeeLoansExport($request->file_upload_log_id), 'employee_loans.xls');
     }
 
     public function delete(Request $request)

@@ -54,11 +54,10 @@ class EmployeeLoansMaintenance
         }
 
         //Employee Loans Export Data
-        if($request->is('api/employee_loans/export_loans/*')){
-            // if($user->can('employee-loans-list-export')){
-            //     return $next($request); 
-            // }
-            return $next($request); 
+        if($request->is('api/employee_loans/export_loans')){
+            if($user->can('employee-loans-export')){
+                return $next($request); 
+            }
         }
 
         //Employee Loans Delete All

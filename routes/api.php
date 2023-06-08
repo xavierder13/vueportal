@@ -150,16 +150,16 @@ Route::group(['prefix' => 'product', 'middleware' => ['auth:api', 'product.maint
 });
 
 // Product Template Download Route
-Route::get('/product/template/download/{branch_id}', [
-    'uses' => 'API\ProductController@template_download',
-    'as' => 'product.template_download',
-])->middleware(['product.maintenance']);
+// Route::get('/product/template/download/{branch_id}', [
+//     'uses' => 'API\ProductController@template_download',
+//     'as' => 'product.template_download',
+// ])->middleware(['product.maintenance']);
 
-// Product Export Route
-Route::get('/product/export/{branch_id}/{user_id}', [
-    'uses' => 'API\ProductController@export',
-    'as' => 'product.export',
-])->middleware(['product.maintenance']);
+// // Product Export Route
+// Route::get('/product/export/{branch_id}/{user_id}', [
+//     'uses' => 'API\ProductController@export',
+//     'as' => 'product.export',
+// ])->middleware(['product.maintenance']);
 
 // Inventory Reconciliation Route
 Route::group(['prefix' => 'inventory_reconciliation', 'middleware' => ['auth:api', 'inventory_reconciliation.maintenance']], function(){
@@ -270,13 +270,18 @@ Route::group(['prefix' => 'employee', 'middleware' => ['auth:api', 'employee.mai
         'as' => 'employee.delete'
     ]);
 
+    Route::post('/export_employee', [
+        'uses' => 'API\EmployeeController@export_employee',
+        'as' => 'employee.export',
+    ]);
+
 });
 
 // Employee Export Route
-Route::get('/employee/export_employee/{id}', [
-    'uses' => 'API\EmployeeController@export_employee',
-    'as' => 'employee.export',
-])->middleware(['employee.maintenance']);
+// Route::get('/employee/export_employee/{id}', [
+//     'uses' => 'API\EmployeeController@export_employee',
+//     'as' => 'employee.export',
+// ])->middleware(['employee.maintenance']);
 
 // Employee Loans Routes
 Route::group(['prefix' => 'employee_loans', 'middleware' => ['auth:api', 'employee.loans.maintenance']], function(){
@@ -320,13 +325,18 @@ Route::group(['prefix' => 'employee_loans', 'middleware' => ['auth:api', 'employ
         'as' => 'employee.loans.delete'
     ]);
 
+    Route::post('/export_loans', [
+        'uses' => 'API\EmployeeLoansController@export_loans',
+        'as' => 'employee.loan.export',
+    ]);
+
 });
 
-// Employee Loans Export Route
-Route::get('/employee_loans/export_loans/{id}', [
-    'uses' => 'API\EmployeeLoansController@export_loans',
-    'as' => 'employee.loan.export',
-])->middleware(['employee.loans.maintenance']);
+// // Employee Loans Export Route
+// Route::get('/employee_loans/export_loans/{id}', [
+//     'uses' => 'API\EmployeeLoansController@export_loans',
+//     'as' => 'employee.loan.export',
+// ])->middleware(['employee.loans.maintenance']);
 
 // Employee Premiums Routes
 Route::group(['prefix' => 'employee_premiums', 'middleware' => ['auth:api', 'employee.premiums.maintenance']], function(){
@@ -370,13 +380,18 @@ Route::group(['prefix' => 'employee_premiums', 'middleware' => ['auth:api', 'emp
         'as' => 'employee.premiums.delete'
     ]);
 
+    Route::post('/export_premiums', [
+        'uses' => 'API\EmployeePremiumsController@export_premiums',
+        'as' => 'employee.premiums.export',
+    ]);
+
 });
 
-// Employee Premiums Export Route
-Route::get('/employee_premiums/export_premiums/{id}', [
-    'uses' => 'API\EmployeePremiumsController@export_premiums',
-    'as' => 'employee.premiums.export',
-])->middleware(['employee.premiums.maintenance']);
+// // Employee Premiums Export Route
+// Route::get('/employee_premiums/export_premiums/{id}', [
+//     'uses' => 'API\EmployeePremiumsController@export_premiums',
+//     'as' => 'employee.premiums.export',
+// ])->middleware(['employee.premiums.maintenance']);
 
 // Employee Attlog Routes
 Route::group(['prefix' => 'employee_attlog', 'middleware' => ['auth:api', 'employee.attlog.maintenance']], function(){
@@ -420,19 +435,30 @@ Route::group(['prefix' => 'employee_attlog', 'middleware' => ['auth:api', 'emplo
         'as' => 'employee.attlog.delete'
     ]);
 
+    Route::post('/export_attlog', [
+        'uses' => 'API\EmployeeAttlogController@export_attlog',
+        'as' => 'employee.attlog.export',
+    ]);
+    
+    // Employee Attlog File Download Route
+    Route::post('/file/download', [
+        'uses' => 'API\EmployeeAttlogController@download',
+        'as' => 'employee.attlog.file.download',
+    ]);
+
 });
 
 // Employee Attlog Export Route
-Route::get('/employee_attlog/export_attlog/{id}', [
-    'uses' => 'API\EmployeeAttlogController@export_attlog',
-    'as' => 'employee.attlog.export',
-])->middleware(['employee.attlog.maintenance']);
+// Route::get('/employee_attlog/export_attlog/{id}', [
+//     'uses' => 'API\EmployeeAttlogController@export_attlog',
+//     'as' => 'employee.attlog.export',
+// ])->middleware(['employee.attlog.maintenance']);
 
-// Employee Attlog File Download Route
-Route::get('/employee_attlog/file/download', [
-    'uses' => 'API\EmployeeAttlogController@download',
-    'as' => 'employee.attlog.file.download',
-])->middleware(['employee.attlog.maintenance']);
+// // Employee Attlog File Download Route
+// Route::get('/employee_attlog/file/download', [
+//     'uses' => 'API\EmployeeAttlogController@download',
+//     'as' => 'employee.attlog.file.download',
+// ])->middleware(['employee.attlog.maintenance']);
 
 // Training Files Route
 Route::group(['prefix' => 'training', 'middleware' => ['auth:api', 'training_file.maintenance']], function(){

@@ -38,6 +38,8 @@
 
 <script>
 
+import axios from "axios";
+
 export default {
   name: "MenuActions",
   props: [
@@ -48,16 +50,54 @@ export default {
     'canExport',
     'canDownloadFile',
     'canClearList',
+    'export_url',
+    'download_url',
+    'file_upload_log_id',
   ],
 
   data () {
     return {
-
+      api_url: "",
     }
   },
   methods: {
     callMethod(method) {
-      this.$emit(method);
+      this.$emit(method)
+      // ['export', 'download'].includes(method) ? this.exportData(method) : this.$emit(method);
+    },
+    exportData(method) {
+      if (this.data.length) 
+      {
+        
+        const data = { file_upload_log_id: this.file_upload_log_id };
+
+        let file_type = method === 'export' ? 'xls' : 'dat';
+
+        axios.post(this.export_url, data, { responseType: 'arraybuffer'})
+          .then((response) => {
+              var fileURL = window.URL.createObjectURL(new Blob([response.data]));
+              var fileLink = document.createElement('a');
+              fileLink.href = fileURL;
+              fileLink.setAttribute('download', 'EmployeeList.' + file_type);
+              document.body.appendChild(fileLink);
+              fileLink.click();
+          }, (error) => {
+            console.log(error);
+          }
+        );
+      
+      } else {
+        this.showAlert("No record found", "warning")
+      }
+    },
+    showAlert(title, icon) {
+      this.$swal({
+        position: "center",
+        icon: icon,
+        title: title,
+        showConfirmButton: false,
+        timer: 2500,
+      });
     },
   },
   computed: {
@@ -82,8 +122,8 @@ export default {
           { 
             text: "File", 
             icon: "mdi-download", 
-            color: "#AB47BC", 
-            method: "downloadFile",
+            color: "info", 
+            method: "download",
             hasPermission: this.canDownloadFile 
           },
           { 

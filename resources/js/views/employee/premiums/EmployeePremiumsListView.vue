@@ -103,42 +103,18 @@
             </v-btn>
           </v-card-title>
 
-          <v-data-table
+          <DataTable
             :headers="headers"
             :items="employee_premiums"
             :search="search"
             :loading="loading"
-            loading-text="Loading... Please wait"
-            v-if="hasPermission('employee-premiums-list')"
-          >
-            <template v-slot:top v-if="file_upload_log">
-              <v-toolbar
-                flat
-              >
-                <h6 class="my-0 font-weight-bold">Document Date:</h6>  <v-chip color="secondary" class="ml-2">{{ file_upload_log.docdate }}</v-chip>
-                <h6 class="my-0 font-weight-bold ml-8">Uploaded Date:</h6>  <v-chip color="secondary" class="ml-2">{{ file_upload_log.date_uploaded }}</v-chip>
-              </v-toolbar>
-            </template>
-            <template v-slot:item.actions="{ item }">
-              <v-icon
-                small
-                class="mr-2"
-                color="green"
-                @click="editEmployee(item)"
-                v-if="hasPermission('employee-premiums-edit')"
-              >
-                mdi-pencil
-              </v-icon>
-              <v-icon
-                small
-                color="red"
-                @click="showConfirmAlert(item)"
-                v-if="hasPermission('employee-premiums-delete')"
-              >
-                mdi-delete
-              </v-icon>
-            </template>
-          </v-data-table>
+            :file_upload_log="file_upload_log" 
+            :canViewList="hasPermission('employee-premiums-list')"
+            :canEdit="hasPermission('employee-premiums-edit')"
+            :canDelete="hasPermission('employee-premiums-delete')"
+            @edit="editEmployeePremiums"
+            @confirmDelete="showConfirmAlert"
+          />
 
           <v-dialog v-model="dialog" max-width="1000px" persistent>
             <v-card>
@@ -532,111 +508,6 @@
               </v-card-actions>
             </v-card>
           </v-dialog>
-
-          <v-dialog v-model="dialog_import" max-width="500px" persistent>
-            <v-card>
-              <v-card-title class="pa-4">
-                <span class="headline">Import Data</span>
-              </v-card-title>
-              <v-divider class="mt-0"></v-divider>
-              <v-card-text>
-                <v-container>
-                  <v-row>
-                    <v-col class="my-0 py-0">
-                      <v-file-input
-                        v-model="file"
-                        show-size
-                        label="File input"
-                        prepend-icon="mdi-paperclip"
-                        required
-                        :error-messages="fileErrors + fileError"
-                        @change="$v.file.$touch() + (fileIsEmpty = false)"
-                        @blur="$v.file.$touch()"
-                        
-                      >
-                        <template v-slot:selection="{ text }">
-                          <v-chip small label color="primary">
-                            {{ text }}
-                          </v-chip>
-                        </template>
-                      </v-file-input>
-                    </v-col>
-                  </v-row>
-                  <v-row
-                    class="fill-height"
-                    align-content="center"
-                    justify="center"
-                    v-if="uploading"
-                  >
-                    <v-col class="subtitle-1 text-center" cols="12">
-                      Uploading...
-                    </v-col>
-                    <v-col cols="6">
-                      <v-progress-linear
-                        color="primary"
-                        indeterminate
-                        rounded
-                        height="6"
-                      ></v-progress-linear>
-                    </v-col>
-                  </v-row>
-                </v-container>
-              </v-card-text>
-              <v-divider class="mb-3 mt-0"></v-divider>
-              <v-card-actions class="pa-0">
-                <v-spacer></v-spacer>
-                <v-btn
-                  color="#E0E0E0"
-                  @click="(dialog_import = false) + (fileError = '')"
-                  class="mb-3"
-                >
-                  Cancel
-                </v-btn>
-                <v-btn
-                  color="primary"
-                  class="mb-3 mr-4"
-                  @click="uploadFile()"
-                  :disabled="uploadDisabled"
-                >
-                  Upload
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-dialog>
-          <v-dialog v-model="dialog_error_list" max-width="1000px" persistent>
-            <v-card>
-              <v-card-title class="mb-0 pb-0">
-                <span class="headline">Error List</span>
-                <v-spacer></v-spacer>
-                <v-btn icon @click="dialog_error_list = false">
-                  <v-icon> mdi-close </v-icon>
-                </v-btn>
-              </v-card-title>
-              <v-divider></v-divider>
-              <v-card-text>
-                <v-container>
-                  <v-row>
-                    <v-col>
-                      <v-simple-table dense>
-                        <thead>
-                          <tr>
-                            <th>#</th>
-                            <th>Error Message</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr v-for="(item, index) in imported_file_errors">
-                            <td>{{ index + 1 }}</td>
-                            <td v-html="item"></td>
-                          </tr>
-                        </tbody>
-                      </v-simple-table>
-                    </v-col>
-                  </v-row>
-                </v-container>
-              </v-card-text>
-            </v-card>
-          </v-dialog>
           <ImportDialog 
             :api_route="api_route" 
             :dialog_import="dialog_import"
@@ -654,11 +525,16 @@ import { validationMixin } from "vuelidate";
 import { required, maxLength, email } from "vuelidate/lib/validators";
 import { mapState, mapGetters } from "vuex";
 import ImportDialog from "../components/ImportDialog.vue";
+import MenuActions from '../../components/MenuActions.vue';
+import DataTable from "../components/DataTable.vue";
+
 
 export default {
   name: "EmployeePremiumsListView",
   components: {
     ImportDialog,
+    MenuActions,
+    DataTable,
   },
   props: {
 
@@ -836,7 +712,61 @@ export default {
         }
       );
     },
-    editEmployee(item) {
+
+    save() {
+      this.$v.editedItem.$touch();
+ 
+      if (!this.$v.$error) {
+        this.disabled = true;
+        this.overlay = true;
+        this.editedItem.branch_id = this.branch_id;
+        const data = this.editedItem;
+        const employee_premiums_id = this.editedItem.id;
+
+        let url = "/api/employee_premiums" + (this.editedIndex > -1 ? "/update/" + employee_premiums_id : "/store");
+
+          axios.post(url, data).then(
+            (response) => {
+              if (response.data.success) {
+                // send data to Sockot.IO Server
+                // this.$socket.emit("sendData", { action: "employee-premiums-edit" });
+
+                let employee_premiums = response.data.employee_premiums;
+                
+                // format birth_date
+                let [year, month, day] = employee_premiums.dob.split("-");
+                employee_premiums.birth_date = `${month}/${day}/${year}`;
+
+                // format date_hired
+                [year, month, day] = employee_premiums.date_hired.split("-");
+                employee_premiums.date_hired = `${month}/${day}/${year}`;
+
+                if (this.editedIndex > -1) 
+                {
+                  Object.assign(this.employee_premiums[this.editedIndex], employee_premiums);
+                }
+                else
+                {
+                  this.employee_premiums.push(employee_premiums);
+                }
+
+                this.showAlert(response.data.success, 'success');
+                this.close();
+              } 
+              this.overlay = false;
+              this.disabled = false;
+            },
+            (error) => {
+              this.isUnauthorized(error);
+
+              this.overlay = false;
+              this.disabled = false;
+            }
+          );
+      }
+    },
+    
+    editEmployeePremiums(item) {
 
       this.editedIndex = this.employee_premiums.indexOf(item);
       this.editedItem = Object.assign({}, item);
@@ -858,22 +788,13 @@ export default {
           if (response.data.success) {
             // send data to Sockot.IO Server
             // this.$socket.emit("sendData", { action: "employee-delete" });
+            this.showAlert(response.data.success, 'success');
           }
         },
         (error) => {
           this.isUnauthorized(error);
         }
       );
-    },
-
-    showAlert() {
-      this.$swal({
-        position: "center",
-        icon: "success",
-        title: "Record has been saved",
-        showConfirmButton: false,
-        timer: 2500,
-      });
     },
 
     showConfirmAlert(item) {
@@ -899,14 +820,7 @@ export default {
 
           //Remove item from array services
           this.employee_premiums.splice(index, 1);
-
-          this.$swal({
-            position: "center",
-            icon: "success",
-            title: "Record has been deleted",
-            showConfirmButton: false,
-            timer: 2500,
-          });
+          
         }
       });
     },
@@ -925,102 +839,35 @@ export default {
       this.dialog_import = false;
     },
 
-    save() {
-      this.$v.editedItem.$touch();
-      if (!this.$v.$error) {
-        this.disabled = true;
-        this.overlay = true;
-        this.editedItem.branch_id = this.branch_id;
+    importExcel() {
+      this.dialog_import = true;
+    },
 
-        if (this.editedIndex > -1) {
-          const data = this.editedItem;
-          const employee_premiums_id = this.editedItem.id;
-
-          axios.post("/api/employee_premiums/update/" + employee_premiums_id, data).then(
-            (response) => {
-              if (response.data.success) {
-                // send data to Sockot.IO Server
-                // this.$socket.emit("sendData", { action: "employee-premiums-edit" });
-
-                let employee_premiums = response.data.employee_premiums;
-                
-                // format birth_date
-                let [year, month, day] = employee_premiums.dob.split("-");
-                employee_premiums.birth_date = `${month}/${day}/${year}`;
-
-                // format date_hired
-                [year, month, day] = employee_premiums.date_hired.split("-");
-                employee_premiums.date_hired = `${month}/${day}/${year}`;
-
-                Object.assign(
-                  this.employee_premiums[this.editedIndex],
-                  employee_premiums
-                );
-
-                this.showAlert();
-                this.close();
-              } else {
-              }
-              this.overlay = false;
-              this.disabled = false;
-            },
-            (error) => {
-              this.isUnauthorized(error);
-
-              this.overlay = false;
-              this.disabled = false;
-            }
-          );
-        } else {
-          const data = this.editedItem;
-
-          axios.post("/api/employee_premiums/store", data).then(
-            (response) => {
-
-              if (response.data.success) {
-                // send data to Sockot.IO Server
-                // this.$socket.emit("sendData", { action: "user-create" });
-
-                this.showAlert();
-                this.close();
-                
-                let employee_premiums = response.data.employee_premiums;
-                
-                employee_premiums.branch = response.data.branch
-
-                // format dob(date of birth)
-                let [year, month, day] = employee_premiums.dob.split("-");
-                employee_premiums.birth_date = `${month}/${day}/${year}`;
-
-                // format date_hired
-                [year, month, day] = employee_premiums.date_hired.split("-");
-                employee_premiums.date_hired = `${month}/${day}/${year}`;
-             
-                //push recently added data from database
-                this.employee_premiums.push(employee_premiums);
-      
-
-              } else {
-              }
-              this.overlay = false;
-              this.disabled = false;
-            },
-            (error) => {
-              this.isUnauthorized(error);
-
-              this.overlay = false;
-              this.disabled = false;
-            }
-          );
-        }
+    exportData() {
+      if (this.employee_premiums.length) {
+        const data = { file_upload_log_id: this.file_upload_log_id }
+        axios.post('/api/employee_premiums/export_premiums', data, { responseType: 'arraybuffer'})
+          .then((response) => {
+              var fileURL = window.URL.createObjectURL(new Blob([response.data]));
+              var fileLink = document.createElement('a');
+              fileLink.href = fileURL;
+              fileLink.setAttribute('download', 'EmployeePremiums.xls');
+              document.body.appendChild(fileLink);
+              fileLink.click();
+          }, (error) => {
+            console.log(error);
+          }
+        );
+      } else {
+        this.showAlert('No record found', 'warning');
       }
     },
 
-    showAlert() {
+    showAlert(title, icon) {
       this.$swal({
         position: "center",
-        icon: "success",
-        title: "Record has been saved",
+        icon: icon,
+        title: title,
         showConfirmButton: false,
         timer: 2500,
       });
@@ -1058,21 +905,9 @@ export default {
                   this.employee_premiums = [];
                   this.file_upload_log = null;
 
-                  this.$swal({
-                    position: "center",
-                    icon: "success",
-                    title: "Record has been cleared",
-                    showConfirmButton: false,
-                    timer: 2500,
-                  });
+                  this.showAlert(response.data.success, 'success');
                 } else {
-                  this.$swal({
-                    position: "center",
-                    icon: "warning",
-                    title: "No record found",
-                    showConfirmButton: false,
-                    timer: 2500,
-                  });
+                  this.showAlert('No record found', 'warning');
                 }
               },
               (error) => {
@@ -1083,13 +918,7 @@ export default {
           }
         });
       } else {
-        this.$swal({
-          position: "center",
-          icon: "warning",
-          title: "No record found",
-          showConfirmButton: false,
-          timer: 2500,
-        });
+        this.showAlert('No record found', 'warning');
       }
     },
 
@@ -1105,120 +934,6 @@ export default {
       }
     },
 
-    importExcel() {
-      this.dialog_import = true;
-      this.file = [];
-      this.$v.$reset();
-    },
-
-    uploadFile() {
-      this.$v.$touch();
-      this.fileIsEmpty = false;
-      this.fileIsInvalid = false;
-
-      if (!this.$v.file.$error) {
-        this.uploadDisabled = true;
-        this.uploading = true;
-        let formData = new FormData();
-
-        formData.append("file", this.file);
-
-        axios
-          .post("api/employee_premiums/import_premiums/" + this.branch_id, formData, {
-            headers: {
-              Authorization: "Bearer " + localStorage.getItem("access_token"),
-              "Content-Type": "multipart/form-data",
-            },
-          })
-          .then(
-            (response) => {
-              this.errors_array = [];
-              this.fileError = "";
-
-              if (response.data.success) {
-                // send data to Socket.IO Server
-                // this.$socket.emit("sendData", { action: "import-project" });
-                this.getEmployeePremiums();
-                this.$swal({
-                  position: "center",
-                  icon: "success",
-                  title: "Record has been imported",
-                  showConfirmButton: false,
-                  timer: 2500,
-                });
-                this.$v.$reset();
-                this.dialog_import = false;
-                this.file = [];
-                this.fileIsEmpty = false;
-              } else if (response.data.error_column) {
-                this.errors_array = response.data.error_column;
-                this.dialog_error_list = true;
-              } else if (response.data.error_row_data) {
-                let error_keys = Object.keys(response.data.error_row_data);
-                let errors = response.data.error_row_data;
-                let field_values = response.data.field_values;
-                let row = "";
-                let col = "";
-
-                error_keys.forEach((value, index) => {
-                  row = value.split(".")[0];
-                  col = value.split(".")[1];
-                  errors[value].forEach((val, i) => {
-                    this.errors_array[index] =
-                      "Error on row: <label class='text-info'>" +
-                      (parseInt(row) + 1) +
-                      "</label>; Column: <label class='text-primary'>" +
-                      col +
-                      "</label>; Msg: <label class='text-danger'>" +
-                      val +
-                      "</label>; Value: <label class='text-success'>" +
-                      field_values[row][col] +
-                      "</label>";
-                  });
-                });
-
-                this.dialog_error_list = true;
-              } else if (response.data.error_empty) {
-                this.fileIsEmpty = true;
-              } else {
-                // this.fileIsInvalid = true;
-                this.fileError = response.data.error;
-              }
-
-              this.uploadDisabled = false;
-              this.uploading = false;
-
-              console.log(response.data);
-            },
-            (error) => {
-              this.isUnauthorized(error);
-              this.uploadDisabled = false;
-              console.log(error);
-            }
-          );
-      }
-    },
-
-    importExcel() {
-      this.dialog_import = true;
-    },
-
-    exportData() {
-      if (this.employee_premiums.length) {
-        window.open(
-          location.origin + "/api/employee_premiums/export_premiums/" + this.file_upload_log_id,
-          "_blank"
-        );
-      } else {
-        this.$swal({
-          position: "center",
-          icon: "warning",
-          title: "No record found",
-          showConfirmButton: false,
-          timer: 2500,
-        });
-      }
-    },
     formatDate(date) {
       if (!date) return null;
       const [year, month, day] = date.split("-");

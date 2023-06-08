@@ -502,9 +502,9 @@ class EmployeePremiumsController extends Controller
         
     }
 
-    public function export_premiums($file_upload_log_id)
+    public function export_premiums(Request $request)
     {   
-        return Excel::download(new EmployeePremiumsExport($file_upload_log_id), 'employee_premiums.xls');
+        return Excel::download(new EmployeePremiumsExport($request->file_upload_log_id), 'employee_premiums.xls');
     }
 
     public function delete(Request $request)

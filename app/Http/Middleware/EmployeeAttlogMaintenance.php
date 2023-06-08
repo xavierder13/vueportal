@@ -54,10 +54,10 @@ class EmployeeAttlogMaintenance
         }
 
         //Employee Atlog Export Data
-        if($request->is('api/employee_attlog/export_attlog/*')){
-            // if($user->can('employee-attlog-export')){
-            //     return $next($request); 
-            // }
+        if($request->is('api/employee_attlog/export_attlog') || $request->is('api/employee_attlog/file/download')){
+            if($user->can('employee-attlog-export')){
+                return $next($request); 
+            }
             return $next($request); 
         }
 
@@ -69,11 +69,11 @@ class EmployeeAttlogMaintenance
         }
 
         //Employee Atlog File Download
-        if($request->is('api/employee_attlog/file/download')){
+        // if($request->is('api/employee_attlog/file/download')){
             
-            return $next($request); 
+        //     return $next($request); 
             
-        }
+        // }
         
 
         return abort(401, 'Unauthorized');

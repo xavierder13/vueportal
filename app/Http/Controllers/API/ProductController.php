@@ -20,8 +20,6 @@ use Excel;
 use Config;
 use Crypt;
 
-
-
 class ProductController extends Controller
 {
     public function index(Request $request)
@@ -40,7 +38,8 @@ class ProductController extends Controller
                            })
                         //    ->where()
                            ->select(DB::raw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_created"))
-                           ->paginate($request->items_per_page);
+                        //    ->paginate($request->items_per_page);
+                           ->get();
 
         $brands = Brand::all();
         $branches = Branch::all();

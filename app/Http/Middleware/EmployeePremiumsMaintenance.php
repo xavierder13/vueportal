@@ -54,11 +54,10 @@ class EmployeePremiumsMaintenance
         }
 
         //Employee Premiums Export Data
-        if($request->is('api/employee_premiums/export_premiums/*')){
-            // if($user->can('employee-premiums-list-export')){
-            //     return $next($request); 
-            // }
-            return $next($request); 
+        if($request->is('api/employee_premiums/export_premiums')){
+            if($user->can('employee-premiums-export')){
+                return $next($request); 
+            }
         }
 
         //Employee Premiums Delete All

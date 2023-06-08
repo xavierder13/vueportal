@@ -149,15 +149,14 @@
               </tr>
             </template>
           </v-data-table>
-          
         </v-card>
       </v-main>
       <ImportDialog 
-            :api_route="api_route" 
-            :dialog_import="dialog_import"
-            @getData="getEmployee"
-            @closeImportDialog="closeImportDialog"
-          />
+        :api_route="api_route" 
+        :dialog_import="dialog_import"
+        @getData="getEmployee"
+        @closeImportDialog="closeImportDialog"
+      />
     </div>
   </div>
 </template>
@@ -242,19 +241,25 @@ export default {
     importExcel(item) {
       this.branch_id = item[0].id;
       this.dialog_import = true;
-      this.api_route = 'api/employee/import_employee/' + this.branch_id;
+      this.api_route = '/api/employee/import_employee/' + this.branch_id;
     },
 
     exportData(item) {
-      // window.open(
-      //   location.origin + "/api/employee/export_employee/" + 0,
-      //   "_blank"
-      // );
-
-      window.open(
-        location.origin + "/api/employee/export_employee/" + item.id,
-        "_blank"
+     
+      const data = { file_upload_log_id: item.id }
+      axios.post('/api/employee/export_employee', data, { responseType: 'arraybuffer'})
+        .then((response) => {
+            var fileURL = window.URL.createObjectURL(new Blob([response.data]));
+            var fileLink = document.createElement('a');
+            fileLink.href = fileURL;
+            fileLink.setAttribute('download', 'EmployeeList.xls');
+            document.body.appendChild(fileLink);
+            fileLink.click();
+        }, (error) => {
+          console.log(error);
+        }
       );
+      
     },
 
     closeImportDialog() {

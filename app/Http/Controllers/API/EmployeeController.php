@@ -48,7 +48,7 @@ class EmployeeController extends Controller
     {
 
         $file_upload_log_id = $request->get('file_upload_log_id');
-        $file_upload_log = FileUploadLog::select(DB::raw("DATE_FORMAT(docdate, '%m/%d/%Y') as docdate, DATE_FORMAT(created_at, '%m/%d/%Y') as date_uploaded"))->find($file_upload_log_id);
+        $file_upload_log = FileUploadLog::select(DB::raw("id, DATE_FORMAT(docdate, '%m/%d/%Y') as docdate, DATE_FORMAT(created_at, '%m/%d/%Y') as date_uploaded"))->find($file_upload_log_id);
         $employees = Employee::with('branch')
                              ->select(DB::raw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_uploaded, DATE_FORMAT(dob, '%m/%d/%Y') as birth_date, DATE_FORMAT(date_employed, '%m/%d/%Y') as date_employed, 
                                                 CONCAT(CAST((TIMESTAMPDIFF(DAY, date_employed, date_format(NOW(),'%Y-%m-%d')) / 365) AS UNSIGNED), ' years(s) ',
@@ -523,9 +523,9 @@ class EmployeeController extends Controller
         
     }
 
-    public function export_employee($file_upload_log_id)
+    public function export_employee(Request $request)
     {   
-        return Excel::download(new EmployeesExport($file_upload_log_id), 'employees.xls');
+        return Excel::download(new EmployeesExport($request->file_upload_log_id), 'employees.xls');
     }
 
     public function delete(Request $request)
