@@ -19,7 +19,7 @@ class ProductMaintenance
         $user = Auth::user();
 
         //Product Record
-        if($request->is('api/product/index')){
+        if($request->is('api/product/index') || $request->is('api/product/list/view') || $request->is('api/product/scanned_products')){
             if($user->can('product-list')){
                 return $next($request); 
             }
@@ -51,27 +51,21 @@ class ProductMaintenance
         }
 
         //Product import
-        if($request->is('api/product/import')){
+        if($request->is('api/product/import/*')){
             if($user->can('product-import')){
                 return $next($request); 
             }
         }
 
-        //Product Export
-        // if($request->is('api/product/export/*/*')){
-        //     // if($user->can('product-export')){
-        //     //     return $next($request); 
-        //     // }
-        //     return $next($request); 
-        // }
-
+        //Product export
         if($request->is('api/product/export')){
             if($user->can('product-export')){
                 return $next($request); 
             }
             return $next($request); 
         }
-
+        
+        // Product template download
         if($request->is('api/product/template/download')){
             if($user->can('product-template-download')){
                 return $next($request); 

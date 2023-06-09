@@ -181,7 +181,7 @@ import axios from "axios";
 import { validationMixin } from "vuelidate";
 import { required, requiredIf, maxLength, email } from "vuelidate/lib/validators";
 import { mapState, mapGetters } from "vuex";
-import ImportDialog from "./components/ImportDialog.vue";
+import ImportDialog from "../../components/ImportDialog.vue";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 

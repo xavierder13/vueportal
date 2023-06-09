@@ -91,6 +91,16 @@ Route::group(['prefix' => 'product', 'middleware' => ['auth:api', 'product.maint
         'uses' => 'API\ProductController@index',
         'as' => 'product.index',
     ]);
+    
+    Route::post('/list/view', [
+        'uses' => 'API\ProductController@list_view',
+        'as' => 'product.list.view',
+    ]);
+
+    Route::post('/scanned_products', [
+        'uses' => 'API\ProductController@scanned_products',
+        'as' => 'scanned.products',
+    ]);
 
     Route::get('/create', [
         'uses' => 'API\ProductController@create',
@@ -117,9 +127,9 @@ Route::group(['prefix' => 'product', 'middleware' => ['auth:api', 'product.maint
         'as' => 'product.delete',
     ]);
 
-    Route::post('/import', [
+    Route::post('/import/{id}', [
         'uses' => 'API\ProductController@import',
-        'as' => 'product.import',
+        'as' => 'product.import'
     ]);
 
     Route::post('/search_model', [
@@ -132,8 +142,15 @@ Route::group(['prefix' => 'product', 'middleware' => ['auth:api', 'product.maint
         'as' => 'product.search_serial',
     ]);
     
-    Route::post('/serial_number_details', 'API\ProductController@serial_number_details');
-    Route::get('/sync_item_master_data', 'API\ProductController@sync_item_master_data');
+    Route::post('/serial_number_details', [
+        'uses' => 'API\ProductController@serial_number_details',
+        'as' => 'serial.number.details'
+    ]);
+
+    Route::get('/sync_item_master_data', [
+        'uses' => 'API\ProductController@sync_item_master_data',
+        'as' => 'sync.item.master.data'
+    ]);
 
     // Product Export Route
     Route::post('/export', [

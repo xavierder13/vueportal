@@ -9,31 +9,21 @@
             </v-breadcrumbs-item>
           </template>
         </v-breadcrumbs>
-        <!-- <div class="d-flex justify-content-end mb-3">
-          <div>
-            <v-btn
-              color="success"
-              small
-              @click="exportData()"
-              v-if="hasPermission('employee-premiums-export', 'employee-premiums-list-all')"
-            >
-              <v-icon class="mr-1" small> mdi-microsoft-excel </v-icon>
-              Export All Data
-            </v-btn>
-          </div>
-        </div> -->
         <DataTableGroup
           :branches="filteredBranches"
           :loading="loading"
           :canViewList="hasPermission('product-list')"
           :canImport="hasPermission('product-import')"
           :canExport="hasPermission('product-export')"
+          @importExcel="importExcel"
+          @exportData="exportData"
+          @viewList="viewList"
         />
         
         <ImportDialog 
           :api_route="api_route" 
           :dialog_import="dialog_import"
-          @getData="getEmployeePremiums"
+          @getData="getProduct"
           @closeImportDialog="closeImportDialog"
         />
       </v-main>
@@ -43,15 +33,15 @@
 <script>
 import axios from "axios";
 import { validationMixin } from "vuelidate";
-import { required, maxLength, email } from "vuelidate/lib/validators";
 import { mapState, mapGetters } from "vuex";
 import ImportDialog from "../../components/ImportDialog.vue";
-import DataTableGroupVue from "../../components/DataTableGroup.vue";
+import DataTableGroup from "../../components/DataTableGroup.vue";
 
 export default {
-  name: "EmployeePremiumsIndex",
+  name: "ProductIndex",
   components: {
     ImportDialog,
+    DataTableGroup
   },
   props: {
 
@@ -78,7 +68,7 @@ export default {
           link: "/",
         },
         {
-          text: "Employee Premiums Lists",
+          text: "Product Lists",
           disabled: false,
         },
       ],
@@ -90,9 +80,9 @@ export default {
   },
 
   methods: {
-    getEmployeePremiums() {
+    getProduct() {
       this.loading = true;
-      axios.get("/api/employee_premiums/index").then(
+      axios.get("/api/product/index").then(
         (response) => {
 
           this.branches = response.data.branches;
@@ -109,7 +99,7 @@ export default {
       let branch_id = item.branch_id;
 
       this.$router.push({
-        name: 'employee.premiums.list.view',
+        name: 'product.list.view',
         params: { branch_id: branch_id, file_upload_log_id: item.id }
       });
 
@@ -118,18 +108,18 @@ export default {
     importExcel(item) {
       this.branch_id = item[0].id;
       this.dialog_import = true;
-      this.api_route = 'api/employee_premiums/import_premiums/' + this.branch_id;
+      this.api_route = 'api/product/import/' + this.branch_id;
     },
 
     exportData(item) {
      
       const data = { file_upload_log_id: item.id }
-      axios.post('/api/employee_premiums/export_premiums', data, { responseType: 'arraybuffer'})
+      axios.post('/api/product/export', data, { responseType: 'arraybuffer'})
         .then((response) => {
             var fileURL = window.URL.createObjectURL(new Blob([response.data]));
             var fileLink = document.createElement('a');
             fileLink.href = fileURL;
-            fileLink.setAttribute('download', 'EmployeePremiums.xls');
+            fileLink.setAttribute('download', 'ProductList.xls');
             document.body.appendChild(fileLink);
             fileLink.click();
         }, (error) => {
@@ -156,8 +146,8 @@ export default {
       this.$options.sockets.sendData = (data) => {
         let action = data.action;
 
-        if (action == "employee-premiums-import") {
-          this.getEmployeePremiums();
+        if (action == "product-import") {
+          this.getProduct();
         }
       };
     },
@@ -167,7 +157,7 @@ export default {
       let branches = [];
 
       this.branches.forEach((value) => {
-        if (this.hasPermission('employee-premiums-list-all')) {
+        if (this.hasPermission('product-list-all')) {
           branches.push(value);
         } else {
            if(value.id === this.user.branch_id)
@@ -187,7 +177,7 @@ export default {
   mounted() {
     axios.defaults.headers.common["Authorization"] =
       "Bearer " + localStorage.getItem("access_token");
-    this.getEmployeePremiums();
+    this.getProduct();
     // this.websocket();
   },
 };

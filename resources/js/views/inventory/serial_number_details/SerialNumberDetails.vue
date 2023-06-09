@@ -232,13 +232,7 @@
 <script>                                                                                                                                                                                                                                                                                                                                
 import axios from "axios";
 import { validationMixin } from "vuelidate";
-import {
-  required,
-  maxLength,
-  email,
-  minLength,
-  sameAs,
-} from "vuelidate/lib/validators";
+import { required } from "vuelidate/lib/validators";
 
 export default {
   mixins: [validationMixin],

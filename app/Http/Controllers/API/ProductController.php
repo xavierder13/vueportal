@@ -10,6 +10,7 @@ use App\Brand;
 use App\Branch;
 use App\ProductModel;
 use App\SapDatabase;
+use App\FileUploadLog;
 use App\InventoryReconciliationMap;
 use App\Imports\ProductsImport;
 use App\Exports\ProductsExport;
@@ -24,6 +25,25 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {   
+        $user_can_product_list_all = Auth::user()->can('product-list-all');
+        $branches = Branch::with(['file_upload_logs' => function($query){
+                                $query->select(DB::raw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_uploaded, DATE_FORMAT(docdate, '%m/%d/%Y') as docdate"))
+                                    ->where('docname', '=', 'Product List');
+                            }])
+                            ->where(function($query) use ($user_can_product_list_all){
+                                // if user has no permission to view all the branches then select the user's branch only
+                                if(!$user_can_product_list_all)
+                                {
+                                    $query->where('id', '=', Auth::user()->branch_id);
+                                }
+                            })
+                            ->get();
+
+        return response()->json(['branches' => $branches], 200);    
+    }
+
+    public function list_view()
+    {
         $user = Auth::user();
 
         $products = Product::with('brand')
@@ -52,25 +72,39 @@ class ProductController extends Controller
             'product_categories' => $product_categories,
             'user' => $user,
         ], 200);
+        
     }
 
-    public function product_upload_logs()
+    public function scanned_products() 
     {
-        
-        $branches = Branch::with(['file_upload_logs' => function($query){
-                                $query->select(DB::raw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_uploaded, DATE_FORMAT(docdate, '%m/%d/%Y') as docdate"))
-                                    ->where('docname', '=', 'Employee List');
-                            }])
-                            ->where(function($query) use ($user_can_employee_list_all){
-                                // if user has no permission to view all the branches then select the user's branch only
-                                if(!$user_can_employee_list_all)
-                                {
-                                    $query->where('id', '=', Auth::user()->branch_id);
-                                }
-                            })
-                            ->get();
+        $user = Auth::user();
 
-        return response()->json(['branches' => $branches], 200);
+        $products = Product::with('brand')
+                           ->with('branch')
+                           ->with('user')
+                           ->with('product_category')
+                           ->where(function($query) use ($user){
+                                if(!$user->hasAnyRole('Administrator', 'Audit Admin', 'Inventory Admin'))
+                                {
+                                    $query->where('user_id', '=', $user->id);
+                                }
+                           })
+                        //    ->where()
+                           ->select(DB::raw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_created"))
+                        //    ->paginate($request->items_per_page);
+                           ->get();
+
+        $brands = Brand::all();
+        $branches = Branch::all();
+        $product_categories = ProductCategory::all();
+        
+        return response()->json([
+            'products' => $products, 
+            'brands' => $brands,
+            'branches' => $branches,
+            'product_categories' => $product_categories,
+            'user' => $user,
+        ], 200);
     }
 
     public function search_model(Request $request)
@@ -391,11 +425,9 @@ class ProductController extends Controller
         return response()->json(['success' => 'Record has been deleted'], 200);
     }
 
-    public function import(Request $request)
+    public function import(Request $request, $branch_id)
     {    
         $user = Auth::user();
-        $branch_id = $request->get('branch_id');
-
         try {
             $file_extension = '';
             $path = '';
@@ -534,6 +566,13 @@ class ProductController extends Controller
                 {
                     return response()->json(['duplicate_serials' => $duplicates], 200);
                 }
+
+                // file upload logs
+                $file_upload_log = new FileUploadLog();
+                $file_upload_log->branch_id = $branch_id;
+                $file_upload_log->docdate = $request->get('docdate');
+                $file_upload_log->docname = "Product List";
+                $file_upload_log->save();
                 
                 foreach ($fields as $field) {
 
