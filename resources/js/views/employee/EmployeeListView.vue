@@ -448,9 +448,9 @@ import axios from "axios";
 import { validationMixin } from "vuelidate";
 import { required, maxLength, email } from "vuelidate/lib/validators";
 import { mapState, mapGetters } from "vuex";
-import ImportDialog from "./components/ImportDialog.vue";
+import ImportDialog from "../components/ImportDialog.vue";
 import MenuActions from "../components/MenuActions.vue";
-import DataTable from "./components/DataTable";
+import DataTable from "../components/DataTable.vue";
 
 export default {
 

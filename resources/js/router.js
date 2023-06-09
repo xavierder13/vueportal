@@ -7,6 +7,7 @@ import UserIndex from './views/user/UserIndex.vue';
 import UserCreate from './views/user/UserCreate.vue';
 import UserProfile from './views/user/UserProfile.vue';
 import ProductIndex from './views/inventory/ProductIndex.vue';
+import ProductListView from './views/inventory/product/ProductListView.vue';
 import ScanProduct from './views/inventory/ScanProduct.vue';
 import SerialNumberDetails from './views/inventory/SerialNumberDetails.vue';
 import InventoryReconciliation from './views/inventory/InventoryReconciliation.vue';
@@ -80,6 +81,11 @@ const routes = [
         path: '/product/index',
         name: 'product.index',
         component: ProductIndex
+      },
+      {
+        path: '/product/view/list',
+        name: 'product.view',
+        component: ProductListView
       },
       {
         path: '/scan_product',

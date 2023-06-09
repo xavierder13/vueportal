@@ -9,203 +9,45 @@
             </v-breadcrumbs-item>
           </template>
         </v-breadcrumbs>
-        <!-- <div class="d-flex justify-content-end mb-3">
-          <div>
-            <v-btn
-              color="success"
-              small
-              @click="exportData()"
-              v-if="hasPermission('employee-attlog-export', 'employee-attlog-list-all')"
-            >
-              <v-icon class="mr-1" small> mdi-microsoft-excel </v-icon>
-              Export All Data
-            </v-btn>
-          </div>
-        </div> -->
-        <v-card>
-          <v-card-title>
-            Branches 
-            <v-spacer></v-spacer>
-            <v-text-field
-              v-model="search"
-              append-icon="mdi-magnify"
-              label="Search"
-              single-line
-            ></v-text-field>
-            <v-spacer></v-spacer>
-          </v-card-title>
-
-          <v-data-table
-            :headers="headers"
-            :items="filteredBranches"
-            :search="search"
-            :loading="loading"
-            group-by="name"
-            class="elevation-1"
-            :expanded.sync="expanded"
-            loading-text="Loading... Please wait"
-            v-if="hasPermission('employee-attlog-list-all')"
-          >
-            <template v-slot:item.date_uploaded="{ item }">
-              <v-chip color="secondary" v-if="item.date_uploaded">
-                {{ item.date_uploaded }}
-              </v-chip>
-            </template>
-            <template
-              v-slot:group.header="{
-                items,
-                headers,
-                toggle,
-                isOpen,
-              }"
-            >
-              <td colspan="3">
-                <v-row>
-                  <v-col>
-                    <v-btn
-                      @click="toggle"
-                      small
-                      icon
-                      :ref="items"
-                      :data-open="isOpen"
-                    >
-                      <v-icon v-if="isOpen">mdi-chevron-up</v-icon>
-                      <v-icon v-else>mdi-chevron-down</v-icon>
-                    </v-btn>
-                    <!-- <v-chip color="secondary">
-                      <strong></strong>
-                    </v-chip> -->
-                    {{ items[0].name }}
-                  </v-col>
-                </v-row>
-              </td>
-              <td> 
-                <v-btn x-small color="primary" @click="importExcel(items)" v-if="hasPermission('employee-attlog-import')"> 
-                  <v-icon small class="mr-2">mdi-upload</v-icon> import
-                </v-btn> 
-              </td>
-            </template>
-            <template v-slot:item="{ item }">
-              <tr v-for="(value, index) in item.file_upload_logs">
-                <td> </td>
-                <td>
-                  <v-chip color="secondary">
-                    {{ value.date_uploaded }}
-                  </v-chip>
-                </td>
-                <td> 
-                  <v-chip color="secondary">
-                    {{ value.docdate }}
-                  </v-chip> </td>
-                <td>
-                  <v-menu offset-y>
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-btn x-small v-bind="attrs" v-on="on" class="primary--text">
-                        Actions
-                        <v-icon small> mdi-menu-down </v-icon>
-                      </v-btn>
-                    </template>
-                    <v-list class="pa-1">
-                      <v-list-item
-                        class="ma-0 pa-0"
-                        style="min-height: 25px"
-                      >
-                        <v-list-item-title>
-                          <v-btn 
-                            x-small 
-                            @click="viewList(value)" 
-                            class="mx-1"
-                            width="100px"
-                            color="info"
-                          >
-                            <v-icon class="mr-1" small>
-                              mdi-eye
-                            </v-icon>
-                            View
-                          </v-btn>
-                        </v-list-item-title>
-                      </v-list-item>
-                      <v-list-item
-                        class="ma-0 pa-0"
-                        style="min-height: 25px"
-                        v-if="hasPermission('employee-attlog-export')"
-                      >
-                        <v-list-item-title>
-                          <v-btn
-                            class="mx-1"
-                            x-small
-                            @click="exportData(value)"
-                            width="100px"
-                            color="success"
-                          >
-                            <v-icon class="mr-1" small> mdi-microsoft-excel </v-icon>
-                            Export
-                          </v-btn>
-                        </v-list-item-title>
-                      </v-list-item>
-                      <v-list-item
-                        class="ma-0 pa-0"
-                        style="min-height: 25px"
-                      >
-                        <v-list-item-title>
-                          <v-btn
-                            class="mx-1"
-                            x-small
-                            @click="downloadFile(value)"
-                            width="100px"
-                            color="primary"
-                          >
-                            <v-icon class="mr-1" small> mdi-download </v-icon>
-                            Download
-                          </v-btn>
-                        </v-list-item-title>
-                      </v-list-item>
-                    </v-list>
-                  </v-menu>
-                </td>
-              </tr>
-            </template>
-          </v-data-table>
-        </v-card>
+        <DataTableGroup
+          :branches="filteredBranches"
+          :loading="loading"
+          :canViewList="hasPermission('employee-attlog-list')"
+          :canImport="hasPermission('employee-attlog-import')"
+          :canExport="hasPermission('employee-attlog-export')"
+          :canDownload="hasPermission('employee-attlog-export')"
+          @importExcel="importExcel"
+          @exportData="exportData"
+          @downloadFile="downloadFile"
+          @viewList="viewList"
+        />
       </v-main>
       <ImportDialog 
-            :api_route="api_route" 
-            :dialog_import="dialog_import"
-            @getData="getEmployeeAttlog"
-            @closeImportDialog="closeImportDialog"
-          />
+        :api_route="api_route" 
+        :dialog_import="dialog_import"
+        @getData="getEmployeeAttlog"
+        @closeImportDialog="closeImportDialog"
+      />
     </div>
   </div>
 </template>
 <script>
 import axios from "axios";
-import { validationMixin } from "vuelidate";
-import { required, maxLength, email } from "vuelidate/lib/validators";
 import { mapState, mapGetters } from "vuex";
-import ImportDialog from "../components/ImportDialog.vue";
+import ImportDialog from "../../components/ImportDialog.vue";
+import DataTableGroup from "../../components/DataTableGroup.vue";
 
 export default {
   name: "EmployeeAttlogIndex",
   components: {
     ImportDialog,
+    DataTableGroup
   },
   props: {
 
   },
-  mixins: [validationMixin],
   data() {
     return {
-      search: "",
-      headers: [
-        { text: "Branch", value: "branch" },
-        { text: "Date Uploaded", value: "date_uploaded" },
-        { text: "Document Date", value: "docdate" },
-        { text: "Actions", value: "actions", sortable: false, width: "120px" },
-      ],
-      disabled: false,
-      dialog: false,
-      expanded: [],
-      employees: [],
       branches: [],
       items: [
         {

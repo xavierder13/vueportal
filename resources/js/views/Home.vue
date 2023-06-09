@@ -402,7 +402,7 @@ export default {
                   hasPermission: this.hasPermission('inventory-recon-list'),
                 },
                 { 
-                  title: 'Product Lists',
+                  title: 'Upload Product',
                   link: '/product/index',
                   hasPermission: this.hasPermission('product-list'),
                 },
@@ -411,6 +411,25 @@ export default {
                   link: '/scan_product',
                   hasPermission: this.hasPermission('product-scan'),
                 },
+                { 
+                  title: 'Scanned Product List',
+                  link: '/scanned_product_list',
+                  hasPermission: this.hasPermission('product-list'),
+                },
+                { 
+                  title: 'Serial Number Details',
+                  link: '/serial_number_details',
+                  hasPermission: this.hasPermission('serial-number-details'),
+                },
+              ] 
+            },
+            {
+              title: 'Item Master Data',
+              icon: 'mdi-folder-open',
+              link: '',
+              method: '',
+              hasPermission: false,
+              children: [
                 { 
                   title: 'Brand',
                   link: '/brand/index',
@@ -425,11 +444,6 @@ export default {
                   title: 'Product Category',
                   link: '/product_category/index',
                   hasPermission: this.hasAnyPermission('product-model-list', 'product-model-create'),
-                },
-                { 
-                  title: 'Serial Number Details',
-                  link: '/serial_number_details',
-                  hasPermission: this.hasPermission('serial-number-details'),
                 },
               ] 
             },

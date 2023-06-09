@@ -150,7 +150,7 @@ import { mapState } from "vuex";
 export default {
   
   name: "ImportDialog",
-  props: [
+  props: [ 
     'importedData',
     'api_route',
     'dialog_import',
@@ -261,6 +261,8 @@ export default {
               this.uploading = false;
             }
           );
+
+        
       }
     },
     formatDate(date) {
