@@ -14,7 +14,7 @@ class AddFileUploadLogIdToEmployeeAttlogsTable extends Migration
     public function up()
     {
         Schema::table('employee_attlogs', function (Blueprint $table) {
-            $table->integer('file_upload_log_id');
+            $table->integer('file_upload_log_id')->nullable();
         });
     }
 

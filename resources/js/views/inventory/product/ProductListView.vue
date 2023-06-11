@@ -9,79 +9,17 @@
             </v-breadcrumbs-item>
           </template>
         </v-breadcrumbs>
-        <div 
-          class="d-flex justify-content-end mb-3"
-          v-if="hasAnyPermission('employee-premiums-import', 'employee-premiums-export', 'employee-premiums-clear-list')"
-        >
-          <div>
-            <v-menu offset-y>
-              <template v-slot:activator="{ on, attrs }">
-                <v-btn small v-bind="attrs" v-on="on" color="primary">
-                  Actions
-                  <v-icon small> mdi-menu-down </v-icon>
-                </v-btn>
-              </template>
-              <v-list class="pa-1">
-                <v-list-item
-                  class="ma-0 pa-0"
-                  style="min-height: 25px"
-                  v-if="hasPermission('employee-premiums-import')"
-                >
-                  <v-list-item-title>
-                    <v-btn
-                      color="primary"
-                      class="mx-1"
-                      width="100px"
-                      x-small
-                      @click="importExcel()"
-                    >
-                      <v-icon class="mr-1" x-small> mdi-import </v-icon>
-                      Import
-                    </v-btn>
-                  </v-list-item-title>
-                </v-list-item>
-                <v-list-item
-                  class="ma-0 pa-0"
-                  style="min-height: 25px"
-                  v-if="hasPermission('employee-premiums-export')"
-                >
-                  <v-list-item-title>
-                    <v-btn
-                      color="success"
-                      class="mx-1"
-                      width="100px"
-                      x-small
-                      @click="exportData()"
-                    >
-                      <v-icon class="mr-1" x-small> mdi-microsoft-excel </v-icon>
-                      Export
-                    </v-btn>
-                  </v-list-item-title>
-                </v-list-item>
-                <v-list-item
-                  class="ma-0 pa-0"
-                  style="min-height: 25px"
-                  v-if="hasPermission('employee-premiums-clear-list')"
-                >
-                  <v-list-item-title>
-                    <v-btn
-                      color="error"
-                      class="mx-1"
-                      width="100px"
-                      x-small
-                      @click="clearList()"
-                      ><v-icon class="mr-1" x-small> mdi-delete </v-icon>clear
-                      list</v-btn
-                    >
-                  </v-list-item-title>
-                </v-list-item>
-              </v-list>
-            </v-menu>
-          </div>
-        </div>
+        <MenuActions
+          :canImport="hasPermission('employee-list-import')"
+          :canExport="hasPermission('employee-list-export')"
+          :canClearList="hasPermission('employee-clear-list')"
+          @import="importExcel"
+          @export="exportData"
+          @clearList="clearList"
+        />
         <v-card>
           <v-card-title>
-            Employee Premiums Lists
+            Product Lists
             <v-spacer></v-spacer>
             <v-text-field
               v-model="search"
@@ -90,497 +28,329 @@
               single-line
             ></v-text-field>
             <v-spacer></v-spacer>
+            <template>
+              <v-toolbar flat>
+                <v-spacer></v-spacer>
+                <v-dialog v-model="dialog" max-width="500px" persistent>
+                  <v-card>
+                    <v-card-title class="pa-4">
+                      <span class="headline">{{ formTitle }}</span>
+                    </v-card-title>
+                    <v-divider class="mt-0"></v-divider>
+                    <v-card-text>
+                      <v-container>
+                        <v-row>
+                          <v-col class="my-0 py-0">
+                            <v-autocomplete
+                              v-model="editedItem.brand_id"
+                              :items="brands"
+                              item-text="name"
+                              item-value="id"
+                              label="Brand"
+                              required
+                              :error-messages="brandErrors"
+                              @input="
+                                $v.editedItem.brand_id.$touch() +
+                                  (serialExists = false)
+                              "
+                              @blur="$v.editedItem.brand_id.$touch()"
+                            >
+                            </v-autocomplete>
+                          </v-col>
+                        </v-row>
+                        <v-row>
+                          <v-col class="my-0 py-0">
+                            <v-text-field
+                              name="model"
+                              label="Model"
+                              v-model="editedItem.model"
+                              required
+                              :error-messages="modelErrors"
+                              @input="
+                                $v.editedItem.model.$touch() +
+                                  (serialExists = false)
+                              "
+                              @blur="$v.editedItem.model.$touch()"
+                            ></v-text-field>
+                          </v-col>
+                        </v-row>
+                        <v-row>
+                          <v-col class="my-0 py-0">
+                            <v-autocomplete
+                              v-model="editedItem.product_category_id"
+                              :items="product_categories"
+                              item-text="name"
+                              item-value="id"
+                              label="Product Category"
+                              required
+                              :error-messages="product_categoryErrors"
+                              @input="
+                                $v.editedItem.product_category_id.$touch() +
+                                  (serialExists = false) +
+                                  selectedProductCategory()
+                              "
+                              @blur="$v.editedItem.product_category_id.$touch()"
+                            >
+                            </v-autocomplete>
+                          </v-col>
+                        </v-row>
+                        <v-row>
+                          <v-col class="my-0 py-0">
+                            <v-text-field
+                              name="serial"
+                              label="Serial"
+                              v-model="editedItem.serial"
+                              readonly
+                              required
+                              :error-messages="serialErrors"
+                              @input="$v.editedItem.serial.$touch()"
+                              @blur="$v.editedItem.serial.$touch()"
+                            ></v-text-field>
+                          </v-col>
+                        </v-row>
+                        <v-row>
+                          <v-col class="my-0 py-0">
+                            <v-autocomplete
+                              v-model="editedItem.branch_id"
+                              :items="branches"
+                              item-text="name"
+                              item-value="id"
+                              label="Branch"
+                              required
+                              :error-messages="branchErrors"
+                              @input="$v.editedItem.branch_id.$touch()"
+                              @blur="$v.editedItem.branch_id.$touch()"
+                              v-if="user.id === 1"
+                            >
+                            </v-autocomplete>
+                          </v-col>
+                        </v-row>
+                      </v-container>
+                    </v-card-text>
+                    <v-divider class="mb-3 mt-0"></v-divider>
+                    <v-card-actions class="pa-0">
+                      <v-spacer></v-spacer>
+                      <v-btn color="#E0E0E0" @click="close" class="mb-3">
+                        Cancel
+                      </v-btn>
+                      <v-btn
+                        color="primary"
+                        @click="save"
+                        class="mb-3 mr-4"
+                        :disabled="disabled"
+                      >
+                        Save
+                      </v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-dialog>
 
-            <v-btn
-              color="primary"
-              fab
-              dark
-              class="mb-2"
-              @click="clear() + (dialog = true)"
-              v-if="hasPermission('employee-premiums-create')"
-            >
-              <v-icon>mdi-plus</v-icon>
-            </v-btn>
+                <v-dialog
+                  v-model="dialog_unreconciled"
+                  max-width="1000px"
+                  persistent
+                >
+                  <v-card>
+                    <v-card-title class="pa-4">
+                      <span class="headline">Unreconciled Inventories</span>
+                      <v-spacer></v-spacer>
+                      <v-text-field
+                        v-model="search_unreconciled"
+                        append-icon="mdi-magnify"
+                        label="Search"
+                        single-line
+                        hide-details=""
+                      ></v-text-field>
+                      <v-spacer></v-spacer>
+                      <v-autocomplete
+                        v-model="inventory_group"
+                        :items="inventory_groups"
+                        item-text="name"
+                        item-value="name"
+                        label="Inventory Group"
+                        hide-details=""
+                        v-if="user.id === 1"
+                      >
+                      </v-autocomplete>
+                    </v-card-title>
+                    <v-divider class="mt-0"></v-divider>
+                    <v-card-text>
+                      <v-container>
+                        <v-row v-if="user.id === 1"> </v-row>
+                        <v-row>
+                          <v-col>
+                            <v-data-table
+                              :headers="unreconciled_headers"
+                              :items="filteredUnreconciled"
+                              :search="search_unreconciled"
+                              :loading="loading_unreconciled"
+                              loading-text="Loading... Please wait"
+                            >
+                              <template v-slot:item.status="{ item }">
+                                <v-chip
+                                  :color="
+                                    item.status == 'unreconciled'
+                                      ? 'red white--text'
+                                      : 'success'
+                                  "
+                                >
+                                  {{ item.status.toUpperCase() }}
+                                </v-chip>
+                              </template>
+                              <template v-slot:item.actions="{ item }">
+                                <v-btn
+                                  x-small
+                                  class="mr-2"
+                                  color="primary"
+                                  @click="reconcileProducts(item)"
+                                >
+                                  <v-icon x-small class="mr-1">
+                                    mdi-file
+                                  </v-icon>
+                                  Reconcile
+                                </v-btn>
+                              </template>
+                            </v-data-table>
+                          </v-col>
+                        </v-row>
+                      </v-container>
+                    </v-card-text>
+                    <v-divider class="mb-3 mt-0"></v-divider>
+                    <v-card-actions class="pa-0">
+                      <v-spacer></v-spacer>
+                      <v-btn
+                        color="#E0E0E0"
+                        @click="
+                          (dialog_unreconciled = false) + (loading = false)
+                        "
+                        class="mb-3 mr-4"
+                      >
+                        Cancel
+                      </v-btn>
+                    </v-card-actions>
+                    <v-dialog v-model="dialog_recon_loading" max-width="500px" persistent>
+                      <v-card>
+                        <v-card-text>
+                          <v-container>
+                            <v-row
+                              class="fill-height"
+                              align-content="center"
+                              justify="center"
+                            >
+                              <v-col class="subtitle-1 font-weight-bold text-center mt-4" cols="12">
+                                Reconciling Products...
+                              </v-col>
+                              <v-col cols="6">
+                                <v-progress-linear
+                                  color="primary"
+                                  indeterminate
+                                  rounded
+                                  height="6"
+                                ></v-progress-linear>
+                              </v-col>
+                            </v-row>
+                          </v-container>
+                        </v-card-text>
+                      </v-card>
+                    </v-dialog>
+                  </v-card>
+                </v-dialog>
+              </v-toolbar>
+            </template>
           </v-card-title>
-
           <DataTable
             :headers="headers"
-            :items="employee_premiums"
+            :items="products"
             :search="search"
             :loading="loading"
             :file_upload_log="file_upload_log" 
-            :canViewList="hasPermission('employee-premiums-list')"
-            :canEdit="hasPermission('employee-premiums-edit')"
-            :canDelete="hasPermission('employee-premiums-delete')"
-            @edit="editEmployeePremiums"
+            :canViewList="hasPermission('product-list')"
+            :canEdit="hasPermission('product-edit')"
+            :canDelete="hasPermission('product-delete')"
+            @edit="editProduct"
             @confirmDelete="showConfirmAlert"
-          />
-
-          <v-dialog v-model="dialog" max-width="1000px" persistent>
-            <v-card>
-              <v-card-title class="pa-4">
-                <span class="headline">{{ formTitle }}</span>
-              </v-card-title>
-              <v-divider class="mt-0"></v-divider>
-              <v-card-text>
-                <v-container>
-                  <fieldset>
-                    <legend class="mb-6">Personal Information</legend>
-                    <v-row>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-text-field
-                          name="last_name"
-                          v-model="editedItem.last_name"
-                          :error-messages="lastNameErrors"
-                          label="Last Name"
-                          @input="$v.editedItem.last_name.$touch()"
-                          @blur="$v.editedItem.last_name.$touch()"
-                        ></v-text-field>
-                      </v-col>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-text-field
-                          name="first_name"
-                          v-model="editedItem.first_name"
-                          :error-messages="firstNameErrors"
-                          label="First Name"
-                          @input="$v.editedItem.first_name.$touch()"
-                          @blur="$v.editedItem.first_name.$touch()"
-                        ></v-text-field>
-                      </v-col>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-text-field
-                          name="middle_name"
-                          v-model="editedItem.middle_name"
-                          label="Middle Name"
-                        ></v-text-field>
-                      </v-col>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-menu
-                          v-model="input_birth_date"
-                          :close-on-content-click="false"
-                          transition="scale-transition"
-                          offset-y
-                          max-width="290px"
-                          min-width="290px"
-                        >
-                          <template v-slot:activator="{ on, attrs }">
-                            <v-text-field
-                              name="remarks_date"
-                              v-model="computedBirthDateFormatted"
-                              label="Birth Date (MM/DD/YYYY)"
-                              persistent-hint
-                              readonly
-                              v-bind="attrs"
-                              v-on="on"
-                              :error-messages="birthdateErrors"
-                              @input="$v.editedItem.birth_date.$touch()"
-                              @blur="$v.editedItem.birth_date.$touch()"
-                            ></v-text-field>
-                          </template>
-                          <v-date-picker
-                            v-model="editedItem.birth_date"
-                            no-title
-                            @input="input_birth_date = false"
-                          ></v-date-picker>
-                        </v-menu>
-                      </v-col>
-                    </v-row>
-                    <v-row>
-                      <v-col class="my-0 py-0">
-                        <v-divider class="my-0 py-0"></v-divider>
-                      </v-col>
-                    </v-row>
-                  </fieldset>
-                  <fieldset>
-                    <legend class="mb-6 mt-6">Employment Information</legend>
-                    <v-row>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-menu
-                          v-model="input_date_hired"
-                          :close-on-content-click="false"
-                          transition="scale-transition"
-                          offset-y
-                          max-width="290px"
-                          min-width="290px"
-                        >
-                          <template v-slot:activator="{ on, attrs }">
-                            <v-text-field
-                              name="date_hired"
-                              v-model="computedDateHiredFormatted"
-                              label="Date Hired (MM/DD/YYYY)"
-                              persistent-hint
-                              readonly
-                              v-bind="attrs"
-                              v-on="on"
-                              :error-messages="dateHiredErrors"
-                              @input="$v.editedItem.date_hired.$touch()"
-                              @blur="$v.editedItem.date_hired.$touch()"
-                            ></v-text-field>
-                          </template>
-                          <v-date-picker
-                            v-model="editedItem.date_hired"
-                            no-title
-                            @input="input_date_hired = false"
-                          ></v-date-picker>
-                        </v-menu>
-                      </v-col>
-                    </v-row>
-                    <v-row>
-                      <v-col class="my-0 py-0">
-                        <v-divider class="my-0 py-0"></v-divider>
-                      </v-col>
-                    </v-row>
-                  </fieldset>
-                  <fieldset>
-                    <legend class="mb-6 mt-6">Employee Loans Information</legend>
-                    <v-row>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-text-field
-                          name="or_number"
-                          v-model="editedItem.or_number"
-                          :error-messages="orNumberErrors"
-                          label="OR Number"
-                          @input="$v.editedItem.or_number.$touch()"
-                          @blur="$v.editedItem.or_number.$touch()"
-                        ></v-text-field>
-                      </v-col>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-text-field
-                          name="sss_no"
-                          v-model="editedItem.sss_no"
-                          :error-messages="sssNoErrors"
-                          label="SSS No."
-                          @input="$v.editedItem.sss_no.$touch()"
-                          @blur="$v.editedItem.sss_no.$touch()"
-                        ></v-text-field>
-                      </v-col>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-text-field-dotnumber
-                          class="pa-0"
-                          v-model="editedItem.sss_ee"
-                          label= "SSS Premium EE"
-                          v-bind:properties="{
-                            name: 'sss_ee',
-                            placeholder: '0.00',
-                            error: sssEEErrors.hasError,
-                            messages: sssEEErrors.errors,
-                          }"
-                          v-bind:options="{
-                            length: 11,
-                            precision: 2,
-                            empty: null,
-                          }"
-                          @input="$v.editedItem.sss_ee.$touch()"
-                          @blur="$v.editedItem.sss_ee.$touch()"
-                        >
-                        </v-text-field-dotnumber>
-                      </v-col> 
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-text-field-dotnumber
-                          class="pa-0"
-                          v-model="editedItem.sss_er"
-                          label= "SSS Premium ER"
-                          v-bind:properties="{
-                            name: 'sss_er',
-                            placeholder: '0.00',
-                            error: sssERErrors.hasError,
-                            messages: sssERErrors.errors,
-                          }"
-                          v-bind:options="{
-                            length: 11,
-                            precision: 2,
-                            empty: null,
-                          }"
-                          @input="$v.editedItem.sss_er.$touch()"
-                          @blur="$v.editedItem.sss_er.$touch()"
-                        >
-                        </v-text-field-dotnumber>
-                      </v-col> 
-                    </v-row>
-                    <v-row>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-text-field-dotnumber
-                          class="pa-0"
-                          v-model="editedItem.sss_ec"
-                          label= "SSS Premium EC"
-                          v-bind:properties="{
-                            name: 'sss_ec',
-                            placeholder: '0.00',
-                            error: sssECErrors.hasError,
-                            messages: sssECErrors.errors,
-                          }"
-                          v-bind:options="{
-                            length: 11,
-                            precision: 2,
-                            empty: null,
-                          }"
-                          @input="$v.editedItem.sss_ec.$touch()"
-                          @blur="$v.editedItem.sss_ec.$touch()"
-                        >
-                        </v-text-field-dotnumber>
-                      </v-col> 
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-text-field-dotnumber
-                          class="pa-0"
-                          v-model="sssTotal"
-                          label= "SSS Premium Total"
-                          v-bind:properties="{
-                            name: 'sss_total',
-                            placeholder: '0.00',
-                            //error: sssTotalErrors.hasError,
-                            //messages: sssTotalErrors.errors,
-                            readonly: true,
-                          }"
-                          v-bind:options="{
-                            length: 11,
-                            precision: 2,
-                            empty: null,
-                          }"
-                        >
-                        </v-text-field-dotnumber>
-                      </v-col> 
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-text-field
-                          name="philhealth_no"
-                          v-model="editedItem.philhealth_no"
-                          :error-messages="philhealthNoErrors"
-                          label="Philhealth No."
-                          @input="$v.editedItem.philhealth_no.$touch()"
-                          @blur="$v.editedItem.philhealth_no.$touch()"
-                        ></v-text-field>
-                      </v-col>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-text-field-dotnumber
-                          class="pa-0"
-                          v-model="editedItem.philhealth_ee"
-                          label= "Philhealth Premium EE"
-                          v-bind:properties="{
-                            name: 'philhealth_ee',
-                            placeholder: '0.00',
-                            error: philhealthEEErrors.hasError,
-                            messages: philhealthEEErrors.errors,
-                          }"
-                          v-bind:options="{
-                            length: 11,
-                            precision: 2,
-                            empty: null,
-                          }"
-                          @input="$v.editedItem.philhealth_ee.$touch()"
-                          @blur="$v.editedItem.philhealth_ee.$touch()"
-                        >
-                        </v-text-field-dotnumber>
-                      </v-col> 
-                    </v-row>
-                    <v-row>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-text-field-dotnumber
-                          class="pa-0"
-                          v-model="editedItem.philhealth_er"
-                          label= "Philhealth Premium ER"
-                          v-bind:properties="{
-                            name: 'philhealth_er',
-                            placeholder: '0.00',
-                            error: philhealthERErrors.hasError,
-                            messages: philhealthERErrors.errors,
-                          }"
-                          v-bind:options="{
-                            length: 11,
-                            precision: 2,
-                            empty: null,
-                          }"
-                          @input="$v.editedItem.philhealth_er.$touch()"
-                          @blur="$v.editedItem.philhealth_er.$touch()"
-                        >
-                        </v-text-field-dotnumber>
-                      </v-col>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-text-field-dotnumber
-                          class="pa-0"
-                          v-model="philhealthTotal"
-                          label= "Philhealth Premium Total"
-                          v-bind:properties="{
-                            name: 'philhealth_total',
-                            placeholder: '0.00',
-                            //error: philhealthTotalErrors.hasError,
-                            //messages: philhealthTotalErrors.errors,
-                            readonly: true,
-                          }"
-                          v-bind:options="{
-                            length: 11,
-                            precision: 2,
-                            empty: null,
-                          }"
-                        >
-                        </v-text-field-dotnumber>
-                      </v-col>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-text-field
-                          name="pagibig_no"
-                          v-model="editedItem.pagibig_no"
-                          :error-messages="pagibigNoErrors"
-                          label="Pagibig No."
-                          @input="$v.editedItem.pagibig_no.$touch()"
-                          @blur="$v.editedItem.pagibig_no.$touch()"
-                        ></v-text-field>
-                      </v-col>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-text-field-dotnumber
-                          class="pa-0"
-                          v-model="editedItem.pagibig_ee"
-                          label= "Pagibig Premium EE"
-                          v-bind:properties="{
-                            name: 'pagibig_ee',
-                            placeholder: '0.00',
-                            error: pagibigEEErrors.hasError,
-                            messages: pagibigEEErrors.errors,
-                          }"
-                          v-bind:options="{
-                            length: 11,
-                            precision: 2,
-                            empty: null,
-                          }"
-                          @input="$v.editedItem.pagibig_ee.$touch()"
-                          @blur="$v.editedItem.pagibig_ee.$touch()"
-                        >
-                        </v-text-field-dotnumber>
-                      </v-col> 
-                    </v-row>
-                    <v-row>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-text-field-dotnumber
-                          class="pa-0"
-                          v-model="editedItem.pagibig_er"
-                          label= "Pagibig Premium ER"
-                          v-bind:properties="{
-                            name: 'pagibig_er',
-                            placeholder: '0.00',
-                            error: pagibigERErrors.hasError,
-                            messages: pagibigERErrors.errors,
-                          }"
-                          v-bind:options="{
-                            length: 11,
-                            precision: 2,
-                            empty: null,
-                          }"
-                          @input="$v.editedItem.pagibig_er.$touch()"
-                          @blur="$v.editedItem.pagibig_er.$touch()"
-                        >
-                        </v-text-field-dotnumber>
-                      </v-col>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-text-field-dotnumber
-                          class="pa-0"
-                          v-model="pagibigTotal"
-                          label= "Pagibig Premium Total"
-                          v-bind:properties="{
-                            name: 'pagibig_total',
-                            placeholder: '0.00',
-                            //error: pagibigTotalErrors.hasError,
-                            //messages: pagibigTotalErrors.errors,
-                            readonly: true,
-                          }"
-                          v-bind:options="{
-                            length: 11,
-                            precision: 2,
-                            empty: null,
-                          }"
-                        >
-                        </v-text-field-dotnumber>
-                      </v-col>
-                    </v-row>
-                  </fieldset>
-                </v-container>
-              </v-card-text>
-              <v-divider class="mb-3 mt-0"></v-divider>
-              <v-card-actions class="pa-0">
-                <v-spacer></v-spacer>
-                <v-btn color="#E0E0E0" @click="close" class="mb-3">
-                  Cancel
-                </v-btn>
-                <v-btn
-                  color="primary"
-                  @click="save"
-                  :disabled="disabled"
-                  class="mb-3 mr-4"
-                >
-                  Save
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-dialog>
-          <ImportDialog 
-            :api_route="api_route" 
-            :dialog_import="dialog_import"
-            @getData="getEmployeePremiums"
-            @closeImportDialog="closeImportDialog"
           />
         </v-card>
       </v-main>
+      <ImportDialog 
+        :api_route="api_route" 
+        :dialog_import="dialog_import"
+        :action="action"
+        :branches="branches"
+        @getData="getProduct"
+        @closeImportDialog="closeImportDialog"
+      />
     </div>
   </div>
 </template>
 <script>
 import axios from "axios";
 import { validationMixin } from "vuelidate";
-import { required, maxLength, email } from "vuelidate/lib/validators";
-import { mapState, mapGetters } from "vuex";
-import ImportDialog from "../components/ImportDialog.vue";
-import MenuActions from '../../components/MenuActions.vue';
+import { required } from "vuelidate/lib/validators";
+import { mapState, mapGetters, mapActions } from "vuex";
+import ImportDialog from '../../components/ImportDialog.vue';
+import MenuActions from "../../components/MenuActions.vue";
 import DataTable from "../../components/DataTable.vue";
 
-
 export default {
-  name: "EmployeePremiumsListView",
+  name: "ProductIndex",
   components: {
     ImportDialog,
     MenuActions,
     DataTable,
   },
-  props: {
-
-  },
   mixins: [validationMixin],
 
   validations: {
     editedItem: {
-      last_name: { required },
-      first_name: { required },
-      birth_date: { required },
-      date_hired: { required },
-      or_number: { required },
-      sss_no: { required },
-      sss_ee: { required },
-      sss_er: { required },
-      sss_ec: { required },
-      sss_total: { required },
-      philhealth_no: { required },
-      philhealth_ee: { required },
-      philhealth_er: { required },
-      philhealth_total: { required },
-      pagibig_no: { required },
-      pagibig_ee: { required },
-      pagibig_er: { required },
-      pagibig_total: { required }
+      branch_id: { required },
+      brand_id: { required },
+      model: { required },
+      product_category_id: { required },
+      serial: { required },
     },
-    file: { required },
   },
   data() {
     return {
       search: "",
       headers: [
+        { text: "Brand", value: "brand.name" },
+        { text: "Model", value: "model" },
+        { text: "Product Category", value: "product_category.name" },
+        { text: "Serial", value: "serial" },
         { text: "Branch", value: "branch.name" },
-        { text: "Lastname", value: "last_name" },
-        { text: "Firstname", value: "first_name" },
-        { text: "Middlename", value: "middle_name" },
-        { text: "Birth Date", value: "birth_date" },
-        { text: "Date Hired", value: "date_hired" },
-        { text: "Issued OR No.", value: "or_number" },
+        { text: "Date Created", value: "date_created" },
         { text: "Actions", value: "actions", sortable: false, width: "80px" },
+      ],
+      unreconciled_headers: [
+        { text: "Branch", value: "branch.name" },
+        { text: "Date Created", value: "date_created" },
+        { text: "Status", value: "status" },
+        { text: "Actions", value: "actions", sortable: false, width: "100px" },
       ],
       disabled: false,
       dialog: false,
-      employee_premiums: [],
+      dialog_unreconciled: false,
+      dialog_recon_loading: false,
+      products: [],
+      brands: [],
       branches: [],
+      product_categories: [],
+      editedIndex: -1,
+      editedItem: {
+        branch_id: "",
+        brand: "",
+        brand_id: "",
+        model: "",
+        serial: "",
+      },
+      defaultItem: {
+        branch_id: "",
+        brand: "",
+        brand_id: "",
+        model: "",
+        serial: "",
+      },
       items: [
         {
           text: "Home",
@@ -588,85 +358,29 @@ export default {
           link: "/",
         },
         {
-          text: "Employee Premiums Lists",
+          text: "Product Lists",
           disabled: false,
-          link: "/employee/premiums/list",
         },
-        {
-          text: "View",
-          disabled: true,
-        },
-      ],
-      gender_items: [
-        { text: "MALE", value: "MALE" },
-        { text: "FEMALE", value: "FEMALE" },
-      ],
-      civil_status_items: [
-        { text: "SINGLE", value: "SINGLE" },
-        { text: "MARRIED", value: "MARRIED" },
-        { text: "DIVORCED", value: "DIVORCED" },
-        { text: "WIDOWED", value: "WIDOWED" },
       ],
       loading: true,
+      loading_unreconciled: true,
       search_branch: "",
-      file: [],
-      fileIsEmpty: false,
-      fileIsInvalid: false,
-      uploadDisabled: false,
-      uploading: false,
-      dialog_import: false,
-      dialog_error_list: false,
-      errors_array: [],
-      fileError: "",
-      branch_id: "",
-      editedIndex: -1,
-      editedItem: {
-        last_name: "",
-        first_name: "",
-        middle_name: "",
-        birth_date: "",
-        date_hired: "",
-        or_number: "",
-        sss_no: "",
-        sss_ee: 0.00,
-        sss_er: 0.00,
-        sss_ec: 0.00,
-        sss_total: 0.00,
-        philhealth_no: "",
-        philhealth_ee: 0.00,
-        philhealth_er: 0.00,
-        philhealth_total: 0.00,
-        pagibig_no: "",
-        pagibig_ee: 0.00,
-        pagibig_er: 0.00,
-        pagibig_total: 0.00
+      json_fields: {
+        BRAND: "brand.name",
+        MODEL: "model",
+        SERIAL: "serial",
+        QUANTITY: " ",
       },
-      defaultItem: {
-        last_name: "",
-        first_name: "",
-        middle_name: "",
-        birth_date: "",
-        date_hired: "",
-        or_number: "",
-        sss_no: "",
-        sss_ee: 0.00,
-        sss_er: 0.00,
-        sss_ec: 0.00,
-        sss_total: 0.00,
-        philhealth_no: "",
-        philhealth_ee: 0.00,
-        philhealth_er: 0.00,
-        philhealth_total: 0.00,
-        pagibig_no: "",
-        pagibig_ee: 0.00,
-        pagibig_er: 0.00,
-        pagibig_total: 0.00
-      },
-      input_birth_date: false,
-      input_date_hired: false,
+      serialExists: false,
+      inventory_groups: [{ name: "Admin-Branch" }, { name: "Audit-Branch" }],
+      inventory_group: "Admin-Branch",
+      unreconciled_list: [],
+      search_unreconciled: "",
+      action: "",
+      api_route: "",
       file_upload_log: "",
       dialog_import: false,
-      api_route: "",
+      file_upload_log_id: "",
     };
   },
 
@@ -674,127 +388,242 @@ export default {
     userIsLoaded: {
       handler() {
         if (this.userIsLoaded && this.userRolesPermissionsIsLoaded) {
-          this.getEmployeePremiums(this.$route.params.file_upload_log_id);
+          this.getProduct(this.$route.params.file_upload_log_id);
         }
       },
     },
     userRolesPermissionsIsLoaded: {
       handler() {
         if (this.userIsLoaded && this.userRolesPermissionsIsLoaded) {
-          this.getEmployeePremiums(this.$route.params.file_upload_log_id);
+          this.getProduct(this.$route.params.file_upload_log_id);
         }
       },
     },
   },
 
   methods: {
-    getEmployeePremiums(file_upload_log_id) {
+    getProduct(file_upload_log_id) {
       this.loading = true;
       let data = { file_upload_log_id: file_upload_log_id }
-      axios.post("/api/employee_premiums/list/view", data).then(
+      axios.post("/api/product/list/view", data).then(
         (response) => {
-          // if user has no permission to view overall list
-         
-          if (!this.hasPermission('employee-premiums-list-all') &&
-            this.user.branch_id != this.branch_id
-          ) {
-            this.$router.push({ name: "unauthorize" });
-          }
-
-          this.file_upload_log = response.data.file_upload_log;
-          this.employee_premiums = response.data.employee_premiums;
+          let data = response.data;
+          this.file_upload_log = data.file_upload_log;
+          this.products = data.products;
+          this.brands = data.brands;
+          this.branches = data.branches;
+          this.product_categories = data.product_categories;
+          this.editedItem.branch_id = this.user.branch_id;
+          this.search_branch = this.user.branch_id;
           this.loading = false;
-          
+          console.log(data);
         },
         (error) => {
           this.isUnauthorized(error);
-          console.log(error);
         }
       );
     },
 
     save() {
-      this.$v.editedItem.$touch();
- 
+      this.$v.$touch();
+
       if (!this.$v.$error) {
         this.disabled = true;
-        this.overlay = true;
-        this.editedItem.branch_id = this.branch_id;
         const data = this.editedItem;
-        const employee_premiums_id = this.editedItem.id;
+        const product_id = this.editedItem.id;
+        let url = "/api/product" + (this.editedIndex > -1 ? "/update/" + product_id : "/store");
 
-        let url = "/api/employee_premiums" + (this.editedIndex > -1 ? "/update/" + employee_premiums_id : "/store");
+        axios.post(url, data).then(
+          (response) => {
+            let data = response.data;
 
-          axios.post(url, data).then(
-            (response) => {
-              if (response.data.success) {
-                // send data to Sockot.IO Server
-                // this.$socket.emit("sendData", { action: "employee-premiums-edit" });
+            if (data.success) {
+              // send data to Sockot.IO Server
+              // this.$socket.emit("sendData", { action: "product-edit" });
 
-                let employee_premiums = response.data.employee_premiums;
-                
-                // format birth_date
-                let [year, month, day] = employee_premiums.dob.split("-");
-                employee_premiums.birth_date = `${month}/${day}/${year}`;
+              if(this.editedIndex > -1)
+              {
+                Object.assign(this.products[this.editedIndex], this.editedItem);
+              }
+              else
+              {
+                this.products.push(data.product);
+              }
+              
+              this.showAlert(data.success, 'success');
+              this.close();
 
-                // format date_hired
-                [year, month, day] = employee_premiums.date_hired.split("-");
-                employee_premiums.date_hired = `${month}/${day}/${year}`;
-
-                if (this.editedIndex > -1) 
-                {
-                  Object.assign(this.employee_premiums[this.editedIndex], employee_premiums);
-                }
-                else
-                {
-                  this.employee_premiums.push(employee_premiums);
-                }
-
-                this.showAlert(response.data.success, 'success');
-                this.close();
-              } 
-              this.overlay = false;
-              this.disabled = false;
-            },
-            (error) => {
-              this.isUnauthorized(error);
-
-              this.overlay = false;
-              this.disabled = false;
+            } else if (data.existing_products) {
+              this.serialExists = true;
             }
-          );
+
+            this.disabled = false;
+          },
+          (error) => {
+            this.isUnauthorized(error);
+            this.disabled = false;
+          }
+        );
       }
     },
-    
-    editEmployeePremiums(item) {
 
-      this.editedIndex = this.employee_premiums.indexOf(item);
+    editProduct(item) {
+      this.editedIndex = this.products.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.dialog = true;
-
-      let [month, day, year] = this.editedItem.birth_date.split("/");
-      this.editedItem.birth_date = `${year}-${month}-${day}`;
-
-      [month, day, year] = this.editedItem.date_hired.split("/");
-      this.editedItem.date_hired = `${year}-${month}-${day}`;
     },
 
-    deleteEmployeePremiums(employee_premiums_id) {
-      const data = { employee_premiums_id: employee_premiums_id };
-
-      axios.post("/api/employee_premiums/delete", data).then(
+    deleteProduct(product_id) {
+      const data = { product_id: product_id };
+      this.loading = true;
+      axios.post("/api/product/delete", data).then(
         (response) => {
-  
           if (response.data.success) {
             // send data to Sockot.IO Server
-            // this.$socket.emit("sendData", { action: "employee-delete" });
+            // this.$socket.emit("sendData", { action: "product-delete" });
             this.showAlert(response.data.success, 'success');
           }
+          this.loading = false;
         },
         (error) => {
           this.isUnauthorized(error);
         }
       );
+    },
+
+    importExcel() {
+      this.dialog_import = true;
+    },
+
+    exportData() {
+      const data = { branch_id: this.search_branch };
+      if (this.filteredProducts.length) {
+
+        axios.post('/api/product/export', data, { responseType: 'arraybuffer'})
+          .then((response) => {
+              var fileURL = window.URL.createObjectURL(new Blob([response.data]));
+              var fileLink = document.createElement('a');
+              fileLink.href = fileURL;
+              fileLink.setAttribute('download', 'Products.xls');
+              document.body.appendChild(fileLink);
+              fileLink.click();
+          }, (error) => {
+            console.log(error);
+          }
+        );
+      }
+      else {
+        this.showAlert('No record found', 'warning');
+      }
+
+    },
+
+    downloadTemplate() {
+      axios.post('/api/product/template/download', data, { responseType: 'arraybuffer'})
+          .then((response) => {
+              var fileURL = window.URL.createObjectURL(new Blob([response.data]));
+              var fileLink = document.createElement('a');
+              fileLink.href = fileURL;
+              fileLink.setAttribute('download', 'ProductTemplate.xls');
+              document.body.appendChild(fileLink);
+              fileLink.click();
+          }, (error) => {
+            console.log(error);
+          }
+        );
+    },
+
+    getUnreconciled() {
+      if (this.filteredProducts.length) {
+        // if Dropdown Branch value is 'ALL'
+        if (this.search_branch == 0) {
+
+          this.showAlert('Please select specific branch!', 'warning');
+
+        } else {
+          this.loading_unreconciled = true;
+          this.dialog_unreconciled = true;
+
+          let data = {
+            branch_id: this.search_branch,
+            inventory_group: this.inventory_group,
+          };
+
+          axios
+            .post("/api/inventory_reconciliation/unreconcile/list", data)
+            .then(
+              (response) => {
+                this.unreconciled_list = response.data.unreconciled_list;
+                this.loading_unreconciled = false;
+              },
+              (error) => {
+                console.log(error);
+              }
+            );
+        }
+      } else {
+
+        this.showAlert('Nothing to reconcile', 'warning');
+        
+      }
+    },
+
+    reconcileProducts(item) {
+      this.$swal({
+        title: "Reconcile Products",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "primary",
+        cancelButtonColor: "#6c757d",
+        confirmButtonText: "Proceed",
+      }).then((result) => {
+        // <--
+
+        if (result.value) {
+          // <-- if confirmed
+          this.dialog_recon_loading = true;
+          let data = {
+            inventory_recon_id: item.id,
+            products: this.filteredProducts,
+            inventory_group: this.inventory_group,
+          };
+
+          axios.post("api/inventory_reconciliation/reconcile", data).then(
+            (response) => {
+
+              this.dialog_recon_loading = false;
+
+              if (response.data.success) {
+                // send data to Sockot.IO Server
+                // this.$socket.emit("sendData", { action: "product-reconcile" });
+
+                let index = this.unreconciled_list.indexOf(item);
+                this.unreconciled_list.splice(index, 1);
+
+                this.showAlert(response.data.success, "success");
+                
+              } else if (response.data.duplicate) {
+                this.showAlert(response.data.duplicate, "warning");
+              }
+            },
+            (error) => {
+              this.dialog_recon_loading = false;
+              this.isUnauthorized(error);
+            }
+          );
+        }
+      });
+    },
+
+    showAlert(msg, icon) {
+      this.$swal({
+        position: "center",
+        icon: icon,
+        title: msg,
+        showConfirmButton: false,
+        timer: 2500,
+      });
     },
 
     showConfirmAlert(item) {
@@ -806,75 +635,28 @@ export default {
         confirmButtonColor: "#d33",
         cancelButtonColor: "#6c757d",
         confirmButtonText: "Delete record!",
-      }).then((result) => {
+      }).then(async (result) => {
         // <--
 
         if (result.value) {
           // <-- if confirmed
 
-          const employee_premiums_id = item.id;
-          const index = this.employee_premiums.indexOf(item);
+          const product_id = item.id;
+          const index = this.products.indexOf(item);
 
-          //Call delete User function
-          this.deleteEmployeePremiums(employee_premiums_id);
+          //Call delete Product function
+          await this.deleteProduct(product_id);
 
-          //Remove item from array services
-          this.employee_premiums.splice(index, 1);
-          
+          //Remove item from array products
+          await this.products.splice(index, 1);
+
         }
       });
     },
 
-    close() {
-      this.dialog = false;
-      this.loading = false;
-      this.clear();
-      this.$nextTick(() => {
-        this.editedItem = Object.assign({}, this.defaultItem);
-        this.editedIndex = -1;
-      });
-    },
-
-    closeImportDialog() {
-      this.dialog_import = false;
-    },
-
-    importExcel() {
-      this.dialog_import = true;
-    },
-
-    exportData() {
-      if (this.employee_premiums.length) {
-        const data = { file_upload_log_id: this.file_upload_log_id }
-        axios.post('/api/employee_premiums/export_premiums', data, { responseType: 'arraybuffer'})
-          .then((response) => {
-              var fileURL = window.URL.createObjectURL(new Blob([response.data]));
-              var fileLink = document.createElement('a');
-              fileLink.href = fileURL;
-              fileLink.setAttribute('download', 'EmployeePremiums.xls');
-              document.body.appendChild(fileLink);
-              fileLink.click();
-          }, (error) => {
-            console.log(error);
-          }
-        );
-      } else {
-        this.showAlert('No record found', 'warning');
-      }
-    },
-
-    showAlert(title, icon) {
-      this.$swal({
-        position: "center",
-        icon: icon,
-        title: title,
-        showConfirmButton: false,
-        timer: 2500,
-      });
-    },
 
     clearList() {
-      if (this.employee_premiums.length) {
+      if (this.filteredProducts.length) {
         this.$swal({
           title: "Are you sure?",
           text: "You won't be able to revert this!",
@@ -889,30 +671,37 @@ export default {
           if (result.value) {
             // <-- if confirmed
 
-            let data = { 
-              branch_id: this.branch_id, 
-              file_upload_log_id: this.file_upload_log_id, 
-              clear_list: true 
-            };
+            let data = { branch_id: this.search_branch, clear_list: true };
 
-            axios.post("api/employee_premiums/delete", data).then(
+            axios.post("api/product/delete", data).then(
               (response) => {
-
                 if (response.data.success) {
                   // send data to Sockot.IO Server
                   // this.$socket.emit("sendData", { action: "product-create" });
 
-                  this.employee_premiums = [];
-                  this.file_upload_log = null;
+                  let products = this.products;
+
+                  // clear products array
+                  this.products = [];
+
+                  products.forEach((value, index) => {
+                    // push products to array where except deleted data
+                    if (value.branch_id != this.search_branch) {
+                      this.products.push(value);
+                    } else if (this.search_branch === 0) {
+                      this.products = [];
+                    }
+                  });
 
                   this.showAlert(response.data.success, 'success');
+
                 } else {
+
                   this.showAlert('No record found', 'warning');
                 }
               },
               (error) => {
                 this.isUnauthorized(error);
-                console.log(error);
               }
             );
           }
@@ -921,10 +710,33 @@ export default {
         this.showAlert('No record found', 'warning');
       }
     },
+    selectedProductCategory() {
+      let product_category = {};
 
+      this.product_categories.forEach((value) => {
+        if (this.editedItem.product_category_id == value.id) {
+          product_category = value;
+        }
+      });
+
+      this.editedItem.product_category = product_category;
+    },
+    close() {
+      this.dialog = false;
+      this.clear();
+      this.$nextTick(() => {
+        this.editedItem = Object.assign({}, this.defaultItem);
+        this.editedIndex = -1;
+      });
+    },
+
+    closeImportDialog() { 
+      this.dialog_import = false;
+    },
     clear() {
       this.$v.$reset();
       this.editedItem = Object.assign({}, this.defaultItem);
+      this.editedItem.branch_id = this.user.branch_id;
     },
 
     isUnauthorized(error) {
@@ -933,295 +745,133 @@ export default {
         this.$router.push({ name: "unauthorize" });
       }
     },
-
-    formatDate(date) {
-      if (!date) return null;
-      const [year, month, day] = date.split("-");
-      return `${month}/${day}/${year}`;
-    },
     websocket() {
       // Socket.IO fetch data
       this.$options.sockets.sendData = (data) => {
         let action = data.action;
 
         if (
-          action == "employee-loans-create" ||
-          action == "employee-loans-edit" ||
-          action == "employee-loans-delete" ||
-          action == "employee-loans-import" ||
-          action == "employee-loans-clear-list"
+          action == "product-create" ||
+          action == "product-edit" ||
+          action == "product-delete"
         ) {
-          this.getEmployeePremiums();
+          this.getProduct();
         }
       };
     },
   },
   computed: {
     formTitle() {
-      return this.editedIndex === -1 ? "New Employee" : "Edit Employee";
+      return this.editedIndex === -1 ? "New Product" : "Edit Product";
     },
-    fileErrors() {
+    brandErrors() {
       const errors = [];
-      if (!this.$v.file.$dirty) return errors;
-      !this.$v.file.required && errors.push("File is required.");
-      this.fileIsEmpty && errors.push("File is empty.");
-      this.fileIsInvalid &&
-        errors.push("File type must be 'xlsx', 'xls' or 'ods'.");
+      if (!this.$v.editedItem.brand_id.$dirty) return errors;
+      !this.$v.editedItem.brand_id.required &&
+        errors.push("Brand is required.");
       return errors;
     },
-    imported_file_errors() {
-      return this.errors_array.sort();
-    },
-    employeeCodeErrors() {
+    modelErrors() {
       const errors = [];
-      if (!this.$v.editedItem.employee_code.$dirty) return errors;
-      !this.$v.editedItem.employee_code.required &&
-        errors.push("Employee Code is required.");
+      if (!this.$v.editedItem.model.$dirty) return errors;
+      !this.$v.editedItem.model.required && errors.push("Model is required.");
       return errors;
     },
-    lastNameErrors() {
+    product_categoryErrors() {
       const errors = [];
-      if (!this.$v.editedItem.last_name.$dirty) return errors;
-      !this.$v.editedItem.last_name.required &&
-        errors.push("Last Name is required.");
+      if (!this.$v.editedItem.product_category_id.$dirty) return errors;
+      !this.$v.editedItem.product_category_id.required &&
+        errors.push("Product Category is required.");
       return errors;
     },
-    firstNameErrors() {
+    serialErrors() {
       const errors = [];
-      if (!this.$v.editedItem.first_name.$dirty) return errors;
-      !this.$v.editedItem.first_name.required &&
-        errors.push("First Name is required.");
+      if (!this.$v.editedItem.serial.$dirty) return errors;
+      !this.$v.editedItem.serial.required && errors.push("Serial is required.");
+      if (this.serialExists) {
+        errors.push("Serial exists");
+      }
       return errors;
     },
-    birthdateErrors() {
+    branchErrors() {
       const errors = [];
-      if (!this.$v.editedItem.birth_date.$dirty) return errors;
-      !this.$v.editedItem.birth_date.required && errors.push("Birthdate is required.");
+      if (!this.$v.editedItem.branch_id.$dirty) return errors;
+      !this.$v.editedItem.branch_id.required &&
+        errors.push("Branch is required.");
       return errors;
     },
-    computedBirthDateFormatted() {
-      return this.formatDate(this.editedItem.birth_date);
-    },
-    dateHiredErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.date_hired.$dirty) return errors;
-      !this.$v.editedItem.date_hired.required &&
-        errors.push("Date Hired is required.");
-      return errors;
-    },
-    computedDateHiredFormatted() {
-      return this.formatDate(this.editedItem.date_hired);
-    },
-    orNumberErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.or_number.$dirty) return errors;
-      !this.$v.editedItem.or_number.required &&
-        errors.push("OR Number is required.");
-      return errors;
-    },
-    sssNoErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.sss_no.$dirty) return errors;
-      !this.$v.editedItem.sss_no.required &&
-        errors.push("SSS No. is required.");
-      return errors;
-    },
-    sssEEErrors() {
-      const errors = [];
-      let hasError = false;
-      
-      if (!this.$v.editedItem.sss_ee.$dirty) return {errors: errors, hasError: hasError};
+    filteredProducts() {
+      let products = [];
 
-      if(!this.editedItem.sss_ee)
-      {
-        errors.push("SSS Premiums EE is required.");
-        hasError = true;
+      this.products.forEach((value) => {
+        if (this.search_branch === 0) {
+          products.push(value);
+        } else if (value.branch_id === this.search_branch) {
+          products.push(value);
+        }
+      });
+
+      return products;
+    },
+    filteredUnreconciled() {
+      let unreconciled = [];
+
+      if (this.user.id !== 1) {
+        // if user has role Audit Admin
+        if (this.hasRole('Audit Admin')) {
+          this.inventory_group = "Audit-Branch";
+        }
+        // if user has role Inventory Admin
+        else if (this.hasRole('Inventory Admin')) {
+          this.inventory_group = "Admin-Branch";
+        }
       }
-        
-      return {errors: errors, hasError: hasError};
-    },
-    sssERErrors() {
-      const errors = [];
-      let hasError = false;
-      
-      if (!this.$v.editedItem.sss_er.$dirty) return {errors: errors, hasError: hasError};
 
-      if(!this.editedItem.sss_er)
-      {
-        errors.push("SSS Premiums ER is required.");
-        hasError = true;
+      this.unreconciled_list.forEach((value, index) => {
+        if (value.inventory_group === this.inventory_group) {
+          unreconciled.push(value);
+        }
+      });
+
+      return unreconciled;
+    },
+    tableHeaders() {
+      let headers = [];
+
+      this.headers.forEach((value) => {
+        headers.push(value);
+      });
+
+      // remove Actions column if user is not permitted
+      if (!this.hasPermission('product-edit', 'product-delete')) {
+        headers.splice(5, 1);
       }
-        
-      return {errors: errors, hasError: hasError};
-    },
-    sssECErrors() {
-      const errors = [];
-      let hasError = false;
-      
-      if (!this.$v.editedItem.sss_ec.$dirty) return {errors: errors, hasError: hasError};
 
-      if(!this.editedItem.sss_ec)
-      {
-        errors.push("SSS Premiums EC is required.");
-        hasError = true;
-      }
-        
-      return {errors: errors, hasError: hasError};
-    },
-    sssTotalErrors() {
-      const errors = [];
-      let hasError = false;
-      
-      if (!this.$v.editedItem.sss_total.$dirty) return {errors: errors, hasError: hasError};
-
-      if(!this.editedItem.sss_total)
-      {
-        errors.push("SSS Premiums Total is required.");
-        hasError = true;
-      }
-        
-      return {errors: errors, hasError: hasError};
-    },
-    philhealthNoErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.philhealth_no.$dirty) return errors;
-      !this.$v.editedItem.philhealth_no.required &&
-        errors.push("Philhealth No. is required.");
-      return errors;
-    },
-    philhealthEEErrors() {
-      const errors = [];
-      let hasError = false;
-      
-      if (!this.$v.editedItem.philhealth_ee.$dirty) return {errors: errors, hasError: hasError};
-
-      if(!this.editedItem.philhealth_ee)
-      {
-        errors.push("Philhealth Premiums EE is required.");
-        hasError = true;
-      }
-        
-      return {errors: errors, hasError: hasError};
-    },
-    philhealthERErrors() {
-      const errors = [];
-      let hasError = false;
-      
-      if (!this.$v.editedItem.philhealth_er.$dirty) return {errors: errors, hasError: hasError};
-
-      if(!this.editedItem.philhealth_er)
-      {
-        errors.push("Philhealth Premiums ER is required.");
-        hasError = true;
-      }
-        
-      return {errors: errors, hasError: hasError};
-    },
-    philhealthTotalErrors() {
-      const errors = [];
-      let hasError = false;
-      
-      if (!this.$v.editedItem.philhealth_total.$dirty) return {errors: errors, hasError: hasError};
-
-      if(!this.editedItem.philhealth_total)
-      {
-        errors.push("Philhealth Premiums Total is required.");
-        hasError = true;
-      }
-        
-      return {errors: errors, hasError: hasError};
-    },
-    
-    pagibigNoErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.pagibig_no.$dirty) return errors;
-      !this.$v.editedItem.pagibig_no.required &&
-        errors.push("PagIbig No. is required.");
-      return errors;
-    },
-    pagibigEEErrors() {
-      const errors = [];
-      let hasError = false;
-      
-      if (!this.$v.editedItem.pagibig_ee.$dirty) return {errors: errors, hasError: hasError};
-
-      if(!this.editedItem.pagibig_ee)
-      {
-        errors.push("PagIbig Premiums EE is required.");
-        hasError = true;
-      }
-        
-      return {errors: errors, hasError: hasError};
-    },
-    pagibigERErrors() {
-      const errors = [];
-      let hasError = false;
-      
-      if (!this.$v.editedItem.pagibig_er.$dirty) return {errors: errors, hasError: hasError};
-
-      if(!this.editedItem.pagibig_er)
-      {
-        errors.push("PagIbig Premiums ER is required.");
-        hasError = true;
-      }
-        
-      return {errors: errors, hasError: hasError};
-    },
-    pagibigTotalErrors() {
-      const errors = [];
-      let hasError = false;
-      
-      if (!this.$v.editedItem.pagibig_total.$dirty) return {errors: errors, hasError: hasError};
-
-      if(!this.editedItem.pagibig_total)
-      {
-        errors.push("PagIbig Premiums Total is required.");
-        hasError = true;
-      }
-        
-      return {errors: errors, hasError: hasError};
-    },
-    sssTotal()
-    {
-
-      let sss_ee = this.editedItem.sss_ee ? parseFloat(this.editedItem.sss_ee) : 0;
-      let sss_er = this.editedItem.sss_er ? parseFloat(this.editedItem.sss_er) : 0;
-      let sss_ec = this.editedItem.sss_ec ? parseFloat(this.editedItem.sss_ec) : 0;
-
-      return (sss_ee + sss_er + sss_ec).toFixed(2);
-    },
-    philhealthTotal()
-    {
-
-      let philhealth_ee = this.editedItem.philhealth_ee ? parseFloat(this.editedItem.philhealth_ee) : 0;
-      let philhealth_er = this.editedItem.philhealth_er ? parseFloat(this.editedItem.philhealth_er) : 0;
-
-      return (philhealth_ee + philhealth_er).toFixed(2);
-    },
-    pagibigTotal()
-    {
-
-      let pagibig_ee = this.editedItem.pagibig_ee ? parseFloat(this.editedItem.pagibig_ee) : 0;
-      let pagibig_er = this.editedItem.pagibig_er ? parseFloat(this.editedItem.pagibig_er) : 0;
-
-      return (pagibig_ee + pagibig_er).toFixed(2);
+      return headers;
     },
     ...mapState("auth", ["user", "userIsLoaded"]),
     ...mapState("userRolesPermissions", ["userRolesPermissionsIsLoaded"]),
-    ...mapGetters("userRolesPermissions", ["hasRole", "hasAnyRole", "hasPermission", "hasAnyPermission"]),
+    ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission", "hasAnyPermission"]),
   },
 
-  mounted() {
+  destroyed() {
+    // Remove listener when component is destroyed
+    this.$barcodeScanner.destroy();
+  },
+  async mounted() {
     axios.defaults.headers.common["Authorization"] =
       "Bearer " + localStorage.getItem("access_token");
+    
     this.branch_id = this.$route.params.branch_id;
     this.file_upload_log_id = this.$route.params.file_upload_log_id;
-    this.api_route = 'api/employee_premiums/import_premiums/' + this.branch_id; //set api route for uploading excel
-    
-    if (this.userIsLoaded && this.userRolesPermissionsIsLoaded) {
-      this.getEmployeePremiums(this.file_upload_log_id);
-    }
+    this.api_route = 'api/product/import/' + this.branch_id; //set api route for uploading excel
 
+    if (this.userIsLoaded && this.userRolesPermissionsIsLoaded) {
+
+      this.getProduct(this.file_upload_log_id);
+      
+    }
+    await this.getProduct();
     // this.websocket();
   },
 };

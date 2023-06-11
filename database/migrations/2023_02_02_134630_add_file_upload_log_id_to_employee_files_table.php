@@ -26,7 +26,7 @@ class AddFileUploadLogIdToEmployeeFilesTable extends Migration
     public function down()
     {
         Schema::table('employee_files', function (Blueprint $table) {
-            $table->dropColumn('file_upload_log_id');
+            $table->dropColumn('file_upload_log_id')->nullable();
         });
     }
 }

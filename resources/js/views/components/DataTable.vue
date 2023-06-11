@@ -9,9 +9,7 @@
       v-if="canViewList"
     > 
       <template v-slot:top v-if="file_upload_log">
-        <v-toolbar
-          flat
-        >
+        <v-toolbar flat>
           <h6 class="my-0 font-weight-bold">Document Date:</h6>  <v-chip color="secondary" class="ml-2">{{ file_upload_log.docdate }}</v-chip>
           <h6 class="my-0 font-weight-bold ml-8">Uploaded Date:</h6>  <v-chip color="secondary" class="ml-2">{{ file_upload_log.date_uploaded }}</v-chip>
         </v-toolbar>

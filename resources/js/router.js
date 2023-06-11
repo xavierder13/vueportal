@@ -83,8 +83,8 @@ const routes = [
         component: ProductIndex
       },
       {
-        path: '/product/view/list',
-        name: 'product.view',
+        path: '/product/view/list/:branch_id/:file_upload_log_id',
+        name: 'product.list.view',
         component: ProductListView
       },
       {

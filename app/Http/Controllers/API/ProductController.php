@@ -42,8 +42,12 @@ class ProductController extends Controller
         return response()->json(['branches' => $branches], 200);    
     }
 
-    public function list_view()
-    {
+    public function list_view(Request $request)
+    {   
+        $file_upload_log_id = $request->get('file_upload_log_id');
+        $file_upload_log = FileUploadLog::select(DB::raw("id, DATE_FORMAT(docdate, '%m/%d/%Y') as docdate, DATE_FORMAT(created_at, '%m/%d/%Y') as date_uploaded"))
+                                        ->find($file_upload_log_id);
+        
         $user = Auth::user();
 
         $products = Product::with('brand')
@@ -56,7 +60,7 @@ class ProductController extends Controller
                                     $query->where('user_id', '=', $user->id);
                                 }
                            })
-                        //    ->where()
+                           ->where('file_upload_log_id', '=', $file_upload_log_id)
                            ->select(DB::raw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_created"))
                         //    ->paginate($request->items_per_page);
                            ->get();
@@ -70,7 +74,8 @@ class ProductController extends Controller
             'brands' => $brands,
             'branches' => $branches,
             'product_categories' => $product_categories,
-            'user' => $user,
+            'file_upload_log' => $file_upload_log,
+            $file_upload_log_id
         ], 200);
         
     }
@@ -584,10 +589,11 @@ class ProductController extends Controller
                         'product_category_id' => ProductCategory::where('name', '=', $field['CATEGORY'])->get()->first()->id,
                         'serial' => $field['SERIAL'],
                         'quantity' => $field['QTY'],
+                        'file_upload_log_id' => $file_upload_log->id,
                     ]);
                 }
                 
-                return response()->json(['success' => 'Record has successfully imported'], 200);
+                return response()->json(['success' => 'Record has successfully added'], 200);
             }
             else
             {

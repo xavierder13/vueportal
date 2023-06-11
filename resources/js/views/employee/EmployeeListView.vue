@@ -562,7 +562,6 @@ export default {
         { text: "WIDOWED", value: "WIDOWED" },
       ],
       loading: true,
-      search_branch: "",
       branch_id: "",
       file_upload_log_id: "",
       editedIndex: -1,

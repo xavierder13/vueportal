@@ -17,6 +17,7 @@ class Product extends Model
         'quantity',
         'inventory_type',
         'inventory_group',
+        'file_upload_log_id',
     ];
 
     public function brand()
