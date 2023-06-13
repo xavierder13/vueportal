@@ -9,14 +9,15 @@ use DB;
 use Auth;
 use Crypt;
 use App\SapDatabase;
+use App\SapDbBranch;
 
 class SAPDatabaseController extends Controller
 {
     public function index()
     {       
-        $sap_databases = SAPDatabase::with('sap_db_branch')
-                                    ->with('sap_db_branch.branch')
-                                    ->with('sap_db_branch.sap_database')
+        $sap_databases = SAPDatabase::with('sap_db_branches')
+                                    ->with('sap_db_branches.branch')
+                                    ->with('sap_db_branches.sap_database')
                                     ->select('id', 'server', 'database', 'username')->get();
         return response()->json(['sap_databases' => $sap_databases], 200);
     }
@@ -62,6 +63,15 @@ class SAPDatabaseController extends Controller
         $sap_database->password = Crypt::encrypt($request->get('password'));
         $sap_database->save();
 
+        foreach ($request->sap_db_branches as $key => $branch) {
+            
+            SapDbBranch::create([
+                'branch_id' => $branch,
+                'sap_database_id' => $sap_database->id,
+            ]);
+        
+        }
+
         return response()->json(['success' => 'Record has successfully added', 'sap_database' => $sap_database], 200);
     }
 
@@ -85,7 +95,7 @@ class SAPDatabaseController extends Controller
 
     public function update(Request $request, $sap_database_id)
     {   
-
+     
         $rules = [
             'server.required' => 'Server is required',
             'database.required' => 'Database Name is required',
@@ -118,7 +128,7 @@ class SAPDatabaseController extends Controller
         $sap_database = SAPDatabase::find($sap_database_id);
 
         //if record is empty then display error page
-        if(empty($sap_database_id))
+        if(empty($sap_database->id))
         {
             return abort(404, 'Not Found');
         }
@@ -134,9 +144,36 @@ class SAPDatabaseController extends Controller
 
         $sap_database->save();
 
+        $arrBranch = SapDbBranch::where('sap_database_id', $sap_database_id)->pluck('branch_id')->toArray();
+
+        $sap_db_branches = $request->sap_db_branches;
+
+        foreach ($sap_db_branches as $key => $branch) { 
+        
+            if(!in_array($branch, $arrBranch))
+            {
+                SapDbBranch::create([
+                    'branch_id' => $branch,
+                    'sap_database_id' => $sap_database_id,
+                ]);
+            }
+
+        }
+
+        SapDbBranch::where('sap_database_id', $sap_database_id)
+                   ->whereNotIn('branch_id', $sap_db_branches)
+                   ->delete();
+        
+        $sap_database = SAPDatabase::with('sap_db_branches')
+                                   ->where('id', $sap_database_id)
+                                   ->select('id', 'server', 'database', 'username')
+                                   ->first();
+
         return response()->json([
             'success' => 'Record has been updated',
-            'sap_database' => $sap_database]
+            'sap_database' => $sap_database,
+            $request
+            ]
         );
     }
 

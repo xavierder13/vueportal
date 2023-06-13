@@ -41,8 +41,36 @@
             </v-row>
           </td>
           <td> 
-            <v-btn x-small color="primary" @click="importExcel(items)" v-if="canImport"> 
-              <v-icon small class="mr-2">mdi-upload</v-icon> import
+            <v-menu offset-y v-if="canDownloadTemplate && canImport">
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn x-small v-bind="attrs" v-on="on" class="primary--text">
+                  Actions
+                  <v-icon small> mdi-menu-down </v-icon>
+                </v-btn>
+              </template>
+              <v-list class="pa-1">
+                <v-list-item class="ma-0 pa-0" style="min-height: 25px">
+                  <v-list-item-title>
+                    <v-btn x-small @click="importExcel(items)" class="mx-1" width="100px" color="primary">
+                      <v-icon class="mr-1" x-small>
+                        mdi-import
+                      </v-icon>
+                      Import
+                    </v-btn>
+                  </v-list-item-title>
+                </v-list-item>
+                <v-list-item class="ma-0 pa-0" style="min-height: 25px" v-if="canExport">
+                  <v-list-item-title>
+                    <v-btn class="mx-1 white--text" x-small @click="downloadTemplate(items)" width="100px" color="#AB47BC">
+                      <v-icon class="mr-1" x-small> mdi-download </v-icon>
+                      Template
+                    </v-btn>
+                  </v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-menu>
+            <v-btn x-small color="primary" @click="importExcel(items)" v-if="canImport && !canDownloadTemplate"> 
+              <v-icon x-small class="mr-1">mdi-upload</v-icon> import
             </v-btn> 
           </td>
         </template>
@@ -114,6 +142,7 @@ export default {
     'canImport',
     'canExport',
     'canDownload',
+    'canDownloadTemplate',
   ],
   data() {
     return {
@@ -136,6 +165,9 @@ export default {
     },
     downloadFile(item) {
       this.$emit('downloadFile', item);
+    },
+    downloadTemplate(item) {
+      this.$emit('downloadTemplate', item);
     },
     viewList(item) {
       this.$emit('viewList', item);

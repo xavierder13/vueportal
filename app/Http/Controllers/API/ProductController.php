@@ -10,10 +10,12 @@ use App\Brand;
 use App\Branch;
 use App\ProductModel;
 use App\SapDatabase;
+use App\SapDbBranch;
 use App\FileUploadLog;
 use App\InventoryReconciliationMap;
 use App\Imports\ProductsImport;
 use App\Exports\ProductsExport;
+use App\Exports\ProductsTemplate;
 use DB;
 use Validator;
 use Auth;
@@ -614,9 +616,56 @@ class ProductController extends Controller
     }
 
     public function template_download(Request $request)
-    {
-        $params = ['branch_id' => $request->get('branch_id')];
-        return Excel::download(new ProductsTemplate($params), 'template.xls');
+    {   
+        $sap_db_branch = SapDbBranch::with('sap_database')
+                         ->with('branch')
+                         ->where('branch_id', $request->branch_id)->first();
+
+        $db = $sap_db_branch->sap_database;
+        $branch = $sap_db_branch->branch->name;
+
+        $password = Crypt::decrypt($db->password);
+        Config::set('database.connections.'.$db->database, array(
+                    'driver' => 'sqlsrv',
+                    'host' => $db->server,
+                    'port' => '1433',
+                    'database' => $db->database,
+                    'username' => $db->username,
+                    'password' => $password,   
+                ));
+
+        $inventory_onhand = DB::connection($db->database)->select("
+            SELECT 
+                distinct
+                d.FirmName BRAND, 
+                c.ItemName MODEL,
+                c.FrgnName CATEGORY, 
+                '' SERIAL,
+                '' QTY
+                
+            FROM 
+            OITW a
+                LEFT JOIN OSRI b on (a.ItemCode = b.ItemCode and a.WhsCode = b.WhsCode)
+                INNER JOIN OITM c on a.ItemCode = c.ItemCode
+                INNER JOIN OMRC d on c.FirmCode = d.FirmCode
+                INNER JOIN OWHS e on a.WhsCode = e.WhsCode 
+                INNER JOIN [@PROGTBL] f on UPPER(e.Street) COLLATE DATABASE_DEFAULT = CASE WHEN DB_NAME() = 'ReportsFinance' THEN f.U_Branch2 ELSE f.U_Branch1 END
+            WHERE a.OnHand <> 0 and b.Status = '0' and f.U_Branch1 = :branch
+            ORDER by 1, 2, 3, 4
+        ",
+        ['branch' => $branch]);
+
+        // Excel::download('Filename', function($excel) use($inventory_onhand) {
+
+        //     $excel->sheet('Sheetname', function($sheet) use($inventory_onhand) {
+        
+        //         $sheet->fromArray($inventory_onhand);
+        
+        //     });
+        
+        // })->export('xls');
+
+        return Excel::download(new ProductsTemplate($inventory_onhand), 'template.xls');
     }
 
     public function serial_number_details (Request $request)

@@ -10,12 +10,14 @@
           </template>
         </v-breadcrumbs>
         <MenuActions
-          :canImport="hasPermission('employee-list-import')"
-          :canExport="hasPermission('employee-list-export')"
-          :canClearList="hasPermission('employee-clear-list')"
+          :canImport="hasPermission('product-import')"
+          :canExport="hasPermission('product-export')"
+          :canClearList="hasPermission('product-clear-list')"
+          :canReconcile="hasPermission('product-reconcile')"
           @import="importExcel"
           @export="exportData"
           @clearList="clearList"
+          @reconcile="getUnreconciled"
         />
         <v-card>
           <v-card-title>
@@ -364,7 +366,6 @@ export default {
       ],
       loading: true,
       loading_unreconciled: true,
-      search_branch: "",
       json_fields: {
         BRAND: "brand.name",
         MODEL: "model",
@@ -381,6 +382,15 @@ export default {
       file_upload_log: "",
       dialog_import: false,
       file_upload_log_id: "",
+      swalAttr: {
+        title: "",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "",
+        cancelButtonColor: "#6c757d",
+        confirmButtonText: "",
+      }
     };
   },
 
@@ -414,9 +424,7 @@ export default {
           this.branches = data.branches;
           this.product_categories = data.product_categories;
           this.editedItem.branch_id = this.user.branch_id;
-          this.search_branch = this.user.branch_id;
           this.loading = false;
-          console.log(data);
         },
         (error) => {
           this.isUnauthorized(error);
@@ -496,8 +504,8 @@ export default {
     },
 
     exportData() {
-      const data = { branch_id: this.search_branch };
-      if (this.filteredProducts.length) {
+      const data = { branch_id: this.branch_id };
+      if (this.products.length) {
 
         axios.post('/api/product/export', data, { responseType: 'arraybuffer'})
           .then((response) => {
@@ -534,33 +542,29 @@ export default {
     },
 
     getUnreconciled() {
-      if (this.filteredProducts.length) {
+      if (this.products.length) {
         // if Dropdown Branch value is 'ALL'
-        if (this.search_branch == 0) {
 
-          this.showAlert('Please select specific branch!', 'warning');
+        this.loading_unreconciled = true;
+        this.dialog_unreconciled = true;
 
-        } else {
-          this.loading_unreconciled = true;
-          this.dialog_unreconciled = true;
+        let data = {
+          branch_id: this.branch_id,
+          inventory_group: this.inventory_group,
+        };
 
-          let data = {
-            branch_id: this.search_branch,
-            inventory_group: this.inventory_group,
-          };
-
-          axios
-            .post("/api/inventory_reconciliation/unreconcile/list", data)
-            .then(
-              (response) => {
-                this.unreconciled_list = response.data.unreconciled_list;
-                this.loading_unreconciled = false;
-              },
-              (error) => {
-                console.log(error);
-              }
-            );
-        }
+        axios
+          .post("/api/inventory_reconciliation/unreconcile/list", data)
+          .then(
+            (response) => {
+              this.unreconciled_list = response.data.unreconciled_list;
+              this.loading_unreconciled = false;
+            },
+            (error) => {
+              console.log(error);
+            }
+          );
+        
       } else {
 
         this.showAlert('Nothing to reconcile', 'warning');
@@ -569,23 +573,17 @@ export default {
     },
 
     reconcileProducts(item) {
-      this.$swal({
-        title: "Reconcile Products",
-        text: "You won't be able to revert this!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "primary",
-        cancelButtonColor: "#6c757d",
-        confirmButtonText: "Proceed",
-      }).then((result) => {
-        // <--
+
+      Object.assign(this.swalAttr, { title: "Reconcile Products", confirmButtonColor: "primary", confirmButtonText: "Reconcile" });
+
+      this.$swal(this.swalAttr).then((result) => {
 
         if (result.value) {
-          // <-- if confirmed
+     
           this.dialog_recon_loading = true;
           let data = {
             inventory_recon_id: item.id,
-            products: this.filteredProducts,
+            products: this.products,
             inventory_group: this.inventory_group,
           };
 
@@ -627,16 +625,9 @@ export default {
     },
 
     showConfirmAlert(item) {
-      this.$swal({
-        title: "Are you sure?",
-        text: "You won't be able to revert this!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#d33",
-        cancelButtonColor: "#6c757d",
-        confirmButtonText: "Delete record!",
-      }).then(async (result) => {
-        // <--
+      Object.assign(this.swalAttr, { title: "Delete Record", confirmButtonColor: "#d33", confirmButtonText: "Delete Record!" });
+
+      this.$swal(this.swalAttr).then(async (result) => {
 
         if (result.value) {
           // <-- if confirmed
@@ -654,24 +645,16 @@ export default {
       });
     },
 
-
     clearList() {
-      if (this.filteredProducts.length) {
-        this.$swal({
-          title: "Are you sure?",
-          text: "You won't be able to revert this!",
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonColor: "#d33",
-          cancelButtonColor: "#6c757d",
-          confirmButtonText: "Clear List!",
-        }).then((result) => {
-          // <--
+      Object.assign(this.swalAttr, { title: "Clear List", confirmButtonColor: "#d33", confirmButtonText: "Clear List!" });
+
+      if (this.products.length) {
+        this.$swal(this.swalAttr).then((result) => {
 
           if (result.value) {
             // <-- if confirmed
 
-            let data = { branch_id: this.search_branch, clear_list: true };
+            let data = { branch_id: this.branch_id, clear_list: true };
 
             axios.post("api/product/delete", data).then(
               (response) => {
@@ -679,19 +662,8 @@ export default {
                   // send data to Sockot.IO Server
                   // this.$socket.emit("sendData", { action: "product-create" });
 
-                  let products = this.products;
-
                   // clear products array
                   this.products = [];
-
-                  products.forEach((value, index) => {
-                    // push products to array where except deleted data
-                    if (value.branch_id != this.search_branch) {
-                      this.products.push(value);
-                    } else if (this.search_branch === 0) {
-                      this.products = [];
-                    }
-                  });
 
                   this.showAlert(response.data.success, 'success');
 
@@ -800,19 +772,7 @@ export default {
         errors.push("Branch is required.");
       return errors;
     },
-    filteredProducts() {
-      let products = [];
 
-      this.products.forEach((value) => {
-        if (this.search_branch === 0) {
-          products.push(value);
-        } else if (value.branch_id === this.search_branch) {
-          products.push(value);
-        }
-      });
-
-      return products;
-    },
     filteredUnreconciled() {
       let unreconciled = [];
 
@@ -871,7 +831,6 @@ export default {
       this.getProduct(this.file_upload_log_id);
       
     }
-    await this.getProduct();
     // this.websocket();
   },
 };

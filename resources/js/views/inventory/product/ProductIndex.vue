@@ -15,8 +15,10 @@
           :canViewList="hasPermission('product-list')"
           :canImport="hasPermission('product-import')"
           :canExport="hasPermission('product-export')"
+          :canDownloadTemplate="hasPermission('product-template-download')"
           @importExcel="importExcel"
           @exportData="exportData"
+          @downloadTemplate="downloadTemplate"
           @viewList="viewList"
         />
         
@@ -26,6 +28,32 @@
           @getData="getProduct"
           @closeImportDialog="closeImportDialog"
         />
+
+        <v-dialog v-model="dialog_loading" max-width="500px" persistent>
+          <v-card>
+            <v-card-text>
+              <v-container>
+                <v-row
+                  class="fill-height"
+                  align-content="center"
+                  justify="center"
+                >
+                  <v-col class="subtitle-1 font-weight-bold text-center mt-4" cols="12">
+                    Generating Product Template...
+                  </v-col>
+                  <v-col cols="6">
+                    <v-progress-linear
+                      color="primary"
+                      indeterminate
+                      rounded
+                      height="6"
+                    ></v-progress-linear>
+                  </v-col>
+                </v-row>
+              </v-container>
+            </v-card-text>
+          </v-card>
+        </v-dialog>
       </v-main>
     </div>
   </div>
@@ -76,6 +104,7 @@ export default {
       branch_id: "",
       dialog_import: false,
       api_route: "",
+      dialog_loading: false,
     };
   },
 
@@ -127,6 +156,25 @@ export default {
         }
       );
       
+    },
+
+    downloadTemplate(item) {
+      this.dialog_loading = true;
+      const data = { branch_id: item[0].id };
+      axios.post('/api/product/template/download', data)
+        .then((response) => {
+          // console.log(response);
+          this.dialog_loading = false;
+          var fileURL = window.URL.createObjectURL(new Blob([response.data]));
+          var fileLink = document.createElement('a');
+          fileLink.href = fileURL;
+          fileLink.setAttribute('download', 'ProductTemplate.xls');
+          document.body.appendChild(fileLink);
+          fileLink.click();
+        }, (error) => {
+          console.log(error);
+        }
+      );
     },
 
     closeImportDialog() {

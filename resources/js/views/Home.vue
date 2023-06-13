@@ -402,7 +402,7 @@ export default {
                   hasPermission: this.hasPermission('inventory-recon-list'),
                 },
                 { 
-                  title: 'Upload Product',
+                  title: 'Product List',
                   link: '/product/index',
                   hasPermission: this.hasPermission('product-list'),
                 },

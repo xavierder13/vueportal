@@ -9,76 +9,14 @@
             </v-breadcrumbs-item>
           </template>
         </v-breadcrumbs>
-        <div 
-          class="d-flex justify-content-end mb-3"
-          v-if="hasAnyPermission('employee-premiums-import', 'employee-premiums-export', 'employee-premiums-clear-list')"
-        >
-          <div>
-            <v-menu offset-y>
-              <template v-slot:activator="{ on, attrs }">
-                <v-btn small v-bind="attrs" v-on="on" color="primary">
-                  Actions
-                  <v-icon small> mdi-menu-down </v-icon>
-                </v-btn>
-              </template>
-              <v-list class="pa-1">
-                <v-list-item
-                  class="ma-0 pa-0"
-                  style="min-height: 25px"
-                  v-if="hasPermission('employee-premiums-import')"
-                >
-                  <v-list-item-title>
-                    <v-btn
-                      color="primary"
-                      class="mx-1"
-                      width="100px"
-                      x-small
-                      @click="importExcel()"
-                    >
-                      <v-icon class="mr-1" x-small> mdi-import </v-icon>
-                      Import
-                    </v-btn>
-                  </v-list-item-title>
-                </v-list-item>
-                <v-list-item
-                  class="ma-0 pa-0"
-                  style="min-height: 25px"
-                  v-if="hasPermission('employee-premiums-export')"
-                >
-                  <v-list-item-title>
-                    <v-btn
-                      color="success"
-                      class="mx-1"
-                      width="100px"
-                      x-small
-                      @click="exportData()"
-                    >
-                      <v-icon class="mr-1" x-small> mdi-microsoft-excel </v-icon>
-                      Export
-                    </v-btn>
-                  </v-list-item-title>
-                </v-list-item>
-                <v-list-item
-                  class="ma-0 pa-0"
-                  style="min-height: 25px"
-                  v-if="hasPermission('employee-premiums-clear-list')"
-                >
-                  <v-list-item-title>
-                    <v-btn
-                      color="error"
-                      class="mx-1"
-                      width="100px"
-                      x-small
-                      @click="clearList()"
-                      ><v-icon class="mr-1" x-small> mdi-delete </v-icon>clear
-                      list</v-btn
-                    >
-                  </v-list-item-title>
-                </v-list-item>
-              </v-list>
-            </v-menu>
-          </div>
-        </div>
+        <MenuActions
+          :canImport="hasPermission('employee-premiums-import')"
+          :canExport="hasPermission('employee-premiums-export')"
+          :canClearList="hasPermission('employee-premiums-clear-list')"
+          @import="importExcel"
+          @export="exportData"
+          @clearList="clearList"
+        />
         <v-card>
           <v-card-title>
             Employee Premiums Lists
@@ -667,6 +605,15 @@ export default {
       file_upload_log: "",
       dialog_import: false,
       api_route: "",
+      swalAttr: {
+        title: "",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#6c757d",
+        confirmButtonText: "",
+      }
     };
   },
 
@@ -798,15 +745,10 @@ export default {
     },
 
     showConfirmAlert(item) {
-      this.$swal({
-        title: "Are you sure?",
-        text: "You won't be able to revert this!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#d33",
-        cancelButtonColor: "#6c757d",
-        confirmButtonText: "Delete record!",
-      }).then((result) => {
+
+      Object.assign(this.swalAttr, { title: "Delete Record", confirmButtonText: "Delete Record!" });
+
+      this.$swal(this.swalAttr).then((result) => {
         // <--
 
         if (result.value) {
@@ -874,18 +816,11 @@ export default {
     },
 
     clearList() {
-      if (this.employee_premiums.length) {
-        this.$swal({
-          title: "Are you sure?",
-          text: "You won't be able to revert this!",
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonColor: "#d33",
-          cancelButtonColor: "#6c757d",
-          confirmButtonText: "Clear List!",
-        }).then((result) => {
-          // <--
+      Object.assign(this.swalAttr, { title: "Clear List", confirmButtonText: "Clear List!" });
 
+      if (this.employee_premiums.length) {
+        this.$swal(this.swalAttr).then((result) => {
+          // <--
           if (result.value) {
             // <-- if confirmed
 

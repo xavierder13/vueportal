@@ -43,7 +43,7 @@ Route::prefix('auth')->group(function(){
 
 // User Routes
 Route::group(['prefix' => 'user', 'middleware' => ['auth:api', 'user.maintenance']], function(){
-    Route::post('/index', [
+    Route::get('/index', [
         'uses' => 'API\UserController@index',
         'as' => 'user.index',
     ]);
@@ -160,8 +160,8 @@ Route::group(['prefix' => 'product', 'middleware' => ['auth:api', 'product.maint
 
     // Product Export Route
     Route::post('/template/download', [
-        'uses' => 'API\ProductController@export',
-        'as' => 'product.export',
+        'uses' => 'API\ProductController@template_download',
+        'as' => 'product.template.download',
     ]);
 
 });

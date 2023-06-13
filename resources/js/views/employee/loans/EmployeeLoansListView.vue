@@ -613,7 +613,16 @@ export default {
       input_period_to: false,
       file_upload_log: "",
       dialog_import: false,
-      api_route: ""
+      api_route: "",
+      swalAttr: {
+        title: "",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#6c757d",
+        confirmButtonText: "",
+      }
     };
   },
 
@@ -769,15 +778,9 @@ export default {
     },
 
     showConfirmAlert(item) {
-      this.$swal({
-        title: "Are you sure?",
-        text: "You won't be able to revert this!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#d33",
-        cancelButtonColor: "#6c757d",
-        confirmButtonText: "Delete record!",
-      }).then((result) => {
+      Object.assign(this.swalAttr, { title: "Delete Record", confirmButtonText: "Delete Record!" });
+
+      this.$swal(this.swalAttr).then((result) => {
         // <--
 
         if (result.value) {
@@ -821,16 +824,11 @@ export default {
     },
 
     clearList() {
+
+      Object.assign(this.swalAttr, { title: "Clear List", confirmButtonText: "Clear List!" });
+
       if (this.employee_loans.length) {
-        this.$swal({
-          title: "Are you sure?",
-          text: "You won't be able to revert this!",
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonColor: "#d33",
-          cancelButtonColor: "#6c757d",
-          confirmButtonText: "Clear List!",
-        }).then((result) => {
+        this.$swal(this.swalAttr).then((result) => {
           // <--
 
           if (result.value) {

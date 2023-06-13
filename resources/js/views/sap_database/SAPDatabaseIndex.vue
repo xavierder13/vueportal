@@ -121,7 +121,7 @@
                         <v-row>
                           <v-col class="my-0 py-0">
                             <v-autocomplete
-                              v-model="editedItem.branch"
+                              v-model="editedItem.sap_db_branches"
                               :items="branches"
                               item-text="name"
                               item-value="id"
@@ -257,13 +257,13 @@ export default {
         server: "",
         database: "",
         username: "",
-        branch: [],
+        sap_db_branches: [],
       },
       defaultItem: {
         server: "",
         database: "",
         username: "",
-        branch: [],
+        sap_db_branches: [],
       },
       password: "",
       confirm_password: "",
@@ -295,76 +295,61 @@ export default {
         this.disabled = true;
         this.overlay = true;
 
-        if (this.editedIndex > -1) {
-          if (this.passwordHasChanged) {
-            this.editedItem.password = this.password;
-            this.editedItem.confirm_password = this.confirm_password;
-          }
-
-          const data = this.editedItem;
-          const sap_database_id = this.editedItem.id;
-
-          axios.post("/api/sap_database/update/" + sap_database_id, data).then(
-            (response) => {
-              console.log(response.data);
-              if (response.data.success) {
-                // send data to Sockot.IO Server
-                // this.$socket.emit("sendData", { action: "sap-database-edit" });
-
-                Object.assign(this.sap_databases[this.editedIndex], response.data.sap_database);
-                this.showAlert();
-                this.close();
-
-              } 
-              
-              this.overlay = false;
-              this.disabled = false;
-            },
-            (error) => {
-              this.isUnauthorized(error);
-
-              this.overlay = false;
-              this.disabled = false;
-            }
-          );
-        } else {
-          
+        if (this.passwordHasChanged) {
           this.editedItem.password = this.password;
           this.editedItem.confirm_password = this.confirm_password;
-
-          const data = this.editedItem;
-
-          axios.post("/api/sap_database/store", data).then(
-            (response) => {
-              if (response.data.success) {
-                // send data to Sockot.IO Server
-                // this.$socket.emit("sendData", { action: "sap-database-create" });
-
-                this.showAlert();
-                this.close();
-
-                //push recently added data from database
-                this.sap_databases.push(response.data.sap_database);
-              } 
-
-              this.overlay = false;
-              this.disabled = false;
-            },
-            (error) => {
-              this.isUnauthorized(error);
-
-              this.overlay = false;
-              this.disabled = false;
-            }
-          );
         }
+
+        const data = this.editedItem;
+        const sap_database_id = this.editedItem.id;
+
+        let url = "/api/sap_database" + (this.editedIndex > -1 ? "/update/" + sap_database_id : "/store");
+
+        axios.post(url, data).then(
+          (response) => {
+            console.log(response.data);
+
+            if (response.data.success) {
+              // send data to Sockot.IO Server
+              // this.$socket.emit("sendData", { action: "sap-database-edit" });
+              if (this.editedIndex > -1) {
+                Object.assign(this.sap_databases[this.editedIndex], response.data.sap_database);
+              }
+              else
+              {
+                this.sap_databases.push(response.data.sap_database);
+              }
+
+              this.showAlert(response.data.success, "success");
+              this.close();
+
+            } 
+            
+            this.overlay = false;
+            this.disabled = false;
+          },
+          (error) => {
+            this.isUnauthorized(error);
+
+            this.overlay = false;
+            this.disabled = false;
+          }
+        );
+        
       }
     },
 
     editSAPDatabase(item) {
-      
+      let branches = [];
+
+      item.sap_db_branches.forEach(value => {
+        branches.push(value.branch_id);
+      });
+
+      Object.assign(item, { sap_db_branches:  branches});
+
       this.editedIndex = this.sap_databases.indexOf(item);
-      this.editedItem = Object.assign(this.defaultItem, item);
+      Object.assign(this.editedItem, item);
       this.dialog = true;
       this.emailReadonly = true;
       this.password = "password";
@@ -374,13 +359,9 @@ export default {
       {
         this.switch1 = false;
       }
-
-      item.sap_db_branch.forEach(value => {
-        this.editedItem.branch.push(value.branch.id);
-      });
     },
 
-    deleteUser(sap_database_id) {
+    deleteDatabase(sap_database_id) {
       const data = { sap_database_id: sap_database_id };
 
       axios.post("/api/sap_database/delete", data).then(
@@ -388,6 +369,7 @@ export default {
           if (response.data.success) {
             // send data to Sockot.IO Server
             // this.$socket.emit("sendData", { action: "sap-database-delete" });
+            this.showAlert(response.data.success, "success");
           }
         },
         (error) => {
@@ -397,16 +379,16 @@ export default {
     },
 
     removeItem(item) {
-      let index = this.editedItem.branch.indexOf(item.id);
+      let index = this.editedItem.sap_db_branches.indexOf(item.id);
       
-      this.editedItem.branch.splice(index, 1);
+      this.editedItem.sap_db_branches.splice(index, 1);
     },
 
-    showAlert() {
+    showAlert(title, icon) {
       this.$swal({
         position: "center",
-        icon: "success",
-        title: "Record has been saved",
+        icon: icon,
+        title: title,
         showConfirmButton: false,
         timer: 2500,
       });
@@ -431,18 +413,11 @@ export default {
           const index = this.sap_databases.indexOf(item);
 
           //Call delete User function
-          this.deleteUser(sap_database_id);
+          this.deleteDatabase(sap_database_id);
 
           //Remove item from array services
           this.sap_databases.splice(index, 1);
 
-          this.$swal({
-            position: "center",
-            icon: "success",
-            title: "Record has been deleted",
-            showConfirmButton: false,
-            timer: 2500,
-          });
         }
       });
     },
@@ -450,18 +425,16 @@ export default {
     close() {
       this.dialog = false;
       this.clear();
-      this.$nextTick(() => {
-        this.editedItem = Object.assign({}, this.defaultItem);
-        this.editedIndex = -1;
-      });
     },
 
     clear() {
       this.$v.$reset();
+      this.editedItem = Object.assign({}, this.defaultItem);
       this.emailReadonly = false;
       this.password = "";
       this.confirm_password = "";
       this.passwordHasChanged = false;
+      this.editedIndex = -1;
     },
     onFocus() {
       if (this.editedIndex > -1) {

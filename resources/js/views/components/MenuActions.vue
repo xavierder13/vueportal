@@ -3,7 +3,7 @@
     class="d-flex justify-content-end mb-3" 
     v-if="menu.hasPermission"
   >
-    <v-menu offset-y>
+    <v-menu offset-y :close-on-content-click="false">
       <template v-slot:activator="{ on, attrs }">
         <v-btn small v-bind="attrs" v-on="on" color="primary">
           Actions
@@ -19,7 +19,7 @@
           >
             <v-list-item-title>
               <v-btn
-                class="mx-1"
+                class="mx-1 white--text"
                 :color="list.color"
                 width="100px"
                 x-small
@@ -108,7 +108,7 @@ export default {
           { 
             text: "Reconcile", 
             icon: "mdi-file-multiple", 
-            color: "cyan darken-2", 
+            color: "purple lighten-1", 
             method: "reconcile",
             hasPermission: this.canReconcile,
           },
