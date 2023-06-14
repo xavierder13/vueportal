@@ -505,46 +505,6 @@ export default {
   methods: {
     getProduct() {
 
-      // this.product_models = {};
-      // this.loading = true;
-
-      // const data = { items_per_page: this.itemsPerPage, search: this.search };
-      // axios.post("/api/product_model/index", data).then(
-      //   (response) => {
-
-      //     axios
-      //       .post(
-      //         response.data.product_models.path + "?page=" + this.page,
-      //         data
-      //       )
-      //       .then(
-      //         (response) => {
-          
-      //           let product_models = response.data.product_models;
-      //           this.product_models = product_models;
-      //           this.last_page = product_models.last_page;
-
-      //           this.footerProps.pagination = {
-      //             page: this.page,
-      //             itemsPerPage: this.itemsPerPage,
-      //             pageStart: product_models.from - 1,
-      //             pageStop: product_models.to,
-      //             pageCount: product_models.last_page,
-      //             itemsLength: product_models.total,
-      //           };
-
-      //           this.loading = false;
-      //         },
-      //         (error) => {
-      //           this.isUnauthorized(error);
-      //         }
-      //       );
-      //   },
-      //   (error) => {
-      //     this.isUnauthorized(error);
-      //   }
-      // );
-
       this.loading = true;
       axios.get("/api/product/index").then(
         (response) => {
@@ -913,11 +873,6 @@ export default {
       let barcode = this.$barcodeScanner.getPreviousCode();
       // do something...
     },
-    storeData() {
-      let data = this.storeProduct({name: "xavierder"});
-      console.log(data);
-    },
-    ...mapActions("product", ["storeProduct"]),
   },
   computed: {
     formTitle() {

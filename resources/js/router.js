@@ -9,6 +9,7 @@ import UserProfile from './views/user/UserProfile.vue';
 import ProductIndex from './views/inventory/product/ProductIndex.vue';
 import ProductListView from './views/inventory/product/ProductListView.vue';
 import ScanProduct from './views/inventory/scan_product/ScanProduct.vue';
+import ScannedProductList from './views/inventory/scan_product/ScannedProductList.vue';
 import SerialNumberDetails from './views/inventory/serial_number_details/SerialNumberDetails.vue';
 import InventoryReconciliation from './views/inventory/reconciliation/InventoryReconciliation.vue';
 import InventoryDiscrepancy from './views/inventory/reconciliation/InventoryDiscrepancy.vue';
@@ -91,6 +92,11 @@ const routes = [
         path: '/scan_product',
         name: 'scan.product',
         component: ScanProduct
+      },
+      {
+        path: '/scanned_product_list',
+        name: 'scan.product.list',
+        component: ScannedProductList
       },
       {
         path: '/inventory/reconciliation',

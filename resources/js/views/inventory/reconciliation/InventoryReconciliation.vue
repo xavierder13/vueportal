@@ -266,9 +266,9 @@ export default {
         }
       );
     },
-    async getInventoryReconcilation(inventory_recon_id) {
+    async getInventoryReconciliation(inventory_recon_id) {
       await axios
-        .get("/api/inventory_reconciliation/view/" + inventory_recon_id)
+        .get("/api/inventory_reconciliation/discrepancy/" + inventory_recon_id)
         .then(
           (response) => {
             let data = response.data;
@@ -391,7 +391,7 @@ export default {
     },
 
     printPDF(item) {
-      this.getInventoryReconcilation(item.id);
+      this.getInventoryReconciliation(item.id);
     },
 
     setPDFData() {
@@ -427,7 +427,7 @@ export default {
       let date = "Date:";
       let to = "To:";
       let from = "From:";
-
+  
       let invtymemo_value = this.branch_code + "-" + gFYear + "-" + gMonth;
       let date_value = thisMonth + " " + gDate + "," + gFYear;
 

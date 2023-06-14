@@ -141,34 +141,31 @@ export default {
     },
 
     exportData(item) {
-     
-      const data = { file_upload_log_id: item.id }
-      axios.post('/api/product/export', data, { responseType: 'arraybuffer'})
-        .then((response) => {
-            var fileURL = window.URL.createObjectURL(new Blob([response.data]));
-            var fileLink = document.createElement('a');
-            fileLink.href = fileURL;
-            fileLink.setAttribute('download', 'ProductList.xls');
-            document.body.appendChild(fileLink);
-            fileLink.click();
-        }, (error) => {
-          console.log(error);
-        }
-      );
-      
+
+      const data = { branch_id: item.branch_id }
+      console.log(item);
+      this.fetchDownload('/api/product/export', data, 'ProductList.xls');
+
     },
 
     downloadTemplate(item) {
       this.dialog_loading = true;
-      const data = { branch_id: item[0].id };
-      axios.post('/api/product/template/download', data)
+
+      const data = { branch_id: item[0].id }
+      this.fetchDownload('/api/product/template/download', data, 'ProductTemplate.xls');
+
+    },
+
+    fetchDownload(url, data, file_name) {
+
+      axios.post(url, data, { responseType: 'arraybuffer'})
         .then((response) => {
-          // console.log(response);
+          console.log(response.data);
           this.dialog_loading = false;
           var fileURL = window.URL.createObjectURL(new Blob([response.data]));
           var fileLink = document.createElement('a');
           fileLink.href = fileURL;
-          fileLink.setAttribute('download', 'ProductTemplate.xls');
+          fileLink.setAttribute('download', file_name);
           document.body.appendChild(fileLink);
           fileLink.click();
         }, (error) => {

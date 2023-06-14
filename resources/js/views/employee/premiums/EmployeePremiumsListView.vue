@@ -605,15 +605,6 @@ export default {
       file_upload_log: "",
       dialog_import: false,
       api_route: "",
-      swalAttr: {
-        title: "",
-        text: "You won't be able to revert this!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#d33",
-        cancelButtonColor: "#6c757d",
-        confirmButtonText: "",
-      }
     };
   },
 
@@ -745,10 +736,15 @@ export default {
     },
 
     showConfirmAlert(item) {
-
-      Object.assign(this.swalAttr, { title: "Delete Record", confirmButtonText: "Delete Record!" });
-
-      this.$swal(this.swalAttr).then((result) => {
+      this.$swal({
+        title: "Are you sure?",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#6c757d",
+        confirmButtonText: "Delete record!",
+      }).then((result) => {
         // <--
 
         if (result.value) {
@@ -816,11 +812,18 @@ export default {
     },
 
     clearList() {
-      Object.assign(this.swalAttr, { title: "Clear List", confirmButtonText: "Clear List!" });
-
       if (this.employee_premiums.length) {
-        this.$swal(this.swalAttr).then((result) => {
+        this.$swal({
+          title: "Are you sure?",
+          text: "You won't be able to revert this!",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#d33",
+          cancelButtonColor: "#6c757d",
+          confirmButtonText: "Clear List!",
+        }).then((result) => {
           // <--
+
           if (result.value) {
             // <-- if confirmed
 
@@ -880,11 +883,11 @@ export default {
         let action = data.action;
 
         if (
-          action == "employee-loans-create" ||
-          action == "employee-loans-edit" ||
-          action == "employee-loans-delete" ||
-          action == "employee-loans-import" ||
-          action == "employee-loans-clear-list"
+          action == "employee-premiums-create" ||
+          action == "employee-premiums-edit" ||
+          action == "employee-premiums-delete" ||
+          action == "employee-premiums-import" ||
+          action == "employee-premiums-clear-list"
         ) {
           this.getEmployeePremiums();
         }

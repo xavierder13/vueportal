@@ -20,8 +20,7 @@ class ProductsTemplate implements FromCollection, WithHeadings
     */
     public function collection()
     {   
-        
-        return $this->data;
+        return collect($this->data) ;
     }
 
     public function headings(): array
@@ -31,7 +30,7 @@ class ProductsTemplate implements FromCollection, WithHeadings
             'MODEL',
             'PRODUCT CATEGORY',
             'SERIAL',
-            'QUANTITY'
+            'QUANTITY',
         ];
     }
 }

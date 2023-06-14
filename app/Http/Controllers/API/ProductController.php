@@ -96,9 +96,12 @@ class ProductController extends Controller
                                     $query->where('user_id', '=', $user->id);
                                 }
                            })
-                        //    ->where()
+                           ->where(function($query){
+                                $query->whereNull('file_upload_log_id')
+                                      ->orWhere('file_upload_log_id', 0);
+
+                           })
                            ->select(DB::raw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_created"))
-                        //    ->paginate($request->items_per_page);
                            ->get();
 
         $brands = Brand::all();
@@ -611,61 +614,101 @@ class ProductController extends Controller
     public function export(Request $request)
     {   
 
-        $params = ['branch_id' => $request->get('branch_id')];
-        return Excel::download(new ProductsExport($params), 'products.xls');
+        // $params = ['file_upload_log_id' => $request->get('file_upload_log_id')];
+        return Excel::download(new ProductsExport($request), 'products.xls');
     }
 
     public function template_download(Request $request)
     {   
-        $sap_db_branch = SapDbBranch::with('sap_database')
-                         ->with('branch')
-                         ->where('branch_id', $request->branch_id)->first();
 
-        $db = $sap_db_branch->sap_database;
-        $branch = $sap_db_branch->branch->name;
+        try 
+        {
+            // $sap_db_branch = SapDbBranch::with('sap_database')
+            //                         ->with('branch')
+            //                         ->where('branch_id', $request->branch_id)->first();
 
-        $password = Crypt::decrypt($db->password);
-        Config::set('database.connections.'.$db->database, array(
-                    'driver' => 'sqlsrv',
-                    'host' => $db->server,
-                    'port' => '1433',
-                    'database' => $db->database,
-                    'username' => $db->username,
-                    'password' => $password,   
-                ));
+            // $db = $sap_db_branch->sap_database;
+            // $branch = $sap_db_branch->branch->name;
 
-        $inventory_onhand = DB::connection($db->database)->select("
-            SELECT 
-                distinct
-                d.FirmName BRAND, 
-                c.ItemName MODEL,
-                c.FrgnName CATEGORY, 
-                '' SERIAL,
-                '' QTY
-                
-            FROM 
-            OITW a
-                LEFT JOIN OSRI b on (a.ItemCode = b.ItemCode and a.WhsCode = b.WhsCode)
-                INNER JOIN OITM c on a.ItemCode = c.ItemCode
-                INNER JOIN OMRC d on c.FirmCode = d.FirmCode
-                INNER JOIN OWHS e on a.WhsCode = e.WhsCode 
-                INNER JOIN [@PROGTBL] f on UPPER(e.Street) COLLATE DATABASE_DEFAULT = CASE WHEN DB_NAME() = 'ReportsFinance' THEN f.U_Branch2 ELSE f.U_Branch1 END
-            WHERE a.OnHand <> 0 and b.Status = '0' and f.U_Branch1 = :branch
-            ORDER by 1, 2, 3, 4
-        ",
-        ['branch' => $branch]);
+            // $password = Crypt::decrypt($db->password);
+            // Config::set('database.connections.'.$db->database, array(
+            //             'driver' => 'sqlsrv',
+            //             'host' => $db->server,
+            //             'port' => '1433',
+            //             'database' => $db->database,
+            //             'username' => $db->username,
+            //             'password' => $password,   
+            //         ));
 
-        // Excel::download('Filename', function($excel) use($inventory_onhand) {
+            // $inventory_onhand = DB::connection($db->database)->select("
+            //     SELECT 
+            //         distinct
+            //         d.FirmName BRAND, 
+            //         c.ItemName MODEL,
+            //         c.FrgnName CATEGORY, 
+            //         '' SERIAL,
+            //         '' QTY
+                    
+            //     FROM 
+            //     OITW a
+            //         LEFT JOIN OSRI b on (a.ItemCode = b.ItemCode and a.WhsCode = b.WhsCode)
+            //         INNER JOIN OITM c on a.ItemCode = c.ItemCode
+            //         INNER JOIN OMRC d on c.FirmCode = d.FirmCode
+            //         INNER JOIN OWHS e on a.WhsCode = e.WhsCode 
+            //         INNER JOIN [@PROGTBL] f on UPPER(e.Street) COLLATE DATABASE_DEFAULT = CASE WHEN DB_NAME() = 'ReportsFinance' THEN f.U_Branch2 ELSE f.U_Branch1 END
+            //     WHERE a.OnHand <> 0 and b.Status = '0' and f.U_Branch1 = :branch
+            //     ORDER by 1, 2, 3, 4
+            // ",
+            // ['branch' => $branch]);
 
-        //     $excel->sheet('Sheetname', function($sheet) use($inventory_onhand) {
+            // Excel::download('Filename', function($excel) use($inventory_onhand) {
+
+            //     $excel->sheet('Sheetname', function($sheet) use($inventory_onhand) {
+            
+            //         $sheet->fromArray($inventory_onhand);
+            
+            //     });
+            
+            // })->export('xls');   
+
+            $arr = [
+                [
+                    'BRAND' => 'SAMSUNG',
+                    'MODEL' => 'MODEL001',
+                    'CATEGORY' => 'LAPTOP',
+                    'SERIAL' => '001',
+                    'QTY' => 1,
+                ],
+                [
+                    'BRAND' => 'SAMSUNG',
+                    'MODEL' => 'MODEL002',
+                    'CATEGORY' => 'LAPTOP',
+                    'SERIAL' => '002',
+                    'QTY' => 2,
+                ],
+                [
+                    'BRAND' => 'LG',
+                    'MODEL' => 'MODEL001',
+                    'CATEGORY' => 'LAPTOP',
+                    'SERIAL' => '001',
+                    'QTY' => 1,
+                ],
+                [
+                    'BRAND' => 'LG',
+                    'MODEL' => 'MODEL002',
+                    'CATEGORY' => 'LAPTOP',
+                    'SERIAL' => '002',
+                    'QTY' => 2,
+                ],
+
+            ];
+
+            return Excel::download(new ProductsTemplate($arr), 'template.xls');
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 200);
+        }
+
         
-        //         $sheet->fromArray($inventory_onhand);
-        
-        //     });
-        
-        // })->export('xls');
-
-        return Excel::download(new ProductsTemplate($inventory_onhand), 'template.xls');
     }
 
     public function serial_number_details (Request $request)

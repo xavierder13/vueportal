@@ -30,11 +30,16 @@ class ProductsExport implements FromCollection, WithHeadings
                       ->select(DB::raw('brands.name as brand'), 'products.model', DB::raw('product_categories.name as product_category'), 'products.serial')
                       ->where(function($query) use ($params){
                             
-                          if($params['branch_id'] <> 0) //select with specific branch and user
-                          {
-                              $query->where('products.branch_id', '=', $params['branch_id']);
-                          }
-                          
+                        if(isset($params['branch_id']))
+                        {
+                            $query->where('products.branch_id', '=', $params['branch_id']);
+                        }
+                        
+                        if(isset($params['file_upload_log_id']))
+                        {
+                            $query->where('products.file_upload_log_id', '=', $params['file_upload_log_id']);
+                        }
+                         
                       })
                       ->orderBy('brands.name', 'Asc')
                       ->orderBy('products.model', 'Asc')
