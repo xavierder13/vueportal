@@ -430,12 +430,12 @@ export default {
   
       let invtymemo_value = this.branch_code + "-" + gFYear + "-" + gMonth;
       let date_value = thisMonth + " " + gDate + "," + gFYear;
-
+      let bm_oic = this.bm_oic ? this.bm_oic : '';
       let to_position = "BM/OIC";
       let from_value = "Admin-Inventory Department";
 
       let beneath_table =
-        "Please verify, reconcile and coordinate to admin for the reconciliation of the discrepancies within Two (2) days upon the receipt of this Memo.";
+        "Please verify, reconcile and coordinate to admin for the reconciliation of the discrepancies within Ten (10) days upon the receipt of this Memo.";
       let beneath_from = "Physical Inventory Report for the month of";
       let beneath_from_value = lastMonth + " " + gFYear;
       let date_submitted = "Date Submitted:";
@@ -451,7 +451,7 @@ export default {
       doc.text(date_value, 80, 40);
 
       doc.setFontSize(7);
-      doc.text(this.bm_oic, 80, 55);
+      doc.text(bm_oic, 80, 55);
       doc.text(to_position, 80, 60);
 
       doc.setFontSize(7);
@@ -554,7 +554,7 @@ export default {
 
       let verified_by = "Verified by:";
       let verified_by_value = "GERALD SUNIGA";
-      let verified_by_position = "Inventory Section Head";
+      let verified_by_position = "Inventory Recon Section Head";
       let verified_by_value_2 = "MARIEL QUITALEG";
       let verified_by_position_2 = "Inventory & Warehousing Manager";
 

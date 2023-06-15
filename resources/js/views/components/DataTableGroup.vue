@@ -148,7 +148,8 @@ export default {
     return {
       search: "",
       headers: [
-        { text: "Branch", value: "branch" },
+        { text: "Branch", value: "grp_branch" },
+        { text: "", value: "name" },
         { text: "Date Uploaded", value: "date_uploaded" },
         { text: "Document Date", value: "docdate" },
         { text: "Actions", value: "actions", sortable: false, width: "120px" },

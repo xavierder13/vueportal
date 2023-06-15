@@ -5,10 +5,11 @@ namespace App\Exports;
 use App\Product;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
 use DB;
 use Auth;
 
-class ProductsExport implements FromCollection, WithHeadings
+class ProductsExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder implements WithCustomValueBinder, FromCollection, WithHeadings 
 {
     /**
     * @return \Illuminate\Support\Collection

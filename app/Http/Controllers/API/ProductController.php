@@ -586,6 +586,8 @@ class ProductController extends Controller
                 
                 foreach ($fields as $field) {
 
+                    $qty = $field['QTY'] ? $field['QTY'] : 1;
+
                     Product::create([
                         'user_id' => $user->id,
                         'branch_id' => $branch_id,
@@ -593,7 +595,7 @@ class ProductController extends Controller
                         'model' => $field['MODEL'],
                         'product_category_id' => ProductCategory::where('name', '=', $field['CATEGORY'])->get()->first()->id,
                         'serial' => $field['SERIAL'],
-                        'quantity' => $field['QTY'],
+                        'quantity' => $qty,
                         'file_upload_log_id' => $file_upload_log->id,
                     ]);
                 }
@@ -623,87 +625,45 @@ class ProductController extends Controller
 
         try 
         {
-            // $sap_db_branch = SapDbBranch::with('sap_database')
-            //                         ->with('branch')
-            //                         ->where('branch_id', $request->branch_id)->first();
+            $sap_db_branch = SapDbBranch::with('sap_database')
+                                    ->with('branch')
+                                    ->where('branch_id', $request->branch_id)->first();
 
-            // $db = $sap_db_branch->sap_database;
-            // $branch = $sap_db_branch->branch->name;
+            $db = $sap_db_branch->sap_database;
+            $branch = $sap_db_branch->branch->name;
 
-            // $password = Crypt::decrypt($db->password);
-            // Config::set('database.connections.'.$db->database, array(
-            //             'driver' => 'sqlsrv',
-            //             'host' => $db->server,
-            //             'port' => '1433',
-            //             'database' => $db->database,
-            //             'username' => $db->username,
-            //             'password' => $password,   
-            //         ));
+            $password = Crypt::decrypt($db->password);
+            Config::set('database.connections.'.$db->database, array(
+                        'driver' => 'sqlsrv',
+                        'host' => $db->server,
+                        'port' => '1433',
+                        'database' => $db->database,
+                        'username' => $db->username,
+                        'password' => $password,   
+                    ));
 
-            // $inventory_onhand = DB::connection($db->database)->select("
-            //     SELECT 
-            //         distinct
-            //         d.FirmName BRAND, 
-            //         c.ItemName MODEL,
-            //         c.FrgnName CATEGORY, 
-            //         '' SERIAL,
-            //         '' QTY
+            $inventory_onhand = DB::connection($db->database)->select("
+                SELECT 
+                    distinct
+                    d.FirmName BRAND, 
+                    c.ItemName MODEL,
+                    c.FrgnName CATEGORY, 
+                    '' SERIAL,
+                    '' QTY
                     
-            //     FROM 
-            //     OITW a
-            //         LEFT JOIN OSRI b on (a.ItemCode = b.ItemCode and a.WhsCode = b.WhsCode)
-            //         INNER JOIN OITM c on a.ItemCode = c.ItemCode
-            //         INNER JOIN OMRC d on c.FirmCode = d.FirmCode
-            //         INNER JOIN OWHS e on a.WhsCode = e.WhsCode 
-            //         INNER JOIN [@PROGTBL] f on UPPER(e.Street) COLLATE DATABASE_DEFAULT = CASE WHEN DB_NAME() = 'ReportsFinance' THEN f.U_Branch2 ELSE f.U_Branch1 END
-            //     WHERE a.OnHand <> 0 and b.Status = '0' and f.U_Branch1 = :branch
-            //     ORDER by 1, 2, 3, 4
-            // ",
-            // ['branch' => $branch]);
+                FROM 
+                OITW a
+                    LEFT JOIN OSRI b on (a.ItemCode = b.ItemCode and a.WhsCode = b.WhsCode)
+                    INNER JOIN OITM c on a.ItemCode = c.ItemCode
+                    INNER JOIN OMRC d on c.FirmCode = d.FirmCode
+                    INNER JOIN OWHS e on a.WhsCode = e.WhsCode 
+                    INNER JOIN [@PROGTBL] f on UPPER(e.Street) COLLATE DATABASE_DEFAULT = CASE WHEN DB_NAME() = 'ReportsFinance' THEN f.U_Branch2 ELSE f.U_Branch1 END
+                WHERE a.OnHand <> 0 and b.Status = '0' and f.U_Branch1 = :branch
+                ORDER by 1, 2, 3, 4
+            ",
+            ['branch' => $branch]);
 
-            // Excel::download('Filename', function($excel) use($inventory_onhand) {
-
-            //     $excel->sheet('Sheetname', function($sheet) use($inventory_onhand) {
-            
-            //         $sheet->fromArray($inventory_onhand);
-            
-            //     });
-            
-            // })->export('xls');   
-
-            $arr = [
-                [
-                    'BRAND' => 'SAMSUNG',
-                    'MODEL' => 'MODEL001',
-                    'CATEGORY' => 'LAPTOP',
-                    'SERIAL' => '001',
-                    'QTY' => 1,
-                ],
-                [
-                    'BRAND' => 'SAMSUNG',
-                    'MODEL' => 'MODEL002',
-                    'CATEGORY' => 'LAPTOP',
-                    'SERIAL' => '002',
-                    'QTY' => 2,
-                ],
-                [
-                    'BRAND' => 'LG',
-                    'MODEL' => 'MODEL001',
-                    'CATEGORY' => 'LAPTOP',
-                    'SERIAL' => '001',
-                    'QTY' => 1,
-                ],
-                [
-                    'BRAND' => 'LG',
-                    'MODEL' => 'MODEL002',
-                    'CATEGORY' => 'LAPTOP',
-                    'SERIAL' => '002',
-                    'QTY' => 2,
-                ],
-
-            ];
-
-            return Excel::download(new ProductsTemplate($arr), 'template.xls');
+            return Excel::download(new ProductsTemplate($inventory_onhand), 'template.xls');
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 200);
         }
@@ -836,6 +796,38 @@ class ProductController extends Controller
     {   
 
         try {
+
+            $whseArr = [];
+            $databases = SapDatabase::where('server', '=', '192.168.1.13')->get();
+
+            foreach ($databases as $key => $db) {
+                
+                $password = Crypt::decrypt($db->password);
+
+                Config::set('database.connections.'.$db->database, array(
+                    'driver' => 'sqlsrv',
+                    'host' => $db->server,
+                    'port' => '1433',
+                    'database' => $db->database,
+                    'username' => $db->username,
+                    'password' => $password,   
+                ));
+
+                $whseArr[$db->database] = DB::connection($db->database)
+                    ->select("SELECT distinct LEFT(whscode, 4) as whscode from OWHS");
+            }
+            
+            $whse_codes = [];
+
+            foreach ($whseArr as $value) {
+                foreach ($value as $code) {
+                    $whse_codes [] = $code->whscode;
+                }
+            }
+
+            sort($whse_codes);
+            
+            return $whse_codes;
 
             $db = SapDatabase::where('database', '=', 'ReportsFinance')->get()->first();
 
@@ -992,7 +984,7 @@ class ProductController extends Controller
             foreach ($categories_sap as $key => $value) {
                 ProductCategory::create(['name' => $value->category, 'active' => 'Y']);     
             }
-
+            
             return response()->json(['success' => 'Item master Data has been synced'], 200);
 
         } catch (\Exception $e) {

@@ -143,7 +143,6 @@ export default {
     exportData(item) {
 
       const data = { branch_id: item.branch_id }
-      console.log(item);
       this.fetchDownload('/api/product/export', data, 'ProductList.xls');
 
     },
@@ -160,7 +159,6 @@ export default {
 
       axios.post(url, data, { responseType: 'arraybuffer'})
         .then((response) => {
-          console.log(response.data);
           this.dialog_loading = false;
           var fileURL = window.URL.createObjectURL(new Blob([response.data]));
           var fileLink = document.createElement('a');
