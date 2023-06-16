@@ -49,6 +49,7 @@ export default {
     'canSync',
     'canExport',
     'canDownloadFile',
+    'canPrintPDF',
     'canClearList',
     'export_url',
     'download_url',
@@ -146,6 +147,13 @@ export default {
             color: "success", 
             method: "export",
             hasPermission: this.canExport 
+          },
+          { 
+            text: "Print PDF", 
+            icon: "mdi-microsoft-excel", 
+            color: "secondary", 
+            method: "printPDF",
+            hasPermission: this.canPrintPDF 
           },
           { 
             text: "Clear List", 

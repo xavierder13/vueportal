@@ -797,37 +797,37 @@ class ProductController extends Controller
 
         try {
 
-            $whseArr = [];
-            $databases = SapDatabase::where('server', '=', '192.168.1.13')->get();
+            // $whseArr = [];
+            // $databases = SapDatabase::where('server', '=', '192.168.1.13')->get();
 
-            foreach ($databases as $key => $db) {
+            // foreach ($databases as $key => $db) {
                 
-                $password = Crypt::decrypt($db->password);
+            //     $password = Crypt::decrypt($db->password);
 
-                Config::set('database.connections.'.$db->database, array(
-                    'driver' => 'sqlsrv',
-                    'host' => $db->server,
-                    'port' => '1433',
-                    'database' => $db->database,
-                    'username' => $db->username,
-                    'password' => $password,   
-                ));
+            //     Config::set('database.connections.'.$db->database, array(
+            //         'driver' => 'sqlsrv',
+            //         'host' => $db->server,
+            //         'port' => '1433',
+            //         'database' => $db->database,
+            //         'username' => $db->username,
+            //         'password' => $password,   
+            //     ));
 
-                $whseArr[$db->database] = DB::connection($db->database)
-                    ->select("SELECT distinct LEFT(whscode, 4) as whscode from OWHS");
-            }
+            //     $whseArr[$db->database] = DB::connection($db->database)
+            //         ->select("SELECT distinct LEFT(whscode, 4) as whscode from OWHS");
+            // }
             
-            $whse_codes = [];
+            // $whse_codes = [];
 
-            foreach ($whseArr as $value) {
-                foreach ($value as $code) {
-                    $whse_codes [] = $code->whscode;
-                }
-            }
+            // foreach ($whseArr as $value) {
+            //     foreach ($value as $code) {
+            //         $whse_codes [] = $code->whscode;
+            //     }
+            // }
 
-            sort($whse_codes);
+            // sort($whse_codes);
             
-            return $whse_codes;
+            // return $whse_codes;
 
             $db = SapDatabase::where('database', '=', 'ReportsFinance')->get()->first();
 

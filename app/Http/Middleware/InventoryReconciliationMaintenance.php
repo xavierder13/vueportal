@@ -21,7 +21,10 @@ class InventoryReconciliationMaintenance
         //Inventory Reconciliation Record
         if($request->is('api/inventory_reconciliation/index') || 
            $request->is('api/inventory_reconciliation/discrepancy/*') ||
-           $request->is('api/inventory_reconciliation/breakdown/*')){
+           $request->is('api/inventory_reconciliation/breakdown/*') ||
+           $request->is('api/inventory_reconciliation/export_discrepancy/*') ||
+           $request->is('api/inventory_reconciliation/export_breakdown/*')
+           ){
             if($user->can('inventory-recon-list')){
                 return $next($request); 
             }

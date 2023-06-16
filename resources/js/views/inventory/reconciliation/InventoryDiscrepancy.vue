@@ -9,77 +9,25 @@
             </v-breadcrumbs-item>
           </template>
         </v-breadcrumbs>
-        <div class="d-flex justify-content-end mb-3">
-          <div>
-            <v-menu offset-y>
-              <template v-slot:activator="{ on, attrs }">
-                <v-btn small v-bind="attrs" v-on="on" color="primary"> 
-                  Actions
-                  <v-icon small> mdi-menu-down </v-icon>
-                </v-btn>
-              </template>
-              <v-list class="pa-1">
-                <v-list-item class="ma-0 pa-0" style="min-height: 25px">
-                  <v-list-item-title>
-                    <v-btn
-                      class="ma-2"
-                      color="secondary"
-                      small
-                      @click="printPDF()"
-                    >
-                      <v-icon class="mr-1" small> mdi-file-pdf </v-icon>
-                      Print PDF
-                    </v-btn>
-                  </v-list-item-title>
-                </v-list-item>
-                <v-list-item class="ma-0 pa-0" style="min-height: 25px">
-                  <v-list-item-title>
-                    <!-- <v-btn
-                      class="ma-2"
-                      color="success"
-                      width="120px"
-                      small
-                      @click="exportData()"
-                    >
-                      <v-icon class="mr-1" small> mdi-microsoft-excel </v-icon>
-                      Export
-                    </v-btn> -->
-
-                    <export-excel
+        <MenuActions
+          :canExport="true"
+          :canPrintPDF="true"
+          @export="exportData"
+          @printPDF="printPDF"
+        />
+        <!-- <export-excel
                       :data="products"
                       :fields="json_fields"
                       type="xls"
                       :name="branch + '_Reconciliations - Discrepancy.xls'"
                     >
-                      <v-btn class="ma-2" color="success" width="120px" small>
-                        <v-icon class="mr-1" small>
+                      <v-btn class="mx-1" color="success" width="100px" x-small>
+                        <v-icon class="mr-1" x-small>
                           mdi-microsoft-excel
                         </v-icon>
                         Export
                       </v-btn>
-                    </export-excel>
-                  </v-list-item-title>
-                </v-list-item>
-                <!-- <v-list-item
-                  class="ma-0 pa-0"
-                  style="min-height: 25px"
-                  v-if="hasPermission('inventory-recon-delete')"
-                >
-                  <v-list-item-title>
-                    <v-btn
-                      class="ma-2"
-                      color="error"
-                      width="120px"
-                      small
-                      @click="deleteInventory()"
-                      ><v-icon class="mr-1" small> mdi-delete </v-icon>delete
-                    </v-btn>
-                  </v-list-item-title>
-                </v-list-item> -->
-              </v-list>
-            </v-menu>
-          </div>
-        </div>
+                    </export-excel> -->
         <v-card>
           <v-card-title>
             Inventory Reconciliation - {{ branch }}
@@ -168,8 +116,13 @@ import axios from "axios";
 import { mapState, mapGetters } from "vuex";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
+import MenuActions from '../../components/MenuActions.vue';
 
 export default {
+  name: "InventoryDiscrepancy",
+  components: {
+    MenuActions,
+  },
   data() {
     return {
       search: "",
@@ -280,13 +233,8 @@ export default {
             axios.post("/api/inventory_reconciliation/delete", data).then(
               (response) => {
                 if (response.data.success) {
-                  this.$swal({
-                    position: "center",
-                    icon: "success",
-                    title: "Record has been deleted",
-                    showConfirmButton: false,
-                    timer: 2500,
-                  });
+
+                  this.showAlert(response.data.success, "success");
 
                   this.$router.push({ name: "inventory.reconciliation" });
                 }
@@ -299,21 +247,15 @@ export default {
           }
         });
       } else {
-        this.$swal({
-          position: "center",
-          icon: "warning",
-          title: "No record found",
-          showConfirmButton: false,
-          timer: 2500,
-        });
+        this.showAlert("No record found", "warning");
       }
     },
 
-    showAlert() {
+    showAlert(title, icon) {
       this.$swal({
         position: "center",
-        icon: "success",
-        title: "Record has been saved",
+        icon: icon,
+        title: title,
         showConfirmButton: false,
         timer: 2500,
       });
@@ -380,6 +322,7 @@ export default {
         let date_value = thisMonth + " " + gDate + "," + gFYear;
         let to_value =
           "{{ $branch->bm_oic ? strtoupper($branch->bm_oic) : 'NONE' }}";
+        let bm_oic = this.bm_oic ? this.bm_oic : '';
         let to_position = "BM/OIC";
         let from_value = "Admin-Inventory Department";
 
@@ -400,7 +343,7 @@ export default {
         doc.text(date_value, 80, 40);
 
         doc.setFontSize(7);
-        doc.text(this.bm_oic, 80, 55);
+        doc.text(bm_oic, 80, 55);
         doc.text(to_position, 80, 60);
 
         doc.setFontSize(7);
@@ -573,14 +516,23 @@ export default {
     },
     exportData() {
       if (this.products.length) {
+        let inventory_recon_id = this.$route.params.inventory_recon_id;
+        axios.get('/api/inventory_reconciliation/export_discrepancy/' + inventory_recon_id, { responseType: 'arraybuffer'})
+          .then((response) => {
+              var fileURL = window.URL.createObjectURL(new Blob([response.data]));
+              var fileLink = document.createElement('a');
+              fileLink.href = fileURL;
+              fileLink.setAttribute('download', 'InventoryDiscrepancy.xls');
+              document.body.appendChild(fileLink);
+              fileLink.click();
+          }, (error) => {
+            console.log(error);
+          }
+        );
+
       } else {
-        this.$swal({
-          position: "center",
-          icon: "warning",
-          title: "No record found",
-          showConfirmButton: false,
-          timer: 2500,
-        });
+
+        this.showAlert("No record found", "warning")
       }
     },
 

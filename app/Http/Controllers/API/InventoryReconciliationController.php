@@ -11,6 +11,8 @@ use App\Branch;
 use App\InventoryReconciliation;
 use App\InventoryReconciliationMap;
 use App\SapDatabase;
+use App\Exports\InventoryDiscrepancy;
+use App\Exports\InventoryBreakdown;
 use DB;
 use Validator;
 use Auth;
@@ -89,7 +91,11 @@ class InventoryReconciliationController extends Controller
 
     public function discrepancy($inventory_recon_id)
     {   
-        
+        return response()->json($this->getDiscrepancy($inventory_recon_id), 200);
+    }
+
+    public function getDiscrepancy($inventory_recon_id)
+    {
         $reconciliation = InventoryReconciliation::with('branch')
                                                  ->with('user')
                                                  ->with('user.position')
@@ -110,84 +116,48 @@ class InventoryReconciliationController extends Controller
                                                       ->get(['brand', 'model', 'product_category']);
         $sap_inventory = $inventory_reconciliation->where('inventory_type', '=', 'SAP');
         $physical_inventory = $inventory_reconciliation->where('inventory_type', '=', 'Physical');
-
+        
         $products = [];
-        $sap_discrepancy = [];
-        $sap_has_serial = false;
-        $physical_discrepancy = [];
-        $physical_has_serial = false;
-        $ctr1 = 0;
-        $ctr2 = 0;
 
         foreach ($product_distinct as $key => $product) {
             $sap_discrepancy = [];
             $physical_discrepancy = [];
-            $ctr1 = 0;
-            $ctr2 = 0;
+
+            $sap =  $sap_inventory->where('brand', $product['brand'])
+                                  ->where('model', $product['model'])
+                                  ->where('product_category', $product['product_category']);
+
+            $physical = $physical_inventory->where('brand', $product['brand'])
+                                           ->where('model', $product['model'])
+                                           ->where('product_category', $product['product_category']);
+            
+            $sap_qty = $sap->count();
+            $physical_qty = $physical->count();
 
             // SAP product inventory
-            foreach ($sap_inventory as $index => $sap) {
+            foreach ($sap as $index => $value) {
                 
-                // count all products per brand and model
-                if(strtoupper($product['brand']) == strtoupper($sap['brand']) && 
-                   strtoupper($product['model']) == strtoupper($sap['model'])  && 
-                   strtoupper($product['product_category']) == strtoupper($sap['product_category']))
+                // find the serial from physical_inventory to identify the discrep
+                $physical_serial_ctr = $physical->where('serial', $value['serial'])->count();
+
+                // if this product is not in Physical Inventory then get the serial discrepancy
+                if($physical_serial_ctr === 0)
                 {
-                    $ctr1++;
-
-                    $sap_has_serial = false;
-                    // get discrepancy based from SAP vs Physical 
-                    foreach ($physical_inventory as $i => $physical) {
-                        
-                        if(strtoupper($sap['brand']) == strtoupper($physical['brand']) && 
-                           strtoupper($sap['model']) == strtoupper($physical['model']) && 
-                           strtoupper($sap['product_category']) == strtoupper($physical['product_category']) &&
-                           $sap['serial'] == $physical['serial'])
-                        {
-                            $sap_has_serial = true;
-                        }
-        
-                    }
-
-                    // if this product is not in Physical Inventory then get the serial discrepancy
-                    if(!$sap_has_serial)
-                    {
-                        $sap_discrepancy[] = $sap['serial'];
-                    }
+                    $sap_discrepancy[] = $value['serial'];
                 }
-            
+                
             }
             
             // Physical product inventory
-            foreach ($physical_inventory as $key => $physical) {
+            foreach ($physical as $key => $value) {
                 
-                // count all items per brand and model
-                if(strtoupper($product['brand']) == strtoupper($physical['brand']) && 
-                   strtoupper($product['model']) == strtoupper($physical['model']) &&
-                   strtoupper($product['product_category']) == strtoupper($physical['product_category']))
+                // find the serial from sap to identify the discrep
+                $sap_serial_ctr = $sap->where('serial', $value['serial'])->count();
+
+                // if this product is not in SAP Inventory then get the serial discrepancy
+                if($sap_serial_ctr === 0)
                 {
-                    $ctr2++;
-
-                    $physical_has_serial = false;
-
-                    // get discrepancy based from Physical vs SAP 
-                    foreach ($sap_inventory as $i => $sap) {
-                        
-                        if(strtoupper($sap['brand']) == strtoupper($physical['brand']) && 
-                           strtoupper($sap['model']) == strtoupper($physical['model']) && 
-                           strtoupper($sap['product_category']) == strtoupper($physical['product_category']) &&
-                           $sap['serial'] == $physical['serial'])
-                        {
-                            $physical_has_serial = true;
-                        }
-        
-                    }
-
-                    // if this product is not in SAP Inventory then get the serial discrepancy
-                    if(!$physical_has_serial)
-                    {
-                        $physical_discrepancy[] = $physical['serial'];
-                    }
+                    $physical_discrepancy[] = $value['serial'];
                 }
 
             }
@@ -196,16 +166,16 @@ class InventoryReconciliationController extends Controller
                 'brand' => $product['brand'],
                 'model' => $product['model'],
                 'product_category' => $product['product_category'],
-                'sap_qty' => $ctr1,
-                'physical_qty' => $ctr2,
-                'qty_diff' => $ctr2 - $ctr1, // physical - sap quantity
+                'sap_qty' => $sap_qty,
+                'physical_qty' => $physical_qty,
+                'qty_diff' => $physical_qty - $sap_qty, // physical - sap quantity
                 'sap_discrepancy' => join(', ', $sap_discrepancy),
                 'physical_discrepancy' => join(', ', $physical_discrepancy),
             ];
 
         }
         
-        return response()->json([
+        return [
             'inventory_reconciliation' => $inventory_reconciliation, 
             'sap_inventory' => $sap_inventory, 
             'physical_inventory' => $physical_inventory,
@@ -213,12 +183,17 @@ class InventoryReconciliationController extends Controller
             'date_reconciled' => $date_reconciled,
             'reconciliation' => $reconciliation,
 
-        ], 200);
+        ];
     }
 
     public function breakdown($inventory_recon_id)
     {   
 
+        return response()->json($this->getBreakdown($inventory_recon_id), 200);
+    }
+
+    public function getBreakdown($inventory_recon_id)
+    {
         $reconciliation = InventoryReconciliation::with('branch')
                                                  ->with('user')
                                                  ->with('user.position')
@@ -247,46 +222,27 @@ class InventoryReconciliationController extends Controller
 
         foreach ($product_distinct as $key => $product) {
 
-            $sap_has_serial = false;
-            $physical_has_serial = false;
+            $sap_serial_ctr =  $sap_inventory->where('brand', $product['brand'])
+                                  ->where('model', $product['model'])
+                                  ->where('product_category', $product['product_category'])
+                                  ->where('serial', $product['serial']);
 
-            // SAP product inventory
-            foreach ($sap_inventory as $index => $sap) {
-                
-                if(strtoupper($product['brand']) == strtoupper($sap['brand']) && 
-                   strtoupper($product['model']) == strtoupper($sap['model'])  && 
-                   strtoupper($product['product_category']) == strtoupper($sap['product_category']) &&
-                   strtoupper($product['serial']) == strtoupper($sap['serial']))
-                {
-                    $sap_has_serial = true;
-                }
-            
-            }
-            
-            // Physical product inventory
-            foreach ($physical_inventory as $key => $physical) {
-                
-                if(strtoupper($product['brand']) == strtoupper($physical['brand']) && 
-                   strtoupper($product['model']) == strtoupper($physical['model']) &&
-                   strtoupper($product['product_category']) == strtoupper($physical['product_category']) &&
-                   strtoupper($product['serial']) == strtoupper($physical['serial']))
-                {   
-                    $physical_has_serial = true;
-                }
-
-            }
+            $physical_serial_ctr = $physical_inventory->where('brand', $product['brand'])
+                                           ->where('model', $product['model'])
+                                           ->where('product_category', $product['product_category'])
+                                           ->where('serial', $product['serial']);
 
             $products[] = [
                 'brand' => $product['brand'],
                 'model' => $product['model'],
                 'product_category' => $product['product_category'],
-                'sap_serial' => $sap_has_serial ? $product['serial'] : '---',
-                'physical_serial' => $physical_has_serial ? $product['serial'] : '---',
+                'sap_serial' => $sap_serial_ctr ? $product['serial'] : '---',
+                'physical_serial' => $physical_serial_ctr ? $product['serial'] : '---',
             ];
 
         }
         
-        return response()->json([
+        return [
             'inventory_reconciliation' => $inventory_reconciliation, 
             'sap_inventory' => $sap_inventory, 
             'physical_inventory' => $physical_inventory,
@@ -294,7 +250,7 @@ class InventoryReconciliationController extends Controller
             'date_reconciled' => $date_reconciled,
             'reconciliation' => $reconciliation,
 
-        ], 200);
+        ];
     }
 
     public function import(Request $request) 
@@ -656,8 +612,17 @@ class InventoryReconciliationController extends Controller
         return response()->json(['success' => 'Record has been deleted'], 200);
     }
 
-    public function export()
-    {
-        
+    public function export_discrepancy($inventory_recon_id)
+    {   
+        $data = $this->getDiscrepancy($inventory_recon_id);
+
+        return Excel::download(new InventoryDiscrepancy($data['products']), 'InventoryDiscrepancy.xls');
+    }
+
+    public function export_breakdown($inventory_recon_id)
+    {   
+        $data = $this->getBreakdown($inventory_recon_id);
+
+        return Excel::download(new InventoryBreakdown($data['products']), 'InventoryDiscrepancy.xls');
     }
 }

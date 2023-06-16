@@ -22,30 +22,30 @@
                 <v-list-item class="ma-0 pa-0" style="min-height: 25px">
                   <v-list-item-title>
                     <v-btn
-                      class="ma-2"
+                      class="mx-1"
                       color="secondary"
-                      small
+                      x-small
                       @click="printPDF()"
                     >
-                      <v-icon class="mr-1" small> mdi-file-pdf </v-icon>
+                      <v-icon class="mr-1" x-small> mdi-file-pdf </v-icon>
                       Print PDF
                     </v-btn>
                   </v-list-item-title>
                 </v-list-item>
                 <v-list-item class="ma-0 pa-0" style="min-height: 25px">
                   <v-list-item-title>
-                    <!-- <v-btn
-                      class="ma-2"
+                    <v-btn
+                      class="mx-1"
                       color="success"
-                      width="120px"
-                      small
+                      width="100px"
+                      x-small
                       @click="exportData()"
                     >
-                      <v-icon class="mr-1" small> mdi-microsoft-excel </v-icon>
+                      <v-icon class="mr-1" x-small> mdi-microsoft-excel </v-icon>
                       Export
-                    </v-btn> -->
+                    </v-btn>
 
-                    <export-excel
+                    <!-- <export-excel
                       :data="formattedProducts"
                       :fields="json_fields"
                       type="xls"
@@ -57,7 +57,7 @@
                         </v-icon>
                         Export
                       </v-btn>
-                    </export-excel>
+                    </export-excel> -->
                   </v-list-item-title>
                 </v-list-item>
                 <!-- <v-list-item
@@ -122,8 +122,13 @@ import axios from "axios";
 import { mapState, mapGetters } from "vuex";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
+import MenuActions from '../../components/MenuActions.vue';
 
 export default {
+  name: "InventoryBreakdown",
+  components: {
+    MenuActions,
+  },
   data() {
     return {
       search: "",
@@ -228,13 +233,8 @@ export default {
             axios.post("/api/inventory_reconciliation/delete", data).then(
               (response) => {
                 if (response.data.success) {
-                  this.$swal({
-                    position: "center",
-                    icon: "success",
-                    title: "Record has been deleted",
-                    showConfirmButton: false,
-                    timer: 2500,
-                  });
+
+                  this.showAlert(response.data.success, "success");
 
                   this.$router.push({ name: "inventory.reconciliation" });
                 }
@@ -247,21 +247,15 @@ export default {
           }
         });
       } else {
-        this.$swal({
-          position: "center",
-          icon: "warning",
-          title: "No record found",
-          showConfirmButton: false,
-          timer: 2500,
-        });
+        this.showAlert("No record found", "warning")
       }
     },
 
-    showAlert() {
+    showAlert(title, icon) {
       this.$swal({
         position: "center",
-        icon: "success",
-        title: "Record has been saved",
+        icon: icon,
+        title: title,
         showConfirmButton: false,
         timer: 2500,
       });
@@ -493,26 +487,28 @@ export default {
 
         doc.save("inventory.pdf");
       } else {
-        this.$swal({
-          position: "center",
-          icon: "warning",
-          title: "No record found",
-          showConfirmButton: false,
-          timer: 2500,
-        });
+
+        this.showAlert("No record found", "warning")
       }
     },
     exportData() {
-      console.log(this.products);
+   
       if (this.products.length) {
+        let inventory_recon_id = this.$route.params.inventory_recon_id;
+        axios.get('/api/inventory_reconciliation/export_breakdown/' + inventory_recon_id, { responseType: 'arraybuffer'})
+          .then((response) => {
+              var fileURL = window.URL.createObjectURL(new Blob([response.data]));
+              var fileLink = document.createElement('a');
+              fileLink.href = fileURL;
+              fileLink.setAttribute('download', 'InventoryBreakdown.xls');
+              document.body.appendChild(fileLink);
+              fileLink.click();
+          }, (error) => {
+            console.log(error);
+          }
+        );
       } else {
-        this.$swal({
-          position: "center",
-          icon: "warning",
-          title: "No record found",
-          showConfirmButton: false,
-          timer: 2500,
-        });
+        this.showAlert("No record found", "warning")
       }
     },
 

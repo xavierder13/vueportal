@@ -229,9 +229,14 @@ Route::group(['prefix' => 'inventory_reconciliation', 'middleware' => ['auth:api
         'as' => 'inventory_reconciliation.sync',
     ]);
 
-    Route::post('/export', [
-        'uses' => 'API\InventoryReconciliationController@export',
-        'as' => 'inventory_reconciliation.export',
+    Route::get('/export_discrepancy/{id}', [
+        'uses' => 'API\InventoryReconciliationController@export_discrepancy',
+        'as' => 'inventory_reconciliation.export_discrepancy',
+    ]);
+
+    Route::get('/export_breakdown/{id}', [
+        'uses' => 'API\InventoryReconciliationController@export_breakdown',
+        'as' => 'inventory_reconciliation.export_breakdown',
     ]);
 
     Route::post('/unreconcile/list', [
