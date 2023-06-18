@@ -9,77 +9,12 @@
             </v-breadcrumbs-item>
           </template>
         </v-breadcrumbs>
-        <div class="d-flex justify-content-end mb-3">
-          <div>
-            <v-menu offset-y>
-              <template v-slot:activator="{ on, attrs }">
-                <v-btn small v-bind="attrs" v-on="on" color="primary"> 
-                  Actions
-                  <v-icon small> mdi-menu-down </v-icon>
-                </v-btn>
-              </template>
-              <v-list class="pa-1">
-                <v-list-item class="ma-0 pa-0" style="min-height: 25px">
-                  <v-list-item-title>
-                    <v-btn
-                      class="mx-1"
-                      color="secondary"
-                      x-small
-                      @click="printPDF()"
-                    >
-                      <v-icon class="mr-1" x-small> mdi-file-pdf </v-icon>
-                      Print PDF
-                    </v-btn>
-                  </v-list-item-title>
-                </v-list-item>
-                <v-list-item class="ma-0 pa-0" style="min-height: 25px">
-                  <v-list-item-title>
-                    <v-btn
-                      class="mx-1"
-                      color="success"
-                      width="100px"
-                      x-small
-                      @click="exportData()"
-                    >
-                      <v-icon class="mr-1" x-small> mdi-microsoft-excel </v-icon>
-                      Export
-                    </v-btn>
-
-                    <!-- <export-excel
-                      :data="formattedProducts"
-                      :fields="json_fields"
-                      type="xls"
-                      :name="branch + '_Reconciliations - Breakdown.xls'"
-                    >
-                      <v-btn class="ma-2" color="success" width="120px" small>
-                        <v-icon class="mr-1" small>
-                          mdi-microsoft-excel
-                        </v-icon>
-                        Export
-                      </v-btn>
-                    </export-excel> -->
-                  </v-list-item-title>
-                </v-list-item>
-                <!-- <v-list-item
-                  class="ma-0 pa-0"
-                  style="min-height: 25px"
-                  v-if="hasPermission('inventory-recon-delete')"
-                >
-                  <v-list-item-title>
-                    <v-btn
-                      class="ma-2"
-                      color="error"
-                      width="120px"
-                      small
-                      @click="deleteInventory()"
-                      ><v-icon class="mr-1" small> mdi-delete </v-icon>delete
-                    </v-btn>
-                  </v-list-item-title>
-                </v-list-item> -->
-              </v-list>
-            </v-menu>
-          </div>
-        </div>
+        <MenuActions
+          :canExport="true"
+          :canPrintPDF="true"
+          @export="exportData"
+          @printPDF="printPDF"
+        />
         <v-card>
           <v-card-title>
             Inventory Reconciliation Breakdown - {{ branch }}
@@ -320,13 +255,13 @@ export default {
 
         let invtymemo_value = this.branch_code + "-" + gFYear + "-" + gMonth;
         let date_value = thisMonth + " " + gDate + "," + gFYear;
-        let to_value =
-          "{{ $branch->bm_oic ? strtoupper($branch->bm_oic) : 'NONE' }}";
+
+        let bm_oic = this.bm_oic ? this.bm_oic : '';
         let to_position = "BM/OIC";
         let from_value = "Admin-Inventory Department";
 
         let beneath_table =
-          "Please verify, reconcile and coordinate to admin for the reconciliation of the discrepancies within Two (2) days upon the receipt of this Memo.";
+          "Please verify, reconcile and coordinate to admin for the reconciliation of the discrepancies within Ten (10) days upon the receipt of this Memo.";
         let beneath_from = "Physical Inventory Report for the month of";
         let beneath_from_value = lastMonth + " " + gFYear;
         let date_submitted = "Date Submitted:";
@@ -342,7 +277,7 @@ export default {
         doc.text(date_value, 80, 40);
 
         doc.setFontSize(7);
-        doc.text(this.bm_oic, 80, 55);
+        doc.text(bm_oic, 80, 55);
         doc.text(to_position, 80, 60);
 
         doc.setFontSize(7);
@@ -404,7 +339,7 @@ export default {
           "SAP Serial",
           "Branch Serial",
         ];
-
+        console.log(this.tableData);
         doc.autoTable(table_header, this.tableData, {
           startY: 130,
           theme: "grid",
@@ -428,7 +363,7 @@ export default {
 
         let verified_by = "Verified by:";
         let verified_by_value = "GERALD SUNIGA";
-        let verified_by_position = "Inventory Section Head";
+        let verified_by_position = "Inventory Recon Section Head";
         let verified_by_value_2 = "MARIEL QUITALEG";
         let verified_by_position_2 = "Inventory & Warehousing Manager";
 
@@ -483,9 +418,9 @@ export default {
         doc.setFont("normal");
         doc.text(noted_by_position_2, 180, doc.lastAutoTable.finalY + 85);
 
-        doc.output("dataurlnewwindow");
+        // doc.output("dataurlnewwindow");
 
-        doc.save("inventory.pdf");
+        doc.save("ReconciliationBreakdown.pdf");
       } else {
 
         this.showAlert("No record found", "warning")
@@ -531,16 +466,14 @@ export default {
     tableData() {
       let table_data = [];
       this.products.forEach((value, index) => {
+        console.log(value);
         table_data.push([
           index + 1,
           value.brand,
           value.model,
           value.product_category,
-          value.sap_qty,
-          value.physical_qty,
-          value.qty_diff,
-          value.sap_discrepancy,
-          value.physical_discrepancy,
+          value.sap_serial,
+          value.physical_serial,
         ]);
       });
 

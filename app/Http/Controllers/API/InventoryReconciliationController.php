@@ -40,7 +40,7 @@ class InventoryReconciliationController extends Controller
 
         $databases = SapDatabase::all();
 
-        foreach ($databases as $key => $db) {
+        foreach ($databases as $db) {
             $password = Crypt::decrypt($db->password);
 
             Config::set('database.connections.'.$db->database, array(
@@ -119,7 +119,7 @@ class InventoryReconciliationController extends Controller
         
         $products = [];
 
-        foreach ($product_distinct as $key => $product) {
+        foreach ($product_distinct as $product) {
             $sap_discrepancy = [];
             $physical_discrepancy = [];
 
@@ -131,11 +131,11 @@ class InventoryReconciliationController extends Controller
                                            ->where('model', $product['model'])
                                            ->where('product_category', $product['product_category']);
             
-            $sap_qty = $sap->count();
-            $physical_qty = $physical->count();
+            $sap_qty = $sap->sum('quantity');
+            $physical_qty = $physical->sum('quantity');
 
             // SAP product inventory
-            foreach ($sap as $index => $value) {
+            foreach ($sap as $value) {
                 
                 // find the serial from physical_inventory to identify the discrep
                 $physical_serial_ctr = $physical->where('serial', $value['serial'])->count();
@@ -149,7 +149,7 @@ class InventoryReconciliationController extends Controller
             }
             
             // Physical product inventory
-            foreach ($physical as $key => $value) {
+            foreach ($physical as $value) {
                 
                 // find the serial from sap to identify the discrep
                 $sap_serial_ctr = $sap->where('serial', $value['serial'])->count();
@@ -217,10 +217,8 @@ class InventoryReconciliationController extends Controller
         $physical_inventory = $inventory_reconciliation->where('inventory_type', '=', 'Physical');
 
         $products = [];
-        $sap_has_serial = false;
-        $physical_has_serial = false;
 
-        foreach ($product_distinct as $key => $product) {
+        foreach ($product_distinct as $product) {
 
             $sap_serial_ctr =  $sap_inventory->where('brand', $product['brand'])
                                   ->where('model', $product['model'])
@@ -477,7 +475,7 @@ class InventoryReconciliationController extends Controller
         }
 
         // scan for duplicate data
-        foreach ($products as $key => $product) {
+        foreach ($products as $product) {
             $inventory_recon_map = InventoryReconciliationMap::where('inventory_type', '=', 'Physical')
                                                  ->where('brand', '=', $product['brand']['name'])
                                                  ->where('model', '=', $product['model'])
@@ -491,7 +489,7 @@ class InventoryReconciliationController extends Controller
             }
         }
         
-        foreach ($products as $key => $product) {
+        foreach ($products as $product) {
 
             $inventory_recon_map = new InventoryReconciliationMap();
             $inventory_recon_map->inventory_recon_id = $inventory_recon_id;
@@ -569,7 +567,7 @@ class InventoryReconciliationController extends Controller
             $inventory_reconciliation->save();
     
     
-            foreach ($inventory_onhand as $key => $value) {
+            foreach ($inventory_onhand as $value) {
                 
                 InventoryReconciliationMap::create([
                     'inventory_recon_id' => $inventory_reconciliation->id,

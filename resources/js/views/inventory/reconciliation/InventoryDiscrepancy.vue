@@ -320,8 +320,6 @@ export default {
 
         let invtymemo_value = this.branch_code + "-" + gFYear + "-" + gMonth;
         let date_value = thisMonth + " " + gDate + "," + gFYear;
-        let to_value =
-          "{{ $branch->bm_oic ? strtoupper($branch->bm_oic) : 'NONE' }}";
         let bm_oic = this.bm_oic ? this.bm_oic : '';
         let to_position = "BM/OIC";
         let from_value = "Admin-Inventory Department";
@@ -501,17 +499,11 @@ export default {
         doc.setFont("normal");
         doc.text(noted_by_position_2, 180, doc.lastAutoTable.finalY + 85);
 
-        doc.output("dataurlnewwindow");
+        // doc.output("dataurlnewwindow");
 
-        doc.save("inventory.pdf");
+        doc.save("ReconciliationDiscrepancy.pdf");
       } else {
-        this.$swal({
-          position: "center",
-          icon: "warning",
-          title: "No record found",
-          showConfirmButton: false,
-          timer: 2500,
-        });
+        this.showAlert("No record found", "warning");
       }
     },
     exportData() {
