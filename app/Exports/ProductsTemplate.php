@@ -28,7 +28,7 @@ class ProductsTemplate implements FromCollection, WithHeadings
         return [
             'BRAND',
             'MODEL',
-            'PRODUCT CATEGORY',
+            'CATEGORY',
             'SERIAL',
             'QUANTITY',
         ];

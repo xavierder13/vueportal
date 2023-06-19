@@ -130,7 +130,7 @@ export default {
         { text: "#", value: "row" },
         { text: "Brand", value: "brand" },
         { text: "Model", value: "model" },
-        { text: "Product Category", value: "product_category" },
+        { text: "Category", value: "product_category" },
         { text: "SAP Qty", value: "sap_qty" },
         { text: "Branch Qty", value: "physical_qty" },
         { text: "Diff.", value: "qty_diff" },
@@ -165,7 +165,7 @@ export default {
       json_fields: {
         Brand: "brand",
         Model: "model",
-        "Product Category": "product_category",
+        "Category": "product_category",
         "SAP Qty": "sap_qty",
         "Branch Qty": "physical_qty",
         "Diff.": "qty_diff",
@@ -192,6 +192,7 @@ export default {
         .then(
           (response) => {
             let data = response.data;
+            console.log(data);
             let reconciliation = data.reconciliation;
             this.products = data.products;
             this.branch = reconciliation.branch.name;

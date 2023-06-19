@@ -56,7 +56,7 @@ class ProductsExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
         return [
             'BRAND',
             'MODEL',
-            'PRODUCT CATEGORY',
+            'CATEGORY',
             'SERIAL',
             'QUANTITY'
         ];

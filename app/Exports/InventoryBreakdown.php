@@ -28,7 +28,7 @@ class InventoryBreakdown  extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBind
         return [
             'BRAND',
             'MODEL',
-            'PRODUCT CATEGORY',
+            'CATEGORY',
             'SAP SERIAL',
             'BRANCH SERIAL',
         ];

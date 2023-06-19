@@ -28,7 +28,7 @@ class InventoryDiscrepancy  extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBi
         return [
             'BRAND',
             'MODEL',
-            'PRODUCT CATEGORY',
+            'CATEGORY',
             'SAP QTY',
             'BRANCH QTY',
             'DIFF',

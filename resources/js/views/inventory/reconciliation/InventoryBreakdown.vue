@@ -71,7 +71,7 @@ export default {
         { text: "#", value: "row" },
         { text: "Brand", value: "brand" },
         { text: "Model", value: "model" },
-        { text: "Product Category", value: "product_category" },
+        { text: "Category", value: "product_category" },
         { text: "SAP Serial", value: "sap_serial" },
         { text: "Branch Serial", value: "physical_serial" },
       ],
@@ -103,7 +103,7 @@ export default {
       json_fields: {
         Brand: "brand",
         Model: "model",
-        "Product Category": "product_category",
+        "Category": "product_category",
         "SAP Serial": "sap_serial",
         "Branch Serial": "physical_serial",
       },

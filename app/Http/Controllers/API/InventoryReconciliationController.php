@@ -8,6 +8,7 @@ use App\Product;
 use App\ProductCategory;
 use App\Brand;
 use App\Branch;
+use App\WarehouseCode;
 use App\InventoryReconciliation;
 use App\InventoryReconciliationMap;
 use App\SapDatabase;
@@ -37,23 +38,8 @@ class InventoryReconciliationController extends Controller
         // ));
 
         // $progtble = DB::connection('progtbl')->select("select * from [@PROGTBL] where U_Branch1 = 'Alaminos'");
-
+        
         $databases = SapDatabase::all();
-
-        foreach ($databases as $db) {
-            $password = Crypt::decrypt($db->password);
-
-            Config::set('database.connections.'.$db->database, array(
-                'driver' => 'sqlsrv',
-                'host' => $db->server,
-                'port' => '1433',
-                'database' => $db->database,
-                'username' => $db->username,
-                'password' => $password,   
-            ));
-            
-        }
-    
         $user = Auth::user();
         $branches = Branch::orderBy('name')->get();
         $inventory_reconciliations = InventoryReconciliation::with('user')
@@ -107,15 +93,14 @@ class InventoryReconciliationController extends Controller
             $date_reconciled = Carbon::parse($reconciliation->updated_at)->format('m-d-y');
         }
         
-        $inventory_reconciliation = InventoryReconciliationMap::where('inventory_recon_id', '=', $inventory_recon_id)->get();
+        $invty_recon = InventoryReconciliationMap::where('inventory_recon_id', '=', $inventory_recon_id)->get();
         $product_distinct = InventoryReconciliationMap::distinct()
                                                       ->where('inventory_recon_id', '=', $inventory_recon_id)
                                                       ->orderBy('brand', 'ASC')
                                                       ->orderBy('model', 'ASC')
                                                       ->orderBy('product_category', 'ASC')
                                                       ->get(['brand', 'model', 'product_category']);
-        $sap_inventory = $inventory_reconciliation->where('inventory_type', '=', 'SAP');
-        $physical_inventory = $inventory_reconciliation->where('inventory_type', '=', 'Physical');
+
         
         $products = [];
 
@@ -123,16 +108,27 @@ class InventoryReconciliationController extends Controller
             $sap_discrepancy = [];
             $physical_discrepancy = [];
 
-            $sap =  $sap_inventory->where('brand', $product['brand'])
-                                  ->where('model', $product['model'])
-                                  ->where('product_category', $product['product_category']);
-
-            $physical = $physical_inventory->where('brand', $product['brand'])
-                                           ->where('model', $product['model'])
-                                           ->where('product_category', $product['product_category']);
+            $recon = $invty_recon->where('brand', $product['brand'])
+                                 ->where('model', $product['model'])
+                                 ->where('product_category', $product['product_category']);
             
-            $sap_qty = $sap->sum('quantity');
-            $physical_qty = $physical->sum('quantity');
+            $sap_qty = $recon->where('inventory_type', '=', 'SAP')->sum('quantity');
+            $physical_qty = $recon->where('inventory_type', '=', 'Physical')->sum('quantity');
+
+            // exclude sap generated serial numbers
+            $items = InventoryReconciliationMap::where('inventory_recon_id', '=', $inventory_recon_id)
+                                            ->where('brand', $product['brand'])
+                                            ->where('model', $product['model'])
+                                            ->where('product_category', $product['product_category'])
+                                            ->where(function($query) {
+                                                $warehouses = WarehouseCode::all();
+                                                foreach ($warehouses as $whse) {
+                                                    $query->where('serial', 'not like', '%'.$whse->code.'%');
+                                                }
+                                            })->get();
+
+            $sap = $items->where('inventory_type', '=', 'SAP');
+            $physical = $items->where('inventory_type', '=', 'Physical');
 
             // SAP product inventory
             foreach ($sap as $value) {
@@ -176,13 +172,9 @@ class InventoryReconciliationController extends Controller
         }
         
         return [
-            'inventory_reconciliation' => $inventory_reconciliation, 
-            'sap_inventory' => $sap_inventory, 
-            'physical_inventory' => $physical_inventory,
             'products' => $products,
             'date_reconciled' => $date_reconciled,
             'reconciliation' => $reconciliation,
-
         ];
     }
 
@@ -356,14 +348,14 @@ class InventoryReconciliationController extends Controller
                         '*.BRAND.required' => 'Brand is required',
                         '*.MODEL.required' => 'Model is required',
                         '*.CATEGORY.required' => 'Product Category is required',
-                        '*.SERIAL.required' => 'Serial is required',
+                        // '*.SERIAL.required' => 'Serial is required',
                     ];
             
                     $valid_fields = [
                         '*.BRAND' => 'required',
                         '*.MODEL' => 'required|',
                         '*.CATEGORY' => 'required',
-                        '*.SERIAL' => 'required',
+                        // '*.SERIAL' => 'required',
                     ];
                     
                     $validator = Validator::make($fields, $valid_fields, $rules);  
@@ -508,7 +500,7 @@ class InventoryReconciliationController extends Controller
         $inventory_reconciliation->date_reconciled = Carbon::now()->format('Y-m-d');
         $inventory_reconciliation->save();
         
-        return response()->json(['success' => 'Record has been saved'], 200);
+        return response()->json(['success' => 'Inventory has beend reconciled'], 200);
         
     } 
 

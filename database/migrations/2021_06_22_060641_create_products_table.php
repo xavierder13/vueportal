@@ -19,7 +19,7 @@ class CreateProductsTable extends Migration
             $table->integer('branch_id');
             $table->integer('brand_id');
             $table->string('model');
-            $table->string('serial');
+            $table->string('serial')->nullable();
             $table->integer('quantity')->nullable();
             $table->timestamps();
         });

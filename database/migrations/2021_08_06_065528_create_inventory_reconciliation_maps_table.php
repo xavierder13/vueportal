@@ -20,7 +20,7 @@ class CreateInventoryReconciliationMapsTable extends Migration
             $table->string('brand');
             $table->string('model');
             $table->string('product_category')->nullable();
-            $table->string('serial');
+            $table->string('serial')->nullable();
             $table->integer('quantity')->nullable();
             $table->string('inventory_type');
             $table->timestamps();

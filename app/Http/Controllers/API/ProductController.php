@@ -8,6 +8,7 @@ use App\Product;
 use App\ProductCategory;
 use App\Brand;
 use App\Branch;
+use App\WarehouseCode;
 use App\ProductModel;
 use App\SapDatabase;
 use App\SapDbBranch;
@@ -797,37 +798,45 @@ class ProductController extends Controller
 
         try {
 
-            // $whseArr = [];
-            // $databases = SapDatabase::where('server', '=', '192.168.1.13')->get();
+            // START sync branch warehouses
+            $whseArr = [];
+            $databases = SapDatabase::where('server', '=', '192.168.1.13')->get();
 
-            // foreach ($databases as $key => $db) {
+            foreach ($databases as $key => $db) {
                 
-            //     $password = Crypt::decrypt($db->password);
+                $password = Crypt::decrypt($db->password);
 
-            //     Config::set('database.connections.'.$db->database, array(
-            //         'driver' => 'sqlsrv',
-            //         'host' => $db->server,
-            //         'port' => '1433',
-            //         'database' => $db->database,
-            //         'username' => $db->username,
-            //         'password' => $password,   
-            //     ));
+                Config::set('database.connections.'.$db->database, array(
+                    'driver' => 'sqlsrv',
+                    'host' => $db->server,
+                    'port' => '1433',
+                    'database' => $db->database,
+                    'username' => $db->username,
+                    'password' => $password,   
+                ));
 
-            //     $whseArr[$db->database] = DB::connection($db->database)
-            //         ->select("SELECT distinct LEFT(whscode, 4) as whscode from OWHS");
-            // }
-            
-            // $whse_codes = [];
+                $warehouses = DB::connection($db->database)
+                    ->select("SELECT distinct U_Branch1 as branch, LEFT(U_WhseCode, 4) as code from [@PROGTBL]");
 
-            // foreach ($whseArr as $value) {
-            //     foreach ($value as $code) {
-            //         $whse_codes [] = $code->whscode;
-            //     }
-            // }
+                foreach ($warehouses as $warehouse) {
+                    
+                    $ctr = WarehouseCode::where('code', $warehouse->code)   
+                                        ->where('branch', $warehouse->branch)
+                                        ->count();
+                    
+                    // if $branch has value and has no whse_code
+                    if(!$ctr)
+                    {
+                        WarehouseCode::create([
+                            'branch' => $warehouse->branch,
+                            'code' => $warehouse->code,
+                        ]);  
+                    }
+                }    
+            }
 
-            // sort($whse_codes);
-            
-            // return $whse_codes;
+            // END sync branch warehouses
+                 
 
             $db = SapDatabase::where('database', '=', 'ReportsFinance')->get()->first();
 
