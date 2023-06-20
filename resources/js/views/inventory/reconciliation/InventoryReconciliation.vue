@@ -132,7 +132,7 @@
                 <v-list class="pa-1">
                   <v-list-item class="ma-0 pa-0" style="min-height: 25px">
                     <v-list-item-title>
-                      <v-btn x-small @click="printPDF(item)" class="mx-1" width="100px" color="secondary">
+                      <v-btn x-small @click="printPDF(item)" class="mx-1" width="105px" color="secondary">
                         <v-icon class="mr-1" x-small>
                           mdi-file-pdf
                         </v-icon>
@@ -142,7 +142,7 @@
                   </v-list-item>
                   <v-list-item class="ma-0 pa-0" style="min-height: 25px">
                     <v-list-item-title>
-                      <v-btn class="mx-1 white--text" x-small @click="viewBreakdown(item)" width="100px" color="info">
+                      <v-btn class="mx-1 white--text" x-small @click="viewBreakdown(item)" width="105px" color="info">
                         <v-icon class="mr-1" x-small> mdi-file-document </v-icon>
                         Breakdown
                       </v-btn>
@@ -150,7 +150,7 @@
                   </v-list-item>
                   <v-list-item class="ma-0 pa-0" style="min-height: 25px">
                     <v-list-item-title>
-                      <v-btn class="mx-1 white--text" x-small @click="viewReconciliation(item)" width="100px" color="primary">
+                      <v-btn class="mx-1 white--text" x-small @click="viewReconciliation(item)" width="105px" color="primary">
                         <v-icon class="mr-1" x-small> mdi-eye </v-icon>
                         Discrep
                       </v-btn>
@@ -158,7 +158,7 @@
                   </v-list-item>
                   <v-list-item class="ma-0 pa-0" style="min-height: 25px" v-if="hasPermission('inventory-recon-delete')">
                     <v-list-item-title>
-                      <v-btn class="mx-1 white--text" x-small @click="showConfirmAlert(item)" width="100px" color="error">
+                      <v-btn class="mx-1 white--text" x-small @click="showConfirmAlert(item)" width="105px" color="error">
                         <v-icon class="mr-1" x-small> mdi-delete </v-icon>
                         Delete
                       </v-btn>

@@ -9,6 +9,22 @@
         <v-divider class="mt-0"></v-divider>
         <v-card-text>
           <v-container>
+            <v-row v-if="docname =='Product List'"> 
+              <v-col class="my-0 py-0">
+                <v-autocomplete
+                  v-model="inventory_type"
+                  :items="inventory_types"
+                  item-text="type"
+                  item-value="type"
+                  label="Inventory Type"
+                  required
+                  :error-messages="inventoryTypeErrors"
+                  @input="$v.inventory_type.$touch()"
+                  @blur="$v.inventory_type.$touch()"
+                >
+                </v-autocomplete>
+              </v-col>
+            </v-row>
             <v-row>
               <v-col>
                 <v-menu
@@ -156,17 +172,21 @@ export default {
     'importedData',
     'api_route',
     'dialog_import',
+    'docname',
   ],
   mixins: [validationMixin],
   validations: {
     file: { required },
     docdate: { required },
+    inventory_type: { required },
   },
   data () {
     return {
       branch_id: "",
       docdate: new Date().toISOString().substr(0, 10),
       file: [],
+      inventory_types: [ { type: "OVERALL" }, { type: "REPO" } ],
+      inventory_type: "OVERALL",
       loading: true,
       uploadDisabled: false,
       uploading: false,
@@ -288,6 +308,12 @@ export default {
       this.fileIsEmpty && errors.push("File is empty.");
       this.fileIsInvalid &&
         errors.push("File type must be 'xlsx', 'xls' or 'ods'.");
+      return errors;
+    },
+    inventoryTypeErrors() {
+      const errors = [];
+      if (!this.$v.inventory_type.$dirty) return errors;
+      !this.$v.inventory_type.required && errors.push("Inventory Type is required.");
       return errors;
     },
     imported_file_errors() {

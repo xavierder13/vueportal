@@ -397,14 +397,14 @@ export default {
               hasPermission: false,
               children: [
                 { 
-                  title: 'Reconciliation',
-                  link: '/inventory/reconciliation',
-                  hasPermission: this.hasPermission('inventory-recon-list'),
-                },
-                { 
                   title: 'Product List',
                   link: '/product/index',
                   hasPermission: this.hasPermission('product-list'),
+                },
+                { 
+                  title: 'Reconciliation',
+                  link: '/inventory/reconciliation',
+                  hasPermission: this.hasPermission('inventory-recon-list'),
                 },
                 { 
                   title: 'Scan Product',

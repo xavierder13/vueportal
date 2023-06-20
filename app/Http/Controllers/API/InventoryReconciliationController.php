@@ -430,6 +430,7 @@ class InventoryReconciliationController extends Controller
                                                             $query->where('inventory_group', '=', $inventory_group);
                                                         }
                                                    })
+                                                   ->where('inventory_type', $request->inventory_type)
                                                    ->select(DB::raw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_created"))
                                                    ->get();
 

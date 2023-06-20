@@ -49,7 +49,7 @@ class ProductController extends Controller
     {   
         $file_upload_log_id = $request->get('file_upload_log_id');
         $file_upload_log = FileUploadLog::with('branch')
-                                        ->select(DB::raw("id, branch_id, DATE_FORMAT(docdate, '%m/%d/%Y') as docdate, DATE_FORMAT(created_at, '%m/%d/%Y') as date_uploaded"))
+                                        ->select(DB::raw("id, branch_id, DATE_FORMAT(docdate, '%m/%d/%Y') as docdate, DATE_FORMAT(created_at, '%m/%d/%Y') as date_uploaded, remarks"))
                                         ->where('id', $file_upload_log_id)
                                         ->first();
         

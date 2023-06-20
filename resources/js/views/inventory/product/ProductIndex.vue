@@ -27,6 +27,7 @@
           :dialog_import="dialog_import"
           :action="action"
           :branch="branch"
+          :docname="'Product List'"
           @getData="getProduct"
           @closeImportDialog="closeImportDialog"
         />
@@ -102,7 +103,7 @@
 import axios from "axios";
 import { validationMixin } from "vuelidate";
 import { mapState, mapGetters } from "vuex";
-import ImportDialog from "../components/ImportDialog.vue";
+import ImportDialog from "../../components/ImportDialog.vue";
 import DataTableGroup from "../components/DataTableGroup.vue";
 
 export default {

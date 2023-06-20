@@ -79,7 +79,7 @@
             <td> </td>
             <td> <v-chip color="secondary"> {{ value.date_uploaded }} </v-chip> </td>
             <td> <v-chip color="secondary"> {{ value.docdate }} </v-chip> </td>
-            <td> {{ value.remarks }} </td>
+            <td v-if="value.docname == 'Product List'"> {{ value.remarks }} </td>
             <td>
               <v-menu offset-y v-if="canImport || canExport || canDownload">
                 <template v-slot:activator="{ on, attrs }">

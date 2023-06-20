@@ -281,6 +281,7 @@
         :dialog_import="dialog_import"
         :action="action"
         :branches="branches"
+        :docname="'Product List'"
         @getData="getProduct"
         @closeImportDialog="closeImportDialog"
       />
@@ -292,7 +293,7 @@ import axios from "axios";
 import { validationMixin } from "vuelidate";
 import { required } from "vuelidate/lib/validators";
 import { mapState, mapGetters, mapActions } from "vuex";
-import ImportDialog from '../components/ImportDialog.vue';
+import ImportDialog from '../../components/ImportDialog.vue';
 import MenuActions from "../../components/MenuActions.vue";
 import DataTable from "../../components/DataTable.vue";
 
@@ -399,6 +400,7 @@ export default {
         confirmButtonText: "",
       },
       branch: "",
+      inventory_type: "",
     };
   },
 
@@ -426,14 +428,17 @@ export default {
       axios.post("/api/product/list/view", data).then(
         (response) => {
           let data = response.data;
-          this.branch = data.file_upload_log.branch.name;
-          this.file_upload_log = data.file_upload_log;
+          let log = data.file_upload_log;
+          this.branch = log.branch.name;
+          this.file_upload_log = log;
           this.products = data.products;
           this.brands = data.brands;
           this.branches = data.branches;
           this.product_categories = data.product_categories;
           this.editedItem.branch_id = this.user.branch_id;
-          this.loading = false;
+          this.inventory_type = log.remarks;
+          this.loading = false; 
+          
         },
         (error) => {
           this.isUnauthorized(error);
@@ -560,6 +565,7 @@ export default {
         let data = {
           branch_id: this.branch_id,
           inventory_group: this.inventory_group,
+          inventory_type: this.inventory_type,
         };
 
         axios

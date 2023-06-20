@@ -16,18 +16,18 @@
           @printPDF="printPDF"
         />
         <!-- <export-excel
-                      :data="products"
-                      :fields="json_fields"
-                      type="xls"
-                      :name="branch + '_Reconciliations - Discrepancy.xls'"
-                    >
-                      <v-btn class="mx-1" color="success" width="100px" x-small>
-                        <v-icon class="mr-1" x-small>
-                          mdi-microsoft-excel
-                        </v-icon>
-                        Export
-                      </v-btn>
-                    </export-excel> -->
+          :data="products"
+          :fields="json_fields"
+          type="xls"
+          :name="branch + '_Reconciliations - Discrepancy.xls'"
+        >
+          <v-btn class="mx-1" color="success" width="100px" x-small>
+            <v-icon class="mr-1" x-small>
+              mdi-microsoft-excel
+            </v-icon>
+            Export
+          </v-btn>
+        </export-excel> -->
         <v-card>
           <v-card-title>
             Inventory Reconciliation - {{ branch }}
@@ -73,39 +73,6 @@
               <span class="text-success"> {{ item.physical_discrepancy }} </span>
             </template>
           </v-data-table>
-          <!-- <v-simple-table>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Brand</th>
-                <th>Model</th>
-                <th>SAP Qty</th>
-                <th>Branch Qty</th>
-                <th>Diff.</th>
-                <th>SAP Serial Discrepancy</th>
-                <th>Branch Serial Discrepancy</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(item, index) in products">
-                <td>{{ index + 1 }}</td>
-                <td>{{ item.brand }}</td>
-                <td>{{ item.model }}</td>
-                <td>{{ item.sap_qty }}</td>
-                <td>{{ item.physical_qty }}</td>
-                <td>
-                  <v-chip
-                    x-small
-                    :color="item.qty_diff > 0 ? 'success' : 'red white--text'"
-                    v-if="item.qty_diff != 0"
-                    >{{ item.qty_diff }}</v-chip
-                  >
-                </td>
-                <td class="text-success">{{ item.sap_discrepancy }}</td>
-                <td class="text-danger">{{ item.physical_discrepancy }}</td>
-              </tr>
-            </tbody>
-          </v-simple-table> -->
         </v-card>
       </v-main>
     </div>
