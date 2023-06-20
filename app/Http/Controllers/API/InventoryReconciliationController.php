@@ -248,6 +248,7 @@ class InventoryReconciliationController extends Controller
         $user = Auth::user();
         $branch_id = $request->get('branch_id');
         $inventory_group = $request->get('inventory_group');
+        $inventory_type = $request->get('inventory_type');
 
         try {
             $file_extension = '';
@@ -386,6 +387,7 @@ class InventoryReconciliationController extends Controller
                     $inventory_reconciliation->date_reconciled = null;
                     $inventory_reconciliation->status = 'unreconciled';
                     $inventory_reconciliation->inventory_group = $inventory_group;
+                    $inventory_reconciliation->inventory_type = $inventory_type;
                     $inventory_reconciliation->save();
 
                     $params = [
@@ -513,6 +515,7 @@ class InventoryReconciliationController extends Controller
             $branch_id = $request->get('branch_id');
             $branch = Branch::find($branch_id);
             $inventory_group = $request->get('inventory_group');
+            $inventory_type = $request->get('inventory_type');
     
             $database = $request->get('database');
             $db = SapDatabase::where('database', '=', $database)->get()->first();
@@ -556,6 +559,7 @@ class InventoryReconciliationController extends Controller
             $inventory_reconciliation->date_reconciled = null;
             $inventory_reconciliation->status = 'unreconciled';
             $inventory_reconciliation->inventory_group = $inventory_group;
+            $inventory_reconciliation->inventory_type = $inventory_type;
             $inventory_reconciliation->save();
     
     

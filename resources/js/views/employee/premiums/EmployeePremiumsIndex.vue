@@ -20,6 +20,7 @@
           @viewList="viewList"
         />
         <ImportDialog 
+          :branch="branch"
           :api_route="api_route" 
           :dialog_import="dialog_import"
           @getData="getEmployeePremiums"
@@ -60,6 +61,7 @@ export default {
         },
       ],
       loading: true,
+      branch: "",
       branch_id: "",
       dialog_import: false,
       api_route: "",
@@ -94,6 +96,7 @@ export default {
 
     importExcel(item) {
       this.branch_id = item[0].id;
+      this.branch = item[0].name;
       this.dialog_import = true;
       this.api_route = 'api/employee_premiums/import_premiums/' + this.branch_id;
     },

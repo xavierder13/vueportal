@@ -19,7 +19,7 @@
         />
         <v-card>
           <v-card-title>
-            Employee Premiums Lists
+            Employee Premiums Lists <v-chip color="secondary" v-if="branch" class="ml-2"> {{ branch }} </v-chip>
             <v-spacer></v-spacer>
             <v-text-field
               v-model="search"
@@ -42,6 +42,7 @@
           </v-card-title>
 
           <DataTable
+            :branch="branch"
             :headers="headers"
             :items="employee_premiums"
             :search="search"
@@ -447,6 +448,7 @@
             </v-card>
           </v-dialog>
           <ImportDialog 
+            :branch="branch"
             :api_route="api_route" 
             :dialog_import="dialog_import"
             @getData="getEmployeePremiums"
@@ -556,6 +558,7 @@ export default {
       dialog_error_list: false,
       errors_array: [],
       fileError: "",
+      branch: "",
       branch_id: "",
       editedIndex: -1,
       editedItem: {
@@ -632,15 +635,17 @@ export default {
       axios.post("/api/employee_premiums/list/view", data).then(
         (response) => {
           // if user has no permission to view overall list
-         
+          let data = response.data;
+
           if (!this.hasPermission('employee-premiums-list-all') &&
             this.user.branch_id != this.branch_id
           ) {
             this.$router.push({ name: "unauthorize" });
           }
 
-          this.file_upload_log = response.data.file_upload_log;
-          this.employee_premiums = response.data.employee_premiums;
+          this.branch = data.file_upload_log.branch.name;
+          this.file_upload_log = data.file_upload_log;
+          this.employee_premiums = data.employee_premiums;
           this.loading = false;
           
         },

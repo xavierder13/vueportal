@@ -39,7 +39,10 @@ class EmployeeLoansController extends Controller
     public function list_view(Request $request)
     {   
         $file_upload_log_id = $request->get('file_upload_log_id');
-        $file_upload_log = FileUploadLog::select(DB::raw("id, DATE_FORMAT(docdate, '%m/%d/%Y') as docdate, DATE_FORMAT(created_at, '%m/%d/%Y') as date_uploaded"))->find($file_upload_log_id);
+        $file_upload_log = FileUploadLog::with('branch')
+                                        ->select(DB::raw("id, branch_id, DATE_FORMAT(docdate, '%m/%d/%Y') as docdate, DATE_FORMAT(created_at, '%m/%d/%Y') as date_uploaded"))
+                                        ->where('id', $file_upload_log_id)
+                                        ->first();
         $employee_loans = EmployeeLoans::with('branch')
                              ->select(DB::raw("*, DATE_FORMAT(employee_loans.date_granted, '%m/%d/%Y') as date_granted, 
                                               DATE_FORMAT(employee_loans.period_from, '%m/%d/%Y') as period_from,

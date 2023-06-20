@@ -4,6 +4,7 @@
       <v-card>
         <v-card-title class="pa-4">
           <span class="headline">Import Data</span>
+          <v-chip color="secondary" v-if="branch" class="ml-2"> {{ branch }} </v-chip>
         </v-card-title>
         <v-divider class="mt-0"></v-divider>
         <v-card-text>
@@ -151,6 +152,7 @@ export default {
   
   name: "ImportDialog",
   props: [ 
+    'branch',
     'importedData',
     'api_route',
     'dialog_import',

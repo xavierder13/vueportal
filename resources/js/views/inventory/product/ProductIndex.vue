@@ -18,25 +18,46 @@
           :canDownloadTemplate="hasPermission('product-template-download')"
           @importExcel="importExcel"
           @exportData="exportData"
-          @downloadTemplate="downloadTemplate"
+          @downloadTemplate="openTemplateDialog"
           @viewList="viewList"
         />
         
         <ImportDialog 
           :api_route="api_route" 
           :dialog_import="dialog_import"
+          :action="action"
+          :branch="branch"
           @getData="getProduct"
           @closeImportDialog="closeImportDialog"
         />
 
-        <v-dialog v-model="dialog_loading" max-width="500px" persistent>
+        <v-dialog v-model="dialog_template" max-width="500px" persistent>
           <v-card>
+            <v-card-title class="pa-4">
+              <span class="headline">Generate Product Template</span>
+              <v-chip color="secondary" v-if="branch" class="ml-2"> {{ branch }} </v-chip>
+            </v-card-title>
+            <v-divider class="mt-0"></v-divider>
             <v-card-text>
               <v-container>
+                <v-row> 
+                  <v-col class="my-0 py-0">
+                    <v-autocomplete
+                      v-model="inventory_type"
+                      :items="inventory_types"
+                      item-text="type"
+                      item-value="type"
+                      label="Inventory Type"
+                      required
+                    >
+                    </v-autocomplete>
+                  </v-col>
+                </v-row>
                 <v-row
                   class="fill-height"
                   align-content="center"
                   justify="center"
+                  v-if="template_loading"
                 >
                   <v-col class="subtitle-1 font-weight-bold text-center mt-4" cols="12">
                     Generating Product Template...
@@ -52,6 +73,25 @@
                 </v-row>
               </v-container>
             </v-card-text>
+            <v-divider class="mb-3 mt-0"></v-divider>
+            <v-card-actions class="pa-0">
+              <v-spacer></v-spacer>
+              <v-btn
+                color="#E0E0E0"
+                @click="dialog_template = false"
+                class="mb-3"
+              >
+                Cancel
+              </v-btn>
+              <v-btn
+                color="primary"
+                class="mb-3 mr-4"
+                @click="downloadTemplate()"
+                :disabled="disabled"
+              >
+                Generate
+              </v-btn>
+            </v-card-actions>
           </v-card>
         </v-dialog>
       </v-main>
@@ -62,8 +102,8 @@
 import axios from "axios";
 import { validationMixin } from "vuelidate";
 import { mapState, mapGetters } from "vuex";
-import ImportDialog from "../../components/ImportDialog.vue";
-import DataTableGroup from "../../components/DataTableGroup.vue";
+import ImportDialog from "../components/ImportDialog.vue";
+import DataTableGroup from "../components/DataTableGroup.vue";
 
 export default {
   name: "ProductIndex",
@@ -82,6 +122,7 @@ export default {
         { text: "Branch", value: "branch" },
         { text: "Date Uploaded", value: "date_uploaded" },
         { text: "Document Date", value: "docdate" },
+        { text: "Inventory Type", value: "inventory_type" },
         { text: "Actions", value: "actions", sortable: false, width: "120px" },
       ],
       disabled: false,
@@ -101,10 +142,15 @@ export default {
         },
       ],
       loading: true,
+      branch: "",
       branch_id: "",
       dialog_import: false,
       api_route: "",
-      dialog_loading: false,
+      inventory_types: [ { type: "OVERALL" }, { type: "REPO" } ],
+      inventory_type: "OVERALL",
+      dialog_template: false,
+      template_loading: false,
+      action: "",
     };
   },
 
@@ -113,7 +159,7 @@ export default {
       this.loading = true;
       axios.get("/api/product/index").then(
         (response) => {
-
+          console.log(response.data);
           this.branches = response.data.branches;
           this.loading = false;
         },
@@ -135,6 +181,8 @@ export default {
     },
 
     importExcel(item) {
+      this.action = 'import';
+      this.branch = item[0].name;
       this.branch_id = item[0].id;
       this.dialog_import = true;
       this.api_route = 'api/product/import/' + this.branch_id;
@@ -146,12 +194,19 @@ export default {
       this.fetchDownload('/api/product/export', data, 'ProductList.xls');
 
     },
+    
+    openTemplateDialog(item)
+    { 
+      this.branch = item[0].name;
+      this.branch_id = item[0].id;
+      this.dialog_template = true;
+    },
 
-    downloadTemplate(item) {
-      this.dialog_loading = true;
-
-      const data = { branch_id: item[0].id }
-      this.fetchDownload('/api/product/template/download', data, 'ProductTemplate.xls');
+    downloadTemplate() {
+      this.template_loading = true;
+      this.disabled = true;
+      const data = { branch_id: this.branch_id, inventory_type: this.inventory_type };
+      this.fetchDownload('/api/product/template/download', data, 'ProductTemplate - '+this.inventory_type+'.xls');
 
     },
 
@@ -159,13 +214,24 @@ export default {
 
       axios.post(url, data, { responseType: 'arraybuffer'})
         .then((response) => {
-          this.dialog_loading = false;
+          this.template_loading = false;
           var fileURL = window.URL.createObjectURL(new Blob([response.data]));
           var fileLink = document.createElement('a');
           fileLink.href = fileURL;
           fileLink.setAttribute('download', file_name);
           document.body.appendChild(fileLink);
           fileLink.click();
+
+          this.$swal({
+            position: "center",
+            icon: "success",
+            title: "File has been downloaded",
+            showConfirmButton: false,
+          });
+
+          this.dialog_template = false;
+          this.disabled = false;
+
         }, (error) => {
           console.log(error);
         }

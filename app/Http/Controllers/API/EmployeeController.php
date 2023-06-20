@@ -48,7 +48,10 @@ class EmployeeController extends Controller
     {
 
         $file_upload_log_id = $request->get('file_upload_log_id');
-        $file_upload_log = FileUploadLog::select(DB::raw("id, DATE_FORMAT(docdate, '%m/%d/%Y') as docdate, DATE_FORMAT(created_at, '%m/%d/%Y') as date_uploaded"))->find($file_upload_log_id);
+        $file_upload_log = FileUploadLog::with('branch')
+                                        ->select(DB::raw("id, branch_id, DATE_FORMAT(docdate, '%m/%d/%Y') as docdate, DATE_FORMAT(created_at, '%m/%d/%Y') as date_uploaded"))
+                                        ->where('id', $file_upload_log_id)
+                                        ->first();
         $employees = Employee::with('branch')
                              ->select(DB::raw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_uploaded, DATE_FORMAT(dob, '%m/%d/%Y') as birth_date, DATE_FORMAT(date_employed, '%m/%d/%Y') as date_employed, 
                                                 CONCAT(CAST((TIMESTAMPDIFF(DAY, date_employed, date_format(NOW(),'%Y-%m-%d')) / 365) AS UNSIGNED), ' years(s) ',

@@ -42,7 +42,10 @@ class EmployeePremiumsController extends Controller
     {
         
         $file_upload_log_id = $request->get('file_upload_log_id');
-        $file_upload_log = FileUploadLog::select(DB::raw("DATE_FORMAT(docdate, '%m/%d/%Y') as docdate, DATE_FORMAT(created_at, '%m/%d/%Y') as date_uploaded"))->find($file_upload_log_id);
+        $file_upload_log = FileUploadLog::with('branch')
+                                        ->select(DB::raw("id, branch_id, DATE_FORMAT(docdate, '%m/%d/%Y') as docdate, DATE_FORMAT(created_at, '%m/%d/%Y') as date_uploaded"))
+                                        ->where('id', $file_upload_log_id)
+                                        ->first();
         $employee_premiums = EmployeePremiums::with('branch')
                              ->select(DB::raw("*, DATE_FORMAT(employee_premiums.dob, '%m/%d/%Y') as birth_date, 
                                               DATE_FORMAT(employee_premiums.date_hired, '%m/%d/%Y') as date_hired"))

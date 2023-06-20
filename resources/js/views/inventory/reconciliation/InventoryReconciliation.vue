@@ -9,56 +9,6 @@
             </v-breadcrumbs-item>
           </template>
         </v-breadcrumbs>
-        <div class="d-flex justify-content-end mb-3" v-if="hasAnyPermission('inventory-recon-create', 'inventory-recon-sync')">
-          <div>
-            <v-menu offset-y>
-              <template v-slot:activator="{ on, attrs }">
-                <v-btn small v-bind="attrs" v-on="on" color="primary">
-                  Actions
-                  <v-icon small> mdi-menu-down </v-icon>
-                </v-btn>
-              </template>
-              <v-list class="pa-1">
-                <v-list-item
-                  class="ma-0 pa-0"
-                  style="min-height: 25px"
-                  v-if="hasPermission('inventory-recon-create')"
-                >
-                  <v-list-item-title>
-                    <v-btn
-                      color="primary"
-                      class="mx-1"
-                      width="100px"
-                      x-small
-                      @click="openImportDialog('import')"
-                    >
-                      <v-icon class="mr-1" x-small> mdi-import </v-icon>
-                      Import
-                    </v-btn>
-                  </v-list-item-title>
-                </v-list-item>
-                <v-list-item
-                  class="ma-0 pa-0"
-                  style="min-height: 25px"
-                  v-if="hasPermission('inventory-recon-sync')"
-                >
-                  <v-list-item-title>
-                    <v-btn
-                      color="info"
-                      class="mx-1"
-                      width="100px"
-                      x-small
-                      @click="openImportDialog('sync')"
-                    >
-                      <v-icon class="mr-1" x-small> mdi-sync </v-icon>
-                      Sync
-                    </v-btn>
-                  </v-list-item-title>
-                </v-list-item>
-              </v-list>
-            </v-menu>
-          </div>
-        </div>
         <v-card>
           <v-card-title>
             Inventory Reconciliations
@@ -88,8 +38,77 @@
             :search="search"
             :loading="loading"
             loading-text="Loading... Please wait"
+            group-by="branch.name"
+            class="elevation-1"
+            :expanded.sync="expanded"
             v-if="hasPermission('inventory-recon-list')"
-          >
+          > 
+            <template v-slot:group.header="{ items, headers, toggle, isOpen, }">
+              <td colspan="6">
+                <v-row>
+                  <v-col>
+                    <v-btn @click="toggle" small icon :ref="items" :data-open="isOpen">
+                      <v-icon v-if="isOpen">mdi-chevron-up</v-icon>
+                      <v-icon v-else>mdi-chevron-down</v-icon>
+                    </v-btn>
+                    {{ items[0].branch.name }}
+                  </v-col>
+                </v-row>
+              </td>
+              <td> 
+                <v-menu offset-y>
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-btn x-small v-bind="attrs" v-on="on" class="primary">
+                      Actions
+                      <v-icon small> mdi-menu-down </v-icon>
+                    </v-btn>
+                  </template>
+                  <v-list class="pa-1">
+                    <v-list-item
+                      class="ma-0 pa-0"
+                      style="min-height: 25px"
+                      v-if="hasPermission('inventory-recon-create')"
+                    >
+                      <v-list-item-title>
+                        <v-btn
+                          color="primary"
+                          class="mx-1"
+                          width="100px"
+                          x-small
+                          @click="openImportDialog('import', items)"
+                        >
+                          <v-icon class="mr-1" x-small> mdi-import </v-icon>
+                          Import
+                        </v-btn>
+                      </v-list-item-title>
+                    </v-list-item>
+                    <v-list-item
+                      class="ma-0 pa-0"
+                      style="min-height: 25px"
+                      v-if="hasPermission('inventory-recon-sync')"
+                    >
+                      <v-list-item-title>
+                        <v-btn
+                          color="info"
+                          class="mx-1"
+                          width="100px"
+                          x-small
+                          @click="openImportDialog('sync', items)"
+                        >
+                          <v-icon class="mr-1" x-small> mdi-sync </v-icon>
+                          Sync
+                        </v-btn>
+                      </v-list-item-title>
+                    </v-list-item>
+                  </v-list>
+                </v-menu>
+              </td>
+            </template>
+            <template v-slot:item.date_uploaded="{ item }">
+              <v-chip color="secondary" v-if="item.date_uploaded">
+                {{ item.date_uploaded }}
+              </v-chip>
+            </template>
             <template v-slot:item.status="{ item }">
               <v-chip
                 :color="
@@ -99,66 +118,54 @@
                 {{ item.status.toUpperCase() }}
               </v-chip>
             </template>
+            <template v-slot:item.inventory_type="{ item }">
+                {{ item.inventory_type }} 
+            </template>
             <template v-slot:item.actions="{ item }">
-              <v-tooltip bottom>
+              <v-menu offset-y>
                 <template v-slot:activator="{ on, attrs }">
-                  <v-icon
-                    class="mr-2"
-                    color="secondary"
-                    small
-                    @click="printPDF(item)"
-                    v-bind="attrs"
-                    v-on="on"
-                  >
-                    mdi-file-pdf
-                  </v-icon>
+                  <v-btn x-small v-bind="attrs" v-on="on" class="primary--text">
+                    Actions
+                    <v-icon small> mdi-menu-down </v-icon>
+                  </v-btn>
                 </template>
-                <span>Generate PDF</span>
-              </v-tooltip>
-              <v-tooltip bottom>
-                <template v-slot:activator="{ on, attrs }">
-                  <v-icon
-                    class="mr-2"
-                    small
-                    @click="viewBreakdown(item)"
-                    v-bind="attrs"
-                    v-on="on"
-                  >
-                    mdi-file-document
-                  </v-icon>
-                </template>
-                <span>View Breakdown</span>
-              </v-tooltip>
-              <v-tooltip bottom>
-                <template v-slot:activator="{ on, attrs }">
-                  <v-icon
-                    small
-                    class="mr-2"
-                    color="info"
-                    @click="viewReconciliation(item)"
-                    v-bind="attrs"
-                    v-on="on"
-                  >
-                    mdi-eye
-                  </v-icon>
-                </template>
-                <span>View Discrepancy</span>
-              </v-tooltip>
-              <v-tooltip bottom>
-                <template v-slot:activator="{ on, attrs }">
-                  <v-icon
-                    small
-                    color="red"
-                    @click="showConfirmAlert(item)"
-                    v-if="hasPermission('inventory-recon-delete')"
-                    v-bind="attrs"
-                    v-on="on"
-                  >
-                    mdi-delete
-                  </v-icon>
-                </template>
-                <span>Delete</span>
-              </v-tooltip>
+                <v-list class="pa-1">
+                  <v-list-item class="ma-0 pa-0" style="min-height: 25px">
+                    <v-list-item-title>
+                      <v-btn x-small @click="printPDF(item)" class="mx-1" width="100px" color="secondary">
+                        <v-icon class="mr-1" x-small>
+                          mdi-file-pdf
+                        </v-icon>
+                        PDF
+                      </v-btn>
+                    </v-list-item-title>
+                  </v-list-item>
+                  <v-list-item class="ma-0 pa-0" style="min-height: 25px">
+                    <v-list-item-title>
+                      <v-btn class="mx-1 white--text" x-small @click="viewBreakdown(item)" width="100px" color="info">
+                        <v-icon class="mr-1" x-small> mdi-file-document </v-icon>
+                        Breakdown
+                      </v-btn>
+                    </v-list-item-title>
+                  </v-list-item>
+                  <v-list-item class="ma-0 pa-0" style="min-height: 25px">
+                    <v-list-item-title>
+                      <v-btn class="mx-1 white--text" x-small @click="viewReconciliation(item)" width="100px" color="primary">
+                        <v-icon class="mr-1" x-small> mdi-eye </v-icon>
+                        Discrep
+                      </v-btn>
+                    </v-list-item-title>
+                  </v-list-item>
+                  <v-list-item class="ma-0 pa-0" style="min-height: 25px" v-if="hasPermission('inventory-recon-delete')">
+                    <v-list-item-title>
+                      <v-btn class="mx-1 white--text" x-small @click="showConfirmAlert(item)" width="100px" color="error">
+                        <v-icon class="mr-1" x-small> mdi-delete </v-icon>
+                        Delete
+                      </v-btn>
+                    </v-list-item-title>
+                  </v-list-item>
+                </v-list>
+              </v-menu>
             </template>
           </v-data-table>
         </v-card>
@@ -166,7 +173,8 @@
       <ImportDialog 
         :api_route="api_route" 
         :dialog_import="dialog_import"
-        :branches="branches"
+        :branch="branch"
+        :branch_id="branch_id"
         :databases="databases"
         :action="action"
         :inventory_group="inventory_group"
@@ -196,9 +204,11 @@ export default {
     return {
       search: "",
       headers: [
-        { text: "Branch", value: "branch.name" },
+        { text: "Branch", value: "grp_branch" },
+        { text: "", value: "branch.name" },
         { text: "Created By", value: "user.name" },
         { text: "Status", value: "status" },
+        { text: "Inventory Type", value: "inventory_type" },
         { text: "Date Created", value: "date_created" },
         { text: "Date Reconciled", value: "date_reconciled" },
         { text: "Actions", value: "actions", sortable: false, width: "150px"},
@@ -219,6 +229,7 @@ export default {
           link: "/employee/list",
         },
       ],
+      expanded: [],
       loading: true,
       search_branch: "",
       file: [],
@@ -291,9 +302,11 @@ export default {
       await this.setPDFData();
     },
 
-    openImportDialog(action) {
+    openImportDialog(action, item) {
+      this.branch = item[0].branch.name;
+      this.branch_id = item[0].branch.id;
       this.action = action;
-      this.api_route = action === "sync" ? "/api/inventory_reconciliation/sync" : "/api/inventory_reconciliation/import" ;
+      this.api_route = action === "sync" ? "/api/inventory_reconciliation/sync" : "/api/inventory_reconciliation/import";
       this.dialog_import = true;
     },
 

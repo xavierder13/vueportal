@@ -43,7 +43,10 @@ class EmployeeAttlogController extends Controller
     {
         
         $file_upload_log_id = $request->get('file_upload_log_id');
-        $file_upload_log = FileUploadLog::select(DB::raw("DATE_FORMAT(docdate, '%m/%d/%Y') as docdate, DATE_FORMAT(created_at, '%m/%d/%Y') as date_uploaded"))->find($file_upload_log_id);
+        $file_upload_log = FileUploadLog::with('branch')
+                                        ->select(DB::raw("id, branch_id, DATE_FORMAT(docdate, '%m/%d/%Y') as docdate, DATE_FORMAT(created_at, '%m/%d/%Y') as date_uploaded"))
+                                        ->where('id', $file_upload_log_id)
+                                        ->first();
         $employee_attlogs = EmployeeAttlog::with('branch')
                                     ->select(DB::raw('*, employee_attlogs.user_id, DATE_FORMAT(employee_attlogs.date_time, "%m/%d/%Y %H:%i:00") as date_time,
                                             employee_attlogs.device_id, employee_attlogs.status, employee_attlogs.verifying_type, employee_attlogs.work_code'))

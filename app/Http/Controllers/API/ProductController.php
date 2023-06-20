@@ -48,8 +48,10 @@ class ProductController extends Controller
     public function list_view(Request $request)
     {   
         $file_upload_log_id = $request->get('file_upload_log_id');
-        $file_upload_log = FileUploadLog::select(DB::raw("id, DATE_FORMAT(docdate, '%m/%d/%Y') as docdate, DATE_FORMAT(created_at, '%m/%d/%Y') as date_uploaded"))
-                                        ->find($file_upload_log_id);
+        $file_upload_log = FileUploadLog::with('branch')
+                                        ->select(DB::raw("id, branch_id, DATE_FORMAT(docdate, '%m/%d/%Y') as docdate, DATE_FORMAT(created_at, '%m/%d/%Y') as date_uploaded"))
+                                        ->where('id', $file_upload_log_id)
+                                        ->first();
         
         $user = Auth::user();
 
@@ -583,6 +585,7 @@ class ProductController extends Controller
                 $file_upload_log->branch_id = $branch_id;
                 $file_upload_log->docdate = $request->get('docdate');
                 $file_upload_log->docname = "Product List";
+                $file_upload_log->remarks = $request->get('inventory_type');
                 $file_upload_log->save();
                 
                 foreach ($fields as $field) {
@@ -642,7 +645,9 @@ class ProductController extends Controller
                         'username' => $db->username,
                         'password' => $password,   
                     ));
-
+            
+            $operator = $request->inventory_type === 'OVERALL' ? '<>' : '=';
+                    
             $inventory_onhand = DB::connection($db->database)->select("
                 SELECT 
                     distinct

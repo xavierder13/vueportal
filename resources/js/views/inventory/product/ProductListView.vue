@@ -21,7 +21,7 @@
         />
         <v-card>
           <v-card-title>
-            Product Lists
+            Product Lists <v-chip color="secondary" v-if="branch" class="ml-2"> {{ branch }} </v-chip>
             <v-spacer></v-spacer>
             <v-text-field
               v-model="search"
@@ -261,6 +261,7 @@
             </template>
           </v-card-title>
           <DataTable
+            :branch="branch"
             :headers="headers"
             :items="products"
             :search="search"
@@ -275,6 +276,7 @@
         </v-card>
       </v-main>
       <ImportDialog 
+        :branch="branch"
         :api_route="api_route" 
         :dialog_import="dialog_import"
         :action="action"
@@ -290,7 +292,7 @@ import axios from "axios";
 import { validationMixin } from "vuelidate";
 import { required } from "vuelidate/lib/validators";
 import { mapState, mapGetters, mapActions } from "vuex";
-import ImportDialog from '../../components/ImportDialog.vue';
+import ImportDialog from '../components/ImportDialog.vue';
 import MenuActions from "../../components/MenuActions.vue";
 import DataTable from "../../components/DataTable.vue";
 
@@ -362,6 +364,11 @@ export default {
         {
           text: "Product Lists",
           disabled: false,
+          link: "/product/index"
+        },
+        {
+          text: "View",
+          disabled: true,
         },
       ],
       loading: true,
@@ -390,7 +397,8 @@ export default {
         confirmButtonColor: "",
         cancelButtonColor: "#6c757d",
         confirmButtonText: "",
-      }
+      },
+      branch: "",
     };
   },
 
@@ -418,6 +426,7 @@ export default {
       axios.post("/api/product/list/view", data).then(
         (response) => {
           let data = response.data;
+          this.branch = data.file_upload_log.branch.name;
           this.file_upload_log = data.file_upload_log;
           this.products = data.products;
           this.brands = data.brands;

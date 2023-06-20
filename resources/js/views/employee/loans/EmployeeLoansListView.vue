@@ -19,7 +19,7 @@
         />
         <v-card>
           <v-card-title>
-            Employee Loans Lists
+            Employee Loans Lists <v-chip color="secondary" v-if="branch" class="ml-2"> {{ branch }} </v-chip>
             <v-spacer></v-spacer>
             <v-text-field
               v-model="search"
@@ -42,6 +42,7 @@
           </v-card-title>
 
           <DataTable
+            :branch="branch"
             :headers="headers"
             :items="employee_loans"
             :search="search"
@@ -450,6 +451,7 @@
             </v-card>
           </v-dialog>
            <ImportDialog 
+            :branch="branch"
             :api_route="api_route" 
             :dialog_import="dialog_import"
             @getData="getEmployeeLoans"
@@ -562,6 +564,7 @@ export default {
       dialog_error_list: false,
       errors_array: [],
       fileError: "",
+      branch: "",
       branch_id: "",
       editedIndex: -1,
       editedItem: {
@@ -652,15 +655,17 @@ export default {
         (response) => {
       
           // if user has no permission to view overall list
-          // console.log(response.data);
+          let data = response.data;
+
           if (!this.hasPermission('employee-loans-list-all') &&
             this.user.branch_id != this.branch_id
           ) {
             this.$router.push({ name: "unauthorize" });
           }
 
-          this.file_upload_log = response.data.file_upload_log;
-          this.employee_loans = response.data.employee_loans;
+          this.branch = data.file_upload_log.branch.name;
+          this.file_upload_log = data.file_upload_log;
+          this.employee_loans = data.employee_loans;
           this.loading = false;
 
           this.file_upload_log_id = this.file_upload_log.id

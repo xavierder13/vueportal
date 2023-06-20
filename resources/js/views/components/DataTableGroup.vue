@@ -43,7 +43,7 @@
           <td> 
             <v-menu offset-y v-if="canDownloadTemplate && canImport">
               <template v-slot:activator="{ on, attrs }">
-                <v-btn x-small v-bind="attrs" v-on="on" class="primary--text">
+                <v-btn x-small v-bind="attrs" v-on="on" class="primary">
                   Actions
                   <v-icon small> mdi-menu-down </v-icon>
                 </v-btn>

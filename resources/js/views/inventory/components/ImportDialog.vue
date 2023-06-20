@@ -4,22 +4,23 @@
       <v-card>
         <v-card-title class="pa-4">
           <span class="headline">Import Data</span>
+          <v-chip color="secondary" v-if="branch" class="ml-2"> {{ branch }} </v-chip>
         </v-card-title>
         <v-divider class="mt-0"></v-divider>
         <v-card-text>
           <v-container>
-            <v-row v-if="userHasPermission">
+            <v-row> 
               <v-col class="my-0 py-0">
                 <v-autocomplete
-                  v-model="branch_id"
-                  :items="branches"
-                  item-text="name"
-                  item-value="id"
-                  label="Branch"
+                  v-model="inventory_type"
+                  :items="inventory_types"
+                  item-text="type"
+                  item-value="type"
+                  label="Inventory Type"
                   required
-                  :error-messages="branchErrors"
-                  @input="$v.branch_id.$touch()"
-                  @blur="$v.branch_id.$touch()"
+                  :error-messages="inventoryTypeErrors"
+                  @input="$v.inventory_type.$touch()"
+                  @blur="$v.inventory_type.$touch()"
                 >
                 </v-autocomplete>
               </v-col>
@@ -152,22 +153,20 @@ import { mapState, mapGetters } from "vuex";
 export default {
   
   name: "ImportDialog",
-  props: {
-    api_route: String,
-    dialog_import: Boolean,
-    branches: Array,
-    databases: Array,
-    action: String,
-    inventory_group: String,
-  },
+  props: [
+    'branch',
+    'branch_id',
+    'api_route',
+    'dialog_import',
+    'branches',
+    'databases',
+    'action',
+    'inventory_group',
+  ],
 
   mixins: [validationMixin],
   validations: {
-    branch_id: { 
-      required: requiredIf(function () {
-        return this.userHasPermission;
-      })
-    },
+    inventory_type: { required },
     file: { 
       required: requiredIf(function () {
         return this.action === 'import';
@@ -181,9 +180,10 @@ export default {
   },
   data () {
     return {
-      branch_id: "",
       docdate: new Date().toISOString().substr(0, 10),
       file: [],
+      inventory_types: [ { type: "OVERALL" }, { type: "REPO" } ],
+      inventory_type: "OVERALL",
       database: "",
       loading: true,
       uploadDisabled: false,
@@ -217,6 +217,7 @@ export default {
         branch_id: this.branch_id, 
         database: this.database, 
         inventory_group: this.inventory_group, 
+        inventory_type: this.inventory_type,
       };
 
       axios.post(this.api_route, data).then(
@@ -262,13 +263,13 @@ export default {
       
       this.fileIsEmpty = false;
       this.fileIsInvalid = false;
-      this.branch_id = this.userHasPermission ? this.branch_id : this.user.branch.id;
       
       let formData = new FormData();
 
       formData.append("file", this.file);
       formData.append("inventory_group", this.inventory_group);
       formData.append("branch_id", this.branch_id);
+      formData.append("inventory_type", this.inventory_type);
     
       axios
         .post(this.api_route, formData, {
@@ -294,7 +295,6 @@ export default {
               this.$v.$reset();
               this.file = [];
               this.fileIsEmpty = false;
-              this.branch_id = "";
             } else if (data.error_column) {
               this.errors_array = data.error_column;
               this.dialog_error_list = true;
@@ -366,7 +366,6 @@ export default {
     closeDialog() {
       this.$emit('closeImportDialog');
       this.file = [];
-      this.branch_id = "";
       this.database = "";
       this.fileIsEmpty = false;
       this.uploadDisabled = false;
@@ -406,6 +405,12 @@ export default {
       this.fileIsEmpty && errors.push("File is empty.");
       this.fileIsInvalid &&
         errors.push("File type must be 'xlsx', 'xls' or 'ods'.");
+      return errors;
+    },
+    inventoryTypeErrors() {
+      const errors = [];
+      if (!this.$v.inventory_type.$dirty) return errors;
+      !this.$v.inventory_type.required && errors.push("Inventory Type is required.");
       return errors;
     },
     branchErrors() {
