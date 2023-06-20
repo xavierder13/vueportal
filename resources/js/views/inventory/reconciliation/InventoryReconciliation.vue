@@ -130,7 +130,18 @@
                   </v-btn>
                 </template>
                 <v-list class="pa-1">
-                  <v-list-item class="ma-0 pa-0" style="min-height: 25px">
+                  <template v-for="(list) in actionList">
+                    <v-list-item class="ma-0 pa-0" style="min-height: 25px" v-if="list.hasPermission">
+                      <v-list-item-title>
+                        <v-btn class="mx-1 white--text" x-small @click="callMethod(list.method, item)" width="105px" :color="list.color">
+                          <v-icon class="mr-1" x-small> {{ list.icon}} </v-icon>
+                          {{ list.title }}
+                        </v-btn>
+                      </v-list-item-title>
+                    </v-list-item>
+                  </template>
+                  
+                  <!-- <v-list-item class="ma-0 pa-0" style="min-height: 25px">
                     <v-list-item-title>
                       <v-btn x-small @click="printPDF(item)" class="mx-1" width="105px" color="secondary">
                         <v-icon class="mr-1" x-small>
@@ -163,7 +174,7 @@
                         Delete
                       </v-btn>
                     </v-list-item-title>
-                  </v-list-item>
+                  </v-list-item> -->
                 </v-list>
               </v-menu>
             </template>
@@ -396,15 +407,12 @@ export default {
       });
     },
 
-    isUnauthorized(error) {
-      // if unauthenticated (401)
-      if (error.response.status == "401") {
-        this.$router.push({ name: "unauthorize" });
-      }
-    },
-
     printPDF(item) {
       this.getInventoryReconciliation(item.id);
+    },
+
+    callMethod(method, item) {
+      this[method](item);
     },
 
     setPDFData() {
@@ -626,6 +634,12 @@ export default {
 
       doc.save("inventory.pdf");
     },
+    isUnauthorized(error) {
+      // if unauthenticated (401)
+      if (error.response.status == "401") {
+        this.$router.push({ name: "unauthorize" });
+      }
+    },
     websocket() {
       // Socket.IO fetch data
       this.$options.sockets.sendData = (data) => {
@@ -692,6 +706,40 @@ export default {
     },
     dialogHeaderTitle(){
       return this.importIsClicked ? 'Import Excel Data From SAP' : 'Sync Data From SAP';
+    },
+    actionList(){
+       let menu = [
+        {
+          title: 'PDF',
+          icon: 'mdi-file-pdf',
+          method: 'printPDF',
+          hasPermission: true,
+          color: 'secondary',
+        },
+        {
+          title: 'Breakdown',
+          icon: 'mdi-file-document',
+          method: 'viewBreakdown',
+          hasPermission: true,
+          color: 'info',
+        },
+        {
+          title: 'Discrep',
+          icon: 'mdi-eye',
+          method: 'viewReconciliation',
+          hasPermission: true,
+          color: 'primary',
+        },
+        {
+          title: 'Delete',
+          icon: 'mdi-delete',
+          method: 'showConfirmAlert',
+          hasPermission: this.hasPermission('inventory-recon-delete'),
+          color: 'error',
+        },
+       ];
+
+       return menu;
     },
     ...mapState("auth", ["user"]),
     ...mapGetters("userRolesPermissions", ["hasRole", "hasAnyRole", "hasPermission","hasAnyPermission"]),
