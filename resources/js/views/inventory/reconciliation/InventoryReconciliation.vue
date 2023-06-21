@@ -143,6 +143,31 @@
           </v-data-table>
         </v-card>
       </v-main>
+      <v-dialog v-model="dialog_loading" max-width="500px" persistent>
+        <v-card>
+          <v-card-text>
+            <v-container>
+              <v-row
+                class="fill-height"
+                align-content="center"
+                justify="center"
+              >
+                <v-col class="subtitle-1 font-weight-bold text-center mt-4" cols="12">
+                  Fetching Inventory Reconciliation Data...
+                </v-col>
+                <v-col cols="6">
+                  <v-progress-linear
+                    color="primary"
+                    indeterminate
+                    rounded
+                    height="6"
+                  ></v-progress-linear>
+                </v-col>
+              </v-row>
+            </v-container>
+          </v-card-text>
+        </v-card>
+      </v-dialog>
       <ImportDialog 
         :api_route="api_route" 
         :dialog_import="dialog_import"
@@ -209,6 +234,7 @@ export default {
       fileIsInvalid: false,
       uploadDisabled: false,
       uploading: false,
+      dialog_loading: false,
       dialog_import: false,
       dialog_sync: false,
       dialog_error_list: false,
@@ -250,6 +276,7 @@ export default {
       );
     },
     async getInventoryReconciliation(inventory_recon_id) {
+      this.dialog_loading = await true;
       await axios
         .get("/api/inventory_reconciliation/discrepancy/" + inventory_recon_id)
         .then(
@@ -272,6 +299,7 @@ export default {
           }
         );
       await this.setPDFData();
+      this.dialog_loading = await false;
     },
 
     openImportDialog(action, item) {

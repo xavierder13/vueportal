@@ -350,10 +350,11 @@ export default {
       //   branches.push(value.id);
       // });
      
-      Object.assign(item, { sap_db_branches:  branches});
+      // Object.assign(item, { sap_db_branches:  branches});
 
       this.editedIndex = this.sap_databases.indexOf(item);
       Object.assign(this.editedItem, item);
+      Object.assign(this.editedItem, { sap_db_branches:  branches});
       this.dialog = true;
       this.emailReadonly = true;
       this.password = "password";

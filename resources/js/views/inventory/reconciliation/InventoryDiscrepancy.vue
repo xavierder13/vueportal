@@ -309,7 +309,7 @@ export default {
         let from_value = "Admin-Inventory Department";
 
         let beneath_table =
-          "Please verify, reconcile and coordinate to admin for the reconciliation of the discrepancies within Two (2) days upon the receipt of this Memo.";
+          "Please verify, reconcile and coordinate to admin for the reconciliation of the discrepancies within Ten (10) days upon the receipt of this Memo.";
         let beneath_from = "Physical Inventory Report for the month of";
         let beneath_from_value = lastMonth + " " + gFYear;
         let date_submitted = "Date Submitted:";
@@ -428,7 +428,7 @@ export default {
 
         let verified_by = "Verified by:";
         let verified_by_value = "GERALD SUNIGA";
-        let verified_by_position = "Inventory Section Head";
+        let verified_by_position = "Inventory Recon Section Head";
         let verified_by_value_2 = "MARIEL QUITALEG";
         let verified_by_position_2 = "Inventory & Warehousing Manager";
 
