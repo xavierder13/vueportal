@@ -221,42 +221,42 @@ export default {
       };
 
       axios.post(this.api_route, data).then(
-          (response) => {
-            let data = response.data;
-            
-            this.uploadDisabled = false;
-            this.uploading = false;
+        (response) => {
+          let data = response.data;
+          
+          this.uploadDisabled = false;
+          this.uploading = false;
 
-            if(data.error)
-            {
-              this.showErrorAlert('Error', data.error);
-            }
-
-            if (data.success) {
-              // send data to Socket.IO Server
-              // this.$socket.emit("sendData", { action: "import-project" });
-
-              this.$emit('getData');
-              this.$emit('closeImportDialog');
-              
-              this.showAlert(data.success, 'success');
-
-              this.$v.$reset();
-              
-            } else if (data.empty) {
-
-              this.showAlert(data.empty, 'warning');
-            } 
-
-          },
-          (error) => {
-            console.log(error);
-            this.uploadDisabled = false;
-            this.showErrorAlert(error, error.response.data.message);
-            this.isUnauthorized(error);
-           
+          if(data.error)
+          {
+            this.showErrorAlert('Error', data.error);
           }
-        );
+
+          if (data.success) {
+            // send data to Socket.IO Server
+            // this.$socket.emit("sendData", { action: "import-project" });
+
+            this.$emit('getData');
+            this.$emit('closeImportDialog');
+            
+            this.showAlert(data.success, 'success');
+
+            this.$v.$reset();
+            
+          } else if (data.empty) {
+
+            this.showAlert(data.empty, 'warning');
+          } 
+
+        },
+        (error) => {
+          console.log(error);
+          this.uploadDisabled = false;
+          this.showErrorAlert(error, error.response.data.message);
+          this.isUnauthorized(error);
+          
+        }
+      );
     },
 
     uploadFile() {
@@ -271,96 +271,94 @@ export default {
       formData.append("branch_id", this.branch_id);
       formData.append("inventory_type", this.inventory_type);
     
-      axios
-        .post(this.api_route, formData, {
-          headers: {
-            Authorization: "Bearer " + localStorage.getItem("access_token"),
-            "Content-Type": "multipart/form-data",
-          },
-        })
-        .then(
-          (response) => {
-            console.log(response.data);
-            this.errors_array = [];
-            let data = response.data
+      axios.post(this.api_route, formData, {
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("access_token"),
+          "Content-Type": "multipart/form-data",
+        },
+      }).then(
+        (response) => {
+          console.log(response.data);
+          this.errors_array = [];
+          let data = response.data
+          
+          if (data.success) {
+            // send data to Socket.IO Server
+            // this.$socket.emit("sendData", { action: "import-project" });
+            this.$emit('getData');
+            this.$emit('closeImportDialog');
             
-            if (data.success) {
-              // send data to Socket.IO Server
-              // this.$socket.emit("sendData", { action: "import-project" });
-              this.$emit('getData');
-              this.$emit('closeImportDialog');
-              
-              this.showAlert(data.success, 'success');
+            this.showAlert(data.success, 'success');
 
-              this.$v.$reset();
-              this.file = [];
-              this.fileIsEmpty = false;
-            } else if (data.error_column) {
-              this.errors_array = data.error_column;
-              this.dialog_error_list = true;
-            } else if (data.error_row_data) {
-              let error_keys = Object.keys(data.error_row_data);
-              let errors = data.error_row_data;
-              let field_values = data.field_values;
-              let row = "";
-              let col = "";
+            this.$v.$reset();
+            this.file = [];
+            this.fileIsEmpty = false;
+          } else if (data.error_column) {
+            this.errors_array = data.error_column;
+            this.dialog_error_list = true;
+          } else if (data.error_row_data) {
+            let error_keys = Object.keys(data.error_row_data);
+            let errors = data.error_row_data;
+            let field_values = data.field_values;
+            let row = "";
+            let col = "";
 
-              error_keys.forEach((value, index) => {
-                row = value.split(".")[0];
-                col = value.split(".")[1];
-                errors[value].forEach((val, i) => {
-                  this.errors_array.push(
-                    "Error on row: <label class='text-info'>" +
-                      (parseInt(row) + 1) +
-                      "</label>; Column: <label class='text-primary'>" +
-                      col +
-                      "</label>; Msg: <label class='text-danger'>" +
-                      val +
-                      "</label>; Value: <label class='text-success'>" +
-                      field_values[row][col] +
-                      "</label>"
-                  );
-                });
-              });
-
-              this.dialog_error_list = true;
-            } else if (data.error_empty) {
-              this.fileIsEmpty = true;
-            } 
-            else if (data.duplicate_serials)
-            {
-              let error_keys = Object.keys(data.duplicate_serials);
-              let errors = data.duplicate_serials;
-              
-              error_keys.forEach(val => {
+            error_keys.forEach((value, index) => {
+              row = value.split(".")[0];
+              col = value.split(".")[1];
+              errors[value].forEach((val, i) => {
                 this.errors_array.push(
-                  "Duplicate Serial # on row: <span class='text-info'>" +
-                    parseInt(val) +
-                    "</span>; Serial: <span class='text-danger'>" +
-                    errors[val] +
-                    "</span>"
+                  "Error on row: <label class='text-info'>" +
+                    (parseInt(row) + 1) +
+                    "</label>; Column: <label class='text-primary'>" +
+                    col +
+                    "</label>; Msg: <label class='text-danger'>" +
+                    val +
+                    "</label>; Value: <label class='text-success'>" +
+                    field_values[row][col] +
+                    "</label>"
                 );
               });
+            });
 
-              this.dialog_error_list = true;
-              
-            }
-            else if(data.error)
-            {
-              this.showErrorAlert("ERROR!", data.error);
-            }
-            else {
-              this.fileIsInvalid = true;
-            }
+            this.dialog_error_list = true;
+          } else if (data.error_empty) {
+            this.fileIsEmpty = true;
+          } 
+          else if (data.duplicate_serials)
+          {
+            let error_keys = Object.keys(data.duplicate_serials);
+            let errors = data.duplicate_serials;
+            
+            error_keys.forEach(val => {
+              this.errors_array.push(
+                "Duplicate Serial # on row: <span class='text-info'>" +
+                  parseInt(val) +
+                  "</span>; Serial: <span class='text-danger'>" +
+                  errors[val] +
+                  "</span>"
+              );
+            });
 
-            this.uploadDisabled = false;
-            this.uploading = false;
-          },
-          (error) => {
-            console.log(error);
-            this.uploadDisabled = false;
+            this.dialog_error_list = true;
+            
           }
-        );
+          else if(data.error)
+          {
+            this.showErrorAlert("ERROR!", data.error);
+          }
+          else {
+            this.fileIsInvalid = true;
+          }
+
+          this.uploadDisabled = false;
+          this.uploading = false;
+        },
+        (error) => {
+          console.log(error);
+          this.uploadDisabled = false;
+        }
+      );
       
     },
     closeDialog() {

@@ -57,4 +57,10 @@ class Branch extends Model
         //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
     }
 
+    public function inventory_reconciliations()
+    {
+        return $this->hasMany('App\InventoryReconciliation', 'branch_id', 'id');
+        //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
+    }
+
 }

@@ -34,11 +34,11 @@
 
           <v-data-table
             :headers="headers"
-            :items="filteredInventory"
+            :items="branches"
             :search="search"
             :loading="loading"
             loading-text="Loading... Please wait"
-            group-by="branch.name"
+            group-by="name"
             class="elevation-1"
             :expanded.sync="expanded"
             v-if="hasPermission('inventory-recon-list')"
@@ -51,7 +51,7 @@
                       <v-icon v-if="isOpen">mdi-chevron-up</v-icon>
                       <v-icon v-else>mdi-chevron-down</v-icon>
                     </v-btn>
-                    {{ items[0].branch.name }}
+                    {{ items[0].name }}
                   </v-col>
                 </v-row>
               </td>
@@ -104,79 +104,41 @@
                 </v-menu>
               </td>
             </template>
-            <template v-slot:item.date_uploaded="{ item }">
-              <v-chip color="secondary" v-if="item.date_uploaded">
-                {{ item.date_uploaded }}
-              </v-chip>
-            </template>
-            <template v-slot:item.status="{ item }">
-              <v-chip
-                :color="
-                  item.status == 'unreconciled' ? 'red white--text' : 'success'
-                "
-              >
-                {{ item.status.toUpperCase() }}
-              </v-chip>
-            </template>
-            <template v-slot:item.inventory_type="{ item }">
-                {{ item.inventory_type }} 
-            </template>
-            <template v-slot:item.actions="{ item }">
-              <v-menu offset-y>
-                <template v-slot:activator="{ on, attrs }">
-                  <v-btn x-small v-bind="attrs" v-on="on" class="primary--text">
-                    Actions
-                    <v-icon small> mdi-menu-down </v-icon>
-                  </v-btn>
-                </template>
-                <v-list class="pa-1">
-                  <template v-for="(list) in actionList">
-                    <v-list-item class="ma-0 pa-0" style="min-height: 25px" v-if="list.hasPermission">
-                      <v-list-item-title>
-                        <v-btn class="mx-1 white--text" x-small @click="callMethod(list.method, item)" width="105px" :color="list.color">
-                          <v-icon class="mr-1" x-small> {{ list.icon}} </v-icon>
-                          {{ list.title }}
-                        </v-btn>
-                      </v-list-item-title>
-                    </v-list-item>
-                  </template>
-                  
-                  <!-- <v-list-item class="ma-0 pa-0" style="min-height: 25px">
-                    <v-list-item-title>
-                      <v-btn x-small @click="printPDF(item)" class="mx-1" width="105px" color="secondary">
-                        <v-icon class="mr-1" x-small>
-                          mdi-file-pdf
-                        </v-icon>
-                        PDF
+            <template v-slot:item="{ item }">
+              <tr v-for="(value, index) in item.inventory_reconciliations">
+                <td> </td>
+                <td> {{ value.user }} </td>
+                <td> 
+                    <v-chip :color="value.status == 'reconciled' ? 'success' : 'error'">
+                      {{ value.status }} 
+                    </v-chip> 
+                </td>
+                <td> {{ value.inventory_type }} </td>
+                <td> <v-chip color="secondary">{{ value.date_created }}</v-chip> </td>
+                <td> <v-chip color="success" v-if="value.date_reconciled">{{ value.date_reconciled }}</v-chip> </td>
+                <td>
+                  <v-menu offset-y>
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-btn x-small v-bind="attrs" v-on="on" class="primary--text">
+                        Actions
+                        <v-icon small> mdi-menu-down </v-icon>
                       </v-btn>
-                    </v-list-item-title>
-                  </v-list-item>
-                  <v-list-item class="ma-0 pa-0" style="min-height: 25px">
-                    <v-list-item-title>
-                      <v-btn class="mx-1 white--text" x-small @click="viewBreakdown(item)" width="105px" color="info">
-                        <v-icon class="mr-1" x-small> mdi-file-document </v-icon>
-                        Breakdown
-                      </v-btn>
-                    </v-list-item-title>
-                  </v-list-item>
-                  <v-list-item class="ma-0 pa-0" style="min-height: 25px">
-                    <v-list-item-title>
-                      <v-btn class="mx-1 white--text" x-small @click="viewReconciliation(item)" width="105px" color="primary">
-                        <v-icon class="mr-1" x-small> mdi-eye </v-icon>
-                        Discrep
-                      </v-btn>
-                    </v-list-item-title>
-                  </v-list-item>
-                  <v-list-item class="ma-0 pa-0" style="min-height: 25px" v-if="hasPermission('inventory-recon-delete')">
-                    <v-list-item-title>
-                      <v-btn class="mx-1 white--text" x-small @click="showConfirmAlert(item)" width="105px" color="error">
-                        <v-icon class="mr-1" x-small> mdi-delete </v-icon>
-                        Delete
-                      </v-btn>
-                    </v-list-item-title>
-                  </v-list-item> -->
-                </v-list>
-              </v-menu>
+                    </template>
+                    <v-list class="pa-1">
+                      <template v-for="(list) in actionListTblRow">
+                        <v-list-item class="ma-0 pa-0" style="min-height: 25px" v-if="list.hasPermission">
+                          <v-list-item-title>
+                            <v-btn class="mx-1 white--text" x-small @click="callMethod(list.method, value)" width="105px" :color="list.color">
+                              <v-icon class="mr-1" x-small> {{ list.icon}} </v-icon>
+                              {{ list.title }}
+                            </v-btn>
+                          </v-list-item-title>
+                        </v-list-item>
+                      </template>
+                    </v-list>
+                  </v-menu>
+                </td>
+              </tr>
             </template>
           </v-data-table>
         </v-card>
@@ -198,7 +160,6 @@
 <script>
 import axios from "axios";
 import { validationMixin } from "vuelidate";
-import { required, requiredIf, maxLength, email } from "vuelidate/lib/validators";
 import { mapState, mapGetters } from "vuex";
 import ImportDialog from "../components/ImportDialog.vue";
 import { jsPDF } from "jspdf";
@@ -216,7 +177,7 @@ export default {
       search: "",
       headers: [
         { text: "Branch", value: "grp_branch" },
-        { text: "", value: "branch.name" },
+        { text: "", value: "name" },
         { text: "Created By", value: "user.name" },
         { text: "Status", value: "status" },
         { text: "Inventory Type", value: "inventory_type" },
@@ -276,8 +237,8 @@ export default {
       axios.get("/api/inventory_reconciliation/index").then(
         (response) => {
           let data = response.data;
-
-          this.inventory_reconciliations = data.inventory_reconciliations;
+          console.log(data);
+          // this.inventory_reconciliations = data.inventory_reconciliations;
           this.branches = data.branches;
           this.databases = data.databases;
           this.loading = false;
@@ -296,7 +257,7 @@ export default {
             let data = response.data;
             let reconciliation = data.reconciliation;
             this.products = data.products;
-            this.branch = reconciliation.branch.name;
+            this.branch = reconciliation.name;
             this.branch_code = reconciliation.branch.code;
             this.date_reconciled = data.date_reconciled;
             this.status = reconciliation.status;
@@ -314,8 +275,8 @@ export default {
     },
 
     openImportDialog(action, item) {
-      this.branch = item[0].branch.name;
-      this.branch_id = item[0].branch.id;
+      this.branch = item[0].name;
+      this.branch_id = item[0].id;
       this.action = action;
       this.api_route = action === "sync" ? "/api/inventory_reconciliation/sync" : "/api/inventory_reconciliation/import";
       this.dialog_import = true;
@@ -408,6 +369,7 @@ export default {
     },
 
     printPDF(item) {
+      console.log(item);
       this.getInventoryReconciliation(item.id);
     },
 
@@ -707,7 +669,14 @@ export default {
     dialogHeaderTitle(){
       return this.importIsClicked ? 'Import Excel Data From SAP' : 'Sync Data From SAP';
     },
-    actionList(){
+    actionListTblHdr(){
+       let menu = [
+        
+       ];
+
+       return menu;
+    },
+    actionListTblRow(){
        let menu = [
         {
           title: 'PDF',

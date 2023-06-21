@@ -211,6 +211,7 @@ export default {
 
         formData.append("file", this.file);
         formData.append("docdate", this.docdate);
+        formData.append("inventory_type", this.inventory_type);
 
         axios
           .post(this.api_route, formData, {

@@ -160,7 +160,6 @@ export default {
       this.loading = true;
       axios.get("/api/product/index").then(
         (response) => {
-          console.log(response.data);
           this.branches = response.data.branches;
           this.loading = false;
         },
@@ -215,23 +214,36 @@ export default {
 
       axios.post(url, data, { responseType: 'arraybuffer'})
         .then((response) => {
-          this.template_loading = false;
-          var fileURL = window.URL.createObjectURL(new Blob([response.data]));
-          var fileLink = document.createElement('a');
-          fileLink.href = fileURL;
-          fileLink.setAttribute('download', file_name);
-          document.body.appendChild(fileLink);
-          fileLink.click();
+          if(!response.data.error)
+          {
+            this.template_loading = false;
+            var fileURL = window.URL.createObjectURL(new Blob([response.data]));
+            var fileLink = document.createElement('a');
+            fileLink.href = fileURL;
+            fileLink.setAttribute('download', file_name);
+            document.body.appendChild(fileLink);
+            fileLink.click();
 
-          this.$swal({
-            position: "center",
-            icon: "success",
-            title: "File has been downloaded",
-            showConfirmButton: false,
-          });
+            this.$swal({
+              position: "center",
+              icon: "success",
+              title: "File has been downloaded",
+              showConfirmButton: false,
+            });
 
-          this.dialog_template = false;
-          this.disabled = false;
+            this.dialog_template = false;
+            this.disabled = false;
+          }
+          else
+          {
+            this.$swal({
+              position: "center",
+              icon: "error",
+              title: "Error Occurred. Contact your Admnistrator",
+              showConfirmButton: false,
+            });
+          }
+          
 
         }, (error) => {
           console.log(error);

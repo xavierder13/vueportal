@@ -41,35 +41,37 @@ class InventoryReconciliationController extends Controller
         
         $databases = SapDatabase::all();
         $user = Auth::user();
-        $branches = Branch::orderBy('name')->get();
-        $inventory_reconciliations = InventoryReconciliation::with('user')
-                                        ->with('branch')
-                                        ->where(function($query) use ($user) {
-                                            if($user->id !== 1)
-                                            {
-                                                // if user has role then get all Inventory Reconciliation with inventory_group = 'Audit-Branch'
-                                                if($user->hasRole('Audit Admin'))
-                                                {
-                                                    $query->where('inventory_group', '=', 'Audit-Branch');
-                                                }
-                                                //if user has role then get all Inventory Reconciliation with inventory_group = 'Admin-Branch'
-                                                else if($user->hasRole('Inventory Admin'))
-                                                {
-                                                    $query->where('inventory_group', '=', 'Admin-Branch');
-                                                }
-                                                // if user has role Inventory Branch then show record with branch_id = user's branch
-                                                else if($user->hasRole('Inventory Branch'))
-                                                {
-                                                    $query->where('branch_id', '=', $user->branch_id)
-                                                          ->where('inventory_group', '=', 'Admin-Branch');
-                                                }
-                                            }
-                                        })
-                                        ->select(DB::raw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_created, DATE_FORMAT(date_reconciled, '%m/%d/%Y') as date_reconciled"))
-                                        ->get();
-                                        
+        $branches = Branch::with(['inventory_reconciliations' => function($query) use ($user){
+                            $query->select(
+                                DB::raw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_created, 
+                                         DATE_FORMAT(date_reconciled, '%m/%d/%Y') as date_reconciled, 
+                                         (select name from users where id = user_id) as user")
+                            )
+                            ->where(function($query) use ($user) {
+                                if($user->id !== 1)
+                                {
+                                    // if user has role then get all Inventory Reconciliation with inventory_group = 'Audit-Branch'
+                                    if($user->hasRole('Audit Admin'))
+                                    {
+                                        $query->where('inventory_group', '=', 'Audit-Branch');
+                                    }
+                                    //if user has role then get all Inventory Reconciliation with inventory_group = 'Admin-Branch'
+                                    else if($user->hasRole('Inventory Admin'))
+                                    {
+                                        $query->where('inventory_group', '=', 'Admin-Branch');
+                                    }
+                                    // if user has role Inventory Branch then show record with branch_id = user's branch
+                                    else if($user->hasRole('Inventory Branch'))
+                                    {
+                                        $query->where('branch_id', '=', $user->branch_id)
+                                              ->where('inventory_group', '=', 'Admin-Branch');
+                                    }
+                                }
+                            });
+                          }])
+                          ->orderBy('name')->get();
+                                      
         return response()->json([
-            'inventory_reconciliations' => $inventory_reconciliations,
             'branches' => $branches,
             'databases' => $databases
         ], 200);
@@ -82,7 +84,8 @@ class InventoryReconciliationController extends Controller
 
     public function getDiscrepancy($inventory_recon_id)
     {
-        $reconciliation = InventoryReconciliation::with('branch')
+        $reconciliation = InventoryReconciliation::select(DB::raw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_created, DATE_FORMAT(date_reconciled, '%m/%d/%Y') as date_reconciled"))
+                                                 ->with('branch')
                                                  ->with('user')
                                                  ->with('user.position')
                                                  ->find($inventory_recon_id);
@@ -100,9 +103,16 @@ class InventoryReconciliationController extends Controller
                                                       ->orderBy('model', 'ASC')
                                                       ->orderBy('product_category', 'ASC')
                                                       ->get(['brand', 'model', 'product_category']);
-
-        
         $products = [];
+
+        // exclude all sap generated serial items
+        $serialized_items = InventoryReconciliationMap::where('inventory_recon_id', '=', $inventory_recon_id)
+                                                      ->where(function($query) {
+                                                            $warehouses = WarehouseCode::all();
+                                                            foreach ($warehouses as $whse) {
+                                                                $query->where('serial', 'not like', '%'.$whse->code.'%');
+                                                            }
+                                                        })->get();
 
         foreach ($product_distinct as $product) {
             $sap_discrepancy = [];
@@ -116,16 +126,9 @@ class InventoryReconciliationController extends Controller
             $physical_qty = $recon->where('inventory_type', '=', 'Physical')->sum('quantity');
 
             // exclude sap generated serial numbers
-            $items = InventoryReconciliationMap::where('inventory_recon_id', '=', $inventory_recon_id)
-                                            ->where('brand', $product['brand'])
-                                            ->where('model', $product['model'])
-                                            ->where('product_category', $product['product_category'])
-                                            ->where(function($query) {
-                                                $warehouses = WarehouseCode::all();
-                                                foreach ($warehouses as $whse) {
-                                                    $query->where('serial', 'not like', '%'.$whse->code.'%');
-                                                }
-                                            })->get();
+            $items = $serialized_items->where('brand', $product['brand'])
+                                    ->where('model', $product['model'])
+                                    ->where('product_category', $product['product_category']);
 
             $sap = $items->where('inventory_type', '=', 'SAP');
             $physical = $items->where('inventory_type', '=', 'Physical');
@@ -451,7 +454,7 @@ class InventoryReconciliationController extends Controller
             'products.*.brand_.required' => 'Brand is required',
             'products.*.model.required' => 'Model is required',
             'products.*.product_category.required' => 'Product Category is required',
-            'products.*.serial.required' => 'Serial is required',
+            // 'products.*.serial.required' => 'Serial is required',
         ];
 
         $valid_fields = [
@@ -459,7 +462,7 @@ class InventoryReconciliationController extends Controller
             'products.*.brand' => 'required',
             'products.*.model' => 'required',
             'products.*.product_category' => 'required',
-            'products.*.serial' => 'required',
+            // 'products.*.serial' => 'required',
         ];
         
         $validator = Validator::make($request->all(), $valid_fields, $rules);  
@@ -471,20 +474,25 @@ class InventoryReconciliationController extends Controller
 
         // scan for duplicate data
         foreach ($products as $product) {
-            $inventory_recon_map = InventoryReconciliationMap::where('inventory_type', '=', 'Physical')
+            if($product['serial'])
+            {
+                $inventory_recon_map = InventoryReconciliationMap::where('inventory_type', '=', 'Physical')
                                                  ->where('brand', '=', $product['brand']['name'])
                                                  ->where('model', '=', $product['model'])
                                                  ->where('product_category', '=', $product['product_category']['name'])
                                                  ->where('serial', '=', $product['serial'])
                                                  ->where('inventory_recon_id', '=', $inventory_recon_id)
                                                  ->get();
-            if(count($inventory_recon_map))
-            {   
-                return response()->json(['duplicate' => 'Product exists'], 200);
-            }
+                if(count($inventory_recon_map))
+                {   
+                    return response()->json(['duplicate' => 'Product exists'], 200);
+                }
+            } 
         }
         
         foreach ($products as $product) {
+
+            $qty = $product['quantity'] ? $product['quantity'] : 1;
 
             $inventory_recon_map = new InventoryReconciliationMap();
             $inventory_recon_map->inventory_recon_id = $inventory_recon_id;
@@ -494,7 +502,7 @@ class InventoryReconciliationController extends Controller
             $inventory_recon_map->model = $product['model'];
             $inventory_recon_map->product_category = $product['product_category']['name'];
             $inventory_recon_map->serial = $product['serial'];
-            $inventory_recon_map->quantity = 1;
+            $inventory_recon_map->quantity = $qty ;
             $inventory_recon_map->save();
         }
 
@@ -529,7 +537,9 @@ class InventoryReconciliationController extends Controller
                         'username' => $db->username,
                         'password' => $password,   
                     ));
-    
+            
+            $operator = $request->inventory_type === 'OVERALL' ? '<>' : '=';
+
             $inventory_onhand = DB::connection($database)->select("
                 SELECT 
                     d.FirmName BRAND, 
@@ -544,7 +554,7 @@ class InventoryReconciliationController extends Controller
                     INNER JOIN OMRC d on c.FirmCode = d.FirmCode
                     INNER JOIN OWHS e on a.WhsCode = e.WhsCode 
                     INNER JOIN [@PROGTBL] f on UPPER(e.Street) COLLATE DATABASE_DEFAULT = CASE WHEN DB_NAME() = 'ReportsFinance' THEN f.U_Branch2 ELSE f.U_Branch1 END
-                WHERE a.OnHand <> 0 and b.Status = '0' and f.U_Branch1 = :branch
+                WHERE a.OnHand <> 0 and b.Status = '0' and f.U_Branch1 = :branch and RIGHT(e.WhsCode, 3) ".$operator." 'RPO'
                 ORDER by 1, 2, 3, 4
             ",
             ['branch' => $branch->name]);

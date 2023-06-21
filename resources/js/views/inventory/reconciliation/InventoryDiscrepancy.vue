@@ -30,15 +30,19 @@
         </export-excel> -->
         <v-card>
           <v-card-title>
-            Inventory Reconciliation - {{ branch }}
-            <v-chip
-              :color="
-                status == 'unreconciled' ? 'red white--text' : 'success'
-              "
-              class="ml-4"
-            >
-              {{ status.toUpperCase() }}
-            </v-chip>
+            Inventory Reconciliation  
+            <template v-if="status">
+              {{ " - " + branch }}
+              <v-chip
+                :color="
+                  status == 'unreconciled' ? 'red white--text' : 'success'
+                "
+                class="ml-4"
+              >
+                {{ status.toUpperCase() }}
+              </v-chip>
+            </template>
+            
             <v-spacer></v-spacer>
             <v-text-field
               v-model="search"
@@ -56,6 +60,16 @@
             loading-text="Loading... Please wait"
             id="invty-recon-table"
           >
+            <template v-slot:top v-if="reconciliation">
+              <v-toolbar flat>
+                <h6 class="my-0 font-weight-bold">Created Date:</h6> 
+                <v-chip color="secondary" class="ml-2">{{ reconciliation.date_created }}</v-chip>
+                <template v-if="reconciliation.date_reconciled">
+                  <h6 class="my-0 font-weight-bold ml-8">Reconciled Date:</h6> 
+                  <v-chip color="success" class="ml-2">{{ reconciliation.date_reconciled }}</v-chip>
+                </template>
+              </v-toolbar>
+            </template>
             <template v-slot:item.row="{ item, index }">
               {{ index + 1 }}
             </template>
@@ -147,6 +161,7 @@ export default {
       bm_oic: "",
       prepared_by: "",
       prepared_by_position: "",
+      reconciliation: "",
     };
   },
 
@@ -161,6 +176,7 @@ export default {
             let data = response.data;
             console.log(data);
             let reconciliation = data.reconciliation;
+            this.reconciliation = reconciliation; 
             this.products = data.products;
             this.branch = reconciliation.branch.name;
             this.branch_code = reconciliation.branch.code;

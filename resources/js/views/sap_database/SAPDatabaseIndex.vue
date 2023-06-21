@@ -346,6 +346,10 @@ export default {
         branches.push(value.branch_id);
       });
 
+      // this.branches.forEach(value => {
+      //   branches.push(value.id);
+      // });
+     
       Object.assign(item, { sap_db_branches:  branches});
 
       this.editedIndex = this.sap_databases.indexOf(item);

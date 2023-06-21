@@ -88,7 +88,7 @@ export default {
         (response) => {
           this.branches = response.data.branches;
           this.loading = false;
-
+          console.log(this.branches);
         },
         (error) => {
           this.isUnauthorized(error);

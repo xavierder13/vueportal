@@ -323,7 +323,7 @@ export default {
         { text: "Model", value: "model" },
         { text: "Product Category", value: "product_category.name" },
         { text: "Serial", value: "serial" },
-        { text: "Branch", value: "branch.name" },
+        { text: "Quantity", value: "quantity" },
         { text: "Date Created", value: "date_created" },
         { text: "Actions", value: "actions", sortable: false, width: "80px" },
       ],
@@ -567,7 +567,7 @@ export default {
           inventory_group: this.inventory_group,
           inventory_type: this.inventory_type,
         };
-
+        console.log(data);
         axios
           .post("/api/inventory_reconciliation/unreconcile/list", data)
           .then(
@@ -604,9 +604,9 @@ export default {
 
           axios.post("api/inventory_reconciliation/reconcile", data).then(
             (response) => {
-
+              this.dialog_unreconciled = false;
               this.dialog_recon_loading = false;
-
+            
               if (response.data.success) {
                 // send data to Sockot.IO Server
                 // this.$socket.emit("sendData", { action: "product-reconcile" });

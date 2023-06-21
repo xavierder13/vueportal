@@ -49,24 +49,16 @@
                 </v-btn>
               </template>
               <v-list class="pa-1">
-                <v-list-item class="ma-0 pa-0" style="min-height: 25px">
-                  <v-list-item-title>
-                    <v-btn x-small @click="importExcel(items)" class="mx-1" width="100px" color="primary">
-                      <v-icon class="mr-1" x-small>
-                        mdi-import
-                      </v-icon>
-                      Import
-                    </v-btn>
-                  </v-list-item-title>
-                </v-list-item>
-                <v-list-item class="ma-0 pa-0" style="min-height: 25px" v-if="canExport">
-                  <v-list-item-title>
-                    <v-btn class="mx-1 white--text" x-small @click="downloadTemplate(items)" width="100px" color="#AB47BC">
-                      <v-icon class="mr-1" x-small> mdi-download </v-icon>
-                      Template
-                    </v-btn>
-                  </v-list-item-title>
-                </v-list-item>
+                <template v-for="list in actionListTblHdr">
+                  <v-list-item class="ma-0 pa-0" style="min-height: 25px">
+                    <v-list-item-title>
+                      <v-btn x-small @click="callMethod(list.method, items)" class="mx-1 white--text" width="100px" :color="list.color">
+                        <v-icon class="mr-1" x-small> {{ list.icon }} </v-icon>
+                        {{ list.title }}
+                      </v-btn>
+                    </v-list-item-title>
+                  </v-list-item>
+                </template>
               </v-list>
             </v-menu>
             <v-btn x-small color="primary" @click="importExcel(items)" v-if="canImport && !canDownloadTemplate"> 
@@ -88,32 +80,16 @@
                   </v-btn>
                 </template>
                 <v-list class="pa-1">
-                  <v-list-item class="ma-0 pa-0" style="min-height: 25px">
-                    <v-list-item-title>
-                      <v-btn x-small @click="viewList(value)" class="mx-1" width="100px" color="info">
-                        <v-icon class="mr-1" x-small>
-                          mdi-eye
-                        </v-icon>
-                        View
-                      </v-btn>
-                    </v-list-item-title>
-                  </v-list-item>
-                  <v-list-item class="ma-0 pa-0" style="min-height: 25px" v-if="canExport">
-                    <v-list-item-title>
-                      <v-btn class="mx-1" x-small @click="exportData(value)" width="100px" color="success">
-                        <v-icon class="mr-1" x-small> mdi-microsoft-excel </v-icon>
-                        Export
-                      </v-btn>
-                    </v-list-item-title>
-                  </v-list-item>
-                  <v-list-item class="ma-0 pa-0" style="min-height: 25px" v-if="canDownload">
-                    <v-list-item-title>
-                      <v-btn class="mx-1" x-small @click="downloadFile(value)" width="100px" color="primary" >
-                        <v-icon class="mr-1" small> mdi-download </v-icon>
-                        Download
-                      </v-btn>
-                    </v-list-item-title>
-                  </v-list-item>
+                  <template v-for="list in actionListTblRow">
+                    <v-list-item class="ma-0 pa-0" style="min-height: 25px" v-if="list.hasPermission">
+                      <v-list-item-title>
+                        <v-btn x-small @click="callMethod(list.method, value)" class="mx-1 white--text" width="100px" :color="list.color">
+                          <v-icon class="mr-1" x-small> {{ list.icon }} </v-icon>
+                          {{ list.title }}
+                        </v-btn>
+                      </v-list-item-title>
+                    </v-list-item>
+                  </template>
                 </v-list>
               </v-menu>
             </td>
@@ -165,7 +141,59 @@ export default {
     },
     viewList(item) {
       this.$emit('viewList', item);
+    },
+  callMethod(method, item) {
+      this[method](item);
     }
+  },
+  computed: {
+    actionListTblHdr(){
+       let menu = [
+        {
+          title: 'Import',
+          icon: 'mdi-file-pdf',
+          method: 'importExcel',
+          hasPermission: true,
+          color: 'primary',
+        },
+        {
+          title: 'Template',
+          icon: 'mdi-download',
+          method: 'downloadTemplate',
+          hasPermission: this.canDownloadTemplate,
+          color: '#AB47BC',
+        },
+       ];
+
+       return menu;
+    },
+    actionListTblRow(){
+       let menu = [
+        {
+          title: 'View',
+          icon: 'mdi-eye',
+          method: 'viewList',
+          hasPermission: true,
+          color: 'info',
+        },
+        {
+          title: 'Export',
+          icon: 'mdi-microsoft-excel',
+          method: 'exportData',
+          hasPermission: this.canExport,
+          color: 'success',
+        },
+        {
+          title: 'File',
+          icon: 'mdi-download',
+          method: 'downloadFile',
+          hasPermission: this.canDownload,
+          color: 'primary',
+        },
+       ];
+
+       return menu;
+    },
   }
 }
 

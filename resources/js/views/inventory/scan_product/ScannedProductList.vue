@@ -311,11 +311,12 @@ export default {
     return {
       search: "",
       headers: [
+        { text: "Branch", value: "branch.name" },
         { text: "Brand", value: "brand.name" },
         { text: "Model", value: "model" },
         { text: "Product Category", value: "product_category.name" },
         { text: "Serial", value: "serial" },
-        { text: "Branch", value: "branch.name" },
+        { text: "Quantity", value: "quantity" },
         { text: "Date Created", value: "date_created" },
         { text: "Actions", value: "actions", sortable: false, width: "80px" },
       ],

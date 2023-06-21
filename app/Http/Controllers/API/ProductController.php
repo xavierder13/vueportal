@@ -440,6 +440,7 @@ class ProductController extends Controller
 
     public function import(Request $request, $branch_id)
     {    
+        
         $user = Auth::user();
         try {
             $file_extension = '';
@@ -481,7 +482,7 @@ class ProductController extends Controller
                     'MODEL',
                     'CATEGORY',
                     'SERIAL',
-                    'QTY'
+                    'QUANTITY'
                 ]; 
 
                 $collection_errors = [];
@@ -541,9 +542,8 @@ class ProductController extends Controller
                         '*.BRAND.required' => 'Brand is required',
                         '*.MODEL.required' => 'Model is required',
                         '*.CATEGORY.required' => 'Product Category is required',
-                        '*.SERIAL.required' => 'Serial is required',
-                        '*.QTY.required' => 'Quantity is required',
-                        '*.QTY.integer' => 'Quantity must be an integer',
+                        // '*.SERIAL.required' => 'Serial is required',
+                        '*.QUANTITY.integer' => 'Quantity must be an integer',
 
                     ];
             
@@ -551,8 +551,8 @@ class ProductController extends Controller
                         '*.BRAND' => 'required',
                         '*.MODEL' => 'required',
                         '*.CATEGORY' => 'required',
-                        '*.SERIAL' => 'required',
-                        '*.QTY' => 'required|integer',
+                        // '*.SERIAL' => 'required',
+                        '*.QUANTITY' => 'nullable|integer',
                     ];
                     
                     $validator = Validator::make($fields, $valid_fields, $rules);  
@@ -590,7 +590,7 @@ class ProductController extends Controller
                 
                 foreach ($fields as $field) {
 
-                    $qty = $field['QTY'] ? $field['QTY'] : 1;
+                    $qty = $field['QUANTITY'] ? $field['QUANTITY'] : 1;
 
                     Product::create([
                         'user_id' => $user->id,
@@ -655,7 +655,7 @@ class ProductController extends Controller
                     c.ItemName MODEL,
                     c.FrgnName CATEGORY, 
                     '' SERIAL,
-                    '' QTY
+                    '' QUANTITY
                     
                 FROM 
                 OITW a
@@ -664,7 +664,7 @@ class ProductController extends Controller
                     INNER JOIN OMRC d on c.FirmCode = d.FirmCode
                     INNER JOIN OWHS e on a.WhsCode = e.WhsCode 
                     INNER JOIN [@PROGTBL] f on UPPER(e.Street) COLLATE DATABASE_DEFAULT = CASE WHEN DB_NAME() = 'ReportsFinance' THEN f.U_Branch2 ELSE f.U_Branch1 END
-                WHERE a.OnHand <> 0 and b.Status = '0' and f.U_Branch1 = :branch
+                WHERE a.OnHand <> 0 and b.Status = '0' and f.U_Branch1 = :branch and RIGHT(e.WhsCode, 3) ".$operator." 'RPO'
                 ORDER by 1, 2, 3, 4
             ",
             ['branch' => $branch]);
