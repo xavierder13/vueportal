@@ -93,8 +93,8 @@
               </v-col>
             </v-row>
           </v-card-text>
-
-          <v-card-actions>
+          <v-divider class="mb-3 mt-4"></v-divider>
+          <v-card-actions class="pa-0">
             <v-btn
               color="primary"
               @click="save"

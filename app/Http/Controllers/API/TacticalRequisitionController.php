@@ -32,7 +32,7 @@ class TacticalRequisitionController extends Controller
 
     public function index() 
     {   
-                                          
+
         // check if Auth is approver marketing events
         $approver_ctr = MarketingEvent::with('marketing_event_user_maps')
                                         ->whereHas('marketing_event_user_maps', function($query){
@@ -51,7 +51,6 @@ class TacticalRequisitionController extends Controller
                                                     ->whereHas('user', function($query) use ($approver_ctr){    
                                                         
                                                         // if approver_ctr === 0 (no approver) or not admin user then select record where user_id == Auth::id()
-                                                        
                                                         if($approver_ctr === 0)
                                                         {   
                                                             if(Auth::id() != 1)
@@ -61,6 +60,7 @@ class TacticalRequisitionController extends Controller
                                                         }
 
                                                     })
+                                                    ->orderBy('created_at', 'Desc')
                                                     ->get();      
 
         $data = $tactical_requisitions;
@@ -124,8 +124,10 @@ class TacticalRequisitionController extends Controller
             
         }
 
+        $user = Auth::user();
+
         // if user is approver 
-        if($approver_ctr > 0)
+        if($approver_ctr > 0 && !$user->hasRole('Tactical Requisition Verifier'))
         {
             // list of tactical requisitions if auth() is an approver
             $tactical_requisitions = []; // if user is approver then reset the $tactical_requisitions

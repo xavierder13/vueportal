@@ -380,7 +380,7 @@ export default {
               icon: 'mdi-view-dashboard',
               link: '/dashboard',
               method: '',
-              hasPermission: true,
+              hasPermission: this.hasRole('Administrator'),
               children: [],
             },
           ]

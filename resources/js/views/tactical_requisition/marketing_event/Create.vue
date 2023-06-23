@@ -43,7 +43,12 @@
             </v-row>
             <v-row>
               <v-col cols="4" class="my-0 py-0">
-                <v-switch v-model="switch1" :label="attachRequiredStatus"></v-switch>
+                <v-switch v-model="switch1">
+                  <template v-slot:label>
+                    Attachment Required: 
+                    <v-chip small :color="switch1 ? 'primary' : ''" class="ml-2"> {{ switch1 }} </v-chip>
+                  </template>
+                </v-switch>
               </v-col>
             </v-row>
             <v-row>
@@ -55,6 +60,7 @@
                     v-model="tree"
                     :items="expense_particulars"
                     hoverable
+                    class="pa-0"
                   >
                     <template v-slot:prepend="{ item, open }">
                       <v-btn
@@ -75,16 +81,31 @@
                       </v-btn>
                     </template>
                     <template v-slot:label="{ item, open }">
-                      <v-text-field
-                        name="description"
-                        v-model="item.description"
-                        dense
-                        hide-details
-                        outlined
-                        :error-messages="
-                          !item.description && item.hasError ? 'error' : ''
-                        "
-                      ></v-text-field>
+                      <v-row class="pa-0 ma-0">
+                        <v-col class="pa-0 ma-0">
+                          <v-text-field
+                            class="pa-0 ma-0"
+                            name="description"
+                            v-model="item.description"
+                            dense
+                            hide-details
+                            outlined
+                            :error-messages="
+                              !item.description && item.hasError ? 'error' : ''
+                            "
+                          ></v-text-field>
+                        </v-col>
+                        <v-col class="pa-0 ma-0 py-2 ml-4">
+                          <v-switch 
+                            v-model="item.addRow" 
+                            hide-details="" class="pa-0 ma-0"
+                          >
+                            <template v-slot:label>
+                              Add row: <v-chip small :color="item.addRow ? 'primary' : '' " class="ml-2"> {{ item.addRow }} </v-chip>
+                            </template>
+                          </v-switch>
+                        </v-col>
+                      </v-row>
                     </template>
                   </v-treeview>
                 </fieldset>
@@ -98,8 +119,8 @@
               </v-col>
             </v-row>
           </v-card-text>
-
-          <v-card-actions>
+          <v-divider class="mb-3 mt-4"></v-divider>
+          <v-card-actions class="pa-0">
             <v-btn
               color="primary"
               @click="save"
@@ -173,7 +194,7 @@ export default {
         attachment_required: "N"
       },
       initiallyOpen: ["two"],
-      expense_particulars: [{ description: "", children: [], hasError: false }],
+      expense_particulars: [{ description: "", addRow: false, children: [], hasError: false }],
       errorFields: [],
       eventError: {
         event_name: [],
@@ -257,6 +278,7 @@ export default {
     addItem() {
       this.expense_particulars.push({
         description: "",
+        addRow: false,
         children: [],
         hasError: false,
       });

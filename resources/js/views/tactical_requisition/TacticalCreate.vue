@@ -421,7 +421,8 @@
                   >
                     <tr>
                       <td class="font-weight-bold border-0">
-                        {{ item.description }}
+                        {{ item.description }} 
+                        <v-btn x-small color="primary ml-2" text> <v-icon x-small>mdi-plus</v-icon> Add item </v-btn>
                       </td>
                       <template v-if="item.expense_sub_particulars.length === 0">
                         <td class="border-0">
