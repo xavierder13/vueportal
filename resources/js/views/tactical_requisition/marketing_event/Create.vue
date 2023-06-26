@@ -60,7 +60,9 @@
                     v-model="tree"
                     :items="expense_particulars"
                     hoverable
-                    class="pa-0"
+                    :open.sync="open"
+                    item-key="index"
+                    class="pa-0 mt-4"
                   >
                     <template v-slot:prepend="{ item, open }">
                       <v-btn
@@ -82,7 +84,7 @@
                     </template>
                     <template v-slot:label="{ item, open }">
                       <v-row class="pa-0 ma-0">
-                        <v-col class="pa-0 ma-0">
+                        <v-col class="pa-0 ma-0" :cols="item.children ? 9 : 4">
                           <v-text-field
                             class="pa-0 ma-0"
                             name="description"
@@ -97,11 +99,12 @@
                         </v-col>
                         <v-col class="pa-0 ma-0 py-2 ml-4">
                           <v-switch 
-                            v-model="item.addRow" 
+                            v-model="item.dynamic" 
                             hide-details="" class="pa-0 ma-0"
+                            v-if="item.children"
                           >
                             <template v-slot:label>
-                              Add row: <v-chip small :color="item.addRow ? 'primary' : '' " class="ml-2"> {{ item.addRow }} </v-chip>
+                              Dynamic: <v-chip small :color="item.dynamic ? 'primary' : '' " class="ml-2"> {{ item.dynamic }} </v-chip>
                             </template>
                           </v-switch>
                         </v-col>
@@ -194,7 +197,15 @@ export default {
         attachment_required: "N"
       },
       initiallyOpen: ["two"],
-      expense_particulars: [{ description: "", addRow: false, children: [], hasError: false }],
+      expense_particulars: [
+        { 
+          index: 0, 
+          description: "", 
+          children: [], 
+          hasError: false, 
+          dynamic: false, 
+        }
+      ],
       errorFields: [],
       eventError: {
         event_name: [],
@@ -232,6 +243,7 @@ export default {
 
         axios.post("/api/marketing_event/store", data).then(
           (response) => {
+            console.log(response.data);
             if (response.data.success) {
               // send data to Sockot.IO Server
               // this.$socket.emit("sendData", { action: "marketing-event-create" });
@@ -276,14 +288,22 @@ export default {
       }
     },
     addItem() {
+      
       this.expense_particulars.push({
         description: "",
-        addRow: false,
         children: [],
         hasError: false,
+        dynamic: false,
       });
+
+      let ctr = this.expense_particulars.length;
+      let index = ctr > 0 ? ctr - 1 : 0;
+     
+      Object.assign(this.expense_particulars[index], { index: index });
+
     },
     addSubItem(item) {
+      
       let index = this.expense_particulars.indexOf(item);
       let expense_particular = this.expense_particulars[index];
 
@@ -294,8 +314,10 @@ export default {
           description: "",
           hasError: false,
         });
-        this.open_all = true;
       }
+
+      this.open.push(item.index); 
+
     },
     removeItem(item) {
       let index = this.expense_particulars.indexOf(item);

@@ -38,8 +38,13 @@
               </v-col>
             </v-row>
             <v-row>
-              <v-col cols="4" class="mt-0 mb-0 pt-0 pb-0">
-                <v-switch v-model="switch1" :label="attachRequiredStatus"></v-switch>
+              <v-col cols="4" class="my-0 py-0">
+                <v-switch v-model="switch1">
+                  <template v-slot:label>
+                    Attachment Required: 
+                    <v-chip small :color="switch1 ? 'primary' : ''" class="ml-2"> {{ switch1 }} </v-chip>
+                  </template>
+                </v-switch>
               </v-col>
             </v-row>
             <v-row>
@@ -50,6 +55,9 @@
                     v-model="tree"
                     :items="expense_particulars"
                     hoverable
+                    :open.sync="open"
+                    item-key="index"
+                    class="pa-0 mt-4"
                   >
                     <template v-slot:prepend="{ item, open }">
                       <v-btn
@@ -70,16 +78,32 @@
                       </v-btn>
                     </template>
                     <template v-slot:label="{ item, open }">
-                      <v-text-field
-                        name="description"
-                        v-model="item.description"
-                        dense
-                        hide-details
-                        outlined
-                        :error-messages="
-                          !item.description && item.hasError ? 'error' : ''
-                        "
-                      ></v-text-field>
+                      <v-row class="pa-0 ma-0">
+                        <v-col class="pa-0 ma-0" :cols="item.children ? 9 : 4">
+                          <v-text-field
+                            class="pa-0 ma-0"
+                            name="description"
+                            v-model="item.description"
+                            dense
+                            hide-details
+                            outlined
+                            :error-messages="
+                              !item.description && item.hasError ? 'error' : ''
+                            "
+                          ></v-text-field>
+                        </v-col>
+                        <v-col class="pa-0 ma-0 py-2 ml-4">
+                          <v-switch 
+                            v-model="item.dynamic" 
+                            hide-details="" class="pa-0 ma-0"
+                            v-if="item.children"
+                          >
+                            <template v-slot:label>
+                              Dynamic: <v-chip small :color="item.dynamic ? 'primary' : '' " class="ml-2"> {{ item.dynamic }} </v-chip>
+                            </template>
+                          </v-switch>
+                        </v-col>
+                      </v-row>
                     </template>
                   </v-treeview>
                 </fieldset>
@@ -131,7 +155,7 @@ export default {
   },
   data() {
     return {
-      open_all: false,
+      open_all: true,
       open: [],
       tree: [],
       absolute: true,
@@ -162,7 +186,6 @@ export default {
         event_name: "",
         attachment_required: "N"
       },
-      initiallyOpen: [""],
       expense_particulars: [],
       errorFields: [],
       tree_view: [],
@@ -196,11 +219,14 @@ export default {
           this.expense_particulars = [];
 
           expense_particulars.forEach((value, index) => {
+            this.open.push(index);
             this.expense_particulars.push({
+              index: index,
               id: value.id,
               description: value.description,
               children: [],
               hasError: false,
+              dynamic: value.dynamic ? true : false,
             });
 
             let sub_items = value.expense_sub_particulars;
@@ -217,7 +243,6 @@ export default {
             }
           });
 
-          console.log(this.expense_particulars);
         },
         (error) => {
           this.isUnauthorized(error);
@@ -309,9 +334,15 @@ export default {
     addItem() {
       this.expense_particulars.push({
         description: "",
+        addRow: false,
         children: [],
         hasError: false,
       });
+
+      let ctr = this.expense_particulars.length;
+      let index = ctr > 0 ? ctr - 1 : 0;
+     
+      Object.assign(this.expense_particulars[index], { index: index });
     },
     addSubItem(item) {
       let index = this.expense_particulars.indexOf(item);
@@ -325,6 +356,8 @@ export default {
           hasError: false,
         });
       }
+
+      this.open.push(item.index); 
     },
 
     showConfirmAlert(item) {

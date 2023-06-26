@@ -961,6 +961,18 @@ export default {
           this.editedItem.prev_total_expense = data.prev_total_expense;
           this.editedItem.status = data.status;
           this.editedItem.expense_particulars = data.tactical_rows;
+
+          this.marketing_events.forEach(value => {
+            this.editedItem.expense_particulars.forEach((val, i) => {
+              if(value.description == val.description)
+              {
+                Object.assign(this.editedItem.expense_particulars[i], { dynamic: value.dynamic });
+                
+              }
+            });
+          });
+
+          console.log(this.editedItem.expense_particulars);
        
           this.tactical_attachments = data.tactical_attachments;
 

@@ -41,7 +41,7 @@ class MarketingEventController extends Controller
 
     public function store(Request $request)
     {   
-        
+        return $request;
         $rules = [
             'event_name.required' => 'Marketing Event Name is required',
             'event_name.unique' => 'Marketing Event Name already exists',
@@ -78,6 +78,7 @@ class MarketingEventController extends Controller
             $expense_particular->marketing_event_id = $marketing_event->id;
             $expense_particular->description = $value['description'];
             $expense_particular->active = 'Y';
+            $expense_particular->dynamic = $value['dynamic'];
             $expense_particular->save();
             
             foreach($value['children'] as $i => $val)
@@ -170,6 +171,7 @@ class MarketingEventController extends Controller
                 }
 
                 $expense_particular->description = $value['description'];
+                $expense_particular->dynamic = $value['dynamic'];
                 $expense_particular->save();
 
                 $expense_particular_id = $expense_particular->id;

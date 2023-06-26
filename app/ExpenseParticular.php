@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ExpenseParticular extends Model
 {
-    protected $fillable = ['marketing_event_id', 'description', 'active'];
+    protected $fillable = ['marketing_event_id', 'description', 'active', 'dynamic'];
 
     public function marketing_event()
     {   

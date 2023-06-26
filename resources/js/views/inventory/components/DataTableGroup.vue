@@ -12,6 +12,7 @@
         ></v-text-field>
         <v-spacer></v-spacer>
       </v-card-title>
+      
       <v-data-table
         :headers="headers"
         :items="branches"
