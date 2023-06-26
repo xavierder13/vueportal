@@ -87,9 +87,8 @@
                             dense
                             hide-details
                             outlined
-                            :error-messages="
-                              !item.description && item.hasError ? 'error' : ''
-                            "
+                            :error-messages="item.hasError ? 'Error' : ''"
+                            @input="validateField(item)"
                           ></v-text-field>
                         </v-col>
                         <v-col class="pa-0 ma-0 py-2 ml-4">
@@ -420,24 +419,76 @@ export default {
     validateExpenseParticulars() {
       let hasError = false;
       this.expense_particulars.forEach((value, index) => {
-        hasError = false;
+        
+        // scan duplicated description
+        this.expense_particulars.forEach((val, i) => {
+          if(value.description === val.description && i > index)
+          {
+            hasError = true;
+            this.expense_particulars[i].hasError = true;
+          }
+        });
 
         if (!value.description) {
           hasError = true;
+          this.expense_particulars[index].hasError = true
         }
-        this.expense_particulars[index].hasError = hasError;
 
         value.children.forEach((val, i) => {
           hasError = false;
           if (!val.description) {
             hasError = true;
+            this.expense_particulars[index].children[i].hasError
           }
-          this.expense_particulars[index].children[i].hasError = true;
         });
+
       });
 
       return hasError;
     },
+    validateField(item)
+    {
+      if(item.children)
+      {
+        let index = item.index;
+
+        let field = this.expense_particulars[index];
+        
+        field.hasError = false;
+        // scan duplicated description
+        this.expense_particulars.forEach((val, i) => {
+          if(item.description === val.description && i != index)
+          {
+            field.hasError = true;
+          }
+        });
+
+        if (!item.description) {
+          field.hasError = true
+        }
+      }
+      else
+      {
+        let index = item.parent_index;
+        let expense_particular = this.expense_particulars[index];
+        let child_index = expense_particular.children.indexOf(item);
+        let field = expense_particular.children[child_index];
+
+        field.hasError = false;
+        
+        // scan duplicated description
+        expense_particular.children.forEach((val, i) => {
+          if(item.description === val.description && i != child_index)
+          {
+            field.hasError = true;
+          }
+        });
+
+        if (!item.description) {
+          field.hasError = true
+        }
+      }
+    }
   },
   computed: {
     eventErrors() {
