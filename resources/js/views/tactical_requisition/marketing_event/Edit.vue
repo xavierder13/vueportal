@@ -333,7 +333,7 @@ export default {
     addItem() {
       this.expense_particulars.push({
         description: "",
-        addRow: false,
+        dynamic: false,
         children: [],
         hasError: false,
       });
@@ -425,7 +425,7 @@ export default {
           if(value.description === val.description && i > index)
           {
             hasError = true;
-            this.expense_particulars[i].hasError = true;
+            this.expense_particulars[i].hasError = true;          
           }
         });
 
@@ -435,10 +435,9 @@ export default {
         }
 
         value.children.forEach((val, i) => {
-          hasError = false;
           if (!val.description) {
             hasError = true;
-            this.expense_particulars[index].children[i].hasError
+            this.expense_particulars[index].children[i].hasError = true;
           }
         });
 

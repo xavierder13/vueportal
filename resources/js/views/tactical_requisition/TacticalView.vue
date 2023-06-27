@@ -439,11 +439,18 @@
                   </thead>
                   <tbody v-for="(item, index) in editedItem.expense_particulars">
                     <tr>
-                      <td class="font-weight-bold border-0">
+                      <td class="font-weight-bold border-0 pr-0">
                         {{ item.description }}
+                        <v-btn
+                          color="primary"
+                          icon
+                          v-if="item.dynamic"
+                        >
+                          <v-icon>mdi-plus-circle</v-icon>
+                        </v-btn>
                       </td>
                       <template v-if="item.expense_sub_particulars.length === 0">
-                        <td class="border-0">
+                        <td class="border-0 pr-0">
                           <v-text-field
                             name="resource_person"
                             v-model="item.resource_person"
@@ -456,7 +463,7 @@
                             :readonly="isReadOnly"
                           ></v-text-field>
                         </td>
-                        <td class="border-0">
+                        <td class="border-0 pr-0">
                           <v-text-field
                             name="contact"
                             v-model="item.contact"
@@ -469,9 +476,9 @@
                             :readonly="isReadOnly"
                           ></v-text-field>
                         </td>
-                        <td class="border-0">
+                        <td class="border-0 pr-0">
                           <v-text-field-money
-                            class="mb-2 mt-2 pa-0"
+                            class="pa-0"
                             v-model="item.qty"
                             v-bind:properties="{
                               name: 'qty',
@@ -493,9 +500,9 @@
                           >
                           </v-text-field-money>
                         </td>
-                        <td class="border-0">
+                        <td class="border-0 pr-0">
                           <v-text-field-dotnumber
-                            class="mb-2 mt-2 pa-0"
+                            class="pa-0"
                             v-model="item.unit_cost"
                             v-bind:properties="{
                               name: 'unit_cost',
@@ -517,16 +524,16 @@
                           >
                           </v-text-field-dotnumber>
                         </td>
-                        <td class="font-weight-bold border-0">
+                        <td class="font-weight-bold border-0 pr-0">
                           {{ !item.amount ? "0.00" : Number(item.amount).toLocaleString('en', numOpts) }}
                         </td>
                       </template>
                     </tr>
                     <tr v-for="(subItem, i) in item.expense_sub_particulars">
-                      <td class="border-0">
+                      <td class="border-0 pr-0">
                         <span class="ml-12">{{ subItem.description }}</span>
                       </td>
-                      <td class="border-0">
+                      <td class="border-0 pr-0">
                         <v-text-field
                           name="resource_person"
                           v-model="subItem.resource_person"
@@ -539,7 +546,7 @@
                           :readonly="isReadOnly"
                         ></v-text-field>
                       </td>
-                      <td class="border-0">
+                      <td class="border-0 pr-0">
                         <v-text-field
                           name="contact"
                           v-model="subItem.contact"
@@ -552,9 +559,9 @@
                           :readonly="isReadOnly"
                         ></v-text-field>
                       </td>
-                      <td class="border-0">
+                      <td class="border-0 pr-0">
                         <v-text-field-money
-                          class="mb-2 mt-2 pa-0"
+                          class="pa-0"
                           v-model="subItem.qty"
                           v-bind:properties="{
                             name: 'qty',
@@ -576,9 +583,9 @@
                         >
                         </v-text-field-money>
                       </td>
-                      <td class="border-0">
+                      <td class="border-0 pr-0">
                         <v-text-field-dotnumber
-                          class="mb-2 mt-2 pa-0"
+                          class="pa-0"
                           v-model="subItem.unit_cost"
                           v-bind:properties="{
                             name: 'unit_cost',
@@ -962,18 +969,16 @@ export default {
           this.editedItem.status = data.status;
           this.editedItem.expense_particulars = data.tactical_rows;
 
-          this.marketing_events.forEach(value => {
+          data.marketing_event.expense_particulars.forEach(value => {
             this.editedItem.expense_particulars.forEach((val, i) => {
               if(value.description == val.description)
               {
-                Object.assign(this.editedItem.expense_particulars[i], { dynamic: value.dynamic });
-                
+                let dynamic = value.dynamic ? true : false;
+                Object.assign(this.editedItem.expense_particulars[i], { dynamic: dynamic });
               }
             });
           });
-
-          console.log(this.editedItem.expense_particulars);
-       
+          
           this.tactical_attachments = data.tactical_attachments;
 
           this.approved_logs = data.approved_logs;
@@ -1006,6 +1011,7 @@ export default {
           unit_cost: value.unit_cost,
           amount: value.amount,
           expense_sub_particulars: [],
+          dynamic: value.dynamic,
         });
 
 
@@ -1038,6 +1044,8 @@ export default {
           });
         });
       });
+
+      console.log(this.editedItem.expense_particulars);
     },
     showAlert(msg) {
       this.$swal({

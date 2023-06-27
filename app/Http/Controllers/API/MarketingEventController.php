@@ -158,7 +158,9 @@ class MarketingEventController extends Controller
 
         // update expense_particulars and expense_sub_particulars
         foreach ($expense_particulars as $key => $value) {
-            $expense_particular_id;
+            
+            $expense_particular = new ExpenseParticular();
+
             // if array has id then updated table
             if(isset($value['id']))
             {
@@ -168,26 +170,15 @@ class MarketingEventController extends Controller
                 if(empty($expense_particular->id))
                 {
                     return abort(404, 'Not Found');
-                }
-
-                $expense_particular->description = $value['description'];
-                $expense_particular->dynamic = $value['dynamic'];
-                $expense_particular->save();
-
-                $expense_particular_id = $expense_particular->id;
+                } 
 
             }
-            // if array has not id then then store the data
-            else
-            {
-                $expense_particular = new ExpenseParticular();
-                $expense_particular->marketing_event_id = $marketing_event_id;
-                $expense_particular->description = $value['description'];
-                $expense_particular->active = 'Y';
-                $expense_particular->save();
-
-                $expense_particular_id = $expense_particular->id;
-            }
+  
+            $expense_particular->marketing_event_id = $marketing_event_id;
+            $expense_particular->description = $value['description'];
+            $expense_particular->dynamic = $value['dynamic'];
+            $expense_particular->active = 'Y';
+            $expense_particular->save();
 
             foreach ($value['children'] as $key => $val) {
                 // if array has id then updated table
@@ -208,7 +199,7 @@ class MarketingEventController extends Controller
                 else
                 {   
                     $expense_sub_particular = new ExpenseSubParticular();
-                    $expense_sub_particular->expense_particular_id = $expense_particular_id;
+                    $expense_sub_particular->expense_particular_id = $expense_particular->id;
                     $expense_sub_particular->description = $val['description'];
                     $expense_sub_particular->active = 'Y';
                     $expense_sub_particular->save();

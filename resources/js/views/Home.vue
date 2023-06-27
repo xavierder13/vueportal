@@ -81,7 +81,7 @@
   
           <template v-for=" (list, i) in menu.list_items ">
             <v-list-group
-              :class="i === 0 ? 'mt-4' : ''"
+              :class="i === 0 ? 'mt-2' : ''"
               no-action
               v-if="list.children.length && list.hasPermission"
             >
@@ -106,7 +106,7 @@
               </template>
             </v-list-group>
             <v-list-item
-              :class="i === 0 ? 'mt-4' : ''"
+              :class="i === 0 ? 'mt-2' : ''"
               @click="callMethod(list.method)"
               link
               :to="list.link"

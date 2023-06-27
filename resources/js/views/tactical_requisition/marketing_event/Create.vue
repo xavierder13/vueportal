@@ -289,9 +289,9 @@ export default {
       
       this.expense_particulars.push({
         description: "",
+        dynamic: false,
         children: [],
         hasError: false,
-        dynamic: false,
       });
 
       let ctr = this.expense_particulars.length;
@@ -370,10 +370,9 @@ export default {
         }
 
         value.children.forEach((val, i) => {
-          hasError = false;
           if (!val.description) {
             hasError = true;
-            this.expense_particulars[index].children[i].hasError
+            this.expense_particulars[index].children[i].hasError = true;
           }
         });
 

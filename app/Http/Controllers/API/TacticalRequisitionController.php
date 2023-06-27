@@ -442,6 +442,7 @@ class TacticalRequisitionController extends Controller
                                                     ->with('branch')
                                                     ->with('user')
                                                     ->with('marketing_event')
+                                                    ->with('marketing_event.expense_particulars')
                                                     ->with('approved_logs')
                                                     ->with('approved_logs.approver')
                                                     ->where('id', '=', $request->get('tactical_requisition_id'))

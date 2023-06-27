@@ -407,8 +407,8 @@
                       <td>RESOURCE PERSON</td>
                       <td>CONTACT DETAILS</td>
                       <td width="110px">QTY</td>
-                      <td width="150px">UNIT COST</td>
-                      <td>AMOUNT</td>
+                      <td width="150px">UNIT COST (PHP)</td>
+                      <td>AMOUNT (PHP)</td>
                     </tr>
                   </thead>
                   <tr v-if="editedItem.expense_particulars.length === 0">
@@ -416,16 +416,21 @@
                       <p class="font-italic font-weight-bold subtitle-1 my-4">Please select Event Title</p>
                     </td>
                   </tr>
-                  <tbody
-                    v-for="(item, index) in editedItem.expense_particulars"
-                  >
+                  <tbody v-for="(item, index) in editedItem.expense_particulars">
                     <tr>
                       <td class="font-weight-bold border-0">
                         {{ item.description }} 
-                        <v-btn x-small color="primary ml-2" text> <v-icon x-small>mdi-plus</v-icon> Add item </v-btn>
+                        <v-btn
+                          color="primary"
+                          icon
+                          @click="addItem(index)"
+                          v-if="item.dynamic"
+                        >
+                          <v-icon>mdi-plus-circle</v-icon>
+                        </v-btn>
                       </td>
                       <template v-if="item.expense_sub_particulars.length === 0">
-                        <td class="border-0">
+                        <td class="border-0 pr-0">
                           <v-text-field
                             name="resource_person"
                             v-model="item.resource_person"
@@ -437,7 +442,7 @@
                             :error-messages="errorField(index, 'resource_person')"
                           ></v-text-field>
                         </td>
-                        <td class="border-0">
+                        <td class="border-0 pr-0">
                           <v-text-field
                             name="contact"
                             v-model="item.contact"
@@ -449,9 +454,9 @@
                             :error-messages="errorField(index, 'contact')"
                           ></v-text-field>
                         </td>
-                        <td class="border-0">
+                        <td class="border-0 pr-0">
                           <v-text-field-money
-                            class="mb-2 mt-2 pa-0"
+                            class="pa-0"
                             v-model="item.qty"
                             v-bind:properties="{
                               name: 'qty',
@@ -472,9 +477,9 @@
                           >
                           </v-text-field-money>
                         </td>
-                        <td class="border-0">
+                        <td class="border-0 pr-0">
                           <v-text-field-dotnumber
-                            class="mb-2 mt-2 pa-0"
+                            class="pa-0"
                             v-model="item.unit_cost"
                             v-bind:properties="{
                               name: 'unit_cost',
@@ -495,16 +500,28 @@
                           >
                           </v-text-field-dotnumber>
                         </td>
-                        <td class="font-weight-bold border-0">
+                        <td class="font-weight-bold border-0 pr-0">
                           {{ !item.amount ? "0.00" : Number(item.amount).toLocaleString('en', numOpts) }}
                         </td>
                       </template>
                     </tr>
                     <tr v-for="(subItem, i) in item.expense_sub_particulars">
-                      <td class="border-0">
-                        <span class="ml-12">{{ subItem.description }}</span>
+                      <td class="border-0 pr-0">
+                        <span class="ml-12" v-if="subItem.status !== 'New'">{{ subItem.description }}</span>
+                        <v-text-field
+                          name="description"
+                          v-model="subItem.description"
+                          dense
+                          hide-details
+                          outlined
+                          @input="getFieldValue(item, subItem, 'description')"
+                          @blur="getFieldValue(item, subItem, 'description')"
+                          :error-messages="errorSubField(index, i, 'description')"
+                          v-if="subItem.status === 'New'"
+                          class="ml-12"
+                        ></v-text-field>
                       </td>
-                      <td class="border-0">
+                      <td class="border-0 pr-0">
                         <v-text-field
                           name="resource_person"
                           v-model="subItem.resource_person"
@@ -516,7 +533,7 @@
                           :error-messages="errorSubField(index, i, 'resource_person')"
                         ></v-text-field>
                       </td>
-                      <td class="border-0">
+                      <td class="border-0 pr-0">
                         <v-text-field
                           name="contact"
                           v-model="subItem.contact"
@@ -528,9 +545,9 @@
                           :error-messages="errorSubField(index, i, 'contact')"
                         ></v-text-field>
                       </td>
-                      <td class="border-0">
+                      <td class="border-0 pr-0">
                         <v-text-field-money
-                          class="mb-2 mt-2 pa-0"
+                          class="pa-0"
                           v-model="subItem.qty"
                           v-bind:properties="{
                             name: 'qty',
@@ -551,9 +568,9 @@
                         >
                         </v-text-field-money>
                       </td>
-                      <td class="border-0">
+                      <td class="border-0 pr-0">
                         <v-text-field-dotnumber
-                          class="mb-2 mt-2 pa-0"
+                          class="pa-0"
                           v-model="subItem.unit_cost"
                           v-bind:properties="{
                             name: 'unit_cost',
@@ -838,6 +855,7 @@ export default {
           unit_cost: "",
           amount: "",
           expense_sub_particulars: [],
+          dynamic: value.dynamic,
         });
 
         this.errorFields.push({
@@ -862,6 +880,7 @@ export default {
           });
 
           this.errorFields[index].errorSubFields.push({
+            description: null,
             resource_person: null,
             contact: null,
             qty: null,
@@ -870,16 +889,7 @@ export default {
         });
       });
     },
-    showAlert() {
-      this.$swal({
-        position: "center",
-        icon: "success",
-        title: "Record has been saved",
-        showConfirmButton: false,
-        timer: 2500,
-      });
-    },
-
+    
     save() {
       this.$v.$touch();
       this.validateExpenseParticulars();
@@ -926,6 +936,33 @@ export default {
       }
 
     },
+
+    addItem(index)
+    {
+      let item = this.editedItem.expense_particulars[index];
+      let subItems = item.expense_sub_particulars;
+
+      subItems.push({
+        expense_sub_particular_id: item.expense_sub_particular_id,
+        description: "",
+        resource_person: "",
+        contact: "",
+        qty: "",
+        unit_cost: "",
+        amount: "",
+        status: "New",
+      })
+
+      this.errorFields[index].errorSubFields.push({
+        description: null,
+        resource_person: null,
+        contact: null,
+        qty: null,
+        unit_cost: null,
+      });
+      
+    },
+
     clear() {
       this.$v.$reset();
       this.editedItem = Object.assign({}, this.defaultItem);
@@ -984,6 +1021,18 @@ export default {
         }
 
         errorFields.errorSubFields[subIndex][fieldName] = error;
+
+        expense_sub_particulars.forEach((val, i) => {
+          if(fieldName === 'description')
+          {
+            if(field_value === val.description && i > subIndex)
+            {
+              hasError = true;
+              errorFields.errorSubFields[subIndex][fieldName] = "error";
+            }
+          }
+          
+        });
         
       }
 
@@ -1148,6 +1197,15 @@ export default {
     },
     removeFile(index, text) {
       this.editedItem.file.splice(index, 1)
+    },
+    showAlert() {
+      this.$swal({
+        position: "center",
+        icon: "success",
+        title: "Record has been saved",
+        showConfirmButton: false,
+        timer: 2500,
+      });
     },
   },
   computed: {
