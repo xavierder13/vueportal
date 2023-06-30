@@ -397,7 +397,6 @@ export default {
     },
 
     printPDF(item) {
-      console.log(item);
       this.getInventoryReconciliation(item.id);
     },
 

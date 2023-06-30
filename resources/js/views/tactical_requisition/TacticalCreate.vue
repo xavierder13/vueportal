@@ -508,18 +508,28 @@
                     <tr v-for="(subItem, i) in item.expense_sub_particulars">
                       <td class="border-0 pr-0">
                         <span class="ml-12" v-if="subItem.status !== 'New'">{{ subItem.description }}</span>
-                        <v-text-field
-                          name="description"
-                          v-model="subItem.description"
-                          dense
-                          hide-details
-                          outlined
-                          @input="getFieldValue(item, subItem, 'description')"
-                          @blur="getFieldValue(item, subItem, 'description')"
-                          :error-messages="errorSubField(index, i, 'description')"
-                          v-if="subItem.status === 'New'"
-                          class="ml-12"
-                        ></v-text-field>
+                        <div class="d-flex justify-content-end" v-if="subItem.status === 'New'">
+                          <v-btn
+                            color="error"
+                            icon
+                            class="ml-2 mt-1"
+                            @click="removeItem(subItem)"
+                          >
+                            <v-icon>mdi-minus-circle</v-icon>
+                          </v-btn>
+                          <v-text-field
+                            name="description"
+                            v-model="subItem.description"
+                            dense
+                            hide-details
+                            outlined
+                            @input="getFieldValue(item, subItem, 'description')"
+                            @blur="getFieldValue(item, subItem, 'description')"
+                            :error-messages="errorSubField(index, i, 'description')"
+                            v-if="subItem.status === 'New'"
+                          >
+                          </v-text-field>
+                        </div>
                       </td>
                       <td class="border-0 pr-0">
                         <v-text-field
@@ -943,6 +953,7 @@ export default {
       let subItems = item.expense_sub_particulars;
 
       subItems.push({
+        parent_index: index,
         expense_sub_particular_id: item.expense_sub_particular_id,
         description: "",
         resource_person: "",
@@ -961,6 +972,13 @@ export default {
         unit_cost: null,
       });
       
+    },
+
+    removeItem(item) {
+      let index = item.parent_index; 
+      let subItem = this.editedItem.expense_particulars[index].expense_sub_particulars;
+      let subIndex = subItem.indexOf(item);
+      subItem.splice(subIndex, 1)
     },
 
     clear() {
@@ -1023,11 +1041,14 @@ export default {
         errorFields.errorSubFields[subIndex][fieldName] = error;
 
         expense_sub_particulars.forEach((val, i) => {
+          
+          // console.log('value', val);
           if(fieldName === 'description')
           {
-            if(field_value === val.description && i > subIndex)
+
+            if(field_value === val.description && subIndex > i)
             {
-              hasError = true;
+              
               errorFields.errorSubFields[subIndex][fieldName] = "error";
             }
           }
@@ -1130,16 +1151,22 @@ export default {
 
       expense_particulars.forEach((value, index) => {
         object_names = Object.keys(expense_particulars[index]);
+        
+        // exlude validation for 'dynamic'
         object_names.forEach((fieldName) => {
-          this.getFieldValue(value, "", fieldName);
+          if(fieldName != 'dynamic')
+          {
+            this.getFieldValue(value, "", fieldName);
+          }
         });
+
         // validate expense sub particulars fields
         value.expense_sub_particulars.forEach((val, i) => {
           object_names = Object.keys(expense_particulars[index]);
           object_names.forEach((fieldName) => {
 
             // exclude validation for expense_sub_particulars and expense_particular_id object name
-            let objArr = ['expense_sub_particulars', 'expense_particular_id'];
+            let objArr = ['expense_sub_particulars', 'expense_particular_id', 'dynamic'];
             if(!objArr.includes(fieldName))
             {
               this.getFieldValue(value, val, fieldName);
@@ -1171,6 +1198,9 @@ export default {
           });
         });
       });
+
+      console.log('expenseParticularHasError', this.expenseParticularHasError);
+      console.log('errorFields', this.errorFields);
       
     },
     isUnauthorized(error) {

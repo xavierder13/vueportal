@@ -123,6 +123,7 @@ export default {
     return {
       search: "",
       headers: [
+        { text: "Doc Number", value: "id" },
         { text: "Event Title", value: "marketing_event.event_name" },
         { text: "Branch", value: "branch.name" },
         { text: "Created By", value: "user.name" },

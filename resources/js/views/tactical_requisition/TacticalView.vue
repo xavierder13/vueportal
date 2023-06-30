@@ -444,10 +444,12 @@
                         <v-btn
                           color="primary"
                           icon
-                          v-if="item.dynamic"
+                          @click="addItem(index)"
+                          v-if="item.dynamic && !isReadOnly"
                         >
                           <v-icon>mdi-plus-circle</v-icon>
                         </v-btn>
+
                       </td>
                       <template v-if="item.expense_sub_particulars.length === 0">
                         <td class="border-0 pr-0">
@@ -531,7 +533,29 @@
                     </tr>
                     <tr v-for="(subItem, i) in item.expense_sub_particulars">
                       <td class="border-0 pr-0">
-                        <span class="ml-12">{{ subItem.description }}</span>
+                        <span class="ml-12" v-if="subItem.status !== 'New'">{{ subItem.description }}</span>
+                        <div class="d-flex justify-content-end" v-if="subItem.status === 'New'">
+                          <v-btn
+                            color="error"
+                            icon
+                            class="ml-2 mt-1"
+                            @click="removeItem(subItem)"
+                          >
+                            <v-icon>mdi-minus-circle</v-icon>
+                          </v-btn>
+                          <v-text-field
+                            name="description"
+                            v-model="subItem.description"
+                            dense
+                            hide-details
+                            outlined
+                            @input="getFieldValue(item, subItem, 'description')"
+                            @blur="getFieldValue(item, subItem, 'description')"
+                            :error-messages="errorSubField(index, i, 'description')"
+                            v-if="subItem.status === 'New'"
+                          >
+                          </v-text-field>
+                        </div>
                       </td>
                       <td class="border-0 pr-0">
                         <v-text-field
@@ -1047,16 +1071,7 @@ export default {
 
       console.log(this.editedItem.expense_particulars);
     },
-    showAlert(msg) {
-      this.$swal({
-        position: "center",
-        icon: "success",
-        title: msg,
-        showConfirmButton: false,
-        timer: 2500,
-      });
-    },
-
+    
     updateTactical() {
       this.$v.$touch();
      
@@ -1110,42 +1125,6 @@ export default {
       )
       this.disabled = false;
       this.overlay = false;
-    },
-
-    showConfirmAlert(action) {
-      
-      let icon = 'question';
-      let title = `${action.toUpperCase()} Tactital Requistion`;
-      let text = action !== 'Update' ? "You won't be able to revert this!" : '';
-      let confirmButtonColor = "#3085d6";
-      let actionArr = ['delete', 'disapprove', 'dancel'];
-      let btnText = action === 'Cancel' ? 'Proceed' : action;
-
-      if(actionArr.includes(action))
-      {
-        icon = 'warning';
-        confirmButtonColor = "#d33";
-      }
-
-      this.$swal({
-        title: title,
-        text: text,
-        icon: icon,
-        showCancelButton: true,
-        confirmButtonColor: confirmButtonColor,
-        cancelButtonColor: "#6c757d",
-        confirmButtonText: btnText.toUpperCase(),
-        cancelButtonText: "CANCEL"
-      }).then((result) => {
-
-        if (result.value) {
-          this.disabled = true;
-          this.overlay = true;
-
-          this.submitTactical(action);
-        }
-
-      });
     },
 
     uploadFile(){
@@ -1218,6 +1197,52 @@ export default {
       
     },
 
+    showConfirmAlert(action) {
+      
+      let icon = 'question';
+      let title = `${action.toUpperCase()} Tactital Requistion`;
+      let text = action !== 'Update' ? "You won't be able to revert this!" : '';
+      let confirmButtonColor = "#3085d6";
+      let actionArr = ['delete', 'disapprove', 'dancel'];
+      let btnText = action === 'Cancel' ? 'Proceed' : action;
+
+      if(actionArr.includes(action))
+      {
+        icon = 'warning';
+        confirmButtonColor = "#d33";
+      }
+
+      this.$swal({
+        title: title,
+        text: text,
+        icon: icon,
+        showCancelButton: true,
+        confirmButtonColor: confirmButtonColor,
+        cancelButtonColor: "#6c757d",
+        confirmButtonText: btnText.toUpperCase(),
+        cancelButtonText: "CANCEL"
+      }).then((result) => {
+
+        if (result.value) {
+          this.disabled = true;
+          this.overlay = true;
+
+          this.submitTactical(action);
+        }
+
+      });
+    },
+
+    showAlert(msg) {
+      this.$swal({
+        position: "center",
+        icon: "success",
+        title: msg,
+        showConfirmButton: false,
+        timer: 2500,
+      });
+    },
+
     confirmRemoveFile(item){
       this.$swal({
         title: "Are you sure you?",
@@ -1241,6 +1266,40 @@ export default {
 
     fileDownload(item){
       window.open(location.origin + "/api/tactical_requisition/attachment/download?id=" + item.id, "_blank");
+    },
+
+    addItem(index)
+    {
+      let item = this.editedItem.expense_particulars[index];
+      let subItems = item.expense_sub_particulars;
+
+      subItems.push({
+        parent_index: index,
+        expense_sub_particular_id: item.expense_sub_particular_id,
+        description: "",
+        resource_person: "",
+        contact: "",
+        qty: "",
+        unit_cost: "",
+        amount: "",
+        status: "New",
+      })
+
+      this.errorFields[index].errorSubFields.push({
+        description: null,
+        resource_person: null,
+        contact: null,
+        qty: null,
+        unit_cost: null,
+      });
+      
+    },
+
+    removeItem(item) {
+      let index = item.parent_index; 
+      let subItem = this.editedItem.expense_particulars[index].expense_sub_particulars;
+      let subIndex = subItem.indexOf(item);
+      subItem.splice(subIndex, 1)
     },
 
     clear() {
