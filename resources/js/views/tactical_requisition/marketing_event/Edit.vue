@@ -470,17 +470,24 @@ export default {
       {
         let index = item.parent_index;
         let expense_particular = this.expense_particulars[index];
+        let children = expense_particular.children;
         let child_index = expense_particular.children.indexOf(item);
         let field = expense_particular.children[child_index];
 
         field.hasError = false;
         
         // scan duplicated description
-        expense_particular.children.forEach((val, i) => {
-          if(item.description === val.description && i != child_index)
-          {
-            field.hasError = true;
-          }
+        children.forEach((value, index) => {
+
+          value.hasError = false; //set default value to false
+
+          children.forEach((val, i) => {
+            if(value.description === val.description && i != index)
+            {
+              value.hasError = true;
+            }
+          }); 
+
         });
 
         if (!item.description) {

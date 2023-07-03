@@ -31,6 +31,7 @@ import EmployeePremiumsIndex from './views/employee/premiums/EmployeePremiumsInd
 import EmployeePremiumsListView from './views/employee/premiums/EmployeePremiumsListView.vue';
 import MyFiles from './views/training_file/MyFiles.vue';
 import FilesTutorials from './views/training_file/FilesTutorials.vue';
+import TacticalCalendar from './views/tactical_requisition/TacticalCalendar.vue';
 import TacticalIndex from './views/tactical_requisition/TacticalIndex.vue';
 import TacticalCreate from './views/tactical_requisition/TacticalCreate.vue';
 import TacticalView from './views/tactical_requisition/TacticalView.vue';
@@ -202,6 +203,11 @@ const routes = [
         path: '/training/files_tutorials',
         name: 'training.files_tutorials',
         component: FilesTutorials
+      },
+      {
+        path: '/tactical_requisition/calendar',
+        name: 'tactical.calendar',
+        component: TacticalCalendar
       },
       {
         path: '/tactical_requisition/index',

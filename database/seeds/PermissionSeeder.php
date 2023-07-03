@@ -135,6 +135,7 @@ class PermissionSeeder extends Seeder
             'tactical-requisition-delete',
             'tactical-requisition-cancel',
             'tactical-requisition-approve',
+            'tactical-requisition-calendar',
             'tactical-attachment-upload',
             'tactical-attachment-delete',
             'marketing-event-list',

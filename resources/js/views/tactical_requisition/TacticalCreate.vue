@@ -526,7 +526,6 @@
                             @input="getFieldValue(item, subItem, 'description')"
                             @blur="getFieldValue(item, subItem, 'description')"
                             :error-messages="errorSubField(index, i, 'description')"
-                            v-if="subItem.status === 'New'"
                           >
                           </v-text-field>
                         </div>
@@ -1040,17 +1039,21 @@ export default {
 
         errorFields.errorSubFields[subIndex][fieldName] = error;
 
-        expense_sub_particulars.forEach((val, i) => {
+        expense_sub_particulars.forEach((value, index) => {
           
           // console.log('value', val);
           if(fieldName === 'description')
           {
 
-            if(field_value === val.description && subIndex > i)
-            {
-              
-              errorFields.errorSubFields[subIndex][fieldName] = "error";
-            }
+            errorFields.errorSubFields[index][fieldName] = "";
+          
+            expense_sub_particulars.forEach((val, i) => {
+              if(value.description === val.description && i != index)
+              {
+                errorFields.errorSubFields[index][fieldName] = "error";
+              }
+            }); 
+
           }
           
         });

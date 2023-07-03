@@ -540,6 +540,11 @@ export default {
               hasPermission: false,
               children: [
                 { 
+                  title: 'Calendar',
+                  link: '/tactical_requisition/calendar',
+                  hasPermission: this.hasPermission('tactical-requisition-calendar'),
+                },
+                { 
                   title: 'Tactical List',
                   link: '/tactical_requisition/index',
                   hasPermission: this.hasPermission('tactical-requisition-list'),

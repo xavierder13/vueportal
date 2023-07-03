@@ -533,13 +533,13 @@
                     </tr>
                     <tr v-for="(subItem, i) in item.expense_sub_particulars">
                       <td class="border-0 pr-0">
-                        <span class="ml-12" v-if="subItem.status !== 'New'">{{ subItem.description }}</span>
-                        <div class="d-flex justify-content-end" v-if="subItem.status === 'New'">
+                        <span class="ml-12" v-if="!['New', 'Editable'].includes(subItem.status)">{{ subItem.description }}</span>
+                        <div class="d-flex justify-content-end" v-if="['New', 'Editable'].includes(subItem.status)">
                           <v-btn
                             color="error"
                             icon
-                            class="ml-2 mt-1"
-                            @click="removeItem(subItem)"
+                            class="mt-1"
+                            @click="confirmRemove('RowData', subItem)"
                           >
                             <v-icon>mdi-minus-circle</v-icon>
                           </v-btn>
@@ -552,7 +552,6 @@
                             @input="getFieldValue(item, subItem, 'description')"
                             @blur="getFieldValue(item, subItem, 'description')"
                             :error-messages="errorSubField(index, i, 'description')"
-                            v-if="subItem.status === 'New'"
                           >
                           </v-text-field>
                         </div>
@@ -717,7 +716,7 @@
                             <td> 
                               <v-btn class="ma-0" 
                                 small icon color="error" 
-                                @click="confirmRemoveFile(item)" 
+                                @click="confirmRemove('File', item)" 
                                 v-if="hasPermission('tactical-attachment-delete') && !isReadOnly && !approved_logs.length"
                               >
                                 <v-icon> mdi-close-circle </v-icon> 
@@ -736,7 +735,7 @@
                         <v-list-item v-for="item in tactical_attachments" :key="item.id" class="pa-0 ma-0">
                           <v-list-item-content class="pa-0 ma-0">
                             <v-list-item-title class="pa-0 ma-0"> 
-                              <v-btn class="ma-0" icon color="error" @click="confirmRemoveFile(item)" v-if="hasPermission('tactical-requisition-delete')">
+                              <v-btn class="ma-0" icon color="error" @click="confirmRemove(item)" v-if="hasPermission('tactical-requisition-delete')">
                                 <v-icon> mdi-close-circle </v-icon> 
                               </v-btn>
                               <v-btn x-small text class="blue--text text--darken-2 ma-0" @click="fileDownload(item)">
@@ -870,6 +869,8 @@ export default {
       branches: [],
       marketing_events: [],
       tactical_attachments: [],
+      deletedRows: [],
+      addedRows: [],
       editedItem: {
         marketing_event: "",
         marketing_event_id: "",
@@ -1020,8 +1021,8 @@ export default {
     getMarketingEvent() {
       this.errorFields = [];
       this.expensePaticularHasError = false;
-      let expense_particulars =
-        this.editedItem.expense_particulars;
+      let expense_particulars = this.editedItem.expense_particulars;
+      let mktg_event_particulars = this.editedItem.marketing_event.expense_particulars;
 
       this.editedItem.expense_particulars = [];
 
@@ -1038,7 +1039,6 @@ export default {
           dynamic: value.dynamic,
         });
 
-
         this.errorFields.push({
           resource_person: null,
           contact: null,
@@ -1048,9 +1048,28 @@ export default {
         });
 
         value.tactical_sub_rows.forEach((val, i) => {
-          this.editedItem.expense_particulars[
-            index
-          ].expense_sub_particulars.push({
+
+          let exists = false;
+
+          mktg_event_particulars.forEach(particular => {
+
+            if(value.description === particular.description)
+            {
+              exists = false;
+
+              particular.expense_sub_particulars.forEach(sub_particular => {
+                if(val.description === sub_particular.description)
+                { 
+                  exists = true;
+                }
+              });
+
+            }
+          });
+
+          this.editedItem.expense_particulars[index]
+          .expense_sub_particulars.push({
+            parent_index: index,
             tactical_requisition_sub_row_id: val.id,
             description: val.description,
             resource_person: val.resource_person,
@@ -1058,6 +1077,7 @@ export default {
             qty: val.qty,
             unit_cost: val.unit_cost,
             amount: val.amount,
+            status: !exists ? 'Editable' : '',
           });
 
           this.errorFields[index].errorSubFields.push({
@@ -1089,6 +1109,8 @@ export default {
 
       let data = { tactical_requisition_id: this.tactical_requisition_id };
       let url = "/api/tactical_requisition/" + action;
+
+      Object.assign(this.editedItem, { deletedRows: this.deletedRows });
 
       // if action is update then add parameter on url
       if(action == 'update')
@@ -1243,23 +1265,31 @@ export default {
       });
     },
 
-    confirmRemoveFile(item){
+    confirmRemove(item_type, item){
+
+      let title = item_type === 'File' ? 'Delete File' : 'Delete Row';
+
       this.$swal({
-        title: "Are you sure you?",
+        title: title,
         text: "You won't be able to revert this!",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#d33",
         cancelButtonColor: "#6c757d",
-        confirmButtonText: "Delete File!",
+        confirmButtonText: "Proceed!",
       }).then((result) => {
         // <--
 
         if (result.value) {
           // <-- if confirmed
-          
-          this.deleteFile(item);
-          
+          if(item_type === 'File')
+          {
+            this.deleteFile(item);
+          }
+          else
+          {
+            this.removeItem(item)
+          }
         }
       });
     },
@@ -1296,10 +1326,18 @@ export default {
     },
 
     removeItem(item) {
+      console.log(item);
+      let id = item.tactical_requisition_sub_row_id;
       let index = item.parent_index; 
       let subItem = this.editedItem.expense_particulars[index].expense_sub_particulars;
       let subIndex = subItem.indexOf(item);
       subItem.splice(subIndex, 1)
+
+      // if id fied exists
+      if (id) {
+        this.deletedRows.push({ id: id });
+      }
+
     },
 
     clear() {
@@ -1360,6 +1398,25 @@ export default {
         }
 
         errorFields.errorSubFields[subIndex][fieldName] = error;
+
+        expense_sub_particulars.forEach((value, index) => {
+          
+          // console.log('value', val);
+          if(fieldName === 'description')
+          {
+
+            errorFields.errorSubFields[index][fieldName] = "";
+          
+            expense_sub_particulars.forEach((val, i) => {
+              if(value.description === val.description && i != index)
+              {
+                errorFields.errorSubFields[index][fieldName] = "error";
+              }
+            }); 
+
+          }
+          
+        });
         
       }
     },
@@ -1457,16 +1514,22 @@ export default {
 
       expense_particulars.forEach((value, index) => {
         object_names = Object.keys(expense_particulars[index]);
+
+        // exlude validation for 'dynamic'
         object_names.forEach((fieldName) => {
-          this.getFieldValue(value, "", fieldName);
+          if(fieldName != 'dynamic')
+          {
+            this.getFieldValue(value, "", fieldName);
+          }
         });
+
         // validate expense sub particulars fields
         value.expense_sub_particulars.forEach((val, i) => {
           object_names = Object.keys(expense_particulars[index]);
           object_names.forEach((fieldName) => {
 
             // exclude validation for expense_sub_particulars and expense_particular_id object name
-            let objArr = ['expense_sub_particulars', 'expense_particular_id', 'tactical_requisition_row_id'];
+            let objArr = ['expense_sub_particulars', 'expense_particular_id', 'tactical_requisition_row_id', 'status', 'dynamic'];
             if(!objArr.includes(fieldName))
             {
               this.getFieldValue(value, val, fieldName);
@@ -1475,7 +1538,7 @@ export default {
           });
         });
       });
-
+      console.log(this.errorFields);
       this.expensePaticularHasError = false;
 
       // check/scan if field has error on errorFields variable

@@ -443,6 +443,7 @@ class TacticalRequisitionController extends Controller
                                                     ->with('user')
                                                     ->with('marketing_event')
                                                     ->with('marketing_event.expense_particulars')
+                                                    ->with('marketing_event.expense_particulars.expense_sub_particulars')
                                                     ->with('approved_logs')
                                                     ->with('approved_logs.approver')
                                                     ->where('id', '=', $request->get('tactical_requisition_id'))
@@ -474,7 +475,8 @@ class TacticalRequisitionController extends Controller
         $expense_particulars = $request->get('expense_particulars');
 
         foreach ($expense_particulars as $key => $value) {
-            $tactical_row = TacticalRequisitionRow::find($value['tactical_requisition_row_id']);
+            $row_id = $value['tactical_requisition_row_id'];
+            $tactical_row = TacticalRequisitionRow::find($row_id);
             $tactical_row->description = $value['description'];
             $tactical_row->resource_person = $value['resource_person'];
             $tactical_row->contact = $value['contact'];
@@ -489,7 +491,19 @@ class TacticalRequisitionController extends Controller
             if(count($sub_rows))
             {   
                 foreach ($sub_rows as $i => $val) {
-                    $tactical_sub_row = TacticalRequisitionSubRow::find($val['tactical_requisition_sub_row_id']);
+                    $tactical_sub_row = new TacticalRequisitionSubRow();
+
+                    if(isset($val['tactical_requisition_sub_row_id']))
+                    {
+                        $tactical_sub_row = TacticalRequisitionSubRow::find($val['tactical_requisition_sub_row_id']);
+                    }
+                    else
+                    {
+                        $tactical_sub_row->line_num = TacticalRequisitionSubRow::where('tactical_requisition_row_id', $row_id)
+                                                                                ->max('line_num') + 1;
+                    }
+
+                    $tactical_sub_row->tactical_requisition_row_id = $row_id;
                     $tactical_sub_row->description = $val['description'];
                     $tactical_sub_row->resource_person = $val['resource_person'];
                     $tactical_sub_row->contact = $val['contact'];
@@ -501,13 +515,20 @@ class TacticalRequisitionController extends Controller
             }
         }
 
+        $deleted_fields = $request->get('deletedRows');
+
+        // deleted expense particulars
+        foreach ($deleted_fields as $value) {
+            TacticalRequisitionSubRow::find($value['id'])->delete();
+        }
+
         $tactical_requisition = TacticalRequisition::with('tactical_rows')
                                          ->with('tactical_rows.tactical_sub_rows')
                                          ->with('tactical_attachments')
                                          ->where('id', '=', $tactical_requisition_id)
                                          ->first();
 
-        $this->activity_log($id, 'update');
+        $this->activity_log($tactical_requisition_id, 'update');
 
         return response()->json(['success' => 'Record has been updated', 'tactical_requisition' => $tactical_requisition]);
     }
