@@ -393,7 +393,13 @@ export default {
     },
     reset() {
 
-    }
+    },
+    isUnauthorized(error) {
+      // if unauthenticated (401)
+      if (error.response.status == "401") {
+        this.$router.push({ name: "unauthorize" });
+      }
+    },
   },
   computed: {
     fileErrors() {
