@@ -669,7 +669,7 @@ export default {
           if (result.value) {
             // <-- if confirmed
 
-            let data = { branch_id: this.branch_id, clear_list: true };
+            let data = { branch_id: this.branch_id, clear_list: true, file_upload_log_id: this.file_upload_log_id };
 
             axios.post("api/product/delete", data).then(
               (response) => {

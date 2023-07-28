@@ -45,7 +45,7 @@ class ProductMaintenance
 
         //Product Delete
         if($request->is('api/product/delete')){
-            if($user->can('product-delete')){
+            if($user->can('product-delete') || $user->can('product-clear-list')){
                 return $next($request); 
             }
         }

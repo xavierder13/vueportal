@@ -443,6 +443,7 @@ class ProductController extends Controller
         
         $user = Auth::user();
         try {
+            
             $file_extension = '';
             $path = '';
             if($request->file('file'))
@@ -470,6 +471,7 @@ class ProductController extends Controller
             {
                 return response()->json($validator->errors(), 200);
             }
+            
     
             if ($request->file('file')) {
                     
@@ -588,6 +590,7 @@ class ProductController extends Controller
                 $file_upload_log->remarks = $request->get('inventory_type');
                 $file_upload_log->save();
                 
+                
                 foreach ($fields as $field) {
 
                     $qty = $field['QUANTITY'] ? $field['QUANTITY'] : 1;
@@ -603,6 +606,7 @@ class ProductController extends Controller
                         'file_upload_log_id' => $file_upload_log->id,
                     ]);
                 }
+                return 'asdasd';
                 
                 return response()->json(['success' => 'Record has successfully added'], 200);
             }

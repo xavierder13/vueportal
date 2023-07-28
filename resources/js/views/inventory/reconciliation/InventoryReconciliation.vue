@@ -343,6 +343,7 @@ export default {
           if (response.data.success) {
             // send data to Sockot.IO Server
             // this.$socket.emit("sendData", { action: "inventory-delete" });
+            this.getInventory();
           }
           this.loading = false;
         },

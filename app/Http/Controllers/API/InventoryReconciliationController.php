@@ -553,7 +553,7 @@ class InventoryReconciliationController extends Controller
                     INNER JOIN OITM c on a.ItemCode = c.ItemCode
                     INNER JOIN OMRC d on c.FirmCode = d.FirmCode
                     INNER JOIN OWHS e on a.WhsCode = e.WhsCode 
-                    INNER JOIN [@PROGTBL] f on UPPER(e.Street) COLLATE DATABASE_DEFAULT = CASE WHEN DB_NAME() = 'ReportsFinance' THEN f.U_Branch2 ELSE f.U_Branch1 END
+                    INNER JOIN [@PROGTBL] f on UPPER(e.Street) COLLATE DATABASE_DEFAULT = CASE WHEN DB_NAME() = 'ReportsFinance' OR LEFT(DB_NAME(), 7) = 'Addessa' THEN f.U_Branch2 ELSE f.U_Branch1 END
                 WHERE a.OnHand <> 0 and b.Status = '0' and f.U_Branch1 = :branch and RIGHT(e.WhsCode, 3) ".$operator." 'RPO'
                 ORDER by 1, 2, 3, 4
             ",
