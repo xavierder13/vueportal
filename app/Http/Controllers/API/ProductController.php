@@ -41,7 +41,7 @@ class ProductController extends Controller
                                 }
                             })
                             ->get();
-
+       
         return response()->json(['branches' => $branches], 200);    
     }
 
@@ -404,10 +404,11 @@ class ProductController extends Controller
 
     public function delete(Request $request)
     {   
-        
+
         if($request->get('clear_list'))
         {   
             
+            FileUploadLog::find($request->file_upload_log_id)->delete();
             $products = DB::table('products')
                       ->where('branch_id', '=', $request->get('branch_id'));
             
@@ -595,18 +596,20 @@ class ProductController extends Controller
 
                     $qty = $field['QUANTITY'] ? $field['QUANTITY'] : 1;
 
+                    $brand_id = Brand::firstOrCreate(['name' => $field['BRAND'], 'active' => 'Y'])->id;
+                    $product_category_id = ProductCategory::firstOrCreate(['name' => $field['CATEGORY'], 'active' => 'Y'])->id;
+
                     Product::create([
                         'user_id' => $user->id,
                         'branch_id' => $branch_id,
-                        'brand_id' => Brand::where('name', '=', $field['BRAND'])->get()->first()->id,
+                        'brand_id' => $brand_id,
                         'model' => $field['MODEL'],
-                        'product_category_id' => ProductCategory::where('name', '=', $field['CATEGORY'])->get()->first()->id,
+                        'product_category_id' => $product_category_id,
                         'serial' => $field['SERIAL'],
                         'quantity' => $qty,
                         'file_upload_log_id' => $file_upload_log->id,
                     ]);
                 }
-                return 'asdasd';
                 
                 return response()->json(['success' => 'Record has successfully added'], 200);
             }

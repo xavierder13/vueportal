@@ -509,6 +509,7 @@ export default {
       axios.get("/api/product/index").then(
         (response) => {
           let data = response.data;
+          console.log(data);
           this.user = data.user;
           this.products = data.products;
           this.brands = data.brands;

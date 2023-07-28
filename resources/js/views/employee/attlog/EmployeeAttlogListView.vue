@@ -336,6 +336,7 @@ export default {
                   this.file_upload_log = null;
 
                   this.showAlert(response.data.success, 'success');
+                  this.$router.push({ name: 'employee.attlog.index'});
                 } else {
                   this.showAlert('No record found', 'warning');
                 }

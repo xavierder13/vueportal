@@ -673,12 +673,15 @@ export default {
 
             axios.post("api/product/delete", data).then(
               (response) => {
+                console.log(response);
                 if (response.data.success) {
                   // send data to Sockot.IO Server
                   // this.$socket.emit("sendData", { action: "product-create" });
 
                   // clear products array
                   this.products = [];
+                  this.file_upload_log = null;
+                  this.$router.push({ name: 'product.index'})
 
                   this.showAlert(response.data.success, 'success');
 

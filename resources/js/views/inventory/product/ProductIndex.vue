@@ -160,6 +160,7 @@ export default {
       this.loading = true;
       axios.get("/api/product/index").then(
         (response) => {
+        
           this.branches = response.data.branches;
           this.loading = false;
         },

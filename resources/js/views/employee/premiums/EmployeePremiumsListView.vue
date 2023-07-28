@@ -608,6 +608,15 @@ export default {
       file_upload_log: "",
       dialog_import: false,
       api_route: "",
+      swalAttr: {
+        title: "",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#6c757d",
+        confirmButtonText: "",
+      }
     };
   },
 
@@ -741,15 +750,9 @@ export default {
     },
 
     showConfirmAlert(item) {
-      this.$swal({
-        title: "Are you sure?",
-        text: "You won't be able to revert this!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#d33",
-        cancelButtonColor: "#6c757d",
-        confirmButtonText: "Delete record!",
-      }).then((result) => {
+      Object.assign(this.swalAttr, { title: "Delete Record", confirmButtonText: "Delete Record!" });
+
+      this.$swal(this.swalAttr).then((result) => {
         // <--
 
         if (result.value) {
@@ -817,17 +820,10 @@ export default {
     },
 
     clearList() {
+      Object.assign(this.swalAttr, { title: "Clear List", confirmButtonText: "Clear List!" });
+
       if (this.employee_premiums.length) {
-        this.$swal({
-          title: "Are you sure?",
-          text: "You won't be able to revert this!",
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonColor: "#d33",
-          cancelButtonColor: "#6c757d",
-          confirmButtonText: "Clear List!",
-        }).then((result) => {
-          // <--
+        this.$swal(this.swalAttr).then((result) => {
 
           if (result.value) {
             // <-- if confirmed
@@ -849,6 +845,7 @@ export default {
                   this.file_upload_log = null;
 
                   this.showAlert(response.data.success, 'success');
+                  this.$router.push({ name: 'employee.premiums.list'});
                 } else {
                   this.showAlert('No record found', 'warning');
                 }
