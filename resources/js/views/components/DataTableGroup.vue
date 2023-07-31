@@ -112,6 +112,7 @@ export default {
     'canExport',
     'canDownload',
     'canDownloadTemplate',
+    'canClearList',
   ],
   data() {
     return {
@@ -127,23 +128,8 @@ export default {
     }
   },
   methods: {
-    importExcel(item) {
-      this.$emit('importExcel', item);
-    },
-    exportData(item) {
-      this.$emit('exportData', item);
-    },
-    downloadFile(item) {
-      this.$emit('downloadFile', item);
-    },
-    downloadTemplate(item) {
-      this.$emit('downloadTemplate', item);
-    },
-    viewList(item) {
-      this.$emit('viewList', item);
-    },
-  callMethod(method, item) {
-      this[method](item);
+    callMethod(method, item) {
+      this.$emit(method, item);
     }
   },
   computed: {
@@ -189,6 +175,13 @@ export default {
           method: 'downloadFile',
           hasPermission: this.canDownload,
           color: 'primary',
+        },
+        {
+          title: 'Delete',
+          icon: 'mdi-delete',
+          method: 'clearList',
+          hasPermission: this.canClearList,
+          color: 'error',
         },
        ];
 

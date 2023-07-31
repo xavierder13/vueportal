@@ -23,7 +23,8 @@
         
         <v-card>
           <v-card-title>
-            Employee Attlog Lists <v-chip color="secondary" v-if="branch" class="ml-2"> {{ branch }} </v-chip>
+            Employee Attlog Lists 
+            <!-- <v-chip color="secondary" v-if="branch" class="ml-2"> {{ branch }} </v-chip> -->
             <v-spacer></v-spacer>
             <v-text-field
               v-model="search"

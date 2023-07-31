@@ -10,8 +10,12 @@
     > 
       <template v-slot:top v-if="file_upload_log">
         <v-toolbar flat>
-          <h6 class="my-0 font-weight-bold">Document Date:</h6>  <v-chip color="secondary" class="ml-2">{{ file_upload_log.docdate }}</v-chip>
-          <h6 class="my-0 font-weight-bold ml-8">Uploaded Date:</h6>  <v-chip color="secondary" class="ml-2">{{ file_upload_log.date_uploaded }}</v-chip>
+          <h6 class="my-0 font-weight-bold">Branch:</h6>  <v-chip color="secondary" class="ml-2">{{ branch }}</v-chip>
+          <h6 class="my-0 font-weight-bold ml-4">Document Date:</h6>  <v-chip color="secondary" class="ml-2">{{ file_upload_log.docdate }}</v-chip>
+          <h6 class="my-0 font-weight-bold ml-4">Uploaded Date:</h6>  <v-chip color="secondary" class="ml-2">{{ file_upload_log.date_uploaded }}</v-chip>
+          <template v-if="file_upload_log.remarks">
+            <h6 class="my-0 font-weight-bold ml-4">Document Type:</h6>  <v-chip color="secondary" class="ml-2">{{ file_upload_log.remarks }}</v-chip>
+          </template>   
         </v-toolbar>
       </template>
       <template v-slot:item.branch="{ item }">
@@ -48,6 +52,7 @@ export default {
     'items',
     'search',
     'loading',
+    'branch',
     'file_upload_log', 
     'canViewList',
     'canEdit',

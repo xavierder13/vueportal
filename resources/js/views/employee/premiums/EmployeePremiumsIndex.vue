@@ -15,9 +15,11 @@
           :canViewList="hasPermission('employee-premiums-list')"
           :canImport="hasPermission('employee-premiums-import')"
           :canExport="hasPermission('employee-premiums-export')"
+          :canClearList="hasPermission('employee-premiums-clear-list')"
           @importExcel="importExcel"
           @exportData="exportData"
           @viewList="viewList"
+          @clearList="showConfirmAlert"
         />
         <ImportDialog 
           :branch="branch"
@@ -117,6 +119,55 @@ export default {
         }
       );
       
+    },
+
+    showConfirmAlert(item) {
+   
+      this.$swal({
+        title: "Are you sure?",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#6c757d",
+        confirmButtonText: "Delete record!",
+      }).then((result) => {
+        // <--
+
+        if (result.value) {
+
+          let data = { branch_id: item.branch_id, clear_list: true, file_upload_log_id: item.id };
+
+          axios.post("api/employee_premiums/delete", data).then(
+            (response) => {
+              console.log(response);
+              if (response.data.success) {
+
+                this.getEmployee();
+                this.showAlert(response.data.success, 'success');
+
+              } else {
+
+                this.showAlert('No record found', 'warning');
+              }
+            },
+            (error) => {
+              this.isUnauthorized(error);
+            }
+          );
+
+        }
+      });
+    },
+
+    showAlert(title, icon) {
+      this.$swal({
+        position: "center",
+        icon: icon,
+        title: title,
+        showConfirmButton: false,
+        timer: 2500,
+      });
     },
 
     closeImportDialog() {

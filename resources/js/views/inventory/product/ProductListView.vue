@@ -21,7 +21,8 @@
         />
         <v-card>
           <v-card-title>
-            Product Lists <v-chip color="secondary" v-if="branch" class="ml-2"> {{ branch }} </v-chip>
+            Product Lists 
+            <!-- <v-chip color="secondary" v-if="branch" class="ml-2"> {{ branch }} </v-chip> -->
             <v-spacer></v-spacer>
             <v-text-field
               v-model="search"

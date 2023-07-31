@@ -445,6 +445,7 @@ class ProductController extends Controller
     {    
         
         $user = Auth::user();
+        $whse_codes = WarehouseCode::all()->pluck('code')->toArray();
         try {
             
             $file_extension = '';
@@ -462,11 +463,11 @@ class ProductController extends Controller
                     'file' => strtolower($file_extension),
                 ],
                 [
-                    'file' => 'required|in:xlxs,xls,',
+                    'file' => 'required|in:xlxs,xls,ods',
                 ], 
                 [
                     'file.required' => 'File is required',
-                    'file.in' => 'File type must be xlsx/xls.',
+                    'file.in' => 'File type must be xlsx/xls/ods.',
                 ]
             );  
             
@@ -493,7 +494,7 @@ class ProductController extends Controller
                 $collection_errors = [];
                 $collection_column_errors = [];
                 $duplicates = [];
-                $fields = [];    
+                $fields = [];
 
                 // if no. of columns did not match
                 if(count($collection[0]) <> count($columns))
@@ -505,6 +506,13 @@ class ProductController extends Controller
                 {   
 
                     foreach ($collection as $x => $collection1) {
+
+                        $brand = $collection1[0];
+                        $model = $collection1[1];
+                        $category = $collection1[2];
+                        $serial = $collection1[3];
+                        $quantity = $collection1[4];
+
                         for($y=0; count($collection1) > $y; $y++)
                         {
                             if($x == 0)
@@ -518,18 +526,40 @@ class ProductController extends Controller
                             }  
                             else
                             {   
-                                $fields[$x - 1][$columns[$y]] = $collection1[$y];
+                                $row_id = $x - 1;
+                                $fields[$row_id][$columns[$y]] = $collection1[$y];
 
                                 foreach ($collection as $i => $collection2) {
+                                    $brand2 = $collection2[0];
+                                    $model2 = $collection2[1];
+                                    $category2 = $collection2[2];
+                                    $serial2 = $collection2[3];
+                                    $quantity2 = $collection2[4];
 
-                                    if($x !== $i && $x > $i)
+                                    // check duplicates if serial has value
+                                    if($x !== $i && $x > $i && $serial)
                                     {
-                                        if($collection1[0] === $collection2[0] && 
-                                           $collection1[1] === $collection2[1] && 
-                                           $collection1[2] === $collection2[2] && 
-                                           $collection1[3] === $collection2[3]
+                                        if($brand === $brand2[0] && //brand
+                                           $model === $model2[1] && //model
+                                           $category === $category2[2] && //category
+                                           $serial === $serial2[3] //serial
                                         ){
-                                            $duplicates [$x] = $collection1[3];
+                                            $duplicates [$x] = $serial;
+                                        }
+                                    }
+                                }
+
+                                // check serial if sap generated (string serial contains branch warehouse code) else if non sap generated then quantity must be 1
+                                if($serial)
+                                {
+                                    foreach ($whse_codes as $code) {
+                                        if(str_contains($serial, $code))
+                                        {
+                                            $collection_errors[$row_id.'.SERIAL'] = ['SAP generated serial must be empty in Product Excel Template'];
+                                        }
+                                        else if($quantity > 1)
+                                        {
+                                            $collection_errors[$row_id.'.SERIAL'] = ['Quantity of non-SAP generated serial must be 1'];
                                         }
                                     }
                                 }
@@ -541,7 +571,10 @@ class ProductController extends Controller
                         {
                             return response()->json(['error_column' => $collection_column_errors], 200);
                         }
+                    
                     }
+
+                    // return $sap_generated_serials;
 
                     $rules = [
                         '*.BRAND.required' => 'Brand is required',

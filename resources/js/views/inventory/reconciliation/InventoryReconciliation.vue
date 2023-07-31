@@ -207,6 +207,7 @@ export default {
         { text: "Status", value: "status" },
         { text: "Inventory Type", value: "inventory_type" },
         { text: "Date Created", value: "date_created" },
+        { text: "Document Date", value: "document_date" },
         { text: "Date Reconciled", value: "date_reconciled" },
         { text: "Actions", value: "actions", sortable: false, width: "150px"},
       ],

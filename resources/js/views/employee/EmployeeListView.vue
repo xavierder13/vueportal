@@ -19,7 +19,8 @@
         />
         <v-card>
           <v-card-title>
-            Employee Lists <v-chip color="secondary" v-if="branch" class="ml-2"> {{ branch }} </v-chip>
+            Employee Lists 
+            <!-- <v-chip color="secondary" v-if="branch" class="ml-2"> {{ branch }} </v-chip> -->
             <v-spacer></v-spacer>
             <v-text-field
               v-model="search"

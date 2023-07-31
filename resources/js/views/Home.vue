@@ -287,7 +287,7 @@ export default {
           this.dialog_sync = false;
 
           let data = response.data
-
+          console.log(data);
           if(data.error)
           { 
             this.showErrorAlert('Error', data.error)

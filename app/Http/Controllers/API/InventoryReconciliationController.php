@@ -44,6 +44,7 @@ class InventoryReconciliationController extends Controller
         $branches = Branch::with(['inventory_reconciliations' => function($query) use ($user){
                             $query->select(
                                 DB::raw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_created, 
+                                         DATE_FORMAT(docdate, '%m/%d/%Y') as document_date, 
                                          DATE_FORMAT(date_reconciled, '%m/%d/%Y') as date_reconciled, 
                                          (select name from users where id = user_id) as user")
                             )
@@ -161,17 +162,22 @@ class InventoryReconciliationController extends Controller
 
             }
 
-            $products[] = [
-                'brand' => $product['brand'],
-                'model' => $product['model'],
-                'product_category' => $product['product_category'],
-                'sap_qty' => $sap_qty,
-                'physical_qty' => $physical_qty,
-                'qty_diff' => $physical_qty - $sap_qty, // physical - sap quantity
-                'sap_discrepancy' => join(', ', $sap_discrepancy),
-                'physical_discrepancy' => join(', ', $physical_discrepancy),
-            ];
+            $qty_diff = $physical_qty - $sap_qty;
 
+            if($qty_diff != 0)
+            {   
+                $products[] = [
+                    'brand' => $product['brand'],
+                    'model' => $product['model'],
+                    'product_category' => $product['product_category'],
+                    'sap_qty' => $sap_qty,
+                    'physical_qty' => $physical_qty,
+                    'qty_diff' => $qty_diff, // physical - sap quantity
+                    'sap_discrepancy' => join(', ', $sap_discrepancy),
+                    'physical_discrepancy' => join(', ', $physical_discrepancy),
+                ];
+            }
+            
         }
         
         return [
@@ -250,9 +256,10 @@ class InventoryReconciliationController extends Controller
     {   
         $user = Auth::user();
         $branch_id = $request->get('branch_id');
+        $docdate = $request->get('docdate');
         $inventory_group = $request->get('inventory_group');
-        $inventory_type = $request->get('inventory_type');
-
+        $inventory_type = $request->get('inventor   y_type');
+        
         try {
             $file_extension = '';
             $path = '';
@@ -267,13 +274,17 @@ class InventoryReconciliationController extends Controller
             $validator = Validator::make(
                 [
                     'file' => strtolower($file_extension),
+                    'docdate' => $request->get('docdate'),
                 ],
                 [
                     'file' => 'required|in:xlxs,xls,',
+                    'docdate' => 'required|date_format:Y-m-d',
                 ], 
                 [
                     'file.required' => 'File is required',
                     'file.in' => 'File type must be xlsx/xls.',
+                    'docdate.required' => 'Document date is required',
+                    'docdate.date_format' => 'Invalid date. Format: (YYYY-MM-DD)',
                 ]
             );  
             
@@ -391,6 +402,7 @@ class InventoryReconciliationController extends Controller
                     $inventory_reconciliation->status = 'unreconciled';
                     $inventory_reconciliation->inventory_group = $inventory_group;
                     $inventory_reconciliation->inventory_type = $inventory_type;
+                    $inventory_reconciliation->docdate = $request->get('docdate');
                     $inventory_reconciliation->save();
 
                     $params = [

@@ -69,7 +69,7 @@
                   prepend-icon="mdi-paperclip"
                   required
                   :error-messages="fileErrors"
-                  @change="$v.file.$touch() + (fileIsEmpty = false)"
+                  @change="$v.file.$touch() + (fileIsEmpty = false) + (fileIsInvalid = false)"
                   @blur="$v.file.$touch()"
                   
                 >
@@ -199,8 +199,8 @@ export default {
 
     uploadFile() {
       this.$v.$touch();
-      this.fileIsEmpty = false;
-      this.fileIsInvalid = false;
+      // this.fileIsEmpty = false;
+      // this.fileIsInvalid = false;
 
       
       if (!this.$v.file.$error) {
@@ -223,7 +223,7 @@ export default {
           .then(
             (response) => {
               this.errors_array = [];
-
+              console.log(response.data);
               if (response.data.success) {
                 // send data to Socket.IO Server
                 // this.$socket.emit("sendData", { action: "import-project" });
@@ -264,6 +264,7 @@ export default {
                       "</span>; Value: <span class='text-success'>" +
                       field_values[row][col] +
                       "</span>";
+                      console.log(field_values[row]);
                   });
                 });
 
@@ -275,7 +276,6 @@ export default {
               }
               this.uploadDisabled = false;
               this.uploading = false;
-              console.log(response.data);
             },
             (error) => {
               this.isUnauthorized(error);
@@ -296,6 +296,7 @@ export default {
       this.docdate = new Date().toISOString().substr(0, 10);
       this.file = [];
       this.fileIsEmpty = false;
+      this.fileIsInvalid = false;
       this.$v.$reset();
     }, 
     isUnauthorized(error) {
@@ -308,11 +309,30 @@ export default {
   computed: {
     fileErrors() {
       const errors = [];
+
       if (!this.$v.file.$dirty) return errors;
       !this.$v.file.required && errors.push("File is required.");
       this.fileIsEmpty && errors.push("File is empty.");
-      this.fileIsInvalid &&
-        errors.push("File type must be 'xlsx', 'xls' or 'ods'.");
+
+      if(this.file != null)
+      {
+        if(this.file.name)
+        {
+          let split_arr = this.file.name.split('.');
+          let split_ctr = split_arr.length;
+          let extension = split_arr[split_ctr - 1];
+          let extensions = ['xls', 'xlxs', 'ods', 'csv'];
+
+          if(!extensions.includes(extension))
+          {
+            this.fileIsInvalid = true;
+          }
+        }
+        
+      }
+
+      this.fileIsInvalid && errors.push("File type must be 'xlsx', 'xls' or 'ods'.");
+
       return errors;
     },
     inventoryTypeErrors() {
