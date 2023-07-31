@@ -21,8 +21,7 @@
         />
         <v-card>
           <v-card-title>
-            Product Lists 
-            <!-- <v-chip color="secondary" v-if="branch" class="ml-2"> {{ branch }} </v-chip> -->
+            Product Lists
             <v-spacer></v-spacer>
             <v-text-field
               v-model="search"
@@ -682,7 +681,7 @@ export default {
                   // clear products array
                   this.products = [];
                   this.file_upload_log = null;
-                  this.$router.push({ name: 'product.index'})
+                  this.$router.push({ name: 'product.index'});
 
                   this.showAlert(response.data.success, 'success');
 

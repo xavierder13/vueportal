@@ -85,17 +85,13 @@ class InventoryReconciliationController extends Controller
 
     public function getDiscrepancy($inventory_recon_id)
     {
-        $reconciliation = InventoryReconciliation::select(DB::raw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_created, DATE_FORMAT(date_reconciled, '%m/%d/%Y') as date_reconciled"))
+        $reconciliation = InventoryReconciliation::select(DB::raw("*, DATE_FORMAT(docdate, '%m/%d/%Y') as document_date, 
+                                                            DATE_FORMAT(date_reconciled, '%m/%d/%Y') as date_reconciled"
+                                                    ))
                                                  ->with('branch')
                                                  ->with('user')
                                                  ->with('user.position')
                                                  ->find($inventory_recon_id);
-        $date_reconciled = '';
-
-        if($reconciliation)
-        {
-            $date_reconciled = Carbon::parse($reconciliation->updated_at)->format('m-d-y');
-        }
         
         $invty_recon = InventoryReconciliationMap::where('inventory_recon_id', '=', $inventory_recon_id)->get();
         $product_distinct = InventoryReconciliationMap::distinct()
@@ -182,7 +178,6 @@ class InventoryReconciliationController extends Controller
         
         return [
             'products' => $products,
-            'date_reconciled' => $date_reconciled,
             'reconciliation' => $reconciliation,
         ];
     }
@@ -195,16 +190,14 @@ class InventoryReconciliationController extends Controller
 
     public function getBreakdown($inventory_recon_id)
     {
-        $reconciliation = InventoryReconciliation::with('branch')
+        $reconciliation = InventoryReconciliation::select(DB::raw("*, DATE_FORMAT(docdate, '%m/%d/%Y') as document_date, 
+                                                            DATE_FORMAT(date_reconciled, '%m/%d/%Y') as date_reconciled"
+                                                    ))
+                                                 ->with('branch')
                                                  ->with('user')
                                                  ->with('user.position')
                                                  ->find($inventory_recon_id);
-        $date_reconciled = '';
 
-        if($reconciliation)
-        {
-            $date_reconciled = Carbon::parse($reconciliation->updated_at)->format('m-d-y');
-        }
         
         $inventory_reconciliation = InventoryReconciliationMap::where('inventory_recon_id', '=', $inventory_recon_id)->get();
         $product_distinct = InventoryReconciliationMap::distinct()
@@ -246,7 +239,6 @@ class InventoryReconciliationController extends Controller
             'sap_inventory' => $sap_inventory, 
             'physical_inventory' => $physical_inventory,
             'products' => $products,
-            'date_reconciled' => $date_reconciled,
             'reconciliation' => $reconciliation,
 
         ];
@@ -402,7 +394,7 @@ class InventoryReconciliationController extends Controller
                     $inventory_reconciliation->status = 'unreconciled';
                     $inventory_reconciliation->inventory_group = $inventory_group;
                     $inventory_reconciliation->inventory_type = $inventory_type;
-                    $inventory_reconciliation->docdate = $request->get('docdate');
+                    $inventory_reconciliation->docdate = $docdate;
                     $inventory_reconciliation->save();
 
                     $params = [
@@ -537,6 +529,7 @@ class InventoryReconciliationController extends Controller
             $branch = Branch::find($branch_id);
             $inventory_group = $request->get('inventory_group');
             $inventory_type = $request->get('inventory_type');
+            $docdate = $request->get('docdate');
     
             $database = $request->get('database');
             $db = SapDatabase::where('database', '=', $database)->get()->first();
@@ -583,6 +576,7 @@ class InventoryReconciliationController extends Controller
             $inventory_reconciliation->status = 'unreconciled';
             $inventory_reconciliation->inventory_group = $inventory_group;
             $inventory_reconciliation->inventory_type = $inventory_type;
+            $inventory_reconciliation->docdate = $docdate;
             $inventory_reconciliation->save();
     
     

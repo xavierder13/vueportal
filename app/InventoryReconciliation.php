@@ -13,6 +13,7 @@ class InventoryReconciliation extends Model
         'status',
         'inventory_group',
         'inventory_type',
+        'docdate',
     ];
 
     public function branch()

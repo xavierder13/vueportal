@@ -44,7 +44,7 @@
             v-if="hasPermission('inventory-recon-list')"
           > 
             <template v-slot:group.header="{ items, headers, toggle, isOpen, }">
-              <td colspan="6">
+              <td colspan="7">
                 <v-row>
                   <v-col>
                     <v-btn @click="toggle" small icon :ref="items" :data-open="isOpen">
@@ -114,7 +114,8 @@
                     </v-chip> 
                 </td>
                 <td> {{ value.inventory_type }} </td>
-                <td> <v-chip color="secondary">{{ value.date_created }}</v-chip> </td>
+                <td> <v-chip color="secondary" v-if="value.date_created">{{ value.date_created }}</v-chip> </td>
+                <td> <v-chip color="secondary" v-if="value.document_date">{{ value.document_date }}</v-chip> </td>
                 <td> <v-chip color="success" v-if="value.date_reconciled">{{ value.date_reconciled }}</v-chip> </td>
                 <td>
                   <v-menu offset-y>

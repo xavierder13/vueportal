@@ -17,15 +17,7 @@
         />
         <v-card>
           <v-card-title>
-            Inventory Reconciliation Breakdown - {{ branch }}
-            <v-chip
-              :color="
-                status == 'unreconciled' ? 'red white--text' : 'success'
-              "
-              class="ml-4"
-            >
-              {{ status.toUpperCase() }}
-            </v-chip>
+            Inventory Reconciliation Breakdown
             <v-spacer></v-spacer>
             <v-text-field
               v-model="search"
@@ -42,7 +34,26 @@
             :loading="loading"
             loading-text="Loading... Please wait"
             id="invty-recon-table"
-          >
+          > 
+            <template v-slot:top v-if="reconciliation">
+              <v-toolbar flat>
+                <h6 class="my-0 font-weight-bold">Branch:</h6>  
+                <v-chip color="secondary" class="ml-2">{{ branch }}</v-chip>
+                <h6 class="my-0 font-weight-bold ml-4">Document Date:</h6>  
+                <v-chip color="secondary" class="ml-2">{{ reconciliation.document_date }}</v-chip>
+                <h6 class="my-0 font-weight-bold ml-4">Document Type:</h6>  
+                <v-chip color="secondary" class="ml-2">{{ reconciliation.inventory_type }}</v-chip> 
+                <h6 class="my-0 font-weight-bold ml-4">Document Status:</h6>  
+                <v-chip :color="status == 'unreconciled' ? 'red white--text' : 'success'" class="ml-4">
+                  {{ reconciliation.status.toUpperCase() }}
+                </v-chip>
+                <template v-if="reconciliation.date_reconciled">
+                  <h6 class="my-0 font-weight-bold ml-4">Date Reconciled:</h6>  
+                  <v-chip color="secondary" class="ml-2">{{ reconciliation.date_reconciled }}</v-chip> 
+                </template>
+                
+              </v-toolbar>
+            </template>
             <template v-slot:item.row="{ item, index }">
               {{ index + 1 }}
             </template>
@@ -115,6 +126,7 @@ export default {
       bm_oic: "",
       prepared_by: "",
       prepared_by_position: "",
+      reconciliation: "",
     };
   },
 
@@ -127,15 +139,16 @@ export default {
         .then(
           (response) => {
             let data = response.data;
-            let reconciliation = data.reconciliation;
+            console.log(data);
+            this.reconciliation = data.reconciliation;
             this.products = data.products;
-            this.branch = reconciliation.branch.name;
-            this.branch_code = reconciliation.branch.code;
-            this.date_reconciled = data.date_reconciled;
-            this.status = reconciliation.status;
-            this.bm_oic = reconciliation.branch.bm_oic;
-            this.prepared_by = reconciliation.user.name;
-            this.prepared_by_position = reconciliation.user.position ? reconciliation.user.position.name : '  ';
+            this.branch = this.reconciliation.branch.name;
+            this.branch_code = this.reconciliation.branch.code;
+            this.date_reconciled = this.reconciliation.date_reconciled;
+            this.status = this.reconciliation.status;
+            this.bm_oic = this.reconciliation.branch.bm_oic;
+            this.prepared_by = this.reconciliation.user.name;
+            this.prepared_by_position = this.reconciliation.user.position ? this.reconciliation.user.position.name : '  ';
             this.loading = false;
             
           },
@@ -445,6 +458,12 @@ export default {
       } else {
         this.showAlert("No record found", "warning")
       }
+    },
+
+    formatDate(date) {
+      if (!date) return null;
+      const [year, month, day] = date.split("-");
+      return `${month}/${day}/${year}`;
     },
 
     websocket() {
