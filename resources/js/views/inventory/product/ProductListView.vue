@@ -330,6 +330,7 @@ export default {
       unreconciled_headers: [
         { text: "Branch", value: "branch.name" },
         { text: "Date Created", value: "date_created" },
+        { text: "Document Date", value: "document_date" },
         { text: "Status", value: "status" },
         { text: "Actions", value: "actions", sortable: false, width: "100px" },
       ],

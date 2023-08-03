@@ -283,7 +283,7 @@ export default {
       this.dialog_sync = true;
       axios.get('/api/product/sync_item_master_data').then(
         (response) => {
-         console.log(response.data);
+
           this.dialog_sync = false;
 
           let data = response.data

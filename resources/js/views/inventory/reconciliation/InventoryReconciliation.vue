@@ -110,7 +110,7 @@
                 <td> {{ value.user }} </td>
                 <td> 
                     <v-chip :color="value.status == 'reconciled' ? 'success' : 'error'">
-                      {{ value.status }} 
+                      {{ value.status.toUpperCase() }} 
                     </v-chip> 
                 </td>
                 <td> {{ value.inventory_type }} </td>

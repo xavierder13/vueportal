@@ -629,21 +629,26 @@ class ProductController extends Controller
                 
                 foreach ($fields as $field) {
 
-                    $qty = $field['QUANTITY'] ? $field['QUANTITY'] : 1;
+                    // if either serial or quantiry has value (disregard null serial ang quantity)
+                    if($field['SERIAL'] || $field['QUANTITY'])
+                    {
+                        $qty = $field['QUANTITY'] ? $field['QUANTITY'] : 1;
 
-                    $brand_id = Brand::firstOrCreate(['name' => $field['BRAND'], 'active' => 'Y'])->id;
-                    $product_category_id = ProductCategory::firstOrCreate(['name' => $field['CATEGORY'], 'active' => 'Y'])->id;
+                        $brand_id = Brand::firstOrCreate(['name' => $field['BRAND'], 'active' => 'Y'])->id;
+                        $product_category_id = ProductCategory::firstOrCreate(['name' => $field['CATEGORY'], 'active' => 'Y'])->id;
+                        $serial = $field['SERIAL'];
 
-                    Product::create([
-                        'user_id' => $user->id,
-                        'branch_id' => $branch_id,
-                        'brand_id' => $brand_id,
-                        'model' => $field['MODEL'],
-                        'product_category_id' => $product_category_id,
-                        'serial' => $field['SERIAL'],
-                        'quantity' => $qty,
-                        'file_upload_log_id' => $file_upload_log->id,
-                    ]);
+                        Product::create([
+                            'user_id' => $user->id,
+                            'branch_id' => $branch_id,
+                            'brand_id' => $brand_id,
+                            'model' => $field['MODEL'],
+                            'product_category_id' => $product_category_id,
+                            'serial' => is_numeric($serial) ? (integer) $serial : $serial ,
+                            'quantity' => $qty,
+                            'file_upload_log_id' => $file_upload_log->id,
+                        ]);
+                    }
                 }
                 
                 return response()->json(['success' => 'Record has successfully added'], 200);

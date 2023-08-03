@@ -102,14 +102,15 @@ class InventoryReconciliationController extends Controller
                                                       ->get(['brand', 'model', 'product_category']);
         $products = [];
 
-        // exclude all sap generated serial items
-        $serialized_items = InventoryReconciliationMap::where('inventory_recon_id', '=', $inventory_recon_id)
-                                                      ->where(function($query) {
-                                                            $warehouses = WarehouseCode::all();
-                                                            foreach ($warehouses as $whse) {
-                                                                $query->where('serial', 'not like', '%'.$whse->code.'%');
-                                                            }
-                                                        })->get();
+        // non sap generated serials item
+        $non_sap_serialized_items = InventoryReconciliationMap::where('inventory_recon_id', '=', $inventory_recon_id)
+                                                            ->where(function($query) {
+                                                                    $warehouses = WarehouseCode::all();
+                                                                    foreach ($warehouses as $whse) {
+                                                                        $query->where('serial', 'not like', '%'.$whse->code.'%');
+                                                                    }
+                                                                    $query->where('serial', '<>', '-No Serial-');
+                                                                })->get();
 
         foreach ($product_distinct as $product) {
             $sap_discrepancy = [];
@@ -122,10 +123,10 @@ class InventoryReconciliationController extends Controller
             $sap_qty = $recon->where('inventory_type', '=', 'SAP')->sum('quantity');
             $physical_qty = $recon->where('inventory_type', '=', 'Physical')->sum('quantity');
 
-            // exclude sap generated serial numbers
-            $items = $serialized_items->where('brand', $product['brand'])
-                                    ->where('model', $product['model'])
-                                    ->where('product_category', $product['product_category']);
+            // non sap generated serials item
+            $items = $non_sap_serialized_items->where('brand', $product['brand'])
+                                                ->where('model', $product['model'])
+                                                ->where('product_category', $product['product_category']);
 
             $sap = $items->where('inventory_type', '=', 'SAP');
             $physical = $items->where('inventory_type', '=', 'Physical');
@@ -140,8 +141,13 @@ class InventoryReconciliationController extends Controller
                 if($physical_serial_ctr === 0)
                 {
                     $sap_discrepancy[] = $value['serial'];
+                    // if($physical_qty > 0)
+                    // {
+                    //     $physical_discrepancy[] = '-No Serial-';
+                    // }
+                    
                 }
-                
+        
             }
             
             // Physical product inventory
@@ -150,17 +156,16 @@ class InventoryReconciliationController extends Controller
                 // find the serial from sap to identify the discrep
                 $sap_serial_ctr = $sap->where('serial', $value['serial'])->count();
 
-                // if this product is not in SAP Inventory then get the serial discrepancy
+                // if this product is not in SAP Inventory then get the serial discrepancy (exclude '-No Serial-' value)
                 if($sap_serial_ctr === 0)
                 {
                     $physical_discrepancy[] = $value['serial'];
                 }
-
             }
 
             $qty_diff = $physical_qty - $sap_qty;
 
-            if($qty_diff != 0)
+            if(count($sap_discrepancy) || count($physical_discrepancy))
             {   
                 $products[] = [
                     'brand' => $product['brand'],
@@ -323,7 +328,6 @@ class InventoryReconciliationController extends Controller
                         {
                             if($x == 0)
                             {   
-                                
                                 // if column name did not match
                                 if($collection[$x][$y] != $columns[$y])
                                 {
@@ -438,7 +442,7 @@ class InventoryReconciliationController extends Controller
                                                         }
                                                    })
                                                    ->where('inventory_type', $request->inventory_type)
-                                                   ->select(DB::raw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_created"))
+                                                   ->select(DB::raw("*, DATE_FORMAT(docdate, '%m/%d/%Y') as document_date, DATE_FORMAT(created_at, '%m/%d/%Y') as date_created"))
                                                    ->get();
 
         return response()->json(['unreconciled_list' => $unreconciled_list], 200);
@@ -498,6 +502,8 @@ class InventoryReconciliationController extends Controller
 
             $qty = $product['quantity'] ? $product['quantity'] : 1;
 
+            $serial = $product['serial'];
+
             $inventory_recon_map = new InventoryReconciliationMap();
             $inventory_recon_map->inventory_recon_id = $inventory_recon_id;
             $inventory_recon_map->user_id = $user->id;
@@ -505,7 +511,7 @@ class InventoryReconciliationController extends Controller
             $inventory_recon_map->brand = $product['brand']['name'];
             $inventory_recon_map->model = $product['model'];
             $inventory_recon_map->product_category = $product['product_category']['name'];
-            $inventory_recon_map->serial = $product['serial'];
+            $inventory_recon_map->serial = is_numeric($serial) ? (integer) $serial : $serial;
             $inventory_recon_map->quantity = $qty ;
             $inventory_recon_map->save();
         }

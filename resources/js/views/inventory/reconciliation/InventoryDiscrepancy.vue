@@ -62,7 +62,7 @@
                 </v-chip>
                 <template v-if="reconciliation.date_reconciled">
                   <h6 class="my-0 font-weight-bold ml-4">Date Reconciled:</h6>  
-                  <v-chip color="secondary" class="ml-2">{{ reconciliation.date_reconciled }}</v-chip> 
+                  <v-chip :color="status == 'unreconciled' ? 'secondary' : 'success'" class="ml-2">{{ reconciliation.date_reconciled }}</v-chip> 
                 </template>
                 
               </v-toolbar>
