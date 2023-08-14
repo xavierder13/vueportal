@@ -39,7 +39,7 @@ class InventoryReconciliationController extends Controller
 
         // $progtble = DB::connection('progtbl')->select("select * from [@PROGTBL] where U_Branch1 = 'Alaminos'");
         
-        $databases = SapDatabase::all();
+        $databases = SapDatabase::get(['server', 'database', 'username']);
         $user = Auth::user();
         $branches = Branch::with(['inventory_reconciliations' => function($query) use ($user){
                             $query->select(
@@ -536,10 +536,13 @@ class InventoryReconciliationController extends Controller
             $inventory_group = $request->get('inventory_group');
             $inventory_type = $request->get('inventory_type');
             $docdate = $request->get('docdate');
-    
             $database = $request->get('database');
-            $db = SapDatabase::where('database', '=', $database)->get()->first();
+    
+            $db = SapDatabase::where('database', '=', $database['database'])
+                             ->where('server', '=', $database['server'])                 
+                             ->get()->first();
             $password = Crypt::decrypt($db->password);
+
             Config::set('database.connections.'.$db->database, array(
                         'driver' => 'sqlsrv',
                         'host' => $db->server,
@@ -551,7 +554,7 @@ class InventoryReconciliationController extends Controller
             
             $operator = $request->inventory_type === 'OVERALL' ? '<>' : '=';
 
-            $inventory_onhand = DB::connection($database)->select("
+            $inventory_onhand = DB::connection($db->database)->select("
                 SELECT 
                     d.FirmName BRAND, 
                     c.ItemName MODEL,
@@ -564,12 +567,16 @@ class InventoryReconciliationController extends Controller
                     INNER JOIN OITM c on a.ItemCode = c.ItemCode
                     INNER JOIN OMRC d on c.FirmCode = d.FirmCode
                     INNER JOIN OWHS e on a.WhsCode = e.WhsCode 
-                    INNER JOIN [@PROGTBL] f on UPPER(e.Street) COLLATE DATABASE_DEFAULT = CASE WHEN DB_NAME() = 'ReportsFinance' OR LEFT(DB_NAME(), 7) = 'Addessa' THEN f.U_Branch2 ELSE f.U_Branch1 END
-                WHERE a.OnHand <> 0 and b.Status = '0' and f.U_Branch1 = :branch and RIGHT(e.WhsCode, 3) ".$operator." 'RPO'
+                    INNER JOIN [@PROGTBL] f on UPPER(e.Street) COLLATE DATABASE_DEFAULT = CASE 
+                                                                                                WHEN DB_NAME() = 'ReportsFinance' OR LEFT(DB_NAME(), 7) = 'Addessa' 
+                                                                                                THEN CASE WHEN LEFT(f.U_Branch2, 3) = 'MIA' THEN 'MiaAdmin' ELSE f.U_Branch2 END
+                                                                                                ELSE CASE WHEN LEFT(f.U_Branch1, 3) = 'MIA' THEN 'MiaAdmin' ELSE f.U_Branch1 END
+                                                                                          END
+                WHERE a.OnHand <> 0 and b.Status = '0' and CASE WHEN LEFT(f.U_Branch1, 3) = 'MIA' THEN 'MiaAdmin' ELSE f.U_Branch1 END = :branch and RIGHT(e.WhsCode, 3) ".$operator." 'RPO'
                 ORDER by 1, 2, 3, 4
             ",
             ['branch' => $branch->name]);
-    
+            
             if(!count($inventory_onhand))
             {
                 return response()->json(['empty' => 'No record found', $db], 200);
@@ -600,7 +607,6 @@ class InventoryReconciliationController extends Controller
                 ]);
                 
             }
-    
     
             return response()->json(['success' => 'Record has been synced'], 200);
 

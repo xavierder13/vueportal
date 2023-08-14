@@ -270,7 +270,7 @@ export default {
           this.branches = data.branches;
           this.databases = data.databases;
           this.loading = false;
-
+          
         },
         (error) => {
           this.isUnauthorized(error);

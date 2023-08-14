@@ -186,7 +186,7 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
-        return response()->json(['success' => 'Record has been added'], 200);
+        // return response()->json(['success' => 'Record has been added'], 200);
         
         $rules = [
             'branch_id.required' => 'Branch is required',

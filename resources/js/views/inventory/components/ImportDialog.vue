@@ -65,8 +65,6 @@
                 <v-autocomplete
                   v-model="database"
                   :items="databases"
-                  item-text="database"
-                  item-value="database"
                   label="SAP Database"
                   prepend-icon="mdi-database"
                   required
@@ -232,6 +230,7 @@ export default {
   },
   methods: {
     async submit() {
+
       await this.$v.$touch();
 
       if (!this.$v.$error) {
@@ -260,6 +259,7 @@ export default {
 
       axios.post(this.api_route, data).then(
         (response) => {
+          console.log(response.data);
           let data = response.data;
           
           this.uploadDisabled = false;

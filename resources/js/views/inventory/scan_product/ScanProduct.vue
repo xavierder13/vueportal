@@ -174,7 +174,7 @@
                   @blur="(fieldsActive = false)"
                   @focus="(fieldsActive = true)"
                   @change="clearSerialExistStatus()"
-                  v-if="user.id === 1 || hasRole('Audit Admin').audit_admin"
+                  v-if="user.id === 1 || hasAnyRole('Audit Admin', 'Inventory Admin')"
                 >
                 </v-autocomplete>
               </v-col>
@@ -561,7 +561,7 @@ export default {
         this.overlay = true;
 
         const data = this.editedItem;
-
+    
         await axios.post("/api/product/store", data).then(
           (response) => {
             if (response.data.success) {
@@ -833,7 +833,7 @@ export default {
       return isRequired;
     },
     ...mapState("auth", ["user"]),
-    ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission"]),
+    ...mapGetters("userRolesPermissions", ["hasRole", "hasAnyRole", "hasPermission"]),
   },
   created() {
     // Add barcode scan listener and pass the callback function
