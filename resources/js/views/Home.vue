@@ -72,7 +72,7 @@
           </v-list-item-content>
         </v-list-item>
       </v-list>
-      <v-list dense class="pt-0">
+      <v-list dense class="pt-0" expand>
         <template v-for=" (menu, index) in menuList " v-if="menu.hasPermission">
           <v-divider></v-divider>
           <span class="subtitle-2 font-weight-bold ml-4 blue--text text--lighten-4"> 
