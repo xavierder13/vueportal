@@ -165,7 +165,7 @@ class InventoryReconciliationController extends Controller
 
             $qty_diff = $physical_qty - $sap_qty;
 
-            if(count($sap_discrepancy) || count($physical_discrepancy))
+            if(count($sap_discrepancy) || count($physical_discrepancy) || $qty_diff <> 0)
             {   
                 $products[] = [
                     'brand' => $product['brand'],
@@ -228,13 +228,13 @@ class InventoryReconciliationController extends Controller
                                            ->where('model', $product['model'])
                                            ->where('product_category', $product['product_category'])
                                            ->where('serial', $product['serial']);
-
+                
             $products[] = [
                 'brand' => $product['brand'],
                 'model' => $product['model'],
                 'product_category' => $product['product_category'],
-                'sap_serial' => $sap_serial_ctr ? $product['serial'] : '---',
-                'physical_serial' => $physical_serial_ctr ? $product['serial'] : '---',
+                'sap_serial' => $sap_serial_ctr->count() ? $product['serial'] : '---',
+                'physical_serial' => $physical_serial_ctr->count() ? $product['serial'] : '---',
             ];
 
         }
@@ -441,7 +441,12 @@ class InventoryReconciliationController extends Controller
                                                             $query->where('inventory_group', '=', $inventory_group);
                                                         }
                                                    })
-                                                   ->where('inventory_type', $request->inventory_type)
+                                                   ->where(function($query) use ($request) {
+                                                        if($request->inventory_type) // if inventory type has value ('OVERALL' or 'REPO')
+                                                        {
+                                                            $query->where('inventory_type', '=', $request->inventory_type);
+                                                        }
+                                                   })
                                                    ->select(DB::raw("*, DATE_FORMAT(docdate, '%m/%d/%Y') as document_date, DATE_FORMAT(created_at, '%m/%d/%Y') as date_created"))
                                                    ->get();
 

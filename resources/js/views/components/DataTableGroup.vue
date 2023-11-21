@@ -61,7 +61,7 @@
                 </template>
               </v-list>
             </v-menu>
-            <v-btn x-small color="primary" @click="importExcel(items)" v-if="canImport && !canDownloadTemplate"> 
+            <v-btn x-small color="primary" @click="callMethod('importExcel', items)" v-if="canImport && !canDownloadTemplate"> 
               <v-icon x-small class="mr-1">mdi-upload</v-icon> import
             </v-btn> 
           </td>
@@ -130,14 +130,15 @@ export default {
   methods: {
     callMethod(method, item) {
       this.$emit(method, item);
-    }
+    },
+
   },
   computed: {
     actionListTblHdr(){
        let menu = [
         {
           title: 'Import',
-          icon: 'mdi-file-pdf',
+          icon: 'mdi-upload',
           method: 'importExcel',
           hasPermission: true,
           color: 'primary',

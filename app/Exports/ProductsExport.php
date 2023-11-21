@@ -40,6 +40,10 @@ class ProductsExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                         {
                             $query->where('products.file_upload_log_id', '=', $params['file_upload_log_id']);
                         }
+                        else
+                        {
+                        	$query->whereNull('file_upload_log_id');
+                        }
                          
                       })
                       ->orderBy('brands.name', 'Asc')

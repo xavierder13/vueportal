@@ -140,7 +140,7 @@ export default {
        let menu = [
         {
           title: 'Import',
-          icon: 'mdi-file-pdf',
+          icon: 'mdi-upload',
           method: 'importExcel',
           hasPermission: this.canImport,
           color: 'primary',

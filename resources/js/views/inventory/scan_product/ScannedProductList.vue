@@ -323,6 +323,8 @@ export default {
       unreconciled_headers: [
         { text: "Branch", value: "branch.name" },
         { text: "Date Created", value: "date_created" },
+        { text: "Document Date", value: "document_date" },
+        { text: "Inventory Type", value: "inventory_type" },
         { text: "Status", value: "status" },
         { text: "Actions", value: "actions", sortable: false, width: "100px" },
       ],
@@ -476,7 +478,7 @@ export default {
     },
 
     exportData() {
-      const data = { branch_id: this.branch_id };
+      const data = { branch_id: this.search_branch };
       if (this.filteredProducts.length) {
 
         axios.post('/api/product/export', data, { responseType: 'arraybuffer'})
@@ -521,7 +523,7 @@ export default {
         this.dialog_unreconciled = true;
 
         let data = {
-          branch_id: this.branch_id,
+          branch_id: this.search_branch,
           inventory_group: this.inventory_group,
         };
 
@@ -529,6 +531,7 @@ export default {
           .post("/api/inventory_reconciliation/unreconcile/list", data)
           .then(
             (response) => {
+              console.log(response.data);
               this.unreconciled_list = response.data.unreconciled_list;
               this.loading_unreconciled = false;
             },

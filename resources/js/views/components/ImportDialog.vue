@@ -293,7 +293,8 @@ export default {
     },
     closeDialog() {
       this.$emit('closeImportDialog');
-      this.docdate = new Date().toISOString().substr(0, 10);
+      this.docdate = null;
+      // this.docdate = new Date().toISOString().substr(0, 10);
       this.file = [];
       this.fileIsEmpty = false;
       this.fileIsInvalid = false;
