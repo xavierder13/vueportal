@@ -319,7 +319,7 @@
                                   </v-autocomplete>
                                 </td>
                                 <td>
-                                  <v-btn class="primary" x-small :disabled="disabled" @click="saveApprovingOfficer()" icon>
+                                  <v-btn color="primary" x-small :disabled="disabled" @click="saveApprovingOfficer()" icon>
                                     <v-icon color="primary">mdi-content-save</v-icon>
                                   </v-btn>
 
@@ -703,7 +703,8 @@ export default {
           axios.post("/api/access_chart_user_map/store", data).then(
             (response) => {
               console.log(response);
-              if (response.data.success) {
+              let data = response.data
+              if (data.success) {
                 // send data to Sockot.IO Server
                 // this.$socket.emit("sendData", { action: "approving-officer-create" });
 
