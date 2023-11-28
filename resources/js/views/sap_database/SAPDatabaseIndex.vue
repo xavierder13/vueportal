@@ -326,7 +326,7 @@ export default {
             }
             else
             {
-              this.showAlert(response.data.error, "warning");
+              this.showAlert(response.data.error, "error");
             } 
             
             this.overlay = false;
