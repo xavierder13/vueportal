@@ -56,6 +56,14 @@ class SAPDatabaseController extends Controller
             return response()->json($validator->errors(), 200);
         }
 
+        $sap_database_ctr = SAPDatabase::where('server', $request->get('server'))
+                                   ->where('database', $request->get('database'))
+                                   ->count();
+        if($sap_database_ctr)
+        {
+            return response()->json(['error' => 'SAP Database already exists'], 200);
+        }
+
         $sap_database = new SAPDatabase();
         $sap_database->server = $request->get('server');
         $sap_database->database = $request->get('database');
@@ -72,7 +80,14 @@ class SAPDatabaseController extends Controller
         
         }
 
-        return response()->json(['success' => 'Record has successfully added', 'sap_database' => $sap_database], 200);
+        $sap_db = SAPDatabase::with('sap_db_branches')
+                                    ->with('sap_db_branches.branch')
+                                    ->with('sap_db_branches.sap_database')
+                                    ->select('id', 'server', 'database', 'username')
+                                    ->where('id', '=', $sap_database->id)
+                                    ->first();
+
+        return response()->json(['success' => 'Record has successfully added', 'sap_database' => $sap_db], 200);
     }
 
 
