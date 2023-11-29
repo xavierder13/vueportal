@@ -628,7 +628,7 @@ export default {
           if (result.value) {
             // <-- if confirmed
 
-            let data = { branch_id: this.branch_id, clear_list: true };
+            let data = { branch_id: this.search_branch, clear_list: true };
 
             axios.post("api/product/delete", data).then(
               (response) => {
@@ -637,7 +637,8 @@ export default {
                   // this.$socket.emit("sendData", { action: "product-create" });
 
                   // clear products array
-                  this.products = [];
+                  // this.products = [];
+                  this.getProduct();
 
                   this.showAlert(response.data.success, 'success');
 

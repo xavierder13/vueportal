@@ -411,9 +411,24 @@ class ProductController extends Controller
             // $log = FileUploadLog::find($request->file_upload_log_id);
             // $file_upload_log_id = $log->id;
             // $log->delete();
-            $log = FileUploadLog::where('id', $request->file_upload_log_id)->delete();
+            $file_upload_log_id = $request->file_upload_log_id;
+            $branch_id = $request->branch_id;
+            $log = FileUploadLog::where('id', $file_upload_log_id)->delete();
             $products = DB::table('products')
-                      ->where('file_upload_log_id', '=', $request->file_upload_log_id);
+                          ->where(function($query) use ($file_upload_log_id, $branch_id){
+
+                            // if file_upload_log_id has value means product list were uploaded; 
+                            if($file_upload_log_id)
+                            {
+                                $query->where('file_upload_log_id', $file_upload_log_id);
+                            }
+                            else
+                            {
+                                $query->where('branch_id', $branch_id)
+                                      ->whereNull('file_upload_log_id');
+                            }
+                          });
+                        //   ->where('file_upload_log_id', '=', $file_upload_log_id);
             
             if(!$products->count('id'))
             {
