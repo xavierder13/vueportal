@@ -18,9 +18,27 @@
                   item-value="type"
                   label="Inventory Type"
                   required
+                  :readonly="uploadDisabled"
                   :error-messages="inventoryTypeErrors"
                   @input="$v.inventory_type.$touch()"
                   @blur="$v.inventory_type.$touch()"
+                >
+                </v-autocomplete>
+              </v-col>
+            </v-row>
+            <v-row> 
+              <v-col class="my-0 py-0">
+                <v-autocomplete
+                  v-model="whse_code"
+                  :items="whse_codes"
+                  item-text="code"
+                  item-value="value"
+                  label="Warehouse Code"
+                  required
+                  :readonly="uploadDisabled"
+                  :error-messages="whseCodeErrors"
+                  @input="$v.whse_code.$touch()"
+                  @blur="$v.whse_code.$touch()"
                 >
                 </v-autocomplete>
               </v-col>
@@ -54,6 +72,7 @@
                   <v-date-picker
                     v-model="docdate"
                     no-title
+                    :readonly="uploadDisabled"
                     @input="input_docdate = false"
                     :max="maxDate"
                   ></v-date-picker>
@@ -68,16 +87,17 @@
                   label="SAP Database"
                   prepend-icon="mdi-database"
                   required
+                  :readonly="uploadDisabled"
                   :error-messages="databaseErrors"
                   @input="$v.database.$touch()"
                   @blur="$v.database.$touch()"
                 >
-                <template slot="selection" slot-scope="data">
-                  {{ data.item.server + ' - ' + data.item.database }}
-                </template>
-                <template slot="item" slot-scope="data">
-                  {{ data.item.server + ' - ' + data.item.database }}
-                </template>
+                  <template slot="selection" slot-scope="data">
+                    {{ data.item.server + ' - ' + data.item.database }}
+                  </template>
+                  <template slot="item" slot-scope="data">
+                    {{ data.item.server + ' - ' + data.item.database }}
+                  </template> 
                 </v-autocomplete>
               </v-col>
             </v-row>
@@ -89,6 +109,7 @@
                   label="File input"
                   prepend-icon="mdi-paperclip"
                   required
+                  :readonly="uploadDisabled"
                   :error-messages="fileErrors"
                   @change="$v.file.$touch() + (fileIsEmpty = false) + (fileIsInvalid = false)"
                   @blur="$v.file.$touch()"
@@ -196,6 +217,7 @@ export default {
     'databases',
     'action',
     'inventory_group',
+    'whse_codes',
   ],
 
   mixins: [validationMixin],
@@ -208,6 +230,11 @@ export default {
     },
     docdate: { required },
     database: { 
+      required: requiredIf(function () {
+        return this.action === 'sync';
+      }) 
+    },
+    whse_code: { 
       required: requiredIf(function () {
         return this.action === 'sync';
       }) 
@@ -226,6 +253,7 @@ export default {
       dialog_error_list: false,
       errors_array: [],
       input_docdate: false,
+      whse_code: [],
     }
   },
   methods: {
@@ -255,6 +283,7 @@ export default {
         docdate: this.docdate,
         inventory_group: this.inventory_group, 
         inventory_type: this.inventory_type,
+        whse_code: this.whse_code,
       };
 
       axios.post(this.api_route, data).then(
@@ -309,6 +338,7 @@ export default {
       formData.append("inventory_group", this.inventory_group);
       formData.append("branch_id", this.branch_id);
       formData.append("inventory_type", this.inventory_type);
+      formData.append("whse_code", this.whse_code);
       
       axios.post(this.api_route, formData, {
         headers: {
@@ -414,6 +444,7 @@ export default {
       this.uploadDisabled = false;
       this.uploading = false;
       this.fileIsInvalid = false;
+      this.whse_code = "";
       this.$v.$reset();
     }, 
 
@@ -492,6 +523,12 @@ export default {
       !this.$v.database.required && errors.push("SAP Database is required.");
       return errors;
     },
+    whseCodeErrors() {
+      const errors = [];
+      if (!this.$v.whse_code.$dirty) return errors;
+      !this.$v.whse_code.required && errors.push("Warehouse is required.");
+      return errors;
+    },
     imported_file_errors() {
       return this.errors_array.sort();
     },
@@ -518,6 +555,15 @@ export default {
     ...mapState("auth", ["user"]),
     ...mapGetters("userRolesPermissions", ["hasAnyRole", "hasPermission"]),
   },
+  watch: {
+    whse_codes() {      
+      // if branch has only 1 whse_code then auto select/assign value
+      if(this.whse_codes.length == 1)
+      {
+        this.whse_code = this.whse_codes[0].code;
+      }
+    }
+  }
   
 }
 

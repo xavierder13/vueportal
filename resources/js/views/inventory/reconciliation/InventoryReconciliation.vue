@@ -44,7 +44,7 @@
             v-if="hasPermission('inventory-recon-list')"
           > 
             <template v-slot:group.header="{ items, headers, toggle, isOpen, }">
-              <td colspan="7">
+              <td colspan="8">
                 <v-row>
                   <v-col>
                     <v-btn @click="toggle" small icon :ref="items" :data-open="isOpen">
@@ -114,6 +114,7 @@
                     </v-chip> 
                 </td>
                 <td> {{ value.inventory_type }} </td>
+                <td> {{ value.whse_code }} </td>
                 <td> <v-chip color="secondary" v-if="value.date_created">{{ value.date_created }}</v-chip> </td>
                 <td> <v-chip color="secondary" v-if="value.document_date">{{ value.document_date }}</v-chip> </td>
                 <td> <v-chip color="success" v-if="value.date_reconciled">{{ value.date_reconciled }}</v-chip> </td>
@@ -175,6 +176,7 @@
         :branch="branch"
         :branch_id="branch_id"
         :databases="databases"
+        :whse_codes="whse_codes"
         :action="action"
         :inventory_group="inventory_group"
         @getData="getInventory"
@@ -207,6 +209,7 @@ export default {
         { text: "Created By", value: "user.name" },
         { text: "Status", value: "status" },
         { text: "Inventory Type", value: "inventory_type" },
+        { text: "Warehouse", value: "whse_code" },
         { text: "Date Created", value: "date_created" },
         { text: "Document Date", value: "document_date" },
         { text: "Date Reconciled", value: "date_reconciled" },
@@ -256,6 +259,7 @@ export default {
       databases: [],
       api_route: "",
       action: "",
+      whse_codes: [],
     };
   },
 
@@ -265,7 +269,7 @@ export default {
       axios.get("/api/inventory_reconciliation/index").then(
         (response) => {
           let data = response.data;
-          console.log(data);
+       
           // this.inventory_reconciliations = data.inventory_reconciliations;
           this.branches = data.branches;
           this.databases = data.databases;
@@ -310,6 +314,7 @@ export default {
       this.action = action;
       this.api_route = action === "sync" ? "/api/inventory_reconciliation/sync" : "/api/inventory_reconciliation/import";
       this.dialog_import = true;
+      this.whse_codes = item[0].whse_codes;
     },
 
     closeImportDialog() { 
