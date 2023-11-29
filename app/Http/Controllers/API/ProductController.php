@@ -408,11 +408,12 @@ class ProductController extends Controller
         if($request->get('clear_list'))
         {   
             
-            $log = FileUploadLog::find($request->file_upload_log_id);
-            $file_upload_log_id = $log->id;
-            $log->delete();
+            // $log = FileUploadLog::find($request->file_upload_log_id);
+            // $file_upload_log_id = $log->id;
+            // $log->delete();
+            $log = FileUploadLog::where('id', $request->file_upload_log_id)->delete();
             $products = DB::table('products')
-                      ->where('file_upload_log_id', '=', $file_upload_log_id);
+                      ->where('file_upload_log_id', '=', $request->file_upload_log_id);
             
             if(!$products->count('id'))
             {
