@@ -531,7 +531,6 @@ export default {
           .post("/api/inventory_reconciliation/unreconcile/list", data)
           .then(
             (response) => {
-              console.log(response.data);
               this.unreconciled_list = response.data.unreconciled_list;
               this.loading_unreconciled = false;
             },

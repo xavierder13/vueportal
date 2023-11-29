@@ -323,6 +323,10 @@ export default {
               this.showAlert(response.data.success, "success");
               this.close();
 
+            }
+            else
+            {
+              this.showAlert(response.data.error, "error");
             } 
             
             this.overlay = false;
