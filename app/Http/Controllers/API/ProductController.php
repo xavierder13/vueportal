@@ -852,6 +852,7 @@ class ProductController extends Controller
 
             // START sync branch warehouses
             $whseArr = [];
+            
             $databases = SapDatabase::where('server', '=', '192.168.1.13')->get();
 
             foreach ($databases as $key => $db) {

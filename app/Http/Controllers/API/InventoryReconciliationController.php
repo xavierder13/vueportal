@@ -70,11 +70,12 @@ class InventoryReconciliationController extends Controller
                                 }
                             });
                           }])
+                          ->with('whse_codes')
                           ->orderBy('name')->get();
-                                      
+
         return response()->json([
             'branches' => $branches,
-            'databases' => $databases
+            'databases' => $databases,
         ], 200);
     }
 
@@ -542,6 +543,7 @@ class InventoryReconciliationController extends Controller
             $inventory_type = $request->get('inventory_type');
             $docdate = $request->get('docdate');
             $database = $request->get('database');
+            $whse_code = $request->get('whse_code');
     
             $db = SapDatabase::where('database', '=', $database['database'])
                              ->where('server', '=', $database['server'])                 
@@ -599,11 +601,11 @@ class InventoryReconciliationController extends Controller
                 WHERE 
                     a.OnHand <> 0 
                     and b.Status = '0' 
-                    
                     and RIGHT(e.WhsCode, 3) ".$operator." 'RPO'
-                    and LEFT(e.WhsCode, 4) = 'CAMA'
+                    and LEFT(e.WhsCode, 4) = :whse_code
                 ORDER by 1, 2, 3, 4
-            ");
+            ", 
+            ['whse_code' => $whse_code]);
             
             if(!count($inventory_onhand))
             {
@@ -618,8 +620,8 @@ class InventoryReconciliationController extends Controller
             $inventory_reconciliation->inventory_group = $inventory_group;
             $inventory_reconciliation->inventory_type = $inventory_type;
             $inventory_reconciliation->docdate = $docdate;
+            $inventory_reconciliation->whse_code = $whse_code;
             $inventory_reconciliation->save();
-    
     
             foreach ($inventory_onhand as $value) {
                 
@@ -676,4 +678,5 @@ class InventoryReconciliationController extends Controller
 
         return Excel::download(new InventoryBreakdown($data['products']), 'InventoryDiscrepancy.xls');
     }
+
 }

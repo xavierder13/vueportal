@@ -97,9 +97,7 @@ class AccessChartController extends Controller
 
     public function edit($access_chart_id)
     {   
-        $access_chart_id = $request->get('access_chart_id');
-
-        $access_module = AccessModule::find($access_module_id);
+        $access_module = AccessModule::find($access_chart_id);
 
         //if record is empty then display error page
         if(empty($access_module->id))
