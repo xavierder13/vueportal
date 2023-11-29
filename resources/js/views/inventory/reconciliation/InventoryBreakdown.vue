@@ -43,8 +43,10 @@
                 <v-chip color="secondary" class="ml-2">{{ reconciliation.document_date }}</v-chip>
                 <h6 class="my-0 font-weight-bold ml-4">Document Type:</h6>  
                 <v-chip color="secondary" class="ml-2">{{ reconciliation.inventory_type }}</v-chip> 
+                <h6 class="my-0 font-weight-bold ml-4">Warehouse:</h6>  
+                <v-chip color="secondary" class="ml-2">{{ reconciliation.whse_code }}</v-chip>
                 <h6 class="my-0 font-weight-bold ml-4">Document Status:</h6>  
-                <v-chip :color="status == 'unreconciled' ? 'red white--text' : 'success'" class="ml-4">
+                <v-chip :color="status == 'unreconciled' ? 'red white--text' : 'success'" class="ml-2">
                   {{ reconciliation.status.toUpperCase() }}
                 </v-chip>
                 <template v-if="reconciliation.date_reconciled">
