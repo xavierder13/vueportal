@@ -559,6 +559,29 @@ class InventoryReconciliationController extends Controller
             
             $operator = $request->inventory_type === 'OVERALL' ? '<>' : '=';
 
+            // $inventory_onhand = DB::connection($db->database)->select("
+            //     SELECT 
+            //         d.FirmName BRAND, 
+            //         c.ItemName MODEL,
+            //         c.FrgnName CATEGORY, 
+            //         b.IntrSerial SERIAL,
+            //         cast(1 as numeric(19,2)) as 'Qty'
+            //     FROM 
+            //     OITW a
+            //         LEFT JOIN OSRI b on (a.ItemCode = b.ItemCode and a.WhsCode = b.WhsCode)
+            //         INNER JOIN OITM c on a.ItemCode = c.ItemCode
+            //         INNER JOIN OMRC d on c.FirmCode = d.FirmCode
+            //         INNER JOIN OWHS e on a.WhsCode = e.WhsCode 
+            //         INNER JOIN [@PROGTBL] f on UPPER(e.Street) COLLATE DATABASE_DEFAULT = CASE 
+            //                                                                                     WHEN DB_NAME() = 'ReportsFinance' OR LEFT(DB_NAME(), 7) = 'Addessa' 
+            //                                                                                     THEN CASE WHEN LEFT(f.U_Branch2, 3) = 'MIA' THEN 'MiaAdmin' ELSE f.U_Branch2 END
+            //                                                                                     ELSE CASE WHEN LEFT(f.U_Branch1, 3) = 'MIA' THEN 'MiaAdmin' ELSE f.U_Branch1 END
+            //                                                                               END
+            //     WHERE a.OnHand <> 0 and b.Status = '0' and CASE WHEN LEFT(f.U_Branch1, 3) = 'MIA' THEN 'MiaAdmin' ELSE f.U_Branch1 END = :branch and RIGHT(e.WhsCode, 3) ".$operator." 'RPO'
+            //     ORDER by 1, 2, 3, 4
+            // ",
+            // ['branch' => $branch->name]);
+
             $inventory_onhand = DB::connection($db->database)->select("
                 SELECT 
                     d.FirmName BRAND, 
@@ -572,15 +595,15 @@ class InventoryReconciliationController extends Controller
                     INNER JOIN OITM c on a.ItemCode = c.ItemCode
                     INNER JOIN OMRC d on c.FirmCode = d.FirmCode
                     INNER JOIN OWHS e on a.WhsCode = e.WhsCode 
-                    INNER JOIN [@PROGTBL] f on UPPER(e.Street) COLLATE DATABASE_DEFAULT = CASE 
-                                                                                                WHEN DB_NAME() = 'ReportsFinance' OR LEFT(DB_NAME(), 7) = 'Addessa' 
-                                                                                                THEN CASE WHEN LEFT(f.U_Branch2, 3) = 'MIA' THEN 'MiaAdmin' ELSE f.U_Branch2 END
-                                                                                                ELSE CASE WHEN LEFT(f.U_Branch1, 3) = 'MIA' THEN 'MiaAdmin' ELSE f.U_Branch1 END
-                                                                                          END
-                WHERE a.OnHand <> 0 and b.Status = '0' and CASE WHEN LEFT(f.U_Branch1, 3) = 'MIA' THEN 'MiaAdmin' ELSE f.U_Branch1 END = :branch and RIGHT(e.WhsCode, 3) ".$operator." 'RPO'
+                   
+                WHERE 
+                    a.OnHand <> 0 
+                    and b.Status = '0' 
+                    
+                    and RIGHT(e.WhsCode, 3) ".$operator." 'RPO'
+                    and LEFT(e.WhsCode, 4) = 'CAMA'
                 ORDER by 1, 2, 3, 4
-            ",
-            ['branch' => $branch->name]);
+            ");
             
             if(!count($inventory_onhand))
             {
