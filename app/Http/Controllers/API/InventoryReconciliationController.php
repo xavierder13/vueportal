@@ -256,7 +256,8 @@ class InventoryReconciliationController extends Controller
         $branch_id = $request->get('branch_id');
         $docdate = $request->get('docdate');
         $inventory_group = $request->get('inventory_group');
-        $inventory_type = $request->get('inventor   y_type');
+        $inventory_type = $request->get('inventory_type');
+        $whse_code = $request->get('whse_code');
         
         try {
             $file_extension = '';
@@ -399,6 +400,7 @@ class InventoryReconciliationController extends Controller
                     $inventory_reconciliation->status = 'unreconciled';
                     $inventory_reconciliation->inventory_group = $inventory_group;
                     $inventory_reconciliation->inventory_type = $inventory_type;
+                    $inventory_reconciliation->whse_code = $whse_code;
                     $inventory_reconciliation->docdate = $docdate;
                     $inventory_reconciliation->save();
 
