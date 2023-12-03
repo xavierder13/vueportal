@@ -324,6 +324,7 @@ export default {
         { text: "Branch", value: "branch.name" },
         { text: "Date Created", value: "date_created" },
         { text: "Document Date", value: "document_date" },
+        { text: "Warehouse", value: "whse_code" },
         { text: "Inventory Type", value: "inventory_type" },
         { text: "Status", value: "status" },
         { text: "Actions", value: "actions", sortable: false, width: "100px" },
