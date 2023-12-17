@@ -3,7 +3,7 @@
     <v-dialog v-model="dialog_import" max-width="500px" persistent>
       <v-card>
         <v-card-title class="pa-4">
-          <span class="headline">Import Data</span>
+          <span class="headline">Import Data </span>
           <v-chip color="secondary" v-if="branch" class="ml-2"> {{ branch }} </v-chip>
         </v-card-title>
         <v-divider class="mt-0"></v-divider>
@@ -109,7 +109,7 @@
                   label="File input"
                   prepend-icon="mdi-paperclip"
                   required
-                  :readonly="uploadDisabled"
+                  :disabled="uploadDisabled"
                   :error-messages="fileErrors"
                   @change="$v.file.$touch() + (fileIsEmpty = false) + (fileIsInvalid = false)"
                   @blur="$v.file.$touch()"
@@ -234,11 +234,7 @@ export default {
         return this.action === 'sync';
       }) 
     },
-    whse_code: { 
-      required: requiredIf(function () {
-        return this.action === 'sync';
-      }) 
-    },
+    whse_code: { required },
   },
   data () {
     return {
@@ -288,7 +284,6 @@ export default {
 
       axios.post(this.api_route, data).then(
         (response) => {
-          console.log(response.data);
           let data = response.data;
           
           this.uploadDisabled = false;
@@ -426,6 +421,7 @@ export default {
         },
         (error) => {
           console.log(error);
+          this.showErrorAlert("ERROR!", error);
           this.uploadDisabled = false;
         }
       );
@@ -556,14 +552,14 @@ export default {
     ...mapGetters("userRolesPermissions", ["hasAnyRole", "hasPermission"]),
   },
   watch: {
-    whse_codes() {      
+    dialog_import() { // everytime the dialog pops  
       // if branch has only 1 whse_code then auto select/assign value
-      if(this.whse_codes.length == 1)
+      if(this.whse_codes.length)
       {
         this.whse_code = this.whse_codes[0].code;
       }
     }
-  }
+  },
   
 }
 

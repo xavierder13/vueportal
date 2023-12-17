@@ -48,7 +48,7 @@
                       <span class="headline">{{ formTitle }}</span>
                     </v-card-title>
                     <v-divider></v-divider>
-                    <v-card-text>
+                    <v-card-text height="50vh">
                       <v-container>
                         <v-row>
                           <v-col class="my-0 py-0">

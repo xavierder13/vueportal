@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\User;
 use App\Product;
 use App\ProductCategory;
 use App\Brand;
@@ -33,6 +34,7 @@ class ProductController extends Controller
                                 $query->select(DB::raw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_uploaded, DATE_FORMAT(docdate, '%m/%d/%Y') as docdate"))
                                     ->where('docname', '=', 'Product List');
                             }])
+                            ->with('whse_codes')
                             ->where(function($query) use ($user_can_product_list_all){
                                 // if user has no permission to view all the branches then select the user's branch only
                                 if(!$user_can_product_list_all)
@@ -47,6 +49,7 @@ class ProductController extends Controller
 
     public function list_view(Request $request)
     {   
+        $search = $request->search;
         $file_upload_log_id = $request->get('file_upload_log_id');
         $file_upload_log = FileUploadLog::with('branch')
                                         ->select(DB::raw("id, branch_id, DATE_FORMAT(docdate, '%m/%d/%Y') as docdate, DATE_FORMAT(created_at, '%m/%d/%Y') as date_uploaded, remarks"))
@@ -66,9 +69,18 @@ class ProductController extends Controller
                                 }
                            })
                            ->where('file_upload_log_id', '=', $file_upload_log_id)
+                           ->where(function($query) use ($search){
+                                $query->where('model', 'like', '%'.$search.'%')
+                                        ->orWhere('serial', 'like', '%'.$search.'%')
+                                        ->orWhereHas('brand', function($qry) use ($search){
+                                            $qry->where('name', 'like', '%'.$search.'%');
+                                        })
+                                        ->orWhereHas('product_category', function($qry) use ($search){
+                                            $qry->where('name', 'like', '%'.$search.'%');
+                                        });
+                            })
                            ->select(DB::raw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_created"))
-                        //    ->paginate($request->items_per_page);
-                           ->get();
+                           ->paginate($request->items_per_page);
 
         $brands = Brand::all();
         $branches = Branch::all();
@@ -85,38 +97,62 @@ class ProductController extends Controller
         
     }
 
-    public function scanned_products() 
+    public function scanned_products(Request $request) 
     {
         $user = Auth::user();
+        $search = $request->search;
+        $whse_code = $request->whse_code;
 
         $products = Product::with('brand')
                            ->with('branch')
                            ->with('user')
                            ->with('product_category')
-                           ->where(function($query) use ($user){
-                                if(!$user->hasAnyRole('Administrator', 'Audit Admin', 'Inventory Admin'))
-                                {
-                                    $query->where('user_id', '=', $user->id);
-                                }
-                           })
-                           ->where(function($query){
-                                $query->whereNull('file_upload_log_id')
-                                      ->orWhere('file_upload_log_id', 0);
+                           ->where(function($query) use ($user, $whse_code, $search){
+                                $query->where(function($qry) use ($user){
+                                    if(!$user->hasAnyRole('Administrator', 'Audit Admin', 'Inventory Admin'))
+                                    {
+                                        $qry->where('user_id', '=', $user->id);
+                                    }
+                                })
+                                ->where(function($qry){
+                                    $qry->whereNull('file_upload_log_id')
+                                        ->orWhere('file_upload_log_id', 0);
 
+                                })
+                                ->where(function($query) use ($whse_code) {
+                                    if($whse_code != 'ALL')
+                                    {
+                                        $query->where('whse_code', $whse_code);
+                                    }
+                                })
+                                ->where(function($query) use ($search){
+                                    $query->where('model', 'like', '%'.$search.'%')
+                                            ->orWhere('serial', 'like', '%'.$search.'%')
+                                            ->orWhereHas('brand', function($qry) use ($search){
+                                                $qry->where('name', 'like', '%'.$search.'%');
+                                            })
+                                            ->orWhereHas('product_category', function($qry) use ($search){
+                                                $qry->where('name', 'like', '%'.$search.'%');
+                                            });
+                                });
                            })
                            ->select(DB::raw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_created"))
-                           ->get();
+                           ->orderBy('id', 'asc')
+                           ->paginate($request->items_per_page);
 
         $brands = Brand::all();
         $branches = Branch::all();
+        $whse_codes = WarehouseCode::all();
         $product_categories = ProductCategory::all();
         
         return response()->json([
             'products' => $products, 
             'brands' => $brands,
             'branches' => $branches,
+            'whse_codes' => $whse_codes,
             'product_categories' => $product_categories,
             'user' => $user,
+            'whse_code' => $whse_code
         ], 200);
     }
 
@@ -138,9 +174,12 @@ class ProductController extends Controller
     public function search_serial(Request $request){
         $user = Auth::user();
         $inventory_group = $request->get('inventory_group');
+        $branch_id = $request->branch_id;
+        $whse_code = $request->whse_code;
+
         $product = InventoryReconciliationMap::with('inventory_recon')
                                              ->where('serial', '=', $request->get('serial'))
-                                             ->whereHas('inventory_recon', function($query) use ($user, $inventory_group) {
+                                             ->whereHas('inventory_recon', function($query) use ($user, $inventory_group, $branch_id, $whse_code) {
                                                 
                                                 if($user->id !== 1)
                                                 {
@@ -160,26 +199,29 @@ class ProductController extends Controller
                                                         {
                                                             $q->where('inventory_group', '=', $inventory_group);
                                                         }
-                                                      });
-                                                
+                                                      })
+                                                      ->where('branch_id', $branch_id)
+                                                      ->where('whse_code', '=', $whse_code);
                                              })
-                                             ->get()->first();
+                                             ->get()
+                                             ->first();
 
         return response()->json(['product' => $product], 200);
     }
 
     public function create()
     {   
-        
-        $user = Auth::user();
+        $user = User::where('id', Auth::id())->with('branch')->with('branch.whse_codes')->first();
         $brands = Brand::all();
-        $branches = Branch::all();
+        $branches = Branch::with('whse_codes')->get();
+        $whse_codes = WarehouseCode::all();
         $product_categories = ProductCategory::all();
 
         return response()->json([
             'product_categories' => $product_categories,
             'brands' => $brands,
             'branches' => $branches,
+            'whse_codes' => $whse_codes,
             'user' => $user,
         ], 200);
     }
@@ -190,6 +232,7 @@ class ProductController extends Controller
         
         $rules = [
             'branch_id.required' => 'Branch is required',
+            'whse_code.required' => 'Warehouse is required',
             'branch_id.integer' => 'Branch must be an integer',
             'brand_id.required' => 'Brand field is required',
             'brand_id.integer' => 'Brand must be an integer',
@@ -201,6 +244,7 @@ class ProductController extends Controller
 
         $valid_fields = [
             'branch_id' => 'required|integer',
+            'whse_code' => 'required',
             'brand_id' => 'required|integer',
             'model' => 'required',
             'product_category_id' => 'required|integer',
@@ -210,7 +254,7 @@ class ProductController extends Controller
 
         if($scan_mode == 'Multiple Scan')
         {
-            $valid_fields['serials'] = 'required';
+            $valid_fields['serials'] = 'required'; // multiple seriels(array)
         }
         else
         {
@@ -226,6 +270,7 @@ class ProductController extends Controller
 
         $user = Auth::user();
         $branch_id = $request->get('branch_id');
+        $whse_code = $request->get('whse_code');
         $brand_id = $request->get('brand_id');
         $model = $request->get('model');
         $product_category_id = $request->get('product_category_id');
@@ -259,6 +304,7 @@ class ProductController extends Controller
         
         // get existing products from database
         $existing_products = Product::where('branch_id', '=', $branch_id)
+                                ->where('whse_code', '=', $whse_code)
                                 ->where('brand_id', '=', $brand_id)
                                 ->where('model', '=', $model)
                                 ->where(function($query) use ($serials, $serial){
@@ -281,6 +327,7 @@ class ProductController extends Controller
                 $product = new Product();
                 $product->user_id = $user->id;
                 $product->branch_id = $branch_id;
+                $product->whse_code = $whse_code;
                 $product->brand_id = $brand_id;
                 $product->model = $model;
                 $product->product_category_id = $product_category_id;
@@ -295,6 +342,7 @@ class ProductController extends Controller
             $product = new Product();
             $product->user_id = $user->id;
             $product->branch_id = $branch_id;
+            $product->whse_code = $whse_code;
             $product->brand_id = $brand_id;
             $product->model = $model;
             $product->product_category_id = $product_category_id;
@@ -634,14 +682,16 @@ class ProductController extends Controller
                     return response()->json(['duplicate_serials' => $duplicates], 200);
                 }
 
+                $inventory_type = $request->get('inventory_type');
+                $whse_code = $request->get('whse_code');
+
                 // file upload logs
                 $file_upload_log = new FileUploadLog();
                 $file_upload_log->branch_id = $branch_id;
                 $file_upload_log->docdate = $request->get('docdate');
                 $file_upload_log->docname = "Product List";
-                $file_upload_log->remarks = $request->get('inventory_type');
+                $file_upload_log->remarks = $whse_code ? $whse_code . '-' . $inventory_type : $inventory_type;
                 $file_upload_log->save();
-                
                 
                 foreach ($fields as $field) {
 
@@ -663,6 +713,7 @@ class ProductController extends Controller
                             'serial' => is_numeric($serial) ? (integer) $serial : $serial ,
                             'quantity' => $qty,
                             'file_upload_log_id' => $file_upload_log->id,
+                            'whse_code' => $whse_code,
                         ]);
                     }
                 }
@@ -682,9 +733,13 @@ class ProductController extends Controller
 
     public function export(Request $request)
     {   
-
-        // $params = ['file_upload_log_id' => $request->get('file_upload_log_id')];
-        return Excel::download(new ProductsExport($request), 'products.xls');
+        $params = [
+            'file_upload_log_id' => $request->get('file_upload_log_id'),
+            'branch_id' => $request->get('branch_id'),
+            'whse_code' => $request->get('whse_code'),
+        ];
+        
+        return Excel::download(new ProductsExport($params), 'products.xls');
     }
 
     public function template_download(Request $request)
@@ -698,6 +753,7 @@ class ProductController extends Controller
 
             $db = $sap_db_branch->sap_database;
             $branch = $sap_db_branch->branch->name;
+            $whse_code = $request->whse_code;
 
             $password = Crypt::decrypt($db->password);
             Config::set('database.connections.'.$db->database, array(
@@ -711,26 +767,49 @@ class ProductController extends Controller
             
             $operator = $request->inventory_type === 'OVERALL' ? '<>' : '=';
                     
+            // $inventory_onhand = DB::connection($db->database)->select("
+            //     SELECT 
+            //         distinct
+            //         d.FirmName BRAND, 
+            //         c.ItemName MODEL,
+            //         c.FrgnName CATEGORY, 
+            //         '' SERIAL,
+            //         '' QUANTITY
+                    
+            //     FROM 
+            //     OITW a
+            //         LEFT JOIN OSRI b on (a.ItemCode = b.ItemCode and a.WhsCode = b.WhsCode)
+            //         INNER JOIN OITM c on a.ItemCode = c.ItemCode
+            //         INNER JOIN OMRC d on c.FirmCode = d.FirmCode
+            //         INNER JOIN OWHS e on a.WhsCode = e.WhsCode 
+            //         INNER JOIN [@PROGTBL] f on UPPER(e.Street) COLLATE DATABASE_DEFAULT = CASE WHEN DB_NAME() = 'ReportsFinance' THEN f.U_Branch2 ELSE f.U_Branch1 END
+            //     WHERE a.OnHand <> 0 and b.Status = '0' and f.U_Branch1 = :branch and RIGHT(e.WhsCode, 3) ".$operator." 'RPO'
+            //     ORDER by 1, 2, 3, 4
+            // ",
+            // ['branch' => $branch]);
+
             $inventory_onhand = DB::connection($db->database)->select("
                 SELECT 
-                    distinct
                     d.FirmName BRAND, 
                     c.ItemName MODEL,
                     c.FrgnName CATEGORY, 
-                    '' SERIAL,
-                    '' QUANTITY
-                    
+                    b.IntrSerial SERIAL,
+                    cast(1 as numeric(19,2)) as 'Qty'
                 FROM 
                 OITW a
                     LEFT JOIN OSRI b on (a.ItemCode = b.ItemCode and a.WhsCode = b.WhsCode)
                     INNER JOIN OITM c on a.ItemCode = c.ItemCode
                     INNER JOIN OMRC d on c.FirmCode = d.FirmCode
                     INNER JOIN OWHS e on a.WhsCode = e.WhsCode 
-                    INNER JOIN [@PROGTBL] f on UPPER(e.Street) COLLATE DATABASE_DEFAULT = CASE WHEN DB_NAME() = 'ReportsFinance' THEN f.U_Branch2 ELSE f.U_Branch1 END
-                WHERE a.OnHand <> 0 and b.Status = '0' and f.U_Branch1 = :branch and RIGHT(e.WhsCode, 3) ".$operator." 'RPO'
+                   
+                WHERE 
+                    a.OnHand <> 0 
+                    and b.Status = '0' 
+                    and RIGHT(e.WhsCode, 3) ".$operator." 'RPO'
+                    and LEFT(e.WhsCode, 4) = :whse_code
                 ORDER by 1, 2, 3, 4
-            ",
-            ['branch' => $branch]);
+            ", 
+            ['whse_code' => $whse_code]);
 
             return Excel::download(new ProductsTemplate($inventory_onhand), 'template.xls');
         } catch (\Exception $e) {
@@ -969,7 +1048,7 @@ class ProductController extends Controller
                 );
                 
             }
-            
+           
             // remedy for inserting apostrophe (') into database
             foreach ($models as $key => $value) {
 

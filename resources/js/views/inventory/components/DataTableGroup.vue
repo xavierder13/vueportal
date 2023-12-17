@@ -30,7 +30,7 @@
           </v-chip>
         </template>
         <template v-slot:group.header="{ items, headers, toggle, isOpen, }">
-          <td colspan="4">
+          <td colspan="5">
             <v-row>
               <v-col>
                 <v-btn @click="toggle" small icon :ref="items" :data-open="isOpen">
@@ -62,7 +62,7 @@
                 </template>
               </v-list>
             </v-menu>
-            <v-btn x-small color="primary" @click="importExcel(items)" v-if="canImport && !canDownloadTemplate"> 
+            <v-btn x-small color="primary" @click="callMethod('importExcel', items)" v-if="canImport && !canDownloadTemplate"> 
               <v-icon x-small class="mr-1">mdi-upload</v-icon> import
             </v-btn> 
           </td>
@@ -72,7 +72,8 @@
             <td> </td>
             <td> <v-chip color="secondary"> {{ value.date_uploaded }} </v-chip> </td>
             <td> <v-chip color="secondary"> {{ value.docdate }} </v-chip> </td>
-            <td v-if="value.docname == 'Product List'"> {{ value.remarks }} </td>
+            <td v-if="value.docname == 'Product List'"> {{ inventoryType(value.remarks) }} </td>
+            <td v-if="value.docname == 'Product List'"> {{ whseCode(value.remarks) }} </td>
             <td>
               <v-menu offset-y v-if="canImport || canExport || canDownload">
                 <template v-slot:activator="{ on, attrs }">
@@ -125,6 +126,7 @@ export default {
         { text: "Date Uploaded", value: "date_uploaded" },
         { text: "Document Date", value: "docdate" },
         { text: "Inventory Type", value: "inventory_type" },
+        { text: "Warehouse", value: "whse_code" },
         { text: "Actions", value: "actions", sortable: false, width: "120px" },
       ],
       expanded: [],
@@ -133,6 +135,26 @@ export default {
   methods: {
     callMethod(method, item) {
       this.$emit(method, item);
+    },
+    whseCode(item) {
+
+      // split remarks with value 'ADMN-OVERALL'  or 'OVERALL'
+
+      let splitted_remarks = item.split('-');
+
+      // splitted_remarks.length is greater than 1 then get 'ADMN' from 'ADMN-OVERALL' value
+
+      return splitted_remarks.length > 1 ? splitted_remarks[0] : '';
+    },
+    inventoryType(item) {
+
+      // split remarks with value e.g 'ADMN-OVERALL' or 'OVERALL'
+
+      let splitted_remarks = item.split('-');
+ 
+      // splitted_remarks.length is equal to 1 then get original value 'OVERALL' else get the 'OVERALL' from 'ADMN-OVERALL'
+
+      return splitted_remarks.length == 1 ? item : splitted_remarks[1];
     }
   },
   computed: {

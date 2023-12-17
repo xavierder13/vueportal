@@ -28,6 +28,8 @@
               append-icon="mdi-magnify"
               label="Search"
               single-line
+              v-if="hasPermission('product-list')"
+              @click:append="searchProduct()"
             ></v-text-field>
             <v-spacer></v-spacer>
             <template>
@@ -149,7 +151,7 @@
 
                 <v-dialog
                   v-model="dialog_unreconciled"
-                  max-width="1000px"
+                  max-width="1100px"
                   persistent
                 >
                   <v-card>
@@ -260,7 +262,7 @@
               </v-toolbar>
             </template>
           </v-card-title>
-          <DataTable
+          <!-- <DataTable
             :branch="branch"
             :headers="headers"
             :items="products"
@@ -272,7 +274,65 @@
             :canDelete="hasPermission('product-delete')"
             @edit="editProduct"
             @confirmDelete="showConfirmAlert"
-          />
+          /> -->
+          <v-data-table
+            :headers="headers"
+            :items="products.data"
+            :search="search"
+            :loading="loading"
+            loading-text="Loading... Please wait"
+            :page.sync="page"
+            :footer-props="footerProps"
+            @page-count="pageCount = $event"
+            :items-per-page="itemsPerPage"
+            @update:items-per-page="getItemPerPage"
+            v-if="hasPermission('product-model-list')"
+            show-first-last-page
+          >
+            <template v-slot:item.actions="{ item }">
+              <v-icon
+                small
+                class="mr-2"
+                color="green"
+                @click="editProduct(item)"
+                v-if="hasPermission('product-edit')"
+              >
+                mdi-pencil
+              </v-icon>
+              <v-icon
+                small
+                color="red"
+                @click="confirmDelete(item)"
+                v-if="hasPermission('product-delete')"
+              >
+                mdi-delete
+              </v-icon>
+            </template>
+            <template v-slot:footer.page-text>
+              <!-- <v-btn color="primary" dark class="ma-2"> Button </v-btn> -->
+              {{ products.from ? products.from + " - " + products.to + " of " + products.total : "" }}
+              <v-btn
+                icon
+                class="ml-4"
+                @click="firstPage()"
+                :disabled="firstBtnDisable"
+                ><v-icon> mdi-chevron-double-left </v-icon></v-btn
+              >
+              <v-btn
+                icon
+                @click="prevPage()"
+                :disabled="prevBtnDisable"
+                ><v-icon> mdi-chevron-left </v-icon></v-btn
+              >
+               <strong> {{ page }} </strong>
+              <v-btn icon @click="nextPage()" :disabled="lastBtnDisable"
+                ><v-icon> mdi-chevron-right </v-icon></v-btn
+              >
+              <v-btn icon @click="lastPage()" :disabled="lastBtnDisable"
+                ><v-icon> mdi-chevron-double-right </v-icon></v-btn
+              >
+            </template>
+          </v-data-table>
         </v-card>
       </v-main>
       <ImportDialog 
@@ -331,6 +391,8 @@ export default {
         { text: "Branch", value: "branch.name" },
         { text: "Date Created", value: "date_created" },
         { text: "Document Date", value: "document_date" },
+        { text: "Warehouse", value: "whse_code" },
+        { text: "Inventory Type", value: "inventory_type" },
         { text: "Status", value: "status" },
         { text: "Actions", value: "actions", sortable: false, width: "100px" },
       ],
@@ -402,6 +464,24 @@ export default {
       },
       branch: "",
       inventory_type: "",
+
+      page: 1,
+      pageCount: 0,
+      itemsPerPage: 10,
+      footerProps: {
+        "items-per-page-options": [10, 20, 30, 50, 100, 500],
+        pagination: {},
+        showFirstLastPage: true,
+        firstIcon: null,
+        lastIcon: null,
+        prevIcon: null,
+        nextIcon: null,
+      },
+      last_page: 0,
+      prevBtnDisable: true,
+      nextBtnDisable: true,
+      firstBtnDisable: true,
+      lastBtnDisable: false,
     };
   },
 
@@ -420,26 +500,57 @@ export default {
         }
       },
     },
+    
+    page() {
+      this.resetPaginationButtons();
+    },
+
+    last_page() {
+      // if last page is equal to 1 then disable prev,next,fist and last button pagination
+      if (this.last_page === 1) {
+        this.prevBtnDisable = true;
+        this.nextBtnDisable = true;
+        this.firstBtnDisable = true;
+        this.lastBtnDisable = true;
+      }
+    },
   },
 
   methods: {
     getProduct(file_upload_log_id) {
       this.loading = true;
-      let data = { file_upload_log_id: file_upload_log_id }
-      axios.post("/api/product/list/view", data).then(
+      let data = { items_per_page: this.itemsPerPage, file_upload_log_id: file_upload_log_id, search: this.search };
+      
+      axios.post("/api/product/list/view?page=" + this.page, data).then(
         (response) => {
           let data = response.data;
           let log = data.file_upload_log;
           this.branch = log.branch.name;
           this.file_upload_log = log;
-          this.products = data.products;
+
+          let products = data.products;
+
+          this.products = products;
+
           this.brands = data.brands;
           this.branches = data.branches;
           this.product_categories = data.product_categories;
           this.editedItem.branch_id = this.user.branch_id;
           this.inventory_type = log.remarks;
           this.loading = false; 
-          
+
+          this.last_page = products.last_page;
+
+          this.footerProps.pagination = {
+            page: this.page,
+            itemsPerPage: this.itemsPerPage,
+            pageStart: products.from - 1,
+            pageStop: products.to,
+            pageCount: products.last_page,
+            itemsLength: products.total,
+          };
+
+          this.resetPaginationButtons();
         },
         (error) => {
           this.isUnauthorized(error);
@@ -568,7 +679,7 @@ export default {
           inventory_group: this.inventory_group,
           inventory_type: this.inventory_type,
         };
-        console.log(data);
+
         axios
           .post("/api/inventory_reconciliation/unreconcile/list", data)
           .then(
@@ -728,6 +839,65 @@ export default {
       this.$v.$reset();
       this.editedItem = Object.assign({}, this.defaultItem);
       this.editedItem.branch_id = this.user.branch_id;
+    },
+
+    nextPage() {
+      if (this.page < this.last_page) {
+        this.page = this.page + 1;
+      }
+      this.getProduct(this.file_upload_log_id);
+    },
+    prevPage() {
+      if (this.page > 1) {
+        this.page = this.page - 1;
+      }
+      this.getProduct(this.file_upload_log_id);
+    },
+    firstPage() {
+      this.page = 1;
+      this.prevBtnDisable = true;
+      this.firstBtnDisable = true;
+
+      this.getProduct(this.file_upload_log_id);
+    },
+
+    lastPage() {
+      this.page = this.last_page;
+      this.nexBtnDisable = true;
+      this.lastBtnDisable = true;
+
+      this.getProduct(this.file_upload_log_id);
+    },
+
+    getItemPerPage(val) {
+      this.itemsPerPage = val;
+      this.page = 1;
+      this.getProduct(this.file_upload_log_id);
+    },
+    
+    searchProduct() {
+      this.page = 1;
+      this.firstBtnDisable = true;
+      this.prevBtnDisable = true;
+      
+      this.getProduct(this.file_upload_log_id);
+    },
+
+    resetPaginationButtons() {
+      this.nextBtnDisable = false;
+      this.prevBtnDisable = false;
+      this.firstBtnDisable = false;
+      this.lastBtnDisable = false;
+
+      if (this.page === 1) {
+        this.prevBtnDisable = true;
+        this.firstBtnDisable = true;
+      }
+
+      if (this.page === this.last_page || this.last_page === 1) {
+        this.nextBtnDisable = true;
+        this.lastBtnDisable = true;
+      }
     },
 
     isUnauthorized(error) {

@@ -255,6 +255,8 @@ export default {
             itemsLength: product_models.total,
           };
 
+          this.resetPaginationButtons();
+
           this.loading = false;
         },
         (error) => {
@@ -466,10 +468,7 @@ export default {
       this.prevBtnDisable = true;
       this.getProductModel();
     },
-  },
-
-  watch: {
-    page() {
+    resetPaginationButtons() {
       this.nextBtnDisable = false;
       this.prevBtnDisable = false;
       this.firstBtnDisable = false;
@@ -485,9 +484,11 @@ export default {
         this.lastBtnDisable = true;
       }
     },
+  },
 
-    search() {
-      
+  watch: {
+    page() {
+      this.resetPaginationButtons();
     },
 
     last_page() {

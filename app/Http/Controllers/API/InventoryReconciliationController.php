@@ -11,6 +11,7 @@ use App\Branch;
 use App\WarehouseCode;
 use App\InventoryReconciliation;
 use App\InventoryReconciliationMap;
+use App\InventoryReconciliationBreakdown;
 use App\SapDatabase;
 use App\Exports\InventoryDiscrepancy;
 use App\Exports\InventoryBreakdown;
@@ -433,10 +434,12 @@ class InventoryReconciliationController extends Controller
     {   
         $user = Auth::user();
         $branch_id = $request->get('branch_id');
+        $whse_code = $request->get('whse_code');
         $inventory_group = $request->get('inventory_group');
 
         $unreconciled_list = InventoryReconciliation::with('branch')
                                                    ->where('branch_id', '=', $branch_id)
+                                                   ->where('whse_code', '=', $whse_code)
                                                    ->where('status', '=', 'unreconciled')
                                                    ->where(function($query) use ($inventory_group, $user) {
                                                         if($user->id !== 1)
@@ -679,6 +682,69 @@ class InventoryReconciliationController extends Controller
         $data = $this->getBreakdown($inventory_recon_id);
 
         return Excel::download(new InventoryBreakdown($data['products']), 'InventoryDiscrepancy.xls');
+    }
+    
+    public function insert_inventory_recon_breakdown($inventory_recon_id) 
+    {
+        $reconciliation = InventoryReconciliation::find($inventory_recon_id);
+        
+        $inventory_recon_breakdown = InventoryReconciliationBreakdown::where('inventory_recon_id', $inventory_recon_id);
+
+        // count all rows of InventoryReconciliationBreakdown
+        $inventory_recon_breakdown_ctr = $inventory_recon_breakdown->count();
+
+        // count record unreconciled status
+        $unrecon_inventory_recon_breakdown_ctr = $inventory_recon_breakdown->where('status', 'unreconciled')
+                                                                           ->count();
+
+        // if first load then insert data to InventoryReconcilationBreakdown
+
+        if($reconciliation)
+        {
+
+        }
+
+        $inventory_reconciliation = InventoryReconciliationMap::where('inventory_recon_id', '=', $inventory_recon_id)->get();
+        $product_distinct = InventoryReconciliationMap::distinct()
+                                                      ->where('inventory_recon_id', '=', $inventory_recon_id)
+                                                      ->orderBy('brand', 'ASC')
+                                                      ->orderBy('model', 'ASC')
+                                                      ->orderBy('product_category', 'ASC')
+                                                      ->orderBy('serial', 'ASC')
+                                                      ->get(['brand', 'model', 'product_category', 'serial']);
+        $sap_inventory = $inventory_reconciliation->where('inventory_type', '=', 'SAP');
+        $physical_inventory = $inventory_reconciliation->where('inventory_type', '=', 'Physical');
+
+        $products = [];
+
+        foreach ($product_distinct as $product) {
+
+            $sap_serial_ctr =  $sap_inventory->where('brand', $product['brand'])
+                                  ->where('model', $product['model'])
+                                  ->where('product_category', $product['product_category'])
+                                  ->where('serial', $product['serial']);
+
+            $physical_serial_ctr = $physical_inventory->where('brand', $product['brand'])
+                                           ->where('model', $product['model'])
+                                           ->where('product_category', $product['product_category'])
+                                           ->where('serial', $product['serial']);
+
+            InventoryReconciliationBreakdown::create([
+                'brand' => $product['brand'],
+                'model' => $product['model'],
+                'product_category' => $product['product_category'],
+                'sap_serial' => $sap_serial_ctr->count() ? $product['serial'] : '---',
+                'physical_serial' => $physical_serial_ctr->count() ? $product['serial'] : '---',
+            ]);
+
+        }
+        
+        return response()->json(['success' => 'Inventory Reconcilation Breakdown successfully created'], 200);
+    }
+
+    public function insert_inventory_recon_discrepancy($inventory_recon_id) 
+    {
+
     }
 
 }

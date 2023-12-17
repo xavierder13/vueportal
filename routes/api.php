@@ -97,7 +97,7 @@ Route::group(['prefix' => 'product', 'middleware' => ['auth:api', 'product.maint
         'as' => 'product.list.view',
     ]);
 
-    Route::get('/scanned_products', [
+    Route::post('/scanned_products', [
         'uses' => 'API\ProductController@scanned_products',
         'as' => 'scanned.products',
     ]);

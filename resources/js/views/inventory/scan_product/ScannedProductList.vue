@@ -26,9 +26,11 @@
               append-icon="mdi-magnify"
               label="Search"
               single-line
+              v-if="hasPermission('product-list')"
+              @click:append="searchProduct()"
             ></v-text-field>
             <v-spacer></v-spacer>
-            <v-autocomplete
+            <!-- <v-autocomplete
               v-model="search_branch"
               :items="branchOptions"
               item-text="name"
@@ -36,6 +38,21 @@
               label="Branch"
               v-if="user.id === 1 || hasPermission('product-list-all')"
             >
+            </v-autocomplete> -->
+            <v-autocomplete
+              v-model="search_whse"
+              :items="warehouseOptions"
+              item-text="code"
+              item-value="code"
+              label="Warehouse"
+              v-if="user.id === 1 || hasPermission('product-list-all')"
+            >
+              <template slot="selection" slot-scope="data">
+                {{ data.item.code + ' - ' + data.item.branch }}
+              </template>
+              <template slot="item" slot-scope="data">
+                {{ data.item.code + ' - ' + data.item.branch }}
+              </template> 
             </v-autocomplete>
             <template>
               <v-toolbar flat>
@@ -156,7 +173,7 @@
 
                 <v-dialog
                   v-model="dialog_unreconciled"
-                  max-width="1000px"
+                  max-width="1100px"
                   persistent
                 >
                   <v-card>
@@ -266,7 +283,7 @@
               </v-toolbar>
             </template>
           </v-card-title>
-          <DataTable
+          <!-- <DataTable
             :headers="headers"
             :items="filteredProducts"
             :search="search"
@@ -276,7 +293,66 @@
             :canDelete="hasPermission('product-delete')"
             @edit="editProduct"
             @confirmDelete="showConfirmAlert"
-          />
+          /> -->
+
+          <v-data-table
+            :headers="headers"
+            :items="filteredProducts"
+            :search="search"
+            :loading="loading"
+            loading-text="Loading... Please wait"
+            :page.sync="page"
+            :footer-props="footerProps"
+            @page-count="pageCount = $event"
+            :items-per-page="itemsPerPage"
+            @update:items-per-page="getItemPerPage"
+            v-if="hasPermission('product-model-list')"
+            show-first-last-page
+          >
+            <template v-slot:item.actions="{ item }">
+              <v-icon
+                small
+                class="mr-2"
+                color="green"
+                @click="editProduct(item)"
+                v-if="hasPermission('product-edit')"
+              >
+                mdi-pencil
+              </v-icon>
+              <v-icon
+                small
+                color="red"
+                @click="confirmDelete(item)"
+                v-if="hasPermission('product-delete')"
+              >
+                mdi-delete
+              </v-icon>
+            </template>
+            <template v-slot:footer.page-text>
+              <!-- <v-btn color="primary" dark class="ma-2"> Button </v-btn> -->
+              {{ products.from ? products.from + " - " + products.to + " of " + products.total : "" }}
+              <v-btn
+                icon
+                class="ml-4"
+                @click="firstPage()"
+                :disabled="firstBtnDisable"
+                ><v-icon> mdi-chevron-double-left </v-icon></v-btn
+              >
+              <v-btn
+                icon
+                @click="prevPage()"
+                :disabled="prevBtnDisable"
+                ><v-icon> mdi-chevron-left </v-icon></v-btn
+              >
+               <strong> {{ page }} </strong>
+              <v-btn icon @click="nextPage()" :disabled="lastBtnDisable"
+                ><v-icon> mdi-chevron-right </v-icon></v-btn
+              >
+              <v-btn icon @click="lastPage()" :disabled="lastBtnDisable"
+                ><v-icon> mdi-chevron-double-right </v-icon></v-btn
+              >
+            </template>
+          </v-data-table>
         </v-card>
       </v-main>
     </div>
@@ -312,6 +388,7 @@ export default {
       search: "",
       headers: [
         { text: "Branch", value: "branch.name" },
+        { text: "Warehouse", value: "whse_code" },
         { text: "Brand", value: "brand.name" },
         { text: "Model", value: "model" },
         { text: "Product Category", value: "product_category.name" },
@@ -332,11 +409,13 @@ export default {
       disabled: false,
       dialog: false,
       search_branch: "",
+      search_whse: "",
       dialog_unreconciled: false,
       dialog_recon_loading: false,
       products: [],
       brands: [],
       branches: [],
+      whse_codes: [],
       product_categories: [],
       editedIndex: -1,
       editedItem: {
@@ -360,7 +439,7 @@ export default {
           link: "/",
         },
         {
-          text: "Product Lists",
+          text: "Scanned Product Lists",
           disabled: false,
         },
       ],
@@ -387,23 +466,58 @@ export default {
         confirmButtonColor: "",
         cancelButtonColor: "#6c757d",
         confirmButtonText: "",
-      }
+      },
+
+      page: 1,
+      pageCount: 0,
+      itemsPerPage: 10,
+      footerProps: {
+        "items-per-page-options": [10, 20, 30, 50, 100, 500],
+        pagination: {},
+        showFirstLastPage: true,
+        firstIcon: null,
+        lastIcon: null,
+        prevIcon: null,
+        nextIcon: null,
+      },
+      last_page: 0,
+      prevBtnDisable: true,
+      nextBtnDisable: true,
+      firstBtnDisable: true,
+      lastBtnDisable: false,
     };
   },
 
   methods: {
     getProduct() {
       this.loading = true;
-      axios.get("/api/product/scanned_products").then(
+
+      const data = { items_per_page: this.itemsPerPage, whse_code: this.search_whse, search: this.search };
+      
+      axios.post("/api/product/scanned_products?page=" + this.page, data).then(
         (response) => {
           let data = response.data;
           this.file_upload_log = data.file_upload_log;
           this.products = data.products;
           this.brands = data.brands;
           this.branches = data.branches;
+          this.whse_codes = data.whse_codes;
           this.product_categories = data.product_categories;
           this.loading = false;
-          console.log(data);
+
+          this.last_page = this.products.last_page;
+
+          this.footerProps.pagination = {
+            page: this.page,
+            itemsPerPage: this.itemsPerPage,
+            pageStart: this.products.from - 1,
+            pageStop: this.products.to,
+            pageCount: this.products.last_page,
+            itemsLength: this.products.total,
+          };
+
+          this.resetPaginationButtons();
+
         },
         (error) => {
           this.isUnauthorized(error);
@@ -479,7 +593,8 @@ export default {
     },
 
     exportData() {
-      const data = { branch_id: this.search_branch };
+      // const data = { branch_id: this.search_branch };
+      const data = { whse_code: this.whse_code };
       if (this.filteredProducts.length) {
 
         axios.post('/api/product/export', data, { responseType: 'arraybuffer'})
@@ -525,6 +640,7 @@ export default {
 
         let data = {
           branch_id: this.search_branch,
+          whse_code: this.whse_code,
           inventory_group: this.inventory_group,
         };
 
@@ -677,11 +793,88 @@ export default {
         this.editedIndex = -1;
       });
     },
-
     clear() {
       this.$v.$reset();
       this.editedItem = Object.assign({}, this.defaultItem);
       this.editedItem.branch_id = this.user.branch_id;
+    },
+    whseCode(item) {
+
+      // split remarks with value 'ADMN-OVERALL'  or 'OVERALL'
+
+      let splitted_remarks = item.split('-');
+
+      // splitted_remarks.length is greater than 1 then get 'ADMN' from 'ADMN-OVERALL' value
+
+      return splitted_remarks.length > 1 ? splitted_remarks[0] : '';
+    },
+    inventoryType(item) {
+
+      // split remarks with value e.g 'ADMN-OVERALL' or 'OVERALL'
+
+      let splitted_remarks = item.split('-');
+ 
+      // splitted_remarks.length is equal to 1 then get original value 'OVERALL' else get the 'OVERALL' from 'ADMN-OVERALL'
+
+      return splitted_remarks.length == 1 ? item : splitted_remarks[1];
+    },
+
+    nextPage() {
+      if (this.page < this.last_page) {
+        this.page = this.page + 1;
+      }
+      this.getProduct();
+    },
+    prevPage() {
+      if (this.page > 1) {
+        this.page = this.page - 1;
+      }
+      this.getProduct();
+    },
+    firstPage() {
+      this.page = 1;
+      this.prevBtnDisable = true;
+      this.firstBtnDisable = true;
+
+      this.getProduct();
+    },
+
+    lastPage() {
+      this.page = this.last_page;
+      this.nexBtnDisable = true;
+      this.lastBtnDisable = true;
+
+      this.getProduct();
+    },
+
+    getItemPerPage(val) {
+      this.itemsPerPage = val;
+      this.page = 1;
+      this.getProduct();
+    },
+    
+    searchProduct() {
+      this.page = 1;
+      this.firstBtnDisable = true;
+      this.prevBtnDisable = true;
+      this.getProduct();
+    },
+
+    resetPaginationButtons() {
+      this.nextBtnDisable = false;
+      this.prevBtnDisable = false;
+      this.firstBtnDisable = false;
+      this.lastBtnDisable = false;
+
+      if (this.page === 1) {
+        this.prevBtnDisable = true;
+        this.firstBtnDisable = true;
+      }
+
+      if (this.page === this.last_page || this.last_page === 1) {
+        this.nextBtnDisable = true;
+        this.lastBtnDisable = true;
+      }
     },
 
     isUnauthorized(error) {
@@ -709,8 +902,17 @@ export default {
     userIsLoaded: {
       handler() {
         if (this.userIsLoaded && this.userRolesPermissionsIsLoaded) {
-            console.log(this.user);
           this.search_branch = this.user.branch_id;
+
+          if(this.user)
+          {
+            let whse_codes = this.user.branch.whse_codes;
+            if(whse_codes.length)
+            {
+              this.search_whse = whse_codes[0].code;
+            }
+          }
+
         }
       },
     },
@@ -718,9 +920,41 @@ export default {
       handler() {
         if (this.userIsLoaded && this.userRolesPermissionsIsLoaded) {
           this.search_branch = this.user.branch_id;
+
+          if(this.user)
+          {
+            let whse_codes = this.user.branch.whse_codes;
+            if(whse_codes.length)
+            {
+              this.search_whse = whse_codes[0].code;
+            }
+          }
+
         }
       },
     },
+
+    page() {
+      this.resetPaginationButtons();
+    },
+
+    last_page() {
+      // if last page is equal to 1 then disable prev,next,fist and last button pagination
+      if (this.last_page === 1) {
+        this.prevBtnDisable = true;
+        this.nextBtnDisable = true;
+        this.firstBtnDisable = true;
+        this.lastBtnDisable = true;
+      }
+    },
+
+    search_whse() {
+      this.page = 1;
+      this.firstBtnDisable = true;
+      this.prevBtnDisable = true;
+      this.getProduct();
+    }
+
   },
   computed: {
     formTitle() {
@@ -765,14 +999,20 @@ export default {
     filteredProducts() {
       let products = [];
 
-      this.products.forEach((value) => {
-        if (this.search_branch === 0) {
-          products.push(value);
-        } else if (value.branch_id === this.search_branch) {
-          products.push(value);
-        }
-      });
+      if(this.products.data)
+      {
+        this.products.data.forEach((value) => {
+          if (this.search_branch === 0) {
+            products.push(value);
 
+          } else if (value.branch_id === this.search_branch) {
+            products.push(value);
+
+          }
+        });
+      }
+      
+      
       return products;
     },
     filteredUnreconciled() {
@@ -817,6 +1057,12 @@ export default {
 
       return branches;
     },
+    warehouseOptions() {
+      let whse_codes = [{ code: 'ALL', branch: "ALL" }];
+      this.whse_codes.forEach(v => whse_codes.push(v));
+
+      return whse_codes;
+    },
     ...mapState("auth", ["user", "userIsLoaded"]),
     ...mapState("userRolesPermissions", ["userRolesPermissionsIsLoaded"]),
     ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission", "hasAnyPermission"]),
@@ -831,6 +1077,16 @@ export default {
       "Bearer " + localStorage.getItem("access_token");
     await this.getProduct();
     this.search_branch = this.user.branch_id;
+
+    if(this.user)
+    {
+      let whse_codes = this.user.branch.whse_codes;
+      if(whse_codes.length)
+      {
+        this.search_whse = whse_codes[0].code;
+      }
+    }
+
     this.$barcodeScanner.init(this.onBarcodeScanned);
 
     // this.websocket();

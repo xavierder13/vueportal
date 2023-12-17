@@ -129,7 +129,6 @@
                 </v-autocomplete>
               </v-col>
             </v-row>
-
             <v-row>
               <v-col class="my-0 py-0" xs="12" sm="12" md="12" lg="4" xl="4">
                 <v-autocomplete
@@ -163,12 +162,13 @@
             <v-row>
               <v-col class="my-0 py-0" xs="12" sm="12" md="12" lg="4" xl="4">
                 <v-autocomplete
-                  v-model="editedItem.branch_id"
+                  v-model="editedItem.branch"
                   :items="branches"
                   item-text="name"
                   item-value="id"
                   label="Branch"
                   required
+                  return-object
                   :error-messages="branchErrors"
                   @input="(fieldsActive = true)"
                   @blur="(fieldsActive = false)"
@@ -179,7 +179,24 @@
                 </v-autocomplete>
               </v-col>
             </v-row>
-
+            <v-row>
+              <v-col class="my-0 py-0" xs="12" sm="12" md="12" lg="4" xl="4">
+                <v-autocomplete
+                  v-model="editedItem.whse_code"
+                  :items="whse_codes"
+                  item-text="code"
+                  item-value="code"
+                  label="Warehouse"
+                  required
+                  :error-messages="warehouseErrors"
+                  @input="(fieldsActive = true)"
+                  @blur="(fieldsActive = false)"
+                  @focus="(fieldsActive = true)"
+                  @change="clearSerialExistStatus()"
+                >
+                </v-autocomplete>
+              </v-col>
+            </v-row>
             <v-row v-if="switch1">
               <v-col class="my-0 py-0" xs="12" sm="12" md="12" lg="4" xl="4">
                 <v-responsive class="overflow-y-auto" max-height="350px" id="serial-table">
@@ -286,7 +303,8 @@ export default {
 
   validations: {
     editedItem: {
-      branch_id: { required },
+      branch: { required },
+      whse_code: { required },
       brand_id: { required },
       model: { required },
       product_category_id: { required },
@@ -315,21 +333,26 @@ export default {
       disabled: false,
       editedIndex: -1,
       editedItem: {
-        branch_id: "",
+        branch: "1",
+        whse_code: "",
         brand: "",
         brand_id: "",
         model: "",
+        product_category_id: "",
         serial: "",
       },
       defaultItem: {
-        branch_id: "",
+        branch: "",
+        whse_code: "",
         brand: "",
         brand_id: "",
         model: "",
+        product_category_id: "",
         serial: "",
       },
-      brands: [],
+      brands: [], 
       branches: [],
+      whse_codes: [],
       product_categories: [],
       product_models: [],
       products: [],
@@ -356,11 +379,13 @@ export default {
     getProductOptions() {
       axios.get("/api/product/create").then(
         (response) => {
-         
-          this.brands = response.data.brands;
-          this.branches = response.data.branches;
-          this.product_categories = response.data.product_categories;
-          this.editedItem.branch_id = response.data.user.branch_id;
+          
+          let data = response.data;
+          console.log(data);
+          this.brands = data.brands;
+          this.branches = data.branches;
+          this.product_categories = data.product_categories;
+          this.editedItem.branch = data.user.branch;
         },
         (error) => {
           this.isUnauthorized(error);
@@ -437,12 +462,16 @@ export default {
       this.disabled = true;
       this.overlay = true;
       
-      const data = { serial: barcode, inventory_group: this.inventory_group};
+      const data = { 
+        serial: barcode, 
+        inventory_group: this.inventory_group, 
+        branch_id: this.editedItem.branch.id,  
+        whse_code: this.editedItem.whse_code,
+      };
 
       axios.post("/api/product/search_serial", data).then(
         (response) => {
           
-         
           let product = response.data.product;
 
           if(product)
@@ -473,7 +502,7 @@ export default {
             });
           
             this.editedItem.model = model;
-            this.editedItem.branch_id = branch_id;
+            // this.editedItem.branch_id = branch_id;
 
           }
           else
@@ -559,8 +588,8 @@ export default {
       ) {
         this.disabled = true;
         this.overlay = true;
-
-        const data = this.editedItem;
+        let branch_id = this.editedItem.branch.id;
+        const data = {...this.editedItem,  branch_id:  branch_id};
     
         await axios.post("/api/product/store", data).then(
           (response) => {
@@ -570,6 +599,7 @@ export default {
 
               this.showAlert();
               this.resetFields();
+
             } else if (response.data.existing_products) {
               let products = response.data.existing_products;
 
@@ -675,8 +705,21 @@ export default {
 
     resetFields() {
       this.$v.$reset();
-      this.editedItem = Object.assign({}, this.defaultItem);
-      this.editedItem.branch_id = this.user.branch_id;
+      // this.editedItem = Object.assign({}, this.defaultItem);
+
+      // retain the value of branch and warehouse code
+      this.editedItem = { 
+        ...this.editedItem, 
+        brand: "",
+        brand_id: "",
+        model: "",
+        product_category_id: "",
+        serial: "", 
+      };
+
+      this.editedItem.branch = this.user.branch;
+      
+      // this.editedItem.whse_code = "";
       this.serialsEmpty = false;
       this.serialExists = false;
       this.serialHasDuplicate = false;
@@ -755,6 +798,21 @@ export default {
       // do something...
     },
   },
+  watch: {
+    'editedItem.branch'() {
+      
+      if(this.editedItem.branch)
+      { 
+        this.whse_codes = this.editedItem.branch.whse_codes;
+        // auto select whse_code
+        if(this.whse_codes.length)
+        {
+          this.editedItem.whse_code = this.whse_codes[0].code;
+        }
+      }      
+  
+    }
+  },
   computed: {
     brandErrors() {
       const errors = [];
@@ -810,8 +868,15 @@ export default {
     },
     branchErrors() {
       const errors = [];
-      if (!this.$v.editedItem.branch_id.$dirty) return errors;
-      !this.$v.editedItem.branch_id.required &&
+      if (!this.$v.editedItem.branch.$dirty) return errors;
+      !this.$v.editedItem.branch.required &&
+        errors.push("Branch is required.");
+      return errors;
+    },
+    warehouseErrors() {
+      const errors = [];
+      if (!this.$v.editedItem.whse_code.$dirty) return errors;
+      !this.$v.editedItem.whse_code.required &&
         errors.push("Branch is required.");
       return errors;
     },
@@ -843,11 +908,12 @@ export default {
     // Remove listener when component is destroyed
     this.$barcodeScanner.destroy();
   },
-  mounted() {
+  async mounted() {
     axios.defaults.headers.common["Authorization"] =
       "Bearer " + localStorage.getItem("access_token");
-    this.getProductOptions();
+    await this.getProductOptions();
     this.$barcodeScanner.init(this.onBarcodeScanned);
+    
   },
 };
 </script>

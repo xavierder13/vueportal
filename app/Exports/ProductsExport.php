@@ -35,6 +35,11 @@ class ProductsExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                         {
                             $query->where('products.branch_id', '=', $params['branch_id']);
                         }
+
+                        if(isset($params['whse_code']))
+                        {
+                            $query->where('products.whse_code', '=', $params['whse_code']);
+                        }
                         
                         if(isset($params['file_upload_log_id']))
                         {

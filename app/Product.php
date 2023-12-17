@@ -9,6 +9,7 @@ class Product extends Model
 
     protected $fillable = [
         'branch_id',
+        'whse_code',
         'user_id',
         'brand_id',
         'model',

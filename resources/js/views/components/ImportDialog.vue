@@ -9,22 +9,39 @@
         <v-divider class="mt-0"></v-divider>
         <v-card-text>
           <v-container>
-            <v-row v-if="docname =='Product List'"> 
-              <v-col class="my-0 py-0">
-                <v-autocomplete
-                  v-model="inventory_type"
-                  :items="inventory_types"
-                  item-text="type"
-                  item-value="type"
-                  label="Inventory Type"
-                  required
-                  :error-messages="inventoryTypeErrors"
-                  @input="$v.inventory_type.$touch()"
-                  @blur="$v.inventory_type.$touch()"
-                >
-                </v-autocomplete>
-              </v-col>
-            </v-row>
+            <template v-if="docname =='Product List'">
+              <v-row> 
+                <v-col class="my-0 py-0">
+                  <v-autocomplete
+                    v-model="inventory_type"
+                    :items="inventory_types"
+                    item-text="type"
+                    item-value="type"
+                    label="Inventory Type"
+                    required
+                    :readonly="uploadDisabled"
+                    :error-messages="inventoryTypeErrors"
+                    @input="$v.inventory_type.$touch()"
+                    @blur="$v.inventory_type.$touch()"
+                  >
+                  </v-autocomplete>
+                </v-col>
+              </v-row>
+              <v-row> 
+                <v-col class="my-0 py-0">
+                  <v-autocomplete
+                    v-model="whse_code"
+                    :items="whse_codes"
+                    item-text="code"
+                    item-value="value"
+                    label="Warehouse Code"
+                    required
+                    :readonly="uploadDisabled"
+                  >
+                  </v-autocomplete>
+                </v-col>
+              </v-row>
+            </template>
             <v-row>
               <v-col>
                 <v-menu
@@ -54,6 +71,7 @@
                   <v-date-picker
                     v-model="docdate"
                     no-title
+                    :readonly="uploadDisabled"
                     @input="input_docdate = false"
                     :max="maxDate"
                   ></v-date-picker>
@@ -173,6 +191,7 @@ export default {
     'api_route',
     'dialog_import',
     'docname',
+    'whse_codes',
   ],
   mixins: [validationMixin],
   validations: {
@@ -187,6 +206,7 @@ export default {
       file: [],
       inventory_types: [ { type: "OVERALL" }, { type: "REPO" } ],
       inventory_type: "OVERALL",
+      whse_code: "",
       loading: true,
       uploadDisabled: false,
       uploading: false,
@@ -208,82 +228,83 @@ export default {
         this.uploading = true;
 
         let formData = new FormData();
-
+        console.log(formData);
         formData.append("file", this.file);
         formData.append("docdate", this.docdate);
         formData.append("inventory_type", this.inventory_type);
+        formData.append("whse_code", this.whse_code);
 
-        axios
-          .post(this.api_route, formData, {
-            headers: {
-              Authorization: "Bearer " + localStorage.getItem("access_token"),
-              "Content-Type": "multipart/form-data",
-            },
-          })
-          .then(
-            (response) => {
-              this.errors_array = [];
-              console.log(response.data);
-              if (response.data.success) {
-                // send data to Socket.IO Server
-                // this.$socket.emit("sendData", { action: "import-project" });
-                this.file_upload_log_id = response.data.file_upload_log_id;
+        // axios
+        //   .post(this.api_route, formData, {
+        //     headers: {
+        //       Authorization: "Bearer " + localStorage.getItem("access_token"),
+        //       "Content-Type": "multipart/form-data",
+        //     },
+        //   })
+        //   .then(
+        //     (response) => {
+        //       this.errors_array = [];
+        //       console.log(response.data);
+        //       if (response.data.success) {
+        //         // send data to Socket.IO Server
+        //         // this.$socket.emit("sendData", { action: "import-project" });
+        //         this.file_upload_log_id = response.data.file_upload_log_id;
                 
-                this.$emit('getData', this.file_upload_log_id);
-                this.$swal({
-                  position: "center",
-                  icon: "success",
-                  title: "Record has been imported",
-                  showConfirmButton: false,
-                  timer: 2500,
-                });
-                this.$v.$reset();
-                this.closeDialog();
+        //         this.$emit('getData', this.file_upload_log_id);
+        //         this.$swal({
+        //           position: "center",
+        //           icon: "success",
+        //           title: "Record has been imported",
+        //           showConfirmButton: false,
+        //           timer: 2500,
+        //         });
+        //         this.$v.$reset();
+        //         this.closeDialog();
 
-              } else if (response.data.error_column) {
-                this.errors_array = response.data.error_column;
-                this.dialog_error_list = true;
-              } else if (response.data.error_row_data) {
-                let error_keys = Object.keys(response.data.error_row_data);
-                let errors = response.data.error_row_data;
-                let field_values = response.data.field_values;
-                let row = "";
-                let col = "";
+        //       } else if (response.data.error_column) {
+        //         this.errors_array = response.data.error_column;
+        //         this.dialog_error_list = true;
+        //       } else if (response.data.error_row_data) {
+        //         let error_keys = Object.keys(response.data.error_row_data);
+        //         let errors = response.data.error_row_data;
+        //         let field_values = response.data.field_values;
+        //         let row = "";
+        //         let col = "";
 
-                error_keys.forEach((value, index) => {
-                  row = value.split(".")[0];
-                  col = value.split(".")[1];
-                  errors[value].forEach((val, i) => {
-                    this.errors_array[index] =
-                      "Error on row: <span class='text-info'>" +
-                      (parseInt(row) + 1) +
-                      "</span>; Column: <span class='text-primary'>" +
-                      col +
-                      "</span>; Msg: <span class='text-danger'>" +
-                      val +
-                      "</span>; Value: <span class='text-success'>" +
-                      field_values[row][col] +
-                      "</span>";
-                      console.log(field_values[row]);
-                  });
-                });
+        //         error_keys.forEach((value, index) => {
+        //           row = value.split(".")[0];
+        //           col = value.split(".")[1];
+        //           errors[value].forEach((val, i) => {
+        //             this.errors_array[index] =
+        //               "Error on row: <span class='text-info'>" +
+        //               (parseInt(row) + 1) +
+        //               "</span>; Column: <span class='text-primary'>" +
+        //               col +
+        //               "</span>; Msg: <span class='text-danger'>" +
+        //               val +
+        //               "</span>; Value: <span class='text-success'>" +
+        //               field_values[row][col] +
+        //               "</span>";
+        //               console.log(field_values[row]);
+        //           });
+        //         });
 
-                this.dialog_error_list = true;
-              } else if (response.data.error_empty) {
-                this.fileIsEmpty = true;
-              } else {
-                this.fileIsInvalid = true;
-              }
-              this.uploadDisabled = false;
-              this.uploading = false;
-            },
-            (error) => {
-              this.isUnauthorized(error);
-              this.uploadDisabled = false;
-              console.log(error);
-              this.uploading = false;
-            }
-          );
+        //         this.dialog_error_list = true;
+        //       } else if (response.data.error_empty) {
+        //         this.fileIsEmpty = true;
+        //       } else {
+        //         this.fileIsInvalid = true;
+        //       }
+        //       this.uploadDisabled = false;
+        //       this.uploading = false;
+        //     },
+        //     (error) => {
+        //       this.isUnauthorized(error);
+        //       this.uploadDisabled = false;
+        //       console.log(error);
+        //       this.uploading = false;
+        //     }
+        //   );
       }
     },
     formatDate(date) {
@@ -359,6 +380,16 @@ export default {
       let date = new Date();
       return date.toISOString().slice(0,10);
     },
+  },
+
+  watch: {
+    whse_codes() {      
+      // if branch has only 1 whse_code then auto select/assign value
+      if(this.whse_codes.length)
+      {
+        this.whse_code = this.whse_codes[0].code;
+      }
+    }
   }
   
 }

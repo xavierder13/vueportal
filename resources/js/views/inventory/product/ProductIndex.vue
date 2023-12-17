@@ -29,6 +29,7 @@
           :dialog_import="dialog_import"
           :action="action"
           :branch="branch"
+          :whse_codes="whse_codes"
           :docname="'Product List'"
           @getData="getProduct"
           @closeImportDialog="closeImportDialog"
@@ -52,6 +53,21 @@
                       item-value="type"
                       label="Inventory Type"
                       required
+                      :readonly="template_loading"
+                    >
+                    </v-autocomplete>
+                  </v-col>
+                </v-row>
+                <v-row> 
+                  <v-col class="my-0 py-0">
+                    <v-autocomplete
+                      v-model="whse_code"
+                      :items="whse_codes"
+                      item-text="code"
+                      item-value="value"
+                      label="Warehouse Code"
+                      required
+                      :readonly="template_loading"
                     >
                     </v-autocomplete>
                   </v-col>
@@ -151,6 +167,8 @@ export default {
       api_route: "",
       inventory_types: [ { type: "OVERALL" }, { type: "REPO" } ],
       inventory_type: "OVERALL",
+      whse_codes: [],
+      whse_code: "",
       dialog_template: false,
       template_loading: false,
       action: "",
@@ -187,13 +205,19 @@ export default {
       this.action = 'import';
       this.branch = item[0].name;
       this.branch_id = item[0].id;
+      this.whse_codes = item[0].whse_codes;
+
+      if(this.whse_codes.length)
+      {
+        this.whse_code = this.whse_codes[0].code;
+      }
+
       this.dialog_import = true;
       this.api_route = 'api/product/import/' + this.branch_id;
     },
 
     exportData(item) {
-
-      const data = { branch_id: item.branch_id }
+      const data = { file_upload_log_id: item.id };
       this.fetchDownload('/api/product/export', data, 'ProductList.xls');
 
     },
@@ -201,6 +225,13 @@ export default {
     openTemplateDialog(item)
     { 
       this.branch = item[0].name;
+      this.whse_codes = item[0].whse_codes;
+
+      if(this.whse_codes.length)
+      {
+        this.whse_code = this.whse_codes[0].code;
+      }
+
       this.branch_id = item[0].id;
       this.dialog_template = true;
     },
@@ -208,7 +239,13 @@ export default {
     downloadTemplate() {
       this.template_loading = true;
       this.disabled = true;
-      const data = { branch_id: this.branch_id, inventory_type: this.inventory_type };
+
+      const data = { 
+        branch_id: this.branch_id, 
+        inventory_type: this.inventory_type, 
+        whse_code: this.whse_code, 
+      };
+
       this.fetchDownload('/api/product/template/download', data, 'ProductTemplate - '+this.inventory_type+'.xls');
 
     },
