@@ -696,7 +696,6 @@ class InventoryReconciliationController extends Controller
         // count record unreconciled status
         $unrecon_inventory_recon_breakdown_ctr = $inventory_recon_breakdown->where('status', 'unreconciled')
                                                                            ->count();
-
         // if first load then insert data to InventoryReconcilationBreakdown
 
         if($reconciliation)

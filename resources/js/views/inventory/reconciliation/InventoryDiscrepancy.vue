@@ -29,63 +29,112 @@
           </v-btn>
         </export-excel> -->
         <v-card>
-          <v-card-title>
-            Inventory Reconciliation Discrepancy            
-            <v-spacer></v-spacer>
-            <v-text-field
-              v-model="search"
-              append-icon="mdi-magnify"
-              label="Search"
-              single-line
-            ></v-text-field>
-            <v-spacer></v-spacer>
-          </v-card-title>
-          <v-data-table
-            :headers="headers"
-            :items="products"
-            :search="search"
-            :loading="loading"
-            loading-text="Loading... Please wait"
-            id="invty-recon-table"
-          >
-            <template v-slot:top v-if="reconciliation">
-              <v-toolbar flat>
-                <h6 class="my-0 font-weight-bold">Branch:</h6>  
-                <v-chip color="secondary" class="ml-2">{{ branch }}</v-chip>
-                <h6 class="my-0 font-weight-bold ml-4">Document Date:</h6>  
-                <v-chip color="secondary" class="ml-2">{{ reconciliation.document_date }}</v-chip>
-                <h6 class="my-0 font-weight-bold ml-4">Document Type:</h6>  
-                <v-chip color="secondary" class="ml-2">{{ reconciliation.inventory_type }}</v-chip> 
-                <h6 class="my-0 font-weight-bold ml-4">Warehouse:</h6>  
-                <v-chip color="secondary" class="ml-2">{{ reconciliation.whse_code }}</v-chip>
-                <h6 class="my-0 font-weight-bold ml-4">Document Status:</h6>  
-                <v-chip :color="status == 'unreconciled' ? 'red white--text' : 'success'" class="ml-2">
-                  {{ reconciliation.status.toUpperCase() }}
-                </v-chip>
-                <template v-if="reconciliation.date_reconciled">
-                  <h6 class="my-0 font-weight-bold ml-4">Date Reconciled:</h6>  
-                  <v-chip :color="status == 'unreconciled' ? 'secondary' : 'success'" class="ml-2">{{ reconciliation.date_reconciled }}</v-chip> 
+          <v-card-text>
+            <v-row>
+              <v-col>
+                <template v-if="reconciliation">
+                  <v-row>
+                    <v-col>
+                      <v-row>
+                        <v-col class="text-right pt-2 px-0">
+                          <h6 class="font-weight-bold">Branch:</h6>
+                        </v-col>
+                        <v-col>
+                          <v-chip class="text-subtitle-1">{{ branch }}</v-chip>
+                        </v-col>
+                      </v-row>
+                    </v-col>
+                    <v-col>
+                      <v-row>
+                        <v-col class="text-right pt-2 px-0">
+                          <h6 class="font-weight-bold">Document Date:</h6>  
+                        </v-col>
+                        <v-col>
+                          <v-chip class="text-subtitle-1">{{ reconciliation.document_date }}</v-chip>
+                        </v-col>
+                      </v-row>
+                    </v-col>
+                    <v-col>
+                      <v-row>
+                        <v-col class="text-right pt-2 px-0">
+                          <h6 class="font-weight-bold">Document Type:</h6>   
+                        </v-col>
+                        <v-col>
+                          <v-chip class="text-subtitle-1">{{ reconciliation.inventory_type }}</v-chip> 
+                        </v-col>
+                      </v-row>
+                    </v-col>
+                  </v-row>
+                  <v-row>
+                    <v-col>
+                      <v-row>
+                        <v-col class="text-right pt-2 px-0">
+                          <h6 class="font-weight-bold">Warehouse:</h6>     
+                        </v-col>
+                        <v-col>
+                          <v-chip class="text-subtitle-1">{{ reconciliation.whse_code }}</v-chip>
+                        </v-col>
+                      </v-row>
+                    </v-col>
+                    <v-col>
+                      <v-row>
+                        <v-col class="text-right pt-2 px-0">
+                          <h6 class="font-weight-bold">Document Status:</h6>    
+                        </v-col>
+                        <v-col>
+                          <v-chip :color="status == 'unreconciled' ? 'red white--text' : 'success'">
+                          {{ reconciliation.status.toUpperCase() }}
+                          </v-chip>
+                        </v-col>
+                      </v-row>
+                    </v-col>
+                    <v-col>
+                      <v-row>
+                        <v-col class="text-right pt-2 px-0">
+                          <h6 class="font-weight-bold">Date Reconciled:</h6>  
+                        </v-col>
+                        <v-col>
+                          <v-chip v-if="reconciliation.date_reconciled" color="success" class="text-subtitle-1">
+                          {{ reconciliation.date_reconciled }}
+                        </v-chip> 
+                        </v-col>
+                      </v-row>   
+                    </v-col>
+                  </v-row>
                 </template>
-                
-              </v-toolbar>
-            </template>
-            <template v-slot:item.row="{ item, index }">
-              {{ index + 1 }}
-            </template>
-            <template v-slot:item.qty_diff="{ item, index }">
-              <v-chip
-                x-small
-                :color="item.qty_diff === 0 ? '': item.qty_diff > 0 ? 'success' : 'red white--text'"
-                >{{ item.qty_diff }}</v-chip
-              >
-            </template>
-            <template v-slot:item.sap_discrepancy="{ item, index }">
-              <span class="text-danger"> {{ item.sap_discrepancy }} </span>
-            </template>
-            <template v-slot:item.physical_discrepancy="{ item, index }">
-              <span class="text-success"> {{ item.physical_discrepancy }} </span>
-            </template>
-          </v-data-table>
+              </v-col>
+            </v-row>
+            <v-divider v-if="reconciliation"></v-divider>
+            <v-row>
+              <v-col>
+                <v-data-table
+                  :headers="headers"
+                  :items="products"
+                  :search="search"
+                  :loading="loading"
+                  loading-text="Loading... Please wait"
+                  id="invty-recon-table"
+                >
+                  <template v-slot:item.row="{ item, index }">
+                    {{ index + 1 }}
+                  </template>
+                  <template v-slot:item.qty_diff="{ item, index }">
+                    <v-chip
+                      x-small
+                      :color="item.qty_diff === 0 ? '': item.qty_diff > 0 ? 'success' : 'red white--text'"
+                      >{{ item.qty_diff }}</v-chip
+                    >
+                  </template>
+                  <template v-slot:item.sap_discrepancy="{ item, index }">
+                    <span class="text-danger"> {{ item.sap_discrepancy }} </span>
+                  </template>
+                  <template v-slot:item.physical_discrepancy="{ item, index }">
+                    <span class="text-success"> {{ item.physical_discrepancy }} </span>
+                  </template>
+                </v-data-table>
+              </v-col>
+            </v-row>
+          </v-card-text>
         </v-card>
       </v-main>
     </div>
@@ -312,7 +361,7 @@ export default {
         let beneath_from = "Physical Inventory Report for the month of";
         let beneath_from_value = lastMonth + " " + gFYear;
         let date_submitted = "Date Submitted:";
-        let date_submitted_value = this.date_reconciled;
+        let date_submitted_value = this.date_reconciled ? this.date_reconciled : '';
 
         let before_table =
           "We have reconciled your Physical Inventory Count Report versus SAP Report and we found out the following unreconciled items:";
@@ -426,9 +475,9 @@ export default {
         let prepared_by_position = this.prepared_by_position;
 
         let verified_by = "Verified by:";
-        let verified_by_value = "GERALD SUNIGA";
+        let verified_by_value = "ELEAZAR ABON";
         let verified_by_position = "Inventory Recon Section Head";
-        let verified_by_value_2 = "MARIEL QUITALEG";
+        let verified_by_value_2 = "PERLA LEBASTE";
         let verified_by_position_2 = "Inventory & Warehousing Manager";
 
         let noted_by = "Noted by:";
