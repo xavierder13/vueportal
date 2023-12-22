@@ -464,6 +464,7 @@ export default {
       },
       branch: "",
       inventory_type: "",
+      whse_code: "",
 
       page: 1,
       pageCount: 0,
@@ -536,7 +537,12 @@ export default {
           this.branches = data.branches;
           this.product_categories = data.product_categories;
           this.editedItem.branch_id = this.user.branch_id;
-          this.inventory_type = log.remarks;
+
+          let splitted_remarks = log.remarks.split('-');
+
+          this.whse_code = splitted_remarks.length == 2 ? splitted_remarks[0] : ''; // split the remarks (e.g ADMN-OVERALL) then get the 'ADMN'
+          this.inventory_type = splitted_remarks.length == 2 ? splitted_remarks[1] : ''; // split the remarks (e.g ADMN-OVERALL) then get the 'OVERALL'
+          
           this.loading = false; 
 
           this.last_page = products.last_page;
@@ -668,7 +674,7 @@ export default {
     },
 
     getUnreconciled() {
-      if (this.products.length) {
+      if (this.products.data.length) {
         // if Dropdown Branch value is 'ALL'
 
         this.loading_unreconciled = true;
@@ -678,7 +684,10 @@ export default {
           branch_id: this.branch_id,
           inventory_group: this.inventory_group,
           inventory_type: this.inventory_type,
+          whse_code: this.whse_code,
         };
+
+        console.log(data);
 
         axios
           .post("/api/inventory_reconciliation/unreconcile/list", data)
@@ -710,12 +719,17 @@ export default {
           this.dialog_recon_loading = true;
           let data = {
             inventory_recon_id: item.id,
-            products: this.products,
+            products: this.products.data, // due to pagination, products data is based from api response pagination (number of rows is based from pagination)
             inventory_group: this.inventory_group,
+            whse_code: this.whse_code,
+            file_upload_log_id: this.file_upload_log.id,
+            product_type: 'uploaded', // these products were uploaded
           };
 
           axios.post("api/inventory_reconciliation/reconcile", data).then(
             (response) => {
+
+              console.log(response.data);
               this.dialog_unreconciled = false;
               this.dialog_recon_loading = false;
             

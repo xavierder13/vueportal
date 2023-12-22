@@ -13,6 +13,7 @@ class InventoryReconciliationBreakdown extends Model
         'product_category',
         'sap_serial',
         'physical_serial',
+        'status'
     ];
 
     public function inventory_recon()

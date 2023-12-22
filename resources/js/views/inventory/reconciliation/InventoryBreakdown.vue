@@ -81,7 +81,7 @@
                           <h6 class="font-weight-bold">Date Reconciled:</h6>  
                         </v-col>
                         <v-col>
-                          <v-chip v-if="reconciliation.date_reconciled" color="success" class="text-subtitle-1 ml-2">
+                          <v-chip v-if="reconciliation.date_reconciled" color="success" class="text-subtitle-1">
                           {{ reconciliation.date_reconciled }}
                         </v-chip> 
                         </v-col>
@@ -554,7 +554,7 @@ export default {
     tableData() {
       let table_data = [];
       this.products.forEach((value, index) => {
-        console.log(value);
+     
         table_data.push([
           index + 1,
           value.brand,

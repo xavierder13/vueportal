@@ -205,49 +205,14 @@ class InventoryReconciliationController extends Controller
                                                  ->with('user.position')
                                                  ->find($inventory_recon_id);
 
-        
-        $inventory_reconciliation = InventoryReconciliationMap::where('inventory_recon_id', '=', $inventory_recon_id)->get();
-        $product_distinct = InventoryReconciliationMap::distinct()
-                                                      ->where('inventory_recon_id', '=', $inventory_recon_id)
-                                                      ->orderBy('brand', 'ASC')
-                                                      ->orderBy('model', 'ASC')
-                                                      ->orderBy('product_category', 'ASC')
-                                                      ->orderBy('serial', 'ASC')
-                                                      ->get(['brand', 'model', 'product_category', 'serial']);
-        $sap_inventory = $inventory_reconciliation->where('inventory_type', '=', 'SAP');
-        $physical_inventory = $inventory_reconciliation->where('inventory_type', '=', 'Physical');
+        // load/insert all breakdown into single/empty table per inventory_recon_id to load much faster in a single table
+        $this->create_inventory_recon_breakdown($inventory_recon_id);
 
-        $products = [];
-
-        foreach ($product_distinct as $product) {
-
-            $sap_serial_ctr =  $sap_inventory->where('brand', $product['brand'])
-                                  ->where('model', $product['model'])
-                                  ->where('product_category', $product['product_category'])
-                                  ->where('serial', $product['serial']);
-
-            $physical_serial_ctr = $physical_inventory->where('brand', $product['brand'])
-                                           ->where('model', $product['model'])
-                                           ->where('product_category', $product['product_category'])
-                                           ->where('serial', $product['serial']);
-                
-            $products[] = [
-                'brand' => $product['brand'],
-                'model' => $product['model'],
-                'product_category' => $product['product_category'],
-                'sap_serial' => $sap_serial_ctr->count() ? $product['serial'] : '---',
-                'physical_serial' => $physical_serial_ctr->count() ? $product['serial'] : '---',
-            ];
-
-        }
+        $products = InventoryReconciliationBreakdown::where('inventory_recon_id', $inventory_recon_id)->get();
         
         return [
-            'inventory_reconciliation' => $inventory_reconciliation, 
-            'sap_inventory' => $sap_inventory, 
-            'physical_inventory' => $physical_inventory,
             'products' => $products,
             'reconciliation' => $reconciliation,
-
         ];
     }
 
@@ -492,36 +457,52 @@ class InventoryReconciliationController extends Controller
         }
 
         // scan for duplicate data
-        foreach ($products as $product) {
-            if($product['serial'])
-            {
-                $inventory_recon_map = InventoryReconciliationMap::where('inventory_type', '=', 'Physical')
-                                                 ->where('brand', '=', $product['brand']['name'])
-                                                 ->where('model', '=', $product['model'])
-                                                 ->where('product_category', '=', $product['product_category']['name'])
-                                                 ->where('serial', '=', $product['serial'])
-                                                 ->where('inventory_recon_id', '=', $inventory_recon_id)
-                                                 ->get();
-                if(count($inventory_recon_map))
-                {   
-                    return response()->json(['duplicate' => 'Product exists'], 200);
-                }
-            } 
+        // foreach ($products as $product) {
+        //     if($product['serial'])
+        //     {
+        //         $inventory_recon_map = InventoryReconciliationMap::where('inventory_type', '=', 'Physical')
+        //                                          ->where('brand', '=', $product['brand']['name'])
+        //                                          ->where('model', '=', $product['model'])
+        //                                          ->where('product_category', '=', $product['product_category']['name'])
+        //                                          ->where('serial', '=', $product['serial'])
+        //                                          ->where('inventory_recon_id', '=', $inventory_recon_id)
+        //                                          ->get();
+        //         if(count($inventory_recon_map))
+        //         {   
+        //             return response()->json(['duplicate' => 'Product exists'], 200);
+        //         }
+        //     } 
+        // }
+
+        $products = Product::with('brand')->with('product_category');
+        
+        if($request->product_type == 'uploaded') //product_type (uploaded/scanned) 
+        {
+            $products->where('file_upload_log_id', $request->file_upload_log_id);
+        }
+        else // scanned products
+        {
+            $products->where('whse_code', $request->whse_code)
+                    ->where(function($qry){
+                        $qry->whereNull('file_upload_log_id')
+                            ->orWhere('file_upload_log_id', 0);
+
+                    });
         }
         
-        foreach ($products as $product) {
+        foreach ($products->get() as $product) {
 
-            $qty = $product['quantity'] ? $product['quantity'] : 1;
+            $qty = $product->quantity ? $product->quantity : 1;
 
-            $serial = $product['serial'];
+            $serial = $product->serial;
 
             $inventory_recon_map = new InventoryReconciliationMap();
             $inventory_recon_map->inventory_recon_id = $inventory_recon_id;
             $inventory_recon_map->user_id = $user->id;
             $inventory_recon_map->inventory_type = 'Physical';
-            $inventory_recon_map->brand = $product['brand']['name'];
-            $inventory_recon_map->model = $product['model'];
-            $inventory_recon_map->product_category = $product['product_category']['name'];
+            $inventory_recon_map->brand = $product->brand->name;
+            $inventory_recon_map->model = $product->model;
+            $inventory_recon_map->product_category = $product->product_category->name;
             $inventory_recon_map->serial = is_numeric($serial) ? (integer) $serial : $serial;
             $inventory_recon_map->quantity = $qty ;
             $inventory_recon_map->save();
@@ -666,6 +647,12 @@ class InventoryReconciliationController extends Controller
         $inventory->delete();
 
         InventoryReconciliationMap::where('inventory_recon_id', '=', $inventory_recon_id)->delete();
+        InventoryReconciliationBreakdown::where('inventory_recon_id', $inventory_recon_id)
+                                        ->where('status', 'unreconciled')
+                                        ->delete();
+    //  InventoryReconciliationDiscrepancy::where('inventory_recon_id', $inventory_recon_id)
+    //                                                 ->where('status', 'unreconciled')
+    //                                                 ->delete();
 
         return response()->json(['success' => 'Record has been deleted'], 200);
     }
@@ -679,12 +666,12 @@ class InventoryReconciliationController extends Controller
 
     public function export_breakdown($inventory_recon_id)
     {   
-        $data = $this->getBreakdown($inventory_recon_id);
+        // $data = $this->getBreakdown($inventory_recon_id);
 
-        return Excel::download(new InventoryBreakdown($data['products']), 'InventoryDiscrepancy.xls');
+        return Excel::download(new InventoryBreakdown($inventory_recon_id), 'InventoryDiscrepancy.xls');
     }
     
-    public function insert_inventory_recon_breakdown($inventory_recon_id) 
+    public function create_inventory_recon_breakdown($inventory_recon_id) 
     {
         $reconciliation = InventoryReconciliation::find($inventory_recon_id);
         
@@ -693,57 +680,226 @@ class InventoryReconciliationController extends Controller
         // count all rows of InventoryReconciliationBreakdown
         $inventory_recon_breakdown_ctr = $inventory_recon_breakdown->count();
 
-        // count record unreconciled status
-        $unrecon_inventory_recon_breakdown_ctr = $inventory_recon_breakdown->where('status', 'unreconciled')
-                                                                           ->count();
+        // count record reconciled status
+        $reconciled_invt_breakdown_ctr = $inventory_recon_breakdown->where('status', 'reconciled')
+                                                                   ->count();
+
         // if first load then insert data to InventoryReconcilationBreakdown
-
-        if($reconciliation)
+        if(!$inventory_recon_breakdown_ctr)
         {
+            $this->store_invt_recon_breakdown($inventory_recon_id, 'unreconciled');
+        }
+        else
+        {   
+            // if status is reconciled and Inventory is not updated (all rows are unreconciled) 
+            if($reconciliation->status == 'reconciled')
+            {   
+                // if has no reconciled rows status
+                if(!$reconciled_invt_breakdown_ctr)
+                {   
+                    // delete all record to reinsert new data with
+                    InventoryReconciliationBreakdown::where('inventory_recon_id', $inventory_recon_id)
+                                                    ->where('status', 'unreconciled')
+                                                    ->delete();
 
+                    $this->store_invt_recon_breakdown($inventory_recon_id, 'reconciled');
+                }
+            }
         }
 
+        return response()->json(['success' => 'Inventory Reconciliation Breakdown successfully created'], 200);
+    }
+
+    public function store_invt_recon_breakdown($inventory_recon_id, $status) 
+    {
         $inventory_reconciliation = InventoryReconciliationMap::where('inventory_recon_id', '=', $inventory_recon_id)->get();
         $product_distinct = InventoryReconciliationMap::distinct()
-                                                      ->where('inventory_recon_id', '=', $inventory_recon_id)
-                                                      ->orderBy('brand', 'ASC')
-                                                      ->orderBy('model', 'ASC')
-                                                      ->orderBy('product_category', 'ASC')
-                                                      ->orderBy('serial', 'ASC')
-                                                      ->get(['brand', 'model', 'product_category', 'serial']);
+                                                    ->where('inventory_recon_id', '=', $inventory_recon_id)
+                                                    ->orderBy('brand', 'ASC')
+                                                    ->orderBy('model', 'ASC')
+                                                    ->orderBy('product_category', 'ASC')
+                                                    ->orderBy('serial', 'ASC')
+                                                    ->get(['brand', 'model', 'product_category', 'serial']);
         $sap_inventory = $inventory_reconciliation->where('inventory_type', '=', 'SAP');
         $physical_inventory = $inventory_reconciliation->where('inventory_type', '=', 'Physical');
-
-        $products = [];
 
         foreach ($product_distinct as $product) {
 
             $sap_serial_ctr =  $sap_inventory->where('brand', $product['brand'])
-                                  ->where('model', $product['model'])
-                                  ->where('product_category', $product['product_category'])
-                                  ->where('serial', $product['serial']);
+                                ->where('model', $product['model'])
+                                ->where('product_category', $product['product_category'])
+                                ->where('serial', $product['serial']);
 
             $physical_serial_ctr = $physical_inventory->where('brand', $product['brand'])
-                                           ->where('model', $product['model'])
-                                           ->where('product_category', $product['product_category'])
-                                           ->where('serial', $product['serial']);
+                                        ->where('model', $product['model'])
+                                        ->where('product_category', $product['product_category'])
+                                        ->where('serial', $product['serial']);
 
             InventoryReconciliationBreakdown::create([
+                'inventory_recon_id' => $inventory_recon_id,
                 'brand' => $product['brand'],
                 'model' => $product['model'],
                 'product_category' => $product['product_category'],
                 'sap_serial' => $sap_serial_ctr->count() ? $product['serial'] : '---',
                 'physical_serial' => $physical_serial_ctr->count() ? $product['serial'] : '---',
+                'status' => $status,
             ]);
 
         }
-        
-        return response()->json(['success' => 'Inventory Reconcilation Breakdown successfully created'], 200);
     }
 
-    public function insert_inventory_recon_discrepancy($inventory_recon_id) 
+    public function create_inventory_recon_discrepancy($inventory_recon_id) 
     {
+        $reconciliation = InventoryReconciliation::select(DB::raw("*, DATE_FORMAT(docdate, '%m/%d/%Y') as document_date, 
+                                                            DATE_FORMAT(date_reconciled, '%m/%d/%Y') as date_reconciled"
+                                                    ))
+                                                 ->with('branch')
+                                                 ->with('user')
+                                                 ->with('user.position')
+                                                 ->find($inventory_recon_id);
 
+        $inventory_recon_breakdown = InventoryReconciliationBreakdown::where('inventory_recon_id', $inventory_recon_id);
+
+        // count all rows of InventoryReconciliationBreakdown
+        $inventory_recon_breakdown_ctr = $inventory_recon_breakdown->count();
+
+        // count record reconciled status
+        $reconciled_invt_breakdown_ctr = $inventory_recon_breakdown->where('status', 'reconciled')
+                                                                   ->count();
+
+        $status = $reconciliation->status;
+
+        // if first load then insert data to InventoryReconcilationBreakdown
+        if($status == 'unreconciled' && !$inventory_recon_breakdown_ctr)
+        {
+            $this->store_invt_recon_breakdown($inventory_recon_id, $status);
+        }
+        else
+        {   
+            // if status is reconciled and Inventory is not updated (all rows are unreconciled) 
+            if($reconciliation->status == 'reconciled' && $inventory_recon_breakdown_ctr)
+            {   
+                // if has no reconciled rows status
+                if(!$reconciled_invt_breakdown_ctr)
+                {   
+                    // delete all record to reinsert new data with
+                    InventoryReconciliationBreakdown::where('inventory_recon_id', $inventory_recon_id)
+                                                    ->where('status', 'unreconciled')
+                                                    ->delete();
+
+                    $this->store_invt_recon_discrepancy($inventory_recon_id, 'reconciled');
+                }
+            }
+        }
+        
+        
+        return response()->json(['success' => 'Inventory Reconciliation Discrepancy has successfully created'], 200);
+    }
+
+    public function store_invt_recon_discrepancy($inventory_recon_id, $status) 
+    {
+        $invty_recon = InventoryReconciliationMap::where('inventory_recon_id', '=', $inventory_recon_id)->get();
+        $product_distinct = InventoryReconciliationMap::distinct()
+                                                      ->where('inventory_recon_id', '=', $inventory_recon_id)
+                                                      ->orderBy('brand', 'ASC')
+                                                      ->orderBy('model', 'ASC')
+                                                      ->orderBy('product_category', 'ASC')
+                                                      ->get(['brand', 'model', 'product_category']);
+        $products = [];
+
+        // non sap generated serials item
+        $non_sap_serialized_items = InventoryReconciliationMap::where('inventory_recon_id', '=', $inventory_recon_id)
+                                                            ->where(function($query) {
+                                                                    $warehouses = WarehouseCode::all();
+                                                                    foreach ($warehouses as $whse) {
+                                                                        $query->where('serial', 'not like', '%'.$whse->code.'%');
+                                                                    }
+                                                                    $query->where('serial', '<>', '-No Serial-');
+                                                                })->get();
+
+        
+
+        foreach ($product_distinct as $product) {
+            $sap_discrepancy = [];
+            $physical_discrepancy = [];
+
+            $recon = $invty_recon->where('brand', $product['brand'])
+                                 ->where('model', $product['model'])
+                                 ->where('product_category', $product['product_category']);
+            
+            $sap_qty = $recon->where('inventory_type', '=', 'SAP')->sum('quantity');
+            $physical_qty = $recon->where('inventory_type', '=', 'Physical')->sum('quantity');
+
+            // non sap generated serials item
+            $items = $non_sap_serialized_items->where('brand', $product['brand'])
+                                                ->where('model', $product['model'])
+                                                ->where('product_category', $product['product_category']);
+
+            $sap = $items->where('inventory_type', '=', 'SAP');
+            $physical = $items->where('inventory_type', '=', 'Physical');
+
+            // SAP product inventory
+            foreach ($sap as $value) {
+                
+                // find the serial from physical_inventory to identify the discrep
+                $physical_serial_ctr = $physical->where('serial', $value['serial'])->count();
+
+                // if this product is not in Physical Inventory then get the serial discrepancy
+                if($physical_serial_ctr === 0)
+                {
+                    $sap_discrepancy[] = $value['serial'];
+                    // if($physical_qty > 0)
+                    // {
+                    //     $physical_discrepancy[] = '-No Serial-';
+                    // }
+                    
+                }
+        
+            }
+            
+            // Physical product inventory
+            foreach ($physical as $value) {
+                
+                // find the serial from sap to identify the discrep
+                $sap_serial_ctr = $sap->where('serial', $value['serial'])->count();
+
+                // if this product is not in SAP Inventory then get the serial discrepancy (exclude '-No Serial-' value)
+                if($sap_serial_ctr === 0)
+                {
+                    $physical_discrepancy[] = $value['serial'];
+                }
+            }
+
+            $qty_diff = $physical_qty - $sap_qty;
+
+            if(count($sap_discrepancy) || count($physical_discrepancy) || $qty_diff <> 0)
+            {   
+                $products[] = [
+                    'brand' => $product['brand'],
+                    'model' => $product['model'],
+                    'product_category' => $product['product_category'],
+                    'sap_qty' => $sap_qty,
+                    'physical_qty' => $physical_qty,
+                    'qty_diff' => $qty_diff, // physical - sap quantity
+                    'sap_discrepancy' => join(', ', $sap_discrepancy),
+                    'physical_discrepancy' => join(', ', $physical_discrepancy),
+                ];
+
+                InventoryReconciliationDiscrepancy::create([
+                    'inventory_recon_id' => $inventory_recon_id,
+                    'brand' => $product['brand'],
+                    'model' => $product['model'],
+                    'product_category' => $product['product_category'],
+                    'sap_qty' => $sap_qty,
+                    'physical_qty' => $physical_qty,
+                    'qty_diff' => $qty_diff, // physical - sap quantity
+                    'sap_discrepancy' => join(', ', $sap_discrepancy),
+                    'physical_discrepancy' => join(', ', $physical_discrepancy),
+                    'status' => $status,
+                ]);
+            }
+            
+        }
     }
 
 }

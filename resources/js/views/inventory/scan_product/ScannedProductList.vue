@@ -497,6 +497,7 @@ export default {
       axios.post("/api/product/scanned_products?page=" + this.page, data).then(
         (response) => {
           let data = response.data;
+
           this.file_upload_log = data.file_upload_log;
           this.products = data.products;
           this.brands = data.brands;
@@ -594,7 +595,7 @@ export default {
 
     exportData() {
       // const data = { branch_id: this.search_branch };
-      const data = { whse_code: this.whse_code };
+      const data = { whse_code: this.search_whse };
       if (this.filteredProducts.length) {
 
         axios.post('/api/product/export', data, { responseType: 'arraybuffer'})
@@ -640,9 +641,11 @@ export default {
 
         let data = {
           branch_id: this.search_branch,
-          whse_code: this.whse_code,
+          whse_code: this.search_whse,
           inventory_group: this.inventory_group,
         };
+
+        console.log(data);
 
         axios
           .post("/api/inventory_reconciliation/unreconcile/list", data)
@@ -674,8 +677,10 @@ export default {
           this.dialog_recon_loading = true;
           let data = {
             inventory_recon_id: item.id,
-            products: this.filteredProducts,
+            products: this.filteredProducts, // due to pagination, products data is based from api response pagination
             inventory_group: this.inventory_group,
+            whse_code: this.search_whse,
+            product_type: 'scanned', // these products were scanned using barcode scanner
           };
 
           axios.post("api/inventory_reconciliation/reconcile", data).then(

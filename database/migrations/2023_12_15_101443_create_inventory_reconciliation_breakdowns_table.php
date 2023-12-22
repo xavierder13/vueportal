@@ -20,7 +20,8 @@ class CreateInventoryReconciliationBreakdownsTable extends Migration
             $table->string('model');
             $table->string('product_category');
             $table->string('sap_serial');
-            $table->string('physical_serial');
+            $table->string('physical_serial')->nullable();
+            $table->string('status');
             $table->timestamps();
         });
     }
