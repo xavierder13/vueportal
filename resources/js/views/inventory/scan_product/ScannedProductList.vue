@@ -493,7 +493,7 @@ export default {
       this.loading = true;
 
       const data = { items_per_page: this.itemsPerPage, whse_code: this.search_whse, search: this.search };
-      
+
       axios.post("/api/product/scanned_products?page=" + this.page, data).then(
         (response) => {
           let data = response.data;
@@ -958,6 +958,16 @@ export default {
       this.firstBtnDisable = true;
       this.prevBtnDisable = true;
       this.getProduct();
+    },
+
+    search() {
+      if(!this.search)
+      {
+        this.page = 1;
+        this.firstBtnDisable = true;
+        this.prevBtnDisable = true;
+        this.getProduct();
+      }
     }
 
   },

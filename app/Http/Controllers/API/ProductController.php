@@ -120,7 +120,7 @@ class ProductController extends Controller
 
                                 })
                                 ->where(function($query) use ($whse_code) {
-                                    if($whse_code != 'ALL')
+                                    if($whse_code !== 'ALL')
                                     {
                                         $query->where('whse_code', $whse_code);
                                     }
@@ -871,7 +871,7 @@ class ProductController extends Controller
             }
 
             $filtered_data = array_filter($data);
-            $database = "";
+            $database = ""; 
 
             $product = [];
             $products = [];
