@@ -497,7 +497,6 @@ export default {
       axios.post("/api/product/scanned_products?page=" + this.page, data).then(
         (response) => {
           let data = response.data;
-
           this.file_upload_log = data.file_upload_log;
           this.products = data.products;
           this.brands = data.brands;
@@ -644,8 +643,6 @@ export default {
           whse_code: this.search_whse,
           inventory_group: this.inventory_group,
         };
-
-        console.log(data);
 
         axios
           .post("/api/inventory_reconciliation/unreconcile/list", data)
@@ -1017,16 +1014,14 @@ export default {
       if(this.products.data)
       {
         this.products.data.forEach((value) => {
-          if (this.search_branch === 0) {
+          if (this.search_whse === 'ALL') {
             products.push(value);
 
-          } else if (value.branch_id === this.search_branch) {
+          } else if (value.whse_code === this.search_whse) {
             products.push(value);
-
           }
         });
       }
-      
       
       return products;
     },
