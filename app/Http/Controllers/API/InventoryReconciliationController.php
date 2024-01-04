@@ -398,12 +398,12 @@ class InventoryReconciliationController extends Controller
     public function unreconciled_list(Request $request)
     {   
         $user = Auth::user();
-        $branch_id = $request->get('branch_id');
+        // $branch_id = $request->get('branch_id');
         $whse_code = $request->get('whse_code');
         $inventory_group = $request->get('inventory_group');
 
         $unreconciled_list = InventoryReconciliation::with('branch')
-                                                   ->where('branch_id', '=', $branch_id)
+                                                //    ->where('branch_id', '=', $branch_id)
                                                    ->where('whse_code', '=', $whse_code)
                                                    ->where('status', '=', 'unreconciled')
                                                    ->where(function($query) use ($inventory_group, $user) {
