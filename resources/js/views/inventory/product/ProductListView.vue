@@ -286,7 +286,7 @@
             @page-count="pageCount = $event"
             :items-per-page="itemsPerPage"
             @update:items-per-page="getItemPerPage"
-            v-if="hasPermission('product-model-list')"
+            v-if="hasPermission('product-list')"
             show-first-last-page
           >
             <template v-slot:item.actions="{ item }">
