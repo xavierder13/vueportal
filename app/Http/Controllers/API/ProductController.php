@@ -794,8 +794,8 @@ class ProductController extends Controller
                     d.FirmName BRAND, 
                     c.ItemName MODEL,
                     c.FrgnName CATEGORY, 
-                    b.IntrSerial SERIAL,
-                    cast(1 as numeric(19,2)) as 'Qty'
+                    '' SERIAL,
+                    '' as 'Qty'
                 FROM 
                 OITW a
                     LEFT JOIN OSRI b on (a.ItemCode = b.ItemCode and a.WhsCode = b.WhsCode)
