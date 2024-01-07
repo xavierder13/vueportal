@@ -21,7 +21,7 @@
         />
         <v-card>
           <v-card-title>
-            Product Lists
+            Product Lists - {{ branch }}
             <v-spacer></v-spacer>
             <v-text-field
               v-model="search"
