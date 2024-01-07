@@ -36,7 +36,7 @@
                   <v-row>
                     <v-col>
                       <v-row>
-                        <v-col class="text-right pt-2 px-0">
+                        <v-col class="text-right mt-2 px-0">
                           <h6 class="font-weight-bold">Branch:</h6>
                         </v-col>
                         <v-col>
@@ -46,7 +46,7 @@
                     </v-col>
                     <v-col>
                       <v-row>
-                        <v-col class="text-right pt-2 px-0">
+                        <v-col class="text-right mt-2 px-0">
                           <h6 class="font-weight-bold">Document Date:</h6>  
                         </v-col>
                         <v-col>
@@ -56,7 +56,7 @@
                     </v-col>
                     <v-col>
                       <v-row>
-                        <v-col class="text-right pt-2 px-0">
+                        <v-col class="text-right mt-2 px-0">
                           <h6 class="font-weight-bold">Document Type:</h6>   
                         </v-col>
                         <v-col>
@@ -68,7 +68,7 @@
                   <v-row>
                     <v-col>
                       <v-row>
-                        <v-col class="text-right pt-2 px-0">
+                        <v-col class="text-right mt-2 px-0">
                           <h6 class="font-weight-bold">Warehouse:</h6>     
                         </v-col>
                         <v-col>
@@ -78,7 +78,7 @@
                     </v-col>
                     <v-col>
                       <v-row>
-                        <v-col class="text-right pt-2 px-0">
+                        <v-col class="text-right mt-2 px-0">
                           <h6 class="font-weight-bold">Document Status:</h6>    
                         </v-col>
                         <v-col>
@@ -90,7 +90,7 @@
                     </v-col>
                     <v-col>
                       <v-row>
-                        <v-col class="text-right pt-2 px-0">
+                        <v-col class="text-right mt-2 px-0">
                           <h6 class="font-weight-bold">Date Reconciled:</h6>  
                         </v-col>
                         <v-col>
@@ -115,6 +115,19 @@
                   loading-text="Loading... Please wait"
                   id="invty-recon-table"
                 >
+                  <template v-slot:top>
+                    <v-toolbar flat>
+                      <h4>Inventory Reconciliation Discrepancy</h4>
+                      <v-spacer></v-spacer>
+                      <v-text-field
+                        v-model="search"
+                        append-icon="mdi-magnify"
+                        label="Search"
+                        single-line
+                      ></v-text-field>
+                      <v-spacer></v-spacer>
+                    </v-toolbar>
+                  </template>
                   <template v-slot:item.row="{ item, index }">
                     {{ index + 1 }}
                   </template>
@@ -222,7 +235,6 @@ export default {
         .then(
           (response) => {
             let data = response.data;
-            console.log(data);
             
             this.reconciliation = data.reconciliation; 
             this.products = data.products;

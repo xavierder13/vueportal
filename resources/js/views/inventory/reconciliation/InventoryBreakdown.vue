@@ -23,7 +23,7 @@
                   <v-row>
                     <v-col>
                       <v-row>
-                        <v-col class="text-right mt-1 px-0">
+                        <v-col class="text-right mt-2 px-0">
                           <h6 class="font-weight-bold">Branch:</h6>
                         </v-col>
                         <v-col>
@@ -33,7 +33,7 @@
                     </v-col>
                     <v-col>
                       <v-row>
-                        <v-col class="text-right mt-1 px-0">
+                        <v-col class="text-right mt-2 px-0">
                           <h6 class="font-weight-bold">Document Date:</h6>  
                         </v-col>
                         <v-col>
@@ -43,7 +43,7 @@
                     </v-col>
                     <v-col>
                       <v-row>
-                        <v-col class="text-right mt-1 px-0">
+                        <v-col class="text-right mt-2 px-0">
                           <h6 class="font-weight-bold">Document Type:</h6>   
                         </v-col>
                         <v-col>
@@ -55,7 +55,7 @@
                   <v-row>
                     <v-col>
                       <v-row>
-                        <v-col class="text-right mt-1 px-0">
+                        <v-col class="text-right mt-2 px-0">
                           <h6 class="font-weight-bold">Warehouse:</h6>     
                         </v-col>
                         <v-col>
@@ -65,7 +65,7 @@
                     </v-col>
                     <v-col>
                       <v-row>
-                        <v-col class="text-right mt-1 px-0">
+                        <v-col class="text-right mt-2 px-0">
                           <h6 class="font-weight-bold">Document Status:</h6>    
                         </v-col>
                         <v-col>
@@ -77,7 +77,7 @@
                     </v-col>
                     <v-col>
                       <v-row>
-                        <v-col class="text-right mt-1 px-0">
+                        <v-col class="text-right mt-2 px-0">
                           <h6 class="font-weight-bold">Date Reconciled:</h6>  
                         </v-col>
                         <v-col>
