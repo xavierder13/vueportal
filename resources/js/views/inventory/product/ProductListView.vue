@@ -452,12 +452,8 @@ export default {
           
           let data = response.data;
           let log = data.file_upload_log;
-          console.log(log);
           this.branch = log.branch.name;
           this.file_upload_log = log;
-
-
-          
 
           let products = data.products;
 
@@ -471,7 +467,7 @@ export default {
           let splitted_remarks = log.remarks.split('-');
 
           this.whse_code = splitted_remarks.length == 2 ? splitted_remarks[0] : ''; // split the remarks (e.g ADMN-OVERALL) then get the 'ADMN'
-          this.inventory_type = splitted_remarks.length == 2 ? splitted_remarks[1] : ''; // split the remarks (e.g ADMN-OVERALL) then get the 'OVERALL'
+          this.inventory_type = splitted_remarks.length == 2 ? splitted_remarks[1] : log.remarks; // split the remarks (e.g ADMN-OVERALL) then get the 'OVERALL'
           
           this.loading = false; 
 
