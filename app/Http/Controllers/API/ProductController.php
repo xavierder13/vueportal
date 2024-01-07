@@ -791,6 +791,7 @@ class ProductController extends Controller
 
             $inventory_onhand = DB::connection($db->database)->select("
                 SELECT 
+                    DISTINCT
                     d.FirmName BRAND, 
                     c.ItemName MODEL,
                     c.FrgnName CATEGORY, 
