@@ -449,9 +449,10 @@ export default {
       
       axios.post("/api/product/list/view?page=" + this.page, data).then(
         (response) => {
-          console.log(log);
+          
           let data = response.data;
           let log = data.file_upload_log;
+          console.log(log);
           this.branch = log.branch.name;
           this.file_upload_log = log;
 
