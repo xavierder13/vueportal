@@ -301,7 +301,7 @@ class TacticalRequisitionController extends Controller
         $tactical_requisition->sponsor = $data->sponsor;
         $tactical_requisition->venue = $data->venue;
         $tactical_requisition->period_from = $data->period_from;
-        $tactical_requisition->period_to = $data->period_from;
+        $tactical_requisition->period_to = $data->period_to;
         $tactical_requisition->operating_to = $data->operating_to;
         $tactical_requisition->operating_from = $data->operating_from;
         $tactical_requisition->prev_period_from = $data->prev_period_from;

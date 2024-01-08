@@ -114,12 +114,9 @@
                 :close-on-content-click="false"
                 :activator="selectedElement"
                 offset-x
+                max-width="420px"
               >
-                <v-card
-                  color="grey lighten-4"
-                  min-width="420px"
-                  flat
-                >
+                <v-card olor="grey lighten-4" min-width="420px" flat>
                   <v-toolbar :color="selectedEvent.color" dark>
                     <v-toolbar-title v-html="selectedEvent.name"></v-toolbar-title>
                     <v-spacer></v-spacer>
@@ -165,6 +162,53 @@
                   </v-card-actions>
                 </v-card>
               </v-menu>
+              <!-- <v-dialog v-model="selectedOpen" width="420px">
+                <v-card color="grey lighten-4" flat>
+                  <v-toolbar :color="selectedEvent.color" dark>
+                    <v-toolbar-title v-html="selectedEvent.name"></v-toolbar-title>
+                    <v-spacer></v-spacer>
+                    <v-btn icon @click="selectedOpen = false">
+                      <v-icon>mdi-close-circle</v-icon>
+                    </v-btn>
+                  </v-toolbar>
+                  <v-card-text class="py-6">
+                    <v-row>
+                      <v-col class="mt-2 py-1" cols="12" md="4">
+                        <h6 class="font-weight-bold">Branch:</h6>
+                      </v-col>
+                      <v-col class="py-1" cols="12" md="8">
+                        <v-chip class="text-subtitle-1">{{ selectedData.branch }}</v-chip>
+                      </v-col>
+                    </v-row>
+                    <v-row>
+                      <v-col class="mt-2 py-1" cols="12" md="4">
+                        <h6 class="font-weight-bold">Date Period:</h6>  
+                      </v-col>
+                      <v-col class="py-1" cols="12" md="8">
+                        <v-chip class="text-subtitle-1">{{ selectedData.date_period }}</v-chip>
+                      </v-col>
+                    </v-row>
+                    <v-row>
+                      <v-col class="mt-2 py-1" cols="12" md="4">
+                        <h6 class="font-weight-bold">Operating Time:</h6>   
+                      </v-col>
+                      <v-col class="py-1" cols="12" md="8">
+                        <v-chip class="text-subtitle-1">{{ selectedData.operating_time}}</v-chip> 
+                      </v-col>
+                    </v-row>
+                  </v-card-text>
+                  <v-divider class="my-0"></v-divider>
+                  <v-card-actions class="pl-4 pb-2">
+                    <v-btn
+                      color="primary"
+                      @click="viewTactical()"
+                    >
+                      View
+                    </v-btn>
+                    <v-btn color="#E0E0E0" @click="selectedOpen = false"> Cancel </v-btn>
+                  </v-card-actions>
+                </v-card>
+              </v-dialog> -->
             </v-sheet>
           </v-col>
         </v-row>
@@ -290,7 +334,7 @@ export default {
 
       this.tactical_requisitions.forEach(value => {
         let start = new Date(`${value.period_from}T${value.operating_from}`);
-        let end = new Date(`${value.period_from}T${value.operating_to}`)
+        let end = new Date(`${value.period_to}T${value.operating_to}`)
         events.push({
           name: value.marketing_event.event_name,
           start: start,

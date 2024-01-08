@@ -981,6 +981,8 @@ export default {
           this.editedItem.marketing_event_id = data.marketing_event_id;
           this.editedItem.sponsor = data.sponsor;
           this.editedItem.venue = data.venue;
+          this.editedItem.period_from = data.period_from;
+          this.editedItem.period_to = data.period_to;
           this.editedItem.operating_from = data.operating_from;
           this.editedItem.operating_to = data.operating_to;
           this.editedItem.prev_period_from = data.prev_period_from;
@@ -1089,13 +1091,13 @@ export default {
         });
       });
 
-      console.log(this.editedItem.expense_particulars);
     },
     
     updateTactical() {
       this.$v.$touch();
-     
+       
       this.validateExpenseParticulars();
+      
 
       if (!this.$v.$error && !this.expensePaticularHasError) {
         this.showConfirmAlert('update');
@@ -1220,7 +1222,7 @@ export default {
     },
 
     showConfirmAlert(action) {
-      
+
       let icon = 'question';
       let title = `${action.toUpperCase()} Tactital Requistion`;
       let text = action !== 'Update' ? "You won't be able to revert this!" : '';
@@ -1538,7 +1540,7 @@ export default {
           });
         });
       });
-      console.log(this.errorFields);
+
       this.expensePaticularHasError = false;
 
       // check/scan if field has error on errorFields variable
