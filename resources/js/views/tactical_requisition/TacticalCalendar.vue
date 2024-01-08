@@ -117,36 +117,51 @@
               >
                 <v-card
                   color="grey lighten-4"
-                  min-width="350px"
+                  min-width="420px"
                   flat
                 >
-                  <v-toolbar
-                    :color="selectedEvent.color"
-                    dark
-                  >
-                    <v-btn icon>
-                      <v-icon>mdi-pencil</v-icon>
-                    </v-btn>
+                  <v-toolbar :color="selectedEvent.color" dark>
                     <v-toolbar-title v-html="selectedEvent.name"></v-toolbar-title>
                     <v-spacer></v-spacer>
-                    <v-btn icon>
-                      <v-icon>mdi-heart</v-icon>
-                    </v-btn>
-                    <v-btn icon>
-                      <v-icon>mdi-dots-vertical</v-icon>
+                    <v-btn icon @click="selectedOpen = false">
+                      <v-icon>mdi-close-circle</v-icon>
                     </v-btn>
                   </v-toolbar>
-                  <v-card-text>
-                    <span v-html="selectedEvent.details"></span>
+                  <v-card-text class="py-6">
+                    <v-row>
+                      <v-col class="mt-2 py-1" cols="12" md="4">
+                        <h6 class="font-weight-bold">Branch:</h6>
+                      </v-col>
+                      <v-col class="py-1" cols="12" md="8">
+                        <v-chip class="text-subtitle-1">{{ selectedData.branch }}</v-chip>
+                      </v-col>
+                    </v-row>
+                    <v-row>
+                      <v-col class="mt-2 py-1" cols="12" md="4">
+                        <h6 class="font-weight-bold">Date Period:</h6>  
+                      </v-col>
+                      <v-col class="py-1" cols="12" md="8">
+                        <v-chip class="text-subtitle-1">{{ selectedData.date_period }}</v-chip>
+                      </v-col>
+                    </v-row>
+                    <v-row>
+                      <v-col class="mt-2 py-1" cols="12" md="4">
+                        <h6 class="font-weight-bold">Operating Time:</h6>   
+                      </v-col>
+                      <v-col class="py-1" cols="12" md="8">
+                        <v-chip class="text-subtitle-1">{{ selectedData.operating_time}}</v-chip> 
+                      </v-col>
+                    </v-row>
                   </v-card-text>
-                  <v-card-actions>
+                  <v-divider class="my-0"></v-divider>
+                  <v-card-actions class="pl-4 pb-2">
                     <v-btn
-                      text
-                      color="secondary"
-                      @click="selectedOpen = false"
+                      color="primary"
+                      @click="viewTactical()"
                     >
-                      Cancel
+                      View
                     </v-btn>
+                    <v-btn color="#E0E0E0" @click="selectedOpen = false"> Cancel </v-btn>
                   </v-card-actions>
                 </v-card>
               </v-menu>
@@ -192,6 +207,12 @@ export default {
       names: ['Meeting', 'Holiday', 'PTO', 'Travel', 'Event', 'Birthday', 'Conference', 'Party'],
       tactical_requisitions: [],
       skeleton_loading: true,
+      selectedData: {
+        branch: "",
+        date_period: "",
+        operating_time: "",
+
+      }
     }
     
   },
@@ -200,8 +221,6 @@ export default {
       this.loading = true;
       axios.get("/api/tactical_requisition/index").then(
         (response) => {
-
-          console.log(response.data);
           
           let data = response.data
         
@@ -213,6 +232,13 @@ export default {
           this.isUnauthorized(error);
         }
       );
+    },
+    viewTactical()
+    {
+      this.$router.push({
+        name: "tactical.view",
+        params: { tactical_requisition_id: this.selectedEvent.data.id },
+      });
     },
     viewDay ({ date }) {
       this.focus = date
@@ -231,6 +257,7 @@ export default {
       this.$refs.calendar.next()
     },
     showEvent ({ nativeEvent, event }) {
+
       const open = () => {
         this.selectedEvent = event
         this.selectedElement = nativeEvent.target
@@ -244,37 +271,45 @@ export default {
         open()
       }
 
-      nativeEvent.stopPropagation()
+      nativeEvent.stopPropagation();
+
+      let data = event.data;
+
+      this.selectedData = { 
+        branch: data.branch.name,  
+        date_period: this.formatDate(data.period_from) + ' -  ' + this.formatDate(data.period_to),
+        operating_time: data.operating_from + ' - ' + data.operating_to,
+      };
+
     },
     updateRange ({ start, end }) {
       const events = []
 
-      const min = new Date(`${start.date}T00:00:00`)
-      const max = new Date(`${end.date}T23:59:59`)
-      const days = (max.getTime() - min.getTime()) / 86400000
-      const eventCount = this.rnd(days, days + 20)
+      // const min = new Date(`${start.date}T00:00:00`)
+      // const max = new Date(`${end.date}T23:59:59`)
 
-      for (let i = 0; i < eventCount; i++) {
-        const allDay = this.rnd(0, 3) === 0
-        const firstTimestamp = this.rnd(min.getTime(), max.getTime())
-        const first = new Date(firstTimestamp - (firstTimestamp % 900000))
-        const secondTimestamp = this.rnd(2, allDay ? 288 : 8) * 900000
-        const second = new Date(first.getTime() + secondTimestamp)
-
+      this.tactical_requisitions.forEach(value => {
+        let start = new Date(`${value.period_from}T${value.operating_from}`);
+        let end = new Date(`${value.period_from}T${value.operating_to}`)
         events.push({
-          name: this.names[this.rnd(0, this.names.length - 1)],
-          start: first,
-          end: second,
-          color: this.colors[this.rnd(0, this.colors.length - 1)],
-          timed: !allDay,
+          name: value.marketing_event.event_name,
+          start: start,
+          end: end,
+          color: 'blue',
+          timed: true,
+          data: value,
         })
-      }
-      console.log(events);
-      this.events = events
+      });
+    
+      this.events = events;
     },
-    rnd (a, b) {
-      return Math.floor((b - a + 1) * Math.random()) + a
+
+    formatDate(date) {
+      if (!date) return null;
+      const [year, month, day] = date.split("-");
+      return `${month}/${day}/${year}`;
     },
+
   },
   mounted() {
     axios.defaults.headers.common["Authorization"] =
