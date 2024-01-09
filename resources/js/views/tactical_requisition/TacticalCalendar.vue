@@ -130,7 +130,7 @@
                         <h6 class="font-weight-bold">Branch:</h6>
                       </v-col>
                       <v-col class="py-1" cols="12" md="8">
-                        <v-chip class="text-subtitle-1">{{ selectedData.branch }}</v-chip>
+                        <span class="text-subtitle-1 font-weight-bold">{{ selectedData.branch }}</span>
                       </v-col>
                     </v-row>
                     <v-row>
@@ -138,7 +138,7 @@
                         <h6 class="font-weight-bold">Date Period:</h6>  
                       </v-col>
                       <v-col class="py-1" cols="12" md="8">
-                        <v-chip class="text-subtitle-1">{{ selectedData.date_period }}</v-chip>
+                        <span class="text-subtitle-1 font-weight-bold">{{ selectedData.date_period }}</span>
                       </v-col>
                     </v-row>
                     <v-row>
@@ -146,7 +146,23 @@
                         <h6 class="font-weight-bold">Operating Time:</h6>   
                       </v-col>
                       <v-col class="py-1" cols="12" md="8">
-                        <v-chip class="text-subtitle-1">{{ selectedData.operating_time}}</v-chip> 
+                        <span class="text-subtitle-1 font-weight-bold">{{ selectedData.operating_time}}</span> 
+                      </v-col>
+                    </v-row>
+                    <v-row v-if="selectedData.sponsor">
+                      <v-col class="mt-2 py-1" cols="12" md="4">
+                        <h6 class="font-weight-bold">Sponsor:</h6>   
+                      </v-col>
+                      <v-col class="py-1" cols="12" md="8">
+                        <span class="text-subtitle-1 font-weight-bold">{{ selectedData.sponsor}}</span> 
+                      </v-col>
+                    </v-row>
+                    <v-row>
+                      <v-col class="mt-2 py-1" cols="12" md="4">
+                        <h6 class="font-weight-bold">Venue:</h6>   
+                      </v-col>
+                      <v-col class="py-1" cols="12" md="8">
+                        <span class="text-subtitle-1 font-weight-bold">{{ selectedData.venue}}</span> 
                       </v-col>
                     </v-row>
                   </v-card-text>
@@ -255,7 +271,8 @@ export default {
         branch: "",
         date_period: "",
         operating_time: "",
-
+        sponsor: "",
+        venue: "",
       }
     }
     
@@ -323,6 +340,8 @@ export default {
         branch: data.branch.name,  
         date_period: this.formatDate(data.period_from) + ' -  ' + this.formatDate(data.period_to),
         operating_time: data.operating_from + ' - ' + data.operating_to,
+        sponsor: data.sponsor,
+        venue: data.venue,
       };
 
     },
