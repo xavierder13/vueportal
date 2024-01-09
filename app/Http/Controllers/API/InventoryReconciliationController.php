@@ -610,17 +610,35 @@ class InventoryReconciliationController extends Controller
             $inventory_reconciliation->save();
     
             foreach ($inventory_onhand as $value) {
-                
-                InventoryReconciliationMap::create([
+
+                $serial = $value->SERIAL;
+
+                $data = [
                     'inventory_recon_id' => $inventory_reconciliation->id,
                     'user_id' => $user->id,
                     'inventory_type' => 'SAP',
                     'brand' => $value->BRAND,
                     'model' => $value->MODEL,
                     'product_category' => $value->CATEGORY,
-                    'serial' => $value->SERIAL,
+                    'serial' => $serial,
                     'quantity' => 1,
-                ]);
+                ];
+
+                // explode serials with slash('/') - will be used to breakdown/split into 2 or more rows
+                $serials = explode('/', $serial);
+
+                if(count($serials) > 1)
+                {
+                    // breakdown/split into 2 or more rows
+                    foreach ($serials as $value) {
+                        $data['serial'] = $value;
+                        InventoryReconciliationMap::create($data);
+                    }
+                }
+                else
+                {
+                    InventoryReconciliationMap::create($data);
+                }
                 
             }
     
