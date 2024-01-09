@@ -31,20 +31,51 @@ class InventoryReconMapImport implements ToModel
         // insert all rows except first row(header)
         if($this->rows > 0)
         {
-            return new InventoryReconciliationMap([
+            $serial = is_numeric(@$row[3]) ? (integer) @$row[3] : @$row[3]; // if serial is numeric then convert it to integer due to long serial details
+            $data = [
                 'inventory_recon_id' => $this->params['inventory_recon_id'],
                 'user_id' => $this->params['user_id'],
                 'inventory_type' => $this->params['inventory_type'],
                 'brand' => @$row[0],
                 'model' => @$row[1],
                 'product_category' => @$row[2],
-                'serial' => is_numeric(@$row[3]) ? (integer) @$row[3] : @$row[3], // if serial is numeric then convert it to integer due to long serial details
-                'quantity' => 1,
-            ]);
+                'serial' => $serial, // if serial is numeric then convert it to integer due to long serial details
+            ];
+
+            // explode serials with slash('/') - will be used to breakdown/split into 2 or more rows
+            $serials = explode('/', $serial);
+
+            if(count($serials) > 1)
+            {
+                // breakdown/split into 2 or more rows
+                foreach ($serials as $value) {
+                    $data['serial'] = $value;
+                    InventoryReconciliationMap::create($data);
+                }
+            }
+            else
+            {
+                return new InventoryReconciliationMap($data);
+            }
+
+            // return new InventoryReconciliationMap([
+            //     'inventory_recon_id' => $this->params['inventory_recon_id'],
+            //     'user_id' => $this->params['user_id'],
+            //     'inventory_type' => $this->params['inventory_type'],
+            //     'brand' => @$row[0],
+            //     'model' => @$row[1],
+            //     'product_category' => @$row[2],
+            //     'serial' => is_numeric(@$row[3]) ? (integer) @$row[3] : @$row[3], // if serial is numeric then convert it to integer due to long serial details
+            //     'quantity' => 1,
+            // ]);
   
+
         }
 
         ++$this->rows;
         
     }
 }
+
+            
+    

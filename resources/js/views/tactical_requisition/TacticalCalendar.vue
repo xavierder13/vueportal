@@ -358,7 +358,7 @@ export default {
           name: value.marketing_event.event_name,
           start: start,
           end: end,
-          color: 'blue',
+          color: this.colors[this.rnd(0, this.colors.length - 1)],
           timed: true,
           data: value,
         })
@@ -371,6 +371,10 @@ export default {
       if (!date) return null;
       const [year, month, day] = date.split("-");
       return `${month}/${day}/${year}`;
+    },
+
+    rnd (a, b) {
+      return Math.floor((b - a + 1) * Math.random()) + a
     },
 
   },
