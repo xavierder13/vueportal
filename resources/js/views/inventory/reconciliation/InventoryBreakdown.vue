@@ -105,6 +105,13 @@
                   <template v-slot:top>
                     <v-toolbar flat>
                       <h4>Inventory Reconciliation Breakdown</h4>
+                      <v-divider vertical class="mx-2"></v-divider>
+                      
+                      <v-switch v-model="switch1" class="mt-4">
+                        <template v-slot:label>
+                          <v-chip :color="switch1 ? 'primary' : ''" class="ml-1 mt-2">Discrepancy</v-chip>
+                        </template>
+                      </v-switch>
                       <v-spacer></v-spacer>
                       <v-text-field
                         v-model="search"
@@ -196,6 +203,7 @@ export default {
       prepared_by: "",
       prepared_by_position: "",
       reconciliation: "",
+      switch1: false,
     };
   },
 
@@ -203,8 +211,10 @@ export default {
     getProduct() {
       this.loading = true;
       let inventory_recon_id = this.$route.params.inventory_recon_id;
+      let report_type = this.switch1 ? 'DISCREPANCY' : 'ALL';
+      let data = { inventory_recon_id: inventory_recon_id, report_type: report_type };
       axios
-        .get("/api/inventory_reconciliation/breakdown/" + inventory_recon_id)
+        .post("/api/inventory_reconciliation/breakdown", data)
         .then(
           (response) => {
             let data = response.data;
@@ -307,8 +317,9 @@ export default {
           unit: "px",
           format: "letter",
         });
-
-        let d = new Date();
+    
+        let d = new Date(this.reconciliation.document_date); //get document date (inventory as of {date})
+        let date_now = new Date();
         let months = [
           "January",
           "February",
@@ -323,11 +334,16 @@ export default {
           "November",
           "December",
         ];
-        let thisMonth = months[d.getMonth()];
-        let lastMonth = months[d.getMonth() - 1];
-        let gMonth = d.getMonth() + 1;
-        let gDate = d.getDate();
-        let gFYear = d.getFullYear();
+        
+        let thisMonth = months[date_now.getMonth()];
+        // let lastMonth = months[index];
+        let docdate = this.reconciliation.document_date;
+        let [docMonth, docDay, docYear] = docdate ? docdate.split('/') : '1/1/1900'.split('/');
+        let index = docMonth - 1;
+        let documentMonth = months[index];
+        let gMonth = date_now.getMonth() + 1;
+        let gDate = date_now.getDate();
+        let gFYear = date_now.getFullYear();
 
         let header = "ADDESSA CORPORATION";
         let invtymemo = "INVTY MEMO#";
@@ -335,7 +351,7 @@ export default {
         let to = "To:";
         let from = "From:";
 
-        let invtymemo_value = this.branch_code + "-" + gFYear + "-" + gMonth;
+        let invtymemo_value = this.branch_code + "-" + docYear + "-" + docMonth;
         let date_value = thisMonth + " " + gDate + "," + gFYear;
 
         let bm_oic = this.bm_oic ? this.bm_oic : '';
@@ -345,7 +361,8 @@ export default {
         let beneath_table =
           "Please verify, reconcile and coordinate to admin for the reconciliation of the discrepancies within Ten (10) days upon the receipt of this Memo.";
         let beneath_from = "Physical Inventory Report for the month of";
-        let beneath_from_value = lastMonth + " " + gFYear;
+        let beneath_from_value = documentMonth + " " + docYear;
+
         let date_submitted = "Date Submitted:";
         let date_submitted_value = this.date_reconciled ? this.date_reconciled : '';
 
@@ -502,7 +519,9 @@ export default {
 
         doc.output("dataurlnewwindow");
 
-        doc.save("ReconciliationBreakdown.pdf");
+        let filename = this.switch1 ? "ReconciliationBreakdown - Discrepancy.pdf" : "ReconciliationBreakdown.pdf";
+
+        doc.save(filename);
       } else {
 
         this.showAlert("No record found", "warning")
@@ -512,7 +531,9 @@ export default {
    
       if (this.products.length) {
         let inventory_recon_id = this.$route.params.inventory_recon_id;
-        axios.get('/api/inventory_reconciliation/export_breakdown/' + inventory_recon_id, { responseType: 'arraybuffer'})
+        let report_type = this.switch1 ? 'DISCREPANCY' : 'ALL';
+        let data = { inventory_recon_id: inventory_recon_id, report_type: report_type };
+        axios.post('/api/inventory_reconciliation/export_breakdown',data , { responseType: 'arraybuffer'})
           .then((response) => {
               var fileURL = window.URL.createObjectURL(new Blob([response.data]));
               var fileLink = document.createElement('a');
@@ -549,6 +570,11 @@ export default {
         }
       };
     },
+  },
+  watch: {
+    switch1() {
+      this.getProduct();
+    }
   },
   computed: {
     tableData() {

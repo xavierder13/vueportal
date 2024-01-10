@@ -713,13 +713,13 @@ export default {
     },
     actionListTblRow(){
        let menu = [
-        {
-          title: 'PDF',
-          icon: 'mdi-file-pdf',
-          method: 'printPDF',
-          hasPermission: true,
-          color: 'secondary',
-        },
+        // {
+        //   title: 'PDF',
+        //   icon: 'mdi-file-pdf',
+        //   method: 'printPDF',
+        //   hasPermission: true,
+        //   color: 'secondary',
+        // },
         {
           title: 'Breakdown',
           icon: 'mdi-file-document',

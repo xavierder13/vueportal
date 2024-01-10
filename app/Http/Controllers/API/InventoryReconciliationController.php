@@ -189,14 +189,17 @@ class InventoryReconciliationController extends Controller
         ];
     }
 
-    public function breakdown($inventory_recon_id)
+    public function breakdown(Request $request)
     {   
-
-        return response()->json($this->getBreakdown($inventory_recon_id), 200);
+        // report type ('ALL' or 'DISCREPANCY') - get all breakdown when report type is 'ALL' else 'DISCREPANCY' and get all breakdown with descrepancy
+        $params = ['inventory_recon_id' => $request->inventory_recon_id, 'report_type' => $request->report_type];
+        return response()->json($this->getBreakdown($params), 200);
     }
 
-    public function getBreakdown($inventory_recon_id)
-    {
+    public function getBreakdown($params)
+    {   
+        $inventory_recon_id = $params['inventory_recon_id'];
+        $report_type = $params['report_type'];
         $reconciliation = InventoryReconciliation::select(DB::raw("*, DATE_FORMAT(docdate, '%m/%d/%Y') as document_date, 
                                                             DATE_FORMAT(date_reconciled, '%m/%d/%Y') as date_reconciled"
                                                     ))
@@ -208,7 +211,16 @@ class InventoryReconciliationController extends Controller
         // load/insert all breakdown into single/empty table per inventory_recon_id to load much faster in a single table
         $this->create_inventory_recon_breakdown($inventory_recon_id);
 
-        $products = InventoryReconciliationBreakdown::where('inventory_recon_id', $inventory_recon_id)->get();
+        $products = InventoryReconciliationBreakdown::where('inventory_recon_id', $inventory_recon_id)
+                                                    ->where(function($query) use ($report_type) {
+                                                        // if variable 'report_type' is equal to 'DISCREPANCY' then filter record only with discrepancy
+                                                        if($report_type == 'DISCREPANCY')
+                                                        {
+                                                            $query->where('sap_serial', '=', '---')
+                                                                  ->orWhere('physical_serial', '=', '---');
+                                                        }
+                                                    })
+                                                    ->get();
         
         return [
             'products' => $products,
@@ -682,11 +694,13 @@ class InventoryReconciliationController extends Controller
         return Excel::download(new InventoryDiscrepancy($data['products']), 'InventoryDiscrepancy.xls');
     }
 
-    public function export_breakdown($inventory_recon_id)
+    public function export_breakdown(Request $request)
     {   
-        // $data = $this->getBreakdown($inventory_recon_id);
-
-        return Excel::download(new InventoryBreakdown($inventory_recon_id), 'InventoryDiscrepancy.xls');
+        // report type ('ALL' or 'DISCREPANCY') - get all breakdown when report type is 'ALL' else 'DISCREPANCY' and get all breakdown with descrepancy
+        $params = ['inventory_recon_id' => $request->inventory_recon_id, 'report_type' => $request->report_type];
+        $this->getBreakdown($params);
+        
+        return Excel::download(new InventoryBreakdown($params), 'InventoryDiscrepancy.xls');
     }
     
     public function create_inventory_recon_breakdown($inventory_recon_id) 

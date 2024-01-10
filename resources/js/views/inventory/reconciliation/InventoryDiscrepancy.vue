@@ -335,7 +335,8 @@ export default {
           format: "letter",
         });
 
-        let d = new Date();
+        let d = new Date(this.reconciliation.document_date); //get document date (inventory as of {date})
+        let date_now = new Date();
         let months = [
           "January",
           "February",
@@ -350,11 +351,16 @@ export default {
           "November",
           "December",
         ];
+        
         let thisMonth = months[d.getMonth()];
-        let lastMonth = months[d.getMonth() - 1];
-        let gMonth = d.getMonth() + 1;
-        let gDate = d.getDate();
-        let gFYear = d.getFullYear();
+        // let lastMonth = months[index];
+        let docdate = this.reconciliation.document_date;
+        let [docMonth, docDay, docYear] = docdate ? docdate.split('/') : '1/1/1900'.split('/');
+        let index = docMonth - 1;
+        let documentMonth = months[index];
+        let gMonth = date_now.getMonth() + 1;
+        let gDate = date_now.getDate();
+        let gFYear = date_now.getFullYear();
 
         let header = "ADDESSA CORPORATION";
         let invtymemo = "INVTY MEMO#";
@@ -362,7 +368,7 @@ export default {
         let to = "To:";
         let from = "From:";
 
-        let invtymemo_value = this.branch_code + "-" + gFYear + "-" + gMonth;
+        let invtymemo_value = this.branch_code + "-" + docYear + "-" + docMonth;
         let date_value = thisMonth + " " + gDate + "," + gFYear;
         let bm_oic = this.bm_oic ? this.bm_oic : '';
         let to_position = "BM/OIC";
@@ -371,7 +377,7 @@ export default {
         let beneath_table =
           "Please verify, reconcile and coordinate to admin for the reconciliation of the discrepancies within Ten (10) days upon the receipt of this Memo.";
         let beneath_from = "Physical Inventory Report for the month of";
-        let beneath_from_value = lastMonth + " " + gFYear;
+        let beneath_from_value = documentMonth + " " + docYear;
         let date_submitted = "Date Submitted:";
         let date_submitted_value = this.date_reconciled ? this.date_reconciled : '';
 

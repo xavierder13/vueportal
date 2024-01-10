@@ -214,7 +214,7 @@ Route::group(['prefix' => 'inventory_reconciliation', 'middleware' => ['auth:api
         'uses' => 'API\InventoryReconciliationController@discrepancy',
         'as' => 'inventory_reconciliation.discrepancy',
     ]);
-    Route::get('/breakdown/{id}', [
+    Route::post('/breakdown', [
         'uses' => 'API\InventoryReconciliationController@breakdown',
         'as' => 'inventory_reconciliation.breakdown',
     ]);
@@ -234,7 +234,7 @@ Route::group(['prefix' => 'inventory_reconciliation', 'middleware' => ['auth:api
         'as' => 'inventory_reconciliation.export_discrepancy',
     ]);
 
-    Route::get('/export_breakdown/{id}', [
+    Route::post('/export_breakdown', [
         'uses' => 'API\InventoryReconciliationController@export_breakdown',
         'as' => 'inventory_reconciliation.export_breakdown',
     ]);
