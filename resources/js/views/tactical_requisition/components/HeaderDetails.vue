@@ -629,13 +629,11 @@
         return this.editedItem.marketing_event.attachment_required == 'Y' ? true : false;
       },
       timeOptions() {
-        let ctr = 24;
         let options = [];
         for (let hr = 1; hr <= 24; hr++) {
-          let padStart = "";
           let meridiem = hr < 12 || hr > 23 ? 'AM' : 'PM'; 
           let hour = hr > 12 ? hr - 12 : hr;
-          padStart = String(hr).padStart(2, "0") + ":00";
+          let padStart = String(hr).padStart(2, "0") + ":00";
           
           options.push({ value: padStart, text: String(hour) + ":00 " + meridiem });
 

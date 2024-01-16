@@ -335,11 +335,13 @@ export default {
       nativeEvent.stopPropagation();
 
       let data = event.data;
+      let hr_from = data.operating_from.split(':')[0];
+      let hr_to = data.operating_to.split(':')[0];
 
       this.selectedData = { 
         branch: data.branch.name,  
         date_period: this.formatDate(data.period_from) + ' -  ' + this.formatDate(data.period_to),
-        operating_time: data.operating_from + ' - ' + data.operating_to,
+        operating_time:  this.timeMeridiem(hr_from)  + ' - ' + this.timeMeridiem(hr_to),
         sponsor: data.sponsor,
         venue: data.venue,
       };
@@ -375,6 +377,12 @@ export default {
 
     rnd (a, b) {
       return Math.floor((b - a + 1) * Math.random()) + a
+    },
+
+    timeMeridiem(hr) {
+      let meridiem = hr < 12 || hr > 23 ? 'AM' : 'PM'; 
+      let hour = hr > 12 ? hr - 12 : hr; 
+      return String(hour) + ":00 " + meridiem;
     },
 
   },
