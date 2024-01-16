@@ -29,11 +29,14 @@
               :color="
                 editedItem.status === 'Pending'
                   ? 'warning'
+                  : editedItem.status === 'On Process'
+                  ? '#AB47BC'
                   : editedItem.status === 'Approved'
                   ? 'success'
                   : 'error'
               "
-              v-if="editedItem.status"
+              dark
+              v-if="editedItem.status && !editMode"
             >
               {{ editedItem.status }}
             </v-chip>
@@ -51,7 +54,7 @@
                       item-value="id"
                       label="Branch"
                       required
-                      :readonly="isReadOnly || user.id !== 1 "
+                      readonly
                     >
                     </v-autocomplete>
                   </v-col>
@@ -248,7 +251,7 @@
                   </p>
                 </div>
                 <div class="d-flex justify-start">
-                  <v-btn color="primary" small @click="dialog_attach_file = true">
+                  <v-btn color="primary" small @click="openAttachment()">
                     <v-icon small>mdi-attachment</v-icon> Attach Files {{ attachmentLength }}
                   </v-btn> 
                   <p class="ml-2 font-weight-bold font-italic red--text text--darken-1" v-if="fileIsRequired"> 
@@ -442,6 +445,7 @@
                       <td class="font-weight-bold border-0 pr-0">
                         {{ item.description }}
                         <v-btn
+                          class="mb-1"
                           color="primary"
                           icon
                           @click="addItem(index)"
@@ -644,16 +648,31 @@
                 </v-simple-table>
               </v-col>
             </v-row>
+            <template v-if="editedItem.status.toUpperCase() == 'DISAPPROVED' && !editMode">
+              <v-divider></v-divider>
+              <v-row>
+                <v-col>
+                  <span class="h6 font-weight-black">Disapprove Reason</span>
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col>
+                  <v-textarea v-model="editedItem.remarks" outlined auto-grow readonly>
+                  </v-textarea>
+                </v-col>
+              </v-row>
+            </template>
           </v-card-text>
           <v-divider class="mb-3 mt-0"></v-divider>
           <v-card-actions class="pl-6 pb-4">
-            <template v-if="editedItem.status  === 'Pending' && !isApproved">
+            <template v-if="['Pending', 'On Process'].includes(editedItem.status) && !isApproved">
               <v-btn
                 color="primary"
                 @click="updateTactical()"
                 :disabled="disabled"
-                v-if="hasPermission('tactical-requisition-edit') && !approved_logs.length"
+                v-if="!isReadOnly"
               >
+              <!-- v-if="hasPermission('tactical-requisition-edit') && !approved_logs.length" -->
                 Save
               </v-btn>
               <v-btn 
@@ -665,7 +684,7 @@
               </v-btn>
               <v-btn 
                 color="error" 
-                @click="showConfirmAlert('disapprove')" 
+                @click="(dialog_remarks = true) + (action = 'disapprove')" 
                 v-if="hasPermission('tactical-requisition-approve')"
               > 
                 Disapprove 
@@ -685,7 +704,26 @@
                 Cancel 
               </v-btn>
             </template>
-            <v-btn color="#E0E0E0" to="/tactical_requisition/index"> Back </v-btn>
+            <template v-if="editedItem.status == 'Disapproved'">
+              <v-btn
+                color="primary"
+                @click="editMode = true"
+                :disabled="disabled"
+                v-if="!editMode"
+              >
+                Edit & Re-create
+              </v-btn>
+              <v-btn
+                color="primary"
+                @click="createTactical()"
+                :disabled="disabled"
+                v-if="editMode"
+              >
+                Save & Re-create
+              </v-btn>
+            </template>
+            
+            <v-btn color="#E0E0E0" to="/tactical_requisition/index"> Cancel </v-btn>
           </v-card-actions>
         </v-card>
         <v-dialog v-model="dialog_attach_file" max-width="500px" persistent>
@@ -700,7 +738,7 @@
             <v-divider class="mt-0"></v-divider>
             <v-card-text>
               <v-container>
-                <v-row v-if="tactical_attachments.length">
+                <v-row v-if="tactical_attachments.length && !editMode">
                   <v-col class="my-0 py-0">
                     <v-simple-table class="elevation-1 file_table" dense>
                       <template v-slot:default>
@@ -748,8 +786,8 @@
                     </v-list> -->
                   </v-col>
                 </v-row>
-                <template v-if="hasPermission('tactical-requisition-edit') && !isApproved && !approved_logs.length">
-                  <v-divider class="mt-6" v-if="tactical_attachments.length"></v-divider>
+                <template v-if="!isReadOnly">
+                  <v-divider class="mt-6" v-if="tactical_attachments.length && !editMode"></v-divider>
                   <v-row v-if="!isApproved ">
                     <v-col class="my-0 py-0">
                       <v-file-input
@@ -787,6 +825,51 @@
                 @click="uploadFile()"
               >
                 {{ attachmentBtnLabel }}
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+        <v-dialog v-model="dialog_remarks" max-width="500px" persistent>
+          <v-card>
+            <v-card-title class="pa-4">
+              <span class="headline">Disapprove Reason</span>
+              <v-spacer></v-spacer>
+              <v-btn @click="dialog_attach_file = false" icon>
+                <v-icon> mdi-close-circle </v-icon>
+              </v-btn>
+            </v-card-title>
+            <v-divider class="mt-0"></v-divider>
+            <v-card-text>
+              <v-row>
+                <v-col class="my-0 pt-2">
+                  <v-textarea 
+                    label="Remarks" 
+                    v-model="editedItem.remarks"
+                    outlined
+                    :error-messages="remarksErrors"
+                    @input="$v.editedItem.remarks.$touch()"
+                    @blur="$v.editedItem.remarks.$touch()"
+                  >
+                  </v-textarea>
+                </v-col>
+              </v-row>
+            </v-card-text>
+            <v-divider class="mb-3 mt-0"></v-divider>
+            <v-card-actions class="pa-0">
+              <v-spacer></v-spacer>
+              <v-btn
+                color="#E0E0E0"
+                @click="(dialog_remarks = false) + (action = '')"
+                class="mb-4"
+              >
+                Close
+              </v-btn>
+              <v-btn
+                color="primary"
+                class="mb-3 mr-4"
+                @click="submitDisapproval()"
+              >
+                Save
               </v-btn>
             </v-card-actions>
           </v-card>
@@ -841,6 +924,11 @@ export default {
       file: {
         required: requiredIf(function () {
           return this.fileIsRequired;
+        }),
+      },
+      remarks: {
+        required: requiredIf(function () {
+          return this.remarksIsRequired;
         }),
       },
     },
@@ -902,6 +990,7 @@ export default {
         prev_sales_achievement: "",
         prev_total_expense: "",
         status: "",
+        remarks: "",
         file: [],
       },
       defaultItem: {
@@ -935,6 +1024,7 @@ export default {
         prev_sales_achievement: "",
         prev_total_expense: "",
         status: "",
+        remarks: "",
         file: [],
       },
       date_now: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().substr(0, 10),
@@ -957,6 +1047,9 @@ export default {
       approved_logs: [],
       snackbar: false,
       loading: true,
+      action: "",
+      editMode: false,
+      dialog_remarks: false,
     };
   },
 
@@ -975,26 +1068,48 @@ export default {
           this.marketing_events = response.data.marketing_events;
 
           const data = response.data.tactical_requisitions;
-          
-          this.editedItem.branch_id = data.branch_id;
-          this.editedItem.marketing_event = data.marketing_event;
-          this.editedItem.marketing_event_id = data.marketing_event_id;
-          this.editedItem.sponsor = data.sponsor;
-          this.editedItem.venue = data.venue;
-          this.editedItem.period_from = data.period_from;
-          this.editedItem.period_to = data.period_to;
-          this.editedItem.operating_from = data.operating_from;
-          this.editedItem.operating_to = data.operating_to;
-          this.editedItem.prev_period_from = data.prev_period_from;
-          this.editedItem.prev_period_to = data.prev_period_to;
-          this.editedItem.prev_venue = data.prev_venue;
-          this.editedItem.prev_sponsor = data.prev_sponsor;
-          this.editedItem.prev_quota = data.prev_quota;
-          this.editedItem.prev_total_sales = data.prev_total_sales;
-          this.editedItem.prev_sales_achievement = data.prev_sales_achievement;
-          this.editedItem.prev_total_expense = data.prev_total_expense;
-          this.editedItem.status = data.status;
-          this.editedItem.expense_particulars = data.tactical_rows;
+
+          let headerData = {
+            date_submit: "",
+            branch_id: "",
+            marketing_event: "",
+            marketing_event_id: "",
+            sponsor: "",
+            venue: "",
+            period_from: "",
+            period_to: "",
+            operating_from: "",
+            operating_to: "",
+            prev_period_from: "",
+            prev_period_to: "",
+            prev_venue: "",
+            prev_sponsor: "",
+            prev_quota: "",
+            prev_total_sales: "",
+            prev_sales_achievement: "",
+            prev_total_expense: "",
+            status: "",
+            expense_particulars: "",
+            remarks: "",
+          };
+
+          let fields = Object.keys(headerData);
+
+          fields.forEach(field => {
+            if(field == 'expense_particulars')
+            {
+              this.editedItem[field] = data['tactical_rows'];
+            }
+            else if(field == 'date_submit')
+            {
+              this.editedItem[field] = new Date(data['created_at']).toISOString().substr(0, 10);
+            }
+            else
+            {
+              this.editedItem[field] = field == 'expense_particulars' ? data['tactical_rows'] : data[field];
+            }
+            
+          });
 
           data.marketing_event.expense_particulars.forEach(value => {
             this.editedItem.expense_particulars.forEach((val, i) => {
@@ -1105,11 +1220,61 @@ export default {
 
     },
 
-    async submitTactical(action) {
-      
-      action = action;
+    createTactical() {
 
-      let data = { tactical_requisition_id: this.tactical_requisition_id };
+      this.$v.$touch();
+
+      if(!this.$v.$error)
+      {
+        this.$swal({
+          title: "Re-create Tactical Requisition",
+          icon: "question",
+          showCancelButton: true,
+          confirmButtonColor: "#3085d6",
+          cancelButtonColor: "#6c757d",
+          confirmButtonText: "CREATE",
+          cancelButtonText: "CANCEL"
+        }).then((result) => {
+
+          if (result.value) {
+            this.disabled = true;
+            this.overlay = true;
+            
+            axios.post('/api/tactical_requisition/store', this.formData).then(
+              (response) => {
+                let data = response.data
+                console.log(response);
+                if(data.success)
+                { 
+
+                  this.showAlert(data.success);
+                  setTimeout(() => {
+                    this.$router.push({ name: 'tactical.index' })
+                  }, 500);
+                
+                }
+              },
+              (error) => {
+                this.isUnauthorized(error);
+              },
+            )
+            this.disabled = false;
+            this.overlay = false;
+          }
+
+        });
+      }
+
+      if(this.$v.editedItem.file.$error)
+      {
+        this.snackbar = true;
+      }
+      
+    },
+
+    async submitTactical(action) {
+
+      let data = { tactical_requisition_id: this.tactical_requisition_id, remarks: this.editedItem.remarks };
       let url = "/api/tactical_requisition/" + action;
 
       Object.assign(this.editedItem, { deletedRows: this.deletedRows });
@@ -1129,7 +1294,7 @@ export default {
           { 
 
             this.showAlert(data.success);
-
+            this.dialog_remarks = false;
             if(action == 'delete')
             {
               setTimeout(() => {
@@ -1150,11 +1315,24 @@ export default {
       this.disabled = false;
       this.overlay = false;
     },
-
+    submitDisapproval() {
+      this.$v.editedItem.remarks.$touch();
+      if(!this.$v.editedItem.remarks.$error)
+      {
+        this.showConfirmAlert('disapprove');
+      }
+      
+    },
     uploadFile(){
       if(this.attachmentBtnLabel === 'Upload')
       {
-        axios.post("/api/tactical_requisition/add_file/" + this.tactical_requisition_id, this.formData, {
+        let formData = new FormData();
+
+        this.editedItem.file.forEach(val => {
+          formData.append('file[]', val);
+        });
+
+        axios.post("/api/tactical_requisition/add_file/" + this.tactical_requisition_id, formData, {
           headers: {
               Authorization: "Bearer " + localStorage.getItem("access_token"),
               "Content-Type": "multipart/form-data",
@@ -1222,7 +1400,7 @@ export default {
     },
 
     showConfirmAlert(action) {
-
+      this.action = action;
       let icon = 'question';
       let title = `${action.toUpperCase()} Tactital Requistion`;
       let text = action !== 'Update' ? "You won't be able to revert this!" : '';
@@ -1565,6 +1743,24 @@ export default {
       });
    
     },
+    openAttachment() {
+      // if fields are readonly and no file attachment then show alert message, else open dialog
+      if(this.isReadOnly &&  !this.attachmentLength)
+      {
+        this.$swal({
+        position: "center",
+        icon: "warning",
+        title: "No File Attachment",
+        showConfirmButton: false,
+        timer: 2500,
+      });
+      }
+      else
+      {
+        this.dialog_attach_file = true;
+      }
+      
+    },  
     isUnauthorized(error) {
       // if unauthenticated (401)
       if (error.response.status == "401") {
@@ -1678,6 +1874,13 @@ export default {
       
       return errors;
     },
+    remarksErrors() {
+      const errors = [];
+      if (!this.$v.editedItem.remarks.$dirty) return errors;
+      !this.$v.editedItem.remarks.required &&
+        errors.push("Remarks is required.");
+      return errors;
+    },
     computedPeriodFromFormatted() {
       return this.formatDate(this.editedItem.period_from);
     },
@@ -1696,8 +1899,25 @@ export default {
     formData(){
       let formData = new FormData();
 
-      this.editedItem.file.forEach(val => {
-        formData.append('file[]', val);
+      const data = this.editedItem;
+      let fieldName = Object.keys(data);
+      let fieldValue;
+      fieldName.forEach(field => {
+        fieldValue = this.editedItem[`${field}`];
+        formData.append(field, JSON.stringify(fieldValue));
+
+        if (field != 'file') {
+          formData.append(field, JSON.stringify(fieldValue));
+        }
+        else
+        {
+          // create array formData for file
+          fieldValue.forEach(val => {
+            formData.append('file[]', val);
+          });
+          
+        }
+        
       });
 
       return formData;
@@ -1705,11 +1925,14 @@ export default {
     fileIsRequired(){
       return this.editedItem.marketing_event.attachment_required == 'Y' ? true : false;
     },
+    remarksIsRequired(){
+      return this.action == 'disapprove' ? true : false;
+    },
     attachmentLength(){
       let ctr = this.editedItem.file.length + this.tactical_attachments.length;
       let length = "";
 
-      if(ctr)
+      if(ctr && !this.editMode)
       {
         length = `(${ctr})`;
       }
@@ -1718,7 +1941,8 @@ export default {
 
     },
     attachmentBtnLabel(){
-      return this.editedItem.file.length ? 'Upload' : 'OK';
+      // if editMode is true then default button label is 'OK' else if file has length then set to 'Upload' else 'OK'
+      return this.editMode ? 'OK' : this.editedItem.file.length ? 'Upload' : 'OK';
     },
     isApproved(){
       let isApproved = false;
@@ -1737,7 +1961,16 @@ export default {
 
     },
     isReadOnly(){
-      return this.editedItem.status === 'Approved' || this.editedItem.status === 'Disapproved' || !this.hasPermission('tactical-requisition-edit');
+      let status = this.editedItem.status;
+      let hasPermission = this.hasPermission('tactical-requisition-edit');
+      
+      // return this.editedItem.status === 'Approved' || this.editedItem.status === 'Disapproved' || !this.hasPermission('tactical-requisition-edit');
+
+      return (status != 'Pending' || !hasPermission) && !this.editMode;
+
+    },
+    btnText() {
+      return editMode ? 'Save' : 'Edit & Re-create';
     },
     ...mapState("auth", ["user"]),
     ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission"]),
@@ -1749,6 +1982,14 @@ export default {
     user() {
       this.editedItem.branch_id = this.user.branch_id;
     },
+    editMode() {
+      // if editMode is true then reset file[] value
+      if(this.editMode)
+      { 
+        this.editedItem.date_submit = this.defaultItem.date_submit;
+        this.editedItem.file = [];
+      }
+    }
   },
   mounted() {
     axios.defaults.headers.common["Authorization"] =

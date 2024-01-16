@@ -102,8 +102,8 @@ class TacticalRequisitionController extends Controller
             
             $approvers_arr = [];
             $current_level = $tactical->marketing_event->max_approval_level; //$access_chart->max_approval_level;
-            // if tactical requisition status is Pending then set the required level approver to show the for approval tactical requisition
-            if($tactical->status === 'Pending')
+            // if tactical requisition status is Pending or On Process then set the required level approver to show the for approval tactical requisition
+            if(in_array($tactical->status, ['Pending', 'On Process']))
             {
                 $current_level = count($level) ? min($level) : 1;
             }
@@ -653,7 +653,7 @@ class TacticalRequisitionController extends Controller
         // get the number of approvers (maximum level)
         $approved_logs_max_level = $approved_logs->where('level', '=', $max_approval_level)->count();   
 
-        $status = 'Pending';
+        $status = 'On Process';
    
         //approval logs of maximum level is equal or greater than required number of approval then update status 
         if($approved_logs_max_level >= $num_of_approvers_max_level)
@@ -679,6 +679,7 @@ class TacticalRequisitionController extends Controller
         $id = $request->get('tactical_requisition_id');
         $tactical = TacticalRequisition::find($id);
         $tactical->status = 'Disapproved';
+        $tactical->remarks = $request->remarks;
         $tactical->save();
 
         $this->activity_log($id, 'disapprove');

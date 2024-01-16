@@ -41,8 +41,10 @@
               <v-col cols="4" class="my-0 py-0">
                 <v-switch v-model="switch1">
                   <template v-slot:label>
-                    Attachment Required: 
-                    <v-chip small :color="switch1 ? 'primary' : ''" class="ml-2"> {{ switch1 }} </v-chip>
+                    <span class="mt-2">Attachment Required:</span>  
+                    <v-chip small :color="switch1 ? 'primary' : ''" class="ml-2 mt-2"> 
+                      {{ switch1 }} 
+                    </v-chip>
                   </template>
                 </v-switch>
               </v-col>
@@ -79,7 +81,7 @@
                     </template>
                     <template v-slot:label="{ item, open }">
                       <v-row class="pa-0 ma-0">
-                        <v-col class="pa-0 ma-0" :cols="item.children ? 9 : 4">
+                        <v-col :class="'pa-0 ma-0' + (item.children ? ' mt-2' : '')" :cols="item.children ? 9 : 4">
                           <v-text-field
                             class="pa-0 ma-0"
                             name="description"
@@ -98,7 +100,10 @@
                             v-if="item.children"
                           >
                             <template v-slot:label>
-                              Dynamic: <v-chip small :color="item.dynamic ? 'primary' : '' " class="ml-2"> {{ item.dynamic }} </v-chip>
+                              <span class="mt-2">Dynamic:</span> 
+                              <v-chip small :color="item.dynamic ? 'primary' : '' " class="ml-2 mt-2"> 
+                                {{ item.dynamic }} 
+                              </v-chip>
                             </template>
                           </v-switch>
                         </v-col>

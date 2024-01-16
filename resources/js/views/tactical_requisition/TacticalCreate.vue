@@ -17,603 +17,31 @@
             </v-breadcrumbs-item>
           </template>
         </v-breadcrumbs>
-
-        <v-card>
+        <v-skeleton-loader
+          v-if="loading"
+          type="article, article, table"
+        ></v-skeleton-loader>
+        <v-card v-if="!loading">
           <v-card-title class="mb-0 pb-0">
             <span class="headline mr-2">TACTICAL REQUISITION</span>
           </v-card-title>
           <v-divider></v-divider>
           <v-card-text class="px-6 pt-0">
-            <v-row>
-              <v-col cols="8">
-                <v-row>
-                  <v-col class="mb-0 py-0">
-                    <v-autocomplete
-                      v-model="editedItem.branch_id = user.branch_id"
-                      :items="branches"
-                      item-text="name"
-                      item-value="id"
-                      label="Branch"
-                      required
-                      :error-messages="branchErrors"
-                      @input="$v.editedItem.branch_id.$touch()"
-                      @blur="$v.editedItem.branch_id.$touch()"
-                      :readonly="user.id !== 1"
-                    >
-                    </v-autocomplete>
-                  </v-col>
-                  <v-col class="mb-0 py-0">
-                    <v-menu
-                      ref="menu"
-                      v-model="date_menu_date_submit"
-                      :close-on-content-click="true"
-                      :return-value.sync="date_menu_date_submit"
-                      transition="scale-transition"
-                      offset-y
-                      min-width="auto"
-                      disabled
-                    >
-                      <template v-slot:activator="{ on, attrs }">
-                        <v-text-field
-                          v-model="computedDateSubmitFormatted"
-                          label="Date Submitted"
-                          prepend-icon="mdi-calendar"
-                          readonly
-                          v-bind="attrs"
-                          v-on="on"
-                        ></v-text-field>
-                      </template>
-                      <v-date-picker
-                        v-model="editedItem.date_submit"
-                        no-title
-                        scrollable
-                        readonly
-                        :max="date_now"
-                      >
-                      </v-date-picker>
-                    </v-menu>
-                  </v-col>
-                </v-row>
-                <v-row>
-                  <v-col class="my-0 py-0">
-                    <v-autocomplete
-                      v-model="editedItem.marketing_event"
-                      :items="marketing_events"
-                      item-text="event_name"
-                      item-value="id"
-                      label="Event Title"
-                      return-object
-                      required
-                      :error-messages="eventTitleErrors"
-                      @input="$v.editedItem.marketing_event.$touch()"
-                      @blur="$v.editedItem.marketing_event.$touch()"
-                      @change="getMarketingEvent()"
-                    >
-                    </v-autocomplete>
-                  </v-col>
-                  <v-col class="my-0 py-0">
-                    <v-text-field
-                      name="sponsor"
-                      v-model="editedItem.sponsor"
-                      :error-messages="sponsorErrors"
-                      label="Sponsor"
-                      @input="$v.editedItem.sponsor.$touch()"
-                      @blur="$v.editedItem.sponsor.$touch()"
-                    ></v-text-field>
-                  </v-col>
-                </v-row>
-                <v-row>
-                  <v-col class="my-0 py-0">
-                    <v-text-field
-                      name="venue"
-                      v-model="editedItem.venue"
-                      :error-messages="venueErrors"
-                      label="Venue"
-                      @input="$v.editedItem.venue.$touch()"
-                      @blur="$v.editedItem.venue.$touch()"
-                    ></v-text-field>
-                  </v-col>
-                </v-row>
-                <v-row>
-                  <v-col class="my-0 py-0">
-                    <v-row>
-                      <v-col>
-                        <v-menu
-                          ref="menu"
-                          v-model="date_menu_period_fr"
-                          :close-on-content-click="true"
-                          :return-value.sync="date_menu_period_fr"
-                          transition="scale-transition"
-                          offset-y
-                          min-width="auto"
-                        >
-                          <template v-slot:activator="{ on, attrs }">
-                            <v-text-field
-                              v-model="computedPeriodFromFormatted"
-                              label="Period From"
-                              prepend-icon="mdi-calendar"
-                              readonly
-                              v-bind="attrs"
-                              v-on="on"
-                            ></v-text-field>
-                          </template>
-                          <v-date-picker
-                            v-model="editedItem.period_from"
-                            no-title
-                            scrollable
-                            :max="editedItem.period_to"
-                          >
-                          </v-date-picker>
-                        </v-menu>
-                      </v-col>
-                      <v-col>
-                        <v-menu
-                          ref="menu"
-                          v-model="date_menu_period_to"
-                          :close-on-content-click="true"
-                          :return-value.sync="date_menu_period_to"
-                          transition="scale-transition"
-                          offset-y
-                          min-width="auto"
-                        >
-                          <template v-slot:activator="{ on, attrs }">
-                            <v-text-field
-                              v-model="computedPeriodToFormatted"
-                              label="Period To"
-                              prepend-icon="mdi-calendar"
-                              readonly
-                              v-bind="attrs"
-                              v-on="on"
-                            ></v-text-field>
-                          </template>
-                          <v-date-picker
-                            v-model="editedItem.period_to"
-                            no-title
-                            scrollable
-                            :min="editedItem.period_from"
-                          >
-                          </v-date-picker>
-                        </v-menu>
-                      </v-col>
-                    </v-row>
-                  </v-col>
-                  <v-col class="my-0 py-0">
-                    <v-row>
-                      <v-col>
-                        <v-autocomplete
-                          v-model="editedItem.operating_from"
-                          :items="time_options"
-                          label="Operating From"
-                          required
-                          prepend-icon="mdi-clock"
-                          :error-messages="hrFromErrors"
-                          @input="$v.editedItem.operating_from.$touch()"
-                          @blur="$v.editedItem.operating_from.$touch()"
-                        >
-                        </v-autocomplete>
-                      </v-col>
-                      <v-col>
-                        <v-autocomplete
-                          v-model="editedItem.operating_to"
-                          :items="time_options"
-                          label="Operating To"
-                          required
-                          prepend-icon="mdi-clock"
-                          :error-messages="hrToErrors"
-                          @input="$v.editedItem.operating_to.$touch()"
-                          @blur="$v.editedItem.operating_to.$touch()"
-                        >
-                        </v-autocomplete>
-                      </v-col>
-                    </v-row>
-                  </v-col>
-                </v-row>
-              </v-col>
-              <v-divider vertical></v-divider>
-              <v-col>
-                <div class="border-1">
-                  <p class="font-weight-bold subtitle-1">
-                    PLS ATTACH THE FOLLOWING:
-                  </p>
-                  <p class="font-weight-bold">1. AGING</p>
-                  <p class="mb-0 font-weight-bold">
-                    2. SUMMARY OF LEDGER PER CATEGORY
-                  </p>
-                  <p class="mt-0 font-italic font-weight-medium">
-                    for mobile, stall exhibit, and appliance tour
-                  </p>
-                  <p class="font-weight-bold">
-                    3. EXPLANATION LETTER
-                    <span class="font-weight-medium">
-                      if previous activity is below quota</span
-                    >
-                  </p>
-                  <p class="font-weight-bold">
-                    4. PICTURES OF PREVIOUS ACTIVITY STATED HEREIN
-                  </p>
-                </div>
-                <div class="d-flex justify-start">
-                  <v-btn color="primary" small @click="dialog_attach_file = true">
-                    <v-icon small>mdi-attachment</v-icon> Attach Files {{ editedItem.file.length ? '(' + editedItem.file.length + ')' : '' }}
-                  </v-btn> 
-                  <p class="ml-2 font-weight-bold font-italic red--text text--darken-1" v-if="fileErrors.length"> {{ fileErrors[0] }} </p>
-                </div>
-              </v-col>
-            </v-row>
+            <HeaderDetails 
+              :user="user" 
+              :marketing_events="marketing_events" 
+              :branches="branches"
+              :fileLength="fileLength"
+              :fileError="fileError"
+              @getMarketingEvent="getMarketingEvent"
+              @openAttachFileDialog="openAttachFileDialog"
+              ref="HeaderDetails"
+            />
             <v-divider></v-divider>
-            <v-row>
-              <v-col class="mb-0 py-0 mt-2">
-                <p class="font-weight-bold subtitle-1">
-                  PREVIOUS TACTICAL ACTIVITY
-                </p>
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col class="mb-0 py-0">
-                <v-menu
-                  ref="menu"
-                  v-model="date_menu_prev_period_fr"
-                  :close-on-content-click="true"
-                  :return-value.sync="date_menu_prev_period_fr"
-                  transition="scale-transition"
-                  offset-y
-                  min-width="auto"
-                >
-                  <template v-slot:activator="{ on, attrs }">
-                    <v-text-field
-                      v-model="computedPrevPeriodFromFormatted"
-                      label="Period From"
-                      prepend-icon="mdi-calendar"
-                      readonly
-                      v-bind="attrs"
-                      v-on="on"
-                    ></v-text-field>
-                  </template>
-                  <v-date-picker
-                    v-model="editedItem.prev_period_from"
-                    no-title
-                    scrollable
-                    :max="editedItem.prev_period_from"
-                  >
-                  </v-date-picker>
-                </v-menu>
-              </v-col>
-              <v-col class="mb-0 py-0">
-                <v-menu
-                  ref="menu"
-                  v-model="date_menu_prev_period_to"
-                  :close-on-content-click="true"
-                  :return-value.sync="date_menu_prev_period_to"
-                  transition="scale-transition"
-                  offset-y
-                  min-width="auto"
-                >
-                  <template v-slot:activator="{ on, attrs }">
-                    <v-text-field
-                      v-model="computedPrevPeriodToFormatted"
-                      label="Period To"
-                      prepend-icon="mdi-calendar"
-                      readonly
-                      v-bind="attrs"
-                      v-on="on"
-                    ></v-text-field>
-                  </template>
-                  <v-date-picker
-                    v-model="editedItem.prev_period_to"
-                    no-title
-                    scrollable
-                    :max="editedItem.prev_period_to"
-                  >
-                  </v-date-picker>
-                </v-menu>
-              </v-col>
-              <v-col class="my-0 py-0">
-                <v-text-field
-                  name="prev_venue"
-                  v-model="editedItem.prev_venue"
-                  label="Venue"
-                ></v-text-field>
-              </v-col>
-              <v-col class="my-0 py-0">
-                <v-text-field
-                  name="prev_sponsor"
-                  v-model="editedItem.prev_sponsor"
-                  label="Sponsor"
-                ></v-text-field>
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col class="my-0 py-0">
-                <v-text-field-dotnumber
-                  v-model="editedItem.prev_quota"
-                  label= 'Quota'
-                  v-bind:properties="{
-                    name: 'prev_quota',
-                    placeholder: '0',
-                    error: prevQuotaErrors.length ? true : false,
-                    messages: prevQuotaErrors,
-                  }"
-                  v-bind:options="{
-                    length: 16,
-                    precision: 0,
-                    empty: null,
-                    
-                  }"
-                >
-                </v-text-field-dotnumber>
-              </v-col>
-              <v-col class="my-0 py-0">
-                <v-text-field-dotnumber
-                  v-model="editedItem.prev_total_sales"
-                  label= 'Total Sales'
-                  v-bind:properties="{
-                    name: 'prev_total_sales',
-                    placeholder: '0',
-                    error: prevTotalSalesErrors.length ? true : false,
-                    messages: prevTotalSalesErrors,
-                  }"
-                  v-bind:options="{
-                    length: 16,
-                    precision: 0,
-                    empty: null,
-                  }"
-                >
-                </v-text-field-dotnumber>
-              </v-col>
-              <v-col class="my-0 py-0">
-                <v-text-field-dotnumber
-                  v-model="editedItem.prev_sales_achievement"
-                  label= 'Sales Achievement'
-                  v-bind:properties="{
-                    name: 'prev_sales_achievement',
-                    placeholder: '0',
-                    error: prevSalesAchvmntErrors.length ? true : false,
-                    messages: prevSalesAchvmntErrors,
-                  }"
-                  v-bind:options="{
-                    length: 16,
-                    precision: 0,
-                    empty: null,
-                  }"
-                >
-                </v-text-field-dotnumber>
-              </v-col>
-              <v-col class="my-0 py-0">
-                <v-text-field-dotnumber
-                  v-model="editedItem.prev_total_expense"
-                  label= 'Total Expense'
-                  v-bind:properties="{
-                    name: 'prev_total_expense',
-                    placeholder: '0',
-                    error: prevTotalExpenseErrors.length ? true : false,
-                    messages: prevTotalExpenseErrors,
-                  }"
-                  v-bind:options="{
-                    length: 16,
-                    precision: 0,
-                    empty: null,
-                  }"
-                >
-                </v-text-field-dotnumber>
-              </v-col>
-            </v-row>
-            <v-divider></v-divider>
-            <v-row>
-              <v-col>
-                <v-simple-table>
-                  <thead class="grey darken-1 white--text font-weight-bold">
-                    <tr>
-                      <td>PARTICULARS</td>
-                      <td>RESOURCE PERSON</td>
-                      <td>CONTACT DETAILS</td>
-                      <td width="110px">QTY</td>
-                      <td width="150px">UNIT COST (PHP)</td>
-                      <td>AMOUNT (PHP)</td>
-                    </tr>
-                  </thead>
-                  <tr v-if="editedItem.expense_particulars.length === 0">
-                    <td colspan="6" class="text-center">
-                      <p class="font-italic font-weight-bold subtitle-1 my-4">Please select Event Title</p>
-                    </td>
-                  </tr>
-                  <tbody v-for="(item, index) in editedItem.expense_particulars">
-                    <tr>
-                      <td class="font-weight-bold border-0">
-                        {{ item.description }} 
-                        <v-btn
-                          color="primary"
-                          icon
-                          @click="addItem(index)"
-                          v-if="item.dynamic"
-                        >
-                          <v-icon>mdi-plus-circle</v-icon>
-                        </v-btn>
-                      </td>
-                      <template v-if="item.expense_sub_particulars.length === 0">
-                        <td class="border-0 pr-0">
-                          <v-text-field
-                            name="resource_person"
-                            v-model="item.resource_person"
-                            dense
-                            hide-details
-                            outlined
-                            @input="getFieldValue(item, '', 'resource_person')"
-                            @blur="getFieldValue(item, '', 'resource_person')"
-                            :error-messages="errorField(index, 'resource_person')"
-                          ></v-text-field>
-                        </td>
-                        <td class="border-0 pr-0">
-                          <v-text-field
-                            name="contact"
-                            v-model="item.contact"
-                            dense
-                            hide-details
-                            outlined
-                            @input="getFieldValue(item, '', 'contact')"
-                            @blur="getFieldValue(item, '', 'contact')"
-                            :error-messages="errorField(index, 'contact')"
-                          ></v-text-field>
-                        </td>
-                        <td class="border-0 pr-0">
-                          <v-text-field-money
-                            class="pa-0"
-                            v-model="item.qty"
-                            v-bind:properties="{
-                              name: 'qty',
-                              placeholder: '0',
-                              'hide-details': true,
-                              outlined: true,
-                              dense: true,
-                              error: errorField(index, 'qty'),
-                              messages: '',
-                            }"
-                            v-bind:options="{
-                              length: 16,
-                              precision: 0,
-                              empty: null,
-                            }"
-                            @input="getFieldValue(item, '', 'qty') + computeAmount()"
-                            @blur="getFieldValue(item, '', 'qty') + computeAmount()"
-                          >
-                          </v-text-field-money>
-                        </td>
-                        <td class="border-0 pr-0">
-                          <v-text-field-dotnumber
-                            class="pa-0"
-                            v-model="item.unit_cost"
-                            v-bind:properties="{
-                              name: 'unit_cost',
-                              placeholder: '0.00',
-                              'hide-details': true,
-                              outlined: true,
-                              dense: true,
-                              error: errorField(index, 'unit_cost'),
-                              messages: '',
-                            }"
-                            v-bind:options="{
-                              length: 11,
-                              precision: 2,
-                              empty: null,
-                            }"
-                            @input="getFieldValue(item, '', 'unit_cost') + computeAmount()"
-                            @blur="getFieldValue(item, '', 'unit_cost') + computeAmount()"
-                          >
-                          </v-text-field-dotnumber>
-                        </td>
-                        <td class="font-weight-bold border-0 pr-0">
-                          {{ !item.amount ? "0.00" : Number(item.amount).toLocaleString('en', numOpts) }}
-                        </td>
-                      </template>
-                    </tr>
-                    <tr v-for="(subItem, i) in item.expense_sub_particulars">
-                      <td class="border-0 pr-0">
-                        <span class="ml-12" v-if="subItem.status !== 'New'">{{ subItem.description }}</span>
-                        <div class="d-flex justify-content-end" v-if="subItem.status === 'New'">
-                          <v-btn
-                            color="error"
-                            icon
-                            class="ml-2 mt-1"
-                            @click="removeItem(subItem)"
-                          >
-                            <v-icon>mdi-minus-circle</v-icon>
-                          </v-btn>
-                          <v-text-field
-                            name="description"
-                            v-model="subItem.description"
-                            dense
-                            hide-details
-                            outlined
-                            @input="getFieldValue(item, subItem, 'description')"
-                            @blur="getFieldValue(item, subItem, 'description')"
-                            :error-messages="errorSubField(index, i, 'description')"
-                          >
-                          </v-text-field>
-                        </div>
-                      </td>
-                      <td class="border-0 pr-0">
-                        <v-text-field
-                          name="resource_person"
-                          v-model="subItem.resource_person"
-                          dense
-                          hide-details
-                          outlined
-                          @input="getFieldValue(item, subItem, 'resource_person')"
-                          @blur="getFieldValue(item, subItem, 'resource_person')"
-                          :error-messages="errorSubField(index, i, 'resource_person')"
-                        ></v-text-field>
-                      </td>
-                      <td class="border-0 pr-0">
-                        <v-text-field
-                          name="contact"
-                          v-model="subItem.contact"
-                          dense
-                          hide-details
-                          outlined
-                          @input="getFieldValue(item, subItem, 'contact')"
-                          @blur="getFieldValue(item, subItem, 'contact')"
-                          :error-messages="errorSubField(index, i, 'contact')"
-                        ></v-text-field>
-                      </td>
-                      <td class="border-0 pr-0">
-                        <v-text-field-money
-                          class="pa-0"
-                          v-model="subItem.qty"
-                          v-bind:properties="{
-                            name: 'qty',
-                            placeholder: '0',
-                            'hide-details': true,
-                            outlined: true,
-                            dense: true,
-                            error: errorSubField(index, i, 'qty'),
-                            messages: '',
-                          }"
-                          v-bind:options="{
-                            length: 16,
-                            precision: 0,
-                            empty: null,
-                          }"
-                          @input="getFieldValue(item, subItem, 'qty') + computeAmount()"
-                          @blur="getFieldValue(item, subItem, 'qty') + computeAmount()"
-                        >
-                        </v-text-field-money>
-                      </td>
-                      <td class="border-0 pr-0">
-                        <v-text-field-dotnumber
-                          class="pa-0"
-                          v-model="subItem.unit_cost"
-                          v-bind:properties="{
-                            name: 'unit_cost',
-                            placeholder: '0.00',
-                            'hide-details': true,
-                            outlined: true,
-                            dense: true,
-                            error: errorSubField(index, i, 'unit_cost'),
-                            messages: '',
-                          }"
-                          v-bind:options="{
-                            length: 11,
-                            precision: 2,
-                            empty: null,
-                          }"
-                          @input="getFieldValue(item, subItem, 'unit_cost') + computeAmount()"
-                          @blur="getFieldValue(item, subItem, 'unit_cost') + computeAmount()"
-                        >
-                        </v-text-field-dotnumber>
-                      </td>
-                      <td class="font-weight-bold border-0">
-                        {{ !subItem.amount ? "0.00" : Number(subItem.amount).toLocaleString('en', numOpts) }}
-                      </td>
-                    </tr>
-                  </tbody>
-                  <tfoot>
-                    <tr class="font-weight-black">
-                      <td colspan="5" class="text-right">TOTAL AMOUNT</td>
-                      <td>{{ Number(grand_total).toLocaleString('en', numOpts) }}</td>
-                    </tr>
-                  </tfoot>
-                </v-simple-table>
-              </v-col>
-            </v-row>
+            <ExpenseParticulars
+              :expense_particulars="expense_particulars"
+              ref="ExpenseParticulars"
+            />
           </v-card-text>
           <v-divider class="mb-3 mt-0"></v-divider>
           <v-card-actions class="pl-6 pb-4">
@@ -627,62 +55,18 @@
             <v-btn color="#E0E0E0" to="/"> Cancel </v-btn>
           </v-card-actions>
         </v-card>
-        <v-dialog v-model="dialog_attach_file" max-width="500px" persistent>
-          <v-card>
-            <v-card-title class="pa-4">
-              <span class="headline">Attach file</span>
-            </v-card-title>
-            <v-divider class="mt-0"></v-divider>
-            <v-card-text>
-              <v-container>
-                <v-row>
-                  <v-col class="my-0 py-0">
-                    <v-file-input
-                      v-model="editedItem.file"
-                      show-size
-                      label="File input"
-                      prepend-icon="mdi-paperclip"
-                      required
-                      multiple
-                      :error-messages="fileErrors"
-                      @input="$v.editedItem.file.$touch()"
-                      @blur="$v.editedItem.file.$touch()"
-                    >
-                      <template v-slot:selection="{ index, text }">
-                        <v-chip small label color="primary" close @click:close="removeFile(index, text)">
-                          {{ text }}
-                        </v-chip>
-                      </template>
-                    </v-file-input>
-                  </v-col>
-                </v-row>
-              </v-container>
-            </v-card-text>
-            <v-divider class="mb-3 mt-0"></v-divider>
-            <v-card-actions class="pa-0">
-              <v-spacer></v-spacer>
-              <!-- <v-btn
-                color="#E0E0E0"
-                @click="(dialog_attach_file = false)"
-                class="mb-4"
-              >
-                Close
-              </v-btn> -->
-              <v-btn
-                color="primary"
-                class="mb-3 mr-4"
-                @click="(dialog_attach_file = false)"
-              >
-                OK
-              </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
+        <AttachFileDialog 
+          :dialog="dialog_attach_file" 
+          :fileIsRequired="fileIsRequired" 
+          :snackbar="snackbar"
+          @closeAttachFileDialog="closeAttachFileDialog"
+          ref="AttachFileDialog" 
+        />
         <v-snackbar
           v-model="snackbar"
           color="error"
         >
-          {{ fileErrors[0] }}
+          {{ fileError }}
 
           <template v-slot:action="{ attrs }">
             <v-btn
@@ -708,30 +92,17 @@ import {
 } from "vuelidate/lib/validators";
 import TimeRangePicker from "vuetify-time-range-picker";
 import { mapState } from "vuex";
+import HeaderDetails from './components/HeaderDetails.vue';
+import AttachFileDialog from './components/AttachFileDialog.vue';
+import ExpenseParticulars from './components/ExpensePaticulars.vue';
 
 export default {
   mixins: [validationMixin],
   components: {
     TimeRangePicker,
-  },
-  validations: {
-    editedItem: {
-      marketing_event: { required },
-      marketing_event_id: { required },
-      branch_id: { required },
-      venue: { required },
-      sponsor: { required },
-      period_from: { required },
-      period_to: { required },
-      operating_from: { required },
-      operating_to: { required },
-      file: { required },
-      // file: {
-      //   required: requiredIf(function () {
-      //     return this.fileIsRequired;
-      //   }),
-      // },
-    },
+    HeaderDetails,
+    AttachFileDialog,
+    ExpenseParticulars,
   },
   data() {
     return {
@@ -751,161 +122,57 @@ export default {
       disabled: false,
       branches: [],
       marketing_events: [],
-      editedItem: {
-        marketing_event: "",
-        marketing_event_id: "",
-        branch_id: "",
-        venue: "",
-        sponsor: "",
-        expense_particulars: [],
-        date_submit: new Date(
-          Date.now() - new Date().getTimezoneOffset() * 60000
-        )
-          .toISOString()
-          .substr(0, 10),
-        period_from: new Date(
-          Date.now() - new Date().getTimezoneOffset() * 60000
-        )
-          .toISOString()
-          .substr(0, 10),
-        period_to: new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
-          .toISOString()
-          .substr(0, 10),
-        operating_from: "08:00",
-        operating_to: "08:00",
-        prev_period_from: null,
-        prev_period_to: null,
-        prev_venue: "",
-        prev_sponsor: "",
-        prev_quota: "",
-        prev_total_sales: "",
-        prev_sales_achievement: "",
-        prev_total_expense: "",
-        file: [],
-      },
-      defaultItem: {
-        marketing_event: "",
-        marketing_event_id: "",
-        branch_id: "",
-        venue: "",
-        sponsor: "",
-        expense_particulars: [],
-        date_submit: new Date(
-          Date.now() - new Date().getTimezoneOffset() * 60000
-        )
-          .toISOString()
-          .substr(0, 10),
-        period_from: new Date(
-          Date.now() - new Date().getTimezoneOffset() * 60000
-        )
-          .toISOString()
-          .substr(0, 10),
-        period_to: new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
-          .toISOString()
-          .substr(0, 10),
-        operating_from: "",
-        operating_to: "",
-        prev_period_from: null,
-        prev_period_to: null,
-        prev_venue: "",
-        prev_sponsor: "",
-        prev_quota: "",
-        prev_total_sales: "",
-        prev_sales_achievement: "",
-        prev_total_expense: "",
-        file: [],
-      },
-      date_now: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().substr(0, 10),
-      grand_total: "0.00",
-      errorFields: [],
-      time_options: [],
-      date_menu_period_fr: false,
-      date_menu_period_to: false,
-      date_menu_date_submit: false,
-      date_menu_prev_period_fr: false,
-      date_menu_prev_period_to: false,
-      modal: false,
-      expenseParticularHasError: false,
-      numOpts: { 
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2 
-      },
+      expense_particulars: [],
       dialog_attach_file: false,
+      fileLength: 0,
+      fileError: "",
+      fileIsRequired: false,
       snackbar: false,
+      loading: false,
     };
   },
 
   methods: {
     getTacticalOptions() {
+      this.loading = true;
       axios.get("/api/tactical_requisition/create").then(
         (response) => {
           this.branches = response.data.branches;
           this.marketing_events = response.data.marketing_events;
+          this.loading = false;
         },
         (error) => {
           this.isUnauthorized(error);
         }
       );
     },
-    getMarketingEvent() {
-      this.errorFields = [];
-      this.expenseParticularHasError = false;
-      let expense_particulars = this.editedItem.marketing_event.expense_particulars;
+    async getMarketingEvent() {
 
-      this.editedItem.expense_particulars = [];
-
-      expense_particulars.forEach((value, index) => {
-        this.editedItem.expense_particulars.push({
-          expense_particular_id: value.id,
-          description: value.description,
-          resource_person: "",
-          contact: "",
-          qty: "",
-          unit_cost: "",
-          amount: "",
-          expense_sub_particulars: [],
-          dynamic: value.dynamic,
-        });
-
-        this.errorFields.push({
-          resource_person: null,
-          contact: null,
-          qty: null,
-          unit_cost: null,
-          errorSubFields: [],
-        });
-
-        value.expense_sub_particulars.forEach((val, i) => {
-          this.editedItem.expense_particulars[
-            index
-          ].expense_sub_particulars.push({
-            expense_sub_particular_id: val.id,
-            description: val.description,
-            resource_person: "",
-            contact: "",
-            qty: "",
-            unit_cost: "",
-            amount: "",
-          });
-
-          this.errorFields[index].errorSubFields.push({
-            description: null,
-            resource_person: null,
-            contact: null,
-            qty: null,
-            unit_cost: null,
-          });
-        });
-      });
+      await this.resetAttachFileDialogComponent(); //reset onchange marketing event
+      let HeaderDetails = await this.$refs.HeaderDetails;
+      let ExpenseParticulars = await this.$refs.ExpenseParticulars;
+      this.snackbar = false;
+      this.expense_particulars = await HeaderDetails.editedItem.marketing_event.expense_particulars;
+      ExpenseParticulars.getMarketingEvent();
     },
     
     save() {
-      this.$v.$touch();
-      this.validateExpenseParticulars();
+      let HeaderDetails = this.$refs.HeaderDetails;
+      let AttachFileDialog = this.$refs.AttachFileDialog;
+      let ExpenseParticulars = this.$refs.ExpenseParticulars;
+
+      HeaderDetails.$v.$touch();
+      AttachFileDialog.$v.$touch();
+      ExpenseParticulars.validateExpenseParticulars();
       this.snackbar = false;
-      console.log(this.$v.$error);
-      console.log(this.expenseParticularHasError);
-      if (!this.$v.$error && !this.expenseParticularHasError) {
+
+      let expenseParticularHasError = ExpenseParticulars.expenseParticularHasError;
+  
+      // console.log('HeaderDetails.$v.$error', HeaderDetails.$v.$error);
+      // console.log('AttachFileDialog.$v.$error', AttachFileDialog.$v.$error);
+      // console.log('expenseParticularHasError', expenseParticularHasError);
+
+      if (!HeaderDetails.$v.$error && !AttachFileDialog.$v.$error && !expenseParticularHasError) {
         this.disabled = true;
         this.overlay = true;
 
@@ -922,7 +189,7 @@ export default {
               // this.$socket.emit("sendData", { action: "tactical-requisition-create" });
 
               this.showAlert();
-              this.clear();
+              this.resetData();
             } else {
               let errors = response.data;
               let errorNames = Object.keys(response.data);
@@ -939,272 +206,27 @@ export default {
         );
       }
 
-      if(this.$v.editedItem.file.$error)
+      // if AttachFileDialog Component has error
+      if(AttachFileDialog.$v.file.$error)
       {
         this.snackbar = true;
+        this.fileError = AttachFileDialog.fileErrors[0];
       }
 
     },
+    resetData() {
+      let HeaderDetails = this.$refs.HeaderDetails; // child component data
+      let AttachFileDialog = this.$refs.AttachFileDialog; // child component data
+      let ExpensePaticulars = this.$refs.ExpenseParticulars; // child component data
 
-    addItem(index)
-    {
-      let item = this.editedItem.expense_particulars[index];
-      let subItems = item.expense_sub_particulars;
+      HeaderDetails.resetData();
+      AttachFileDialog.resetData();
+      ExpensePaticulars.resetData();
 
-      subItems.push({
-        parent_index: index,
-        expense_sub_particular_id: item.expense_sub_particular_id,
-        description: "",
-        resource_person: "",
-        contact: "",
-        qty: "",
-        unit_cost: "",
-        amount: "",
-        status: "New",
-      })
+      this.expense_particulars = [],
+      this.fileLength = 0;
+      this.fileIsRequired = false;
 
-      this.errorFields[index].errorSubFields.push({
-        description: null,
-        resource_person: null,
-        contact: null,
-        qty: null,
-        unit_cost: null,
-      });
-      
-    },
-
-    removeItem(item) {
-      let index = item.parent_index; 
-      let subItem = this.editedItem.expense_particulars[index].expense_sub_particulars;
-      let subIndex = subItem.indexOf(item);
-      subItem.splice(subIndex, 1)
-    },
-
-    clear() {
-      this.$v.$reset();
-      this.editedItem = Object.assign({}, this.defaultItem);
-      this.grand_total = "0.00";
-    },
-    getFieldValue(item, subItem, fieldName) {
-      let expense_particulars = this.editedItem.expense_particulars;
-      let index = expense_particulars.indexOf(item);
-      let expense_particular = expense_particulars[index];
-      let field_value = expense_particular[fieldName];
-      let errorFields = this.errorFields[index];
-      let error = "";
-    
-      // validate parent row if there is no child data
-      if (!expense_particular.expense_sub_particulars.length) {
-        if (!field_value) {
-          error = "error";
-        } else {
-          // validate unit_cost if numeric
-          if (fieldName == "unit_cost") {
-            if (field_value % 1 >= 0) {
-              error = null;
-            } else {
-              error = "error";
-            }
-          } else {
-            error = null;
-          }
-        }
-      }
-
-      errorFields[fieldName] = error;
-
-      // input for expense sub particulars
-      if (subItem) {
-        let expense_sub_particulars =  expense_particulars[index]["expense_sub_particulars"];
-        let subIndex = expense_sub_particulars.indexOf(subItem);
-        let expense_sub_particular = expense_sub_particulars[subIndex];
-
-        field_value = expense_sub_particular[fieldName]
-        error = "";
-
-        if (!field_value) {
-          error = "error";
-        } else {
-          // validate unit_cost if numeric
-          if (fieldName == "unit_cost") {
-            if (field_value % 1 >= 0) {
-              error = null;
-            } else {
-              error = "error";
-            }
-          } else {
-            error = null;
-          }
-        }
-
-        errorFields.errorSubFields[subIndex][fieldName] = error;
-
-        expense_sub_particulars.forEach((value, index) => {
-          
-          // console.log('value', val);
-          if(fieldName === 'description')
-          {
-
-            errorFields.errorSubFields[index][fieldName] = "";
-          
-            expense_sub_particulars.forEach((val, i) => {
-              if(value.description === val.description && i != index)
-              {
-                errorFields.errorSubFields[index][fieldName] = "error";
-              }
-            }); 
-
-          }
-          
-        });
-        
-      }
-
-    },
-    errorField(index, fieldName) {
-      let errorField = this.errorFields[index];
-      return errorField ? errorField[fieldName] : null;
-    },
-    errorSubField(index, subIndex, fieldName) {
-      let errorField = this.errorFields[index].errorSubFields[subIndex];
-      return errorField ? errorField[fieldName] : null;
-    },
-    computeAmount() {
-      let expense_particulars = this.editedItem.expense_particulars;
-      let grand_total = 0;
-      let decimal_length = 2;
-
-      expense_particulars.forEach((value, index) => {
-        let qty = value.qty;
-        let unit_cost = value.unit_cost;
-
-        if (!qty) {
-          qty = "0.00";
-        }
-
-        if (!unit_cost) {
-          unit_cost = "0.00";
-        }
-
-        // if unit_cost has decimal then get the number of decimal places
-        if (unit_cost.split(".")[1]) {
-          decimal_length = unit_cost.split(".")[1].length;
-
-          if (decimal_length === 1) {
-            decimal_length = 2;
-          }
-        }
-
-        let amount = qty * parseFloat(unit_cost);
-
-        if (!amount) {
-          amount = 0.0;
-        }
-
-        grand_total += amount;
-
-        value.amount = amount.toFixed(decimal_length);
-
-        // compute amount for expense sub particulars
-        value.expense_sub_particulars.forEach((val, i) => {
-          qty = val.qty;
-          unit_cost = val.unit_cost;
-
-          if (!qty) {
-            qty = "0.00";
-          }
-
-          if (!unit_cost) {
-            unit_cost = "0.00";
-          }
-
-          // if unit_cost has decimal then get the number of decimal places
-          if (unit_cost.split(".")[1]) {
-            decimal_length = unit_cost.split(".")[1].length;
-
-            if (decimal_length === 1) {
-              decimal_length = 2;
-            }
-          }
-
-          let amount = qty * parseFloat(unit_cost);
-
-          if (!amount) {
-            amount = 0.0;
-          }
-
-          grand_total += amount;
-
-          val.amount = amount.toFixed(decimal_length);
-        });
-      });
-
-      // get the number of decimals of grand total
-      if (String(grand_total).split(".")[1]) {
-        decimal_length = String(grand_total).split(".")[1].length;
-      } else {
-        decimal_length = 2;
-      }
-
-      this.grand_total = grand_total.toFixed(decimal_length);
-    },
-    validateExpenseParticulars() {
-      let expense_particulars = this.editedItem.expense_particulars;
-      let object_names = "";
-
-      expense_particulars.forEach((value, index) => {
-        object_names = Object.keys(expense_particulars[index]);
-        
-        // exlude validation for 'dynamic'
-        object_names.forEach((fieldName) => {
-          if(fieldName != 'dynamic')
-          {
-            this.getFieldValue(value, "", fieldName);
-          }
-        });
-
-        // validate expense sub particulars fields
-        value.expense_sub_particulars.forEach((val, i) => {
-          object_names = Object.keys(expense_particulars[index]);
-          object_names.forEach((fieldName) => {
-
-            // exclude validation for expense_sub_particulars and expense_particular_id object name
-            let objArr = ['expense_sub_particulars', 'expense_particular_id', 'dynamic'];
-            if(!objArr.includes(fieldName))
-            {
-              this.getFieldValue(value, val, fieldName);
-            }
-            
-          });
-        });
-      });
-
-      this.expenseParticularHasError = false;
-
-      // check/scan if field has error on errorFields variable
-      this.errorFields.forEach((value, index) => {
-        object_names = Object.keys(value);
-        object_names.forEach((fieldName) => {
-          if (this.errorFields[index][fieldName] == "error") {
-            this.expenseParticularHasError = true;
-          }
-        });
-
-        value.errorSubFields.forEach((val, i) => {
-          object_names = Object.keys(value);
-          object_names.forEach((fieldName) => {
-            if (
-              this.errorFields[index]["errorSubFields"][i][fieldName] == "error"
-            ) {
-              this.expenseParticularHasError = true;
-            }
-          });
-        });
-      });
-
-      console.log('expenseParticularHasError', this.expenseParticularHasError);
-      console.log('errorFields', this.errorFields);
-      
     },
     isUnauthorized(error) {
       // if unauthenticated (401)
@@ -1212,24 +234,22 @@ export default {
         this.$router.push({ name: "unauthorize" });
       }
     },
-    timeOptions() {
-      let ctr = 24;
-
-      for (let hr = 1; hr <= 24; hr++) {
-        let padStart = "";
-        padStart = String(hr).padStart(2, "0") + ":00";
-
-        this.time_options.push(padStart);
-      }
+    openAttachFileDialog() {
+      this.dialog_attach_file = true;
     },
-    formatDate(date) {
-      if (!date) return null;
-
-      const [year, month, day] = date.split("-");
-      return `${month}/${day}/${year}`;
+    closeAttachFileDialog() {
+      let AttachFileDialog = this.$refs.AttachFileDialog;
+      this.fileLength = AttachFileDialog.file.length; // get the file length from child component
+      this.fileError = AttachFileDialog.fileErrors[0];
+      this.dialog_attach_file = false;
     },
-    removeFile(index, text) {
-      this.editedItem.file.splice(index, 1)
+    resetAttachFileDialogComponent() {
+      let AttachFileDialog = this.$refs.AttachFileDialog;
+      let HeaderDetails = this.$refs.HeaderDetails;
+      AttachFileDialog.$v.$reset();
+
+      this.fileIsRequired = HeaderDetails.editedItem.marketing_event.attachment_required == 'Y' ? true : false;
+      this.fileError = "";
     },
     showAlert() {
       this.$swal({
@@ -1242,125 +262,18 @@ export default {
     },
   },
   computed: {
-    eventTitleErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.marketing_event.$dirty) return errors;
-      !this.$v.editedItem.marketing_event.required &&
-        errors.push("Event Title is required.");
-      return errors;
-    },
-    branchErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.branch_id.$dirty) return errors;
-      !this.$v.editedItem.branch_id.required &&
-        errors.push("Branch is required.");
-      return errors;
-    },
-    venueErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.venue.$dirty) return errors;
-      !this.$v.editedItem.venue.required && errors.push("Venue is required.");
-      return errors;
-    },
-    sponsorErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.sponsor.$dirty) return errors;
-      !this.$v.editedItem.sponsor.required &&
-        errors.push("Sponsor is required.");
-      return errors;
-    },
-    hrFromErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.operating_from.$dirty) return errors;
-      !this.$v.editedItem.operating_from.required &&
-        errors.push("Select time.");
-      return errors;
-    },
-    hrToErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.operating_to.$dirty) return errors;
-      !this.$v.editedItem.operating_to.required && errors.push("Select time.");
-      return errors;
-    },
-    prevQuotaErrors(){
-      let errors = [];
-      if(!(this.editedItem.prev_quota % 1 >= 0))
-      {
-        errors.push("Invalid Amount");
-      }
-      return errors;
-    },
-    prevTotalSalesErrors(){
-      let errors = [];
-      if(!(this.editedItem.prev_total_sales % 1 >= 0))
-      {
-        errors.push("Invalid Amount");
-      }
-      return errors;
-    },
-    prevSalesAchvmntErrors(){
-      let errors = [];
-      if(!(this.editedItem.prev_sales_achievement % 1 >= 0))
-      {
-        errors.push("Invalid Amount");
-      }
-      return errors;
-    },
-    prevTotalExpenseErrors(){
-      let errors = [];
-      if(!(this.editedItem.prev_total_expense % 1 >= 0))
-      {
-        errors.push("Invalid Amount");
-      }
-      return errors;
-    },
-    fileErrors() {
-      // if(this.fileIsRequired)
-      // {
-      //   if(this.$v.editedItem.file.$dirty)
-      //   { 
-      //     return "Attachment is required!";
-      //   }
-      // }
-
-      const errors = [];
-
-      if (!this.$v.editedItem.file.$dirty) return errors;
-      !this.$v.editedItem.file.required &&
-        errors.push("Attachment is required!");
-      
-      return errors;
-      
-    },
-    computedPeriodFromFormatted() {
-      return this.formatDate(this.editedItem.period_from);
-    },
-    computedPeriodToFormatted() {
-      return this.formatDate(this.editedItem.period_to);
-    },
-    computedDateSubmitFormatted() {
-      return this.formatDate(this.editedItem.date_submit);
-    },
-    computedPrevPeriodFromFormatted() {
-      return this.formatDate(this.editedItem.prev_period_from);
-    },
-    computedPrevPeriodToFormatted() {
-      return this.formatDate(this.editedItem.prev_period_to);
-    },
     formData(){
       let formData = new FormData();
-      
-      // if user is not administrator then set the user_id with the id of current user
-      if(this.user.id != 1)
-      {
-        this.editedItem.branch_id = this.user.branch_id;
-      }
+      let HeaderDetails = this.$refs.HeaderDetails; // child component data
+      let AttachFileDialog = this.$refs.AttachFileDialog; // child component data
+      let ExpensePaticulars = this.$refs.ExpenseParticulars; // child component data
 
-      const data = this.editedItem;
+      const data =  {...HeaderDetails.editedItem,  ...ExpensePaticulars.editedItem, file: AttachFileDialog.file}; // merge all into 1 data
+
       let fieldName = Object.keys(data);
       let fieldValue;
       fieldName.forEach(field => {
-        fieldValue = this.editedItem[`${field}`];
+        fieldValue = data[`${field}`];
         formData.append(field, JSON.stringify(fieldValue));
 
         if (field != 'file') {
@@ -1379,25 +292,26 @@ export default {
 
       return formData;
     },
-    fileIsRequired(){
-      return this.editedItem.marketing_event.attachment_required == 'Y' ? true : false;
-    },
+    // fileIsRequired(){
+    //   let HeaderDetails = this.$refs.HeaderDetails;
+      
+    //   if(HeaderDetails) // if HeaderDetails component is rendered
+    //   {
+    //     return HeaderDetails.editedItem.marketing_event.attachment_required == 'Y' ? true : false;
+    //   }
+    //   else
+    //   {
+    //     return false;
+    //   }
+      
+    // },
     ...mapState("auth", ["user"]),
-  },
-  watch: {
-    "editedItem.marketing_event"() {
-      this.editedItem.marketing_event_id = this.editedItem.marketing_event.id;
-    },
-    user() {
-      this.editedItem.branch_id = this.user.branch_id;
-    },
   },
   mounted() {
     axios.defaults.headers.common["Authorization"] =
       "Bearer " + localStorage.getItem("access_token");
 
     this.getTacticalOptions();
-    this.timeOptions();
   },
 };
 </script>

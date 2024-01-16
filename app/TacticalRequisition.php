@@ -24,6 +24,7 @@ class TacticalRequisition extends Model
         'prev_total_sales',
         'prev_sales_achievement',
         'prev_total_expense',
+        'remarks',
     ];
 
     public function tactical_rows()
