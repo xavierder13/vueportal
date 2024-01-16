@@ -158,7 +158,9 @@
               <v-col>
                 <v-autocomplete
                   v-model="editedItem.operating_from"
-                  :items="time_options"
+                  :items="timeOptions"
+                  item-text="text"
+                  item-value="value"
                   label="Operating From"
                   required
                   prepend-icon="mdi-clock"
@@ -171,7 +173,9 @@
               <v-col>
                 <v-autocomplete
                   v-model="editedItem.operating_to"
-                  :items="time_options"
+                  :items="timeOptions"
+                  item-text="text"
+                  item-value="value"
                   label="Operating To"
                   required
                   prepend-icon="mdi-clock"
@@ -417,7 +421,6 @@
         date_menu_prev_period_to: false,
         dialog_attach_file: false,
         snackbar: false,
-        time_options: [],
         editedItem: {
           marketing_event: "",
           marketing_event_id: "",
@@ -489,16 +492,6 @@
       },
       openAttachFileDialog() {
         this.$emit('openAttachFileDialog');
-      },
-      timeOptions() {
-        let ctr = 24;
-
-        for (let hr = 1; hr <= 24; hr++) {
-          let padStart = "";
-          padStart = String(hr).padStart(2, "0") + ":00";
-
-          this.time_options.push(padStart);
-        }
       },
       formatDate(date) {
         if (!date) return null;
@@ -635,6 +628,21 @@
       fileIsRequired(){
         return this.editedItem.marketing_event.attachment_required == 'Y' ? true : false;
       },
+      timeOptions() {
+        let ctr = 24;
+        let options = [];
+        for (let hr = 1; hr <= 24; hr++) {
+          let padStart = "";
+          let meridiem = hr < 12 || hr > 23 ? 'AM' : 'PM'; 
+          let hour = hr > 12 ? hr - 12 : hr;
+          padStart = String(hr).padStart(2, "0") + ":00";
+          
+          options.push({ value: padStart, text: String(hour) + ":00 " + meridiem });
+
+        }
+
+        return options;
+      },
     },
     watch: {
       "editedItem.marketing_event"() {
@@ -644,9 +652,6 @@
         this.editedItem.branch_id = this.user.branch_id;
       },
     },
-    mounted(){
-      this.timeOptions();
-    }
   }
 
 </script>

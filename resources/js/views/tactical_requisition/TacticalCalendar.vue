@@ -363,7 +363,7 @@ export default {
           data: value,
         })
       });
-    
+      console.log(events);
       this.events = events;
     },
 

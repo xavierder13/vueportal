@@ -198,7 +198,9 @@
                       <v-col>
                         <v-autocomplete
                           v-model="editedItem.operating_from"
-                          :items="time_options"
+                          :items="timeOptions"
+                          item-text="text"
+                          item-value="value"
                           label="Operating From"
                           required
                           prepend-icon="mdi-clock"
@@ -212,7 +214,9 @@
                       <v-col>
                         <v-autocomplete
                           v-model="editedItem.operating_to"
-                          :items="time_options"
+                          :items="timeOptions"
+                          item-text="text"
+                          item-value="value"
                           label="Operating To"
                           required
                           prepend-icon="mdi-clock"
@@ -1030,7 +1034,6 @@ export default {
       date_now: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().substr(0, 10),
       grand_total: "0.00",
       errorFields: [],
-      time_options: [],
       date_menu_period_fr: false,
       date_menu_period_to: false,
       date_menu_date_submit: false,
@@ -1767,16 +1770,6 @@ export default {
         this.$router.push({ name: "unauthorize" });
       }
     },
-    timeOptions() {
-      let ctr = 24;
-
-      for (let hr = 1; hr <= 24; hr++) {
-        let padStart = "";
-        padStart = String(hr).padStart(2, "0") + ":00";
-
-        this.time_options.push(padStart);
-      }
-    },
     formatDate(date) {
       if (!date) return null;
 
@@ -1931,7 +1924,7 @@ export default {
     attachmentLength(){
       let form_file_length = this.editedItem.file.length;
       let tactical_attachment_length = this.tactical_attachments.length; 
-      
+
       // edit mode is true then get the file length of editedItem.file else sum the tactical attachments and editedItem.file
       let ctr = this.editMode ? form_file_length : form_file_length + tactical_attachment_length;
       let length = "";
@@ -1976,6 +1969,21 @@ export default {
     btnText() {
       return editMode ? 'Save' : 'Edit & Re-create';
     },
+    timeOptions() {
+      let ctr = 24;
+      let options = [];
+      for (let hr = 1; hr <= 24; hr++) {
+        let padStart = "";
+        let meridiem = hr < 12 || hr > 23 ? 'AM' : 'PM'; 
+        let hour = hr > 12 ? hr - 12 : hr;
+        padStart = String(hr).padStart(2, "0") + ":00";
+        
+        options.push({ value: padStart, text: String(hour) + ":00 " + meridiem });
+
+      }
+
+      return options;
+    },
     ...mapState("auth", ["user"]),
     ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission"]),
   },
@@ -2000,7 +2008,6 @@ export default {
       "Bearer " + localStorage.getItem("access_token");
 
     this.getTacticalRequisition();
-    this.timeOptions();
   },
 };
 </script>
