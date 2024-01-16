@@ -1748,12 +1748,12 @@ export default {
       if(this.isReadOnly &&  !this.attachmentLength)
       {
         this.$swal({
-        position: "center",
-        icon: "warning",
-        title: "No File Attachment",
-        showConfirmButton: false,
-        timer: 2500,
-      });
+          position: "center",
+          icon: "warning",
+          title: "No File Attachment",
+          showConfirmButton: false,
+          timer: 2500,
+        });
       }
       else
       {
@@ -1929,10 +1929,14 @@ export default {
       return this.action == 'disapprove' ? true : false;
     },
     attachmentLength(){
-      let ctr = this.editedItem.file.length + this.tactical_attachments.length;
+      let form_file_length = this.editedItem.file.length;
+      let tactical_attachment_length = this.tactical_attachments.length; 
+      
+      // edit mode is true then get the file length of editedItem.file else sum the tactical attachments and editedItem.file
+      let ctr = this.editMode ? form_file_length : form_file_length + tactical_attachment_length;
       let length = "";
 
-      if(ctr && !this.editMode)
+      if(ctr)
       {
         length = `(${ctr})`;
       }
