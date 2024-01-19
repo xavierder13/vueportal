@@ -196,10 +196,15 @@
                           <v-col cols="2" class="my-0 py-0">
                             <v-switch
                               v-model="switch1"
-                              :label="activeStatus"
                               :readonly="editedItem.id == 1 ? true : false"
                               hide-details=""
-                            ></v-switch>
+                            >
+                              <template v-slot:label>
+                                <v-chip :color="switch1 ? 'primary' : 'secondary' " class="ml-1 mt-2"> 
+                                  {{ activeStatus }} 
+                                </v-chip>
+                              </template>
+                            </v-switch>
                           </v-col>
                         </v-row>
                       </v-container>

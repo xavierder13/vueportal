@@ -358,6 +358,7 @@ export default {
         ) {
           this.getPermission();
         }
+        
       };
     },
   },

@@ -40,7 +40,7 @@ class InventoryReconciliationController extends Controller
 
         // $progtble = DB::connection('progtbl')->select("select * from [@PROGTBL] where U_Branch1 = 'Alaminos'");
         
-        $databases = SapDatabase::get(['server', 'database', 'username']);
+        $databases = SapDatabase::where('active', true)->get(['server', 'database', 'username']);
         $user = Auth::user();
         $branches = Branch::with(['inventory_reconciliations' => function($query) use ($user){
                             $query->select(

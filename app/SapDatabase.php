@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class SapDatabase extends Model
 {
-    protected $fillable = ['server', 'database', 'username', 'password'];
+    protected $fillable = ['server', 'database', 'username', 'password', 'active'];
 
     public function sap_db_branches()
     {

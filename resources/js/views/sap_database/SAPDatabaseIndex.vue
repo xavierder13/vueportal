@@ -143,6 +143,20 @@
                             </v-autocomplete>
                           </v-col>
                         </v-row>
+                        <v-row>
+                          <v-col class="my-0 py-0">
+                            <v-switch
+                              v-model="editedItem.active"
+                              hide-details=""
+                            >
+                              <template v-slot:label>
+                                <v-chip :color="editedItem.active ? 'primary' : 'secondary' " class="ml-1 mt-2"> 
+                                  {{ editedItem.active ? 'Active' : 'Inactive' }} 
+                                </v-chip>
+                              </template>
+                            </v-switch>
+                          </v-col>
+                         </v-row>
                       </v-container>
                     </v-card-text>
                     <v-divider class="mb-3 mt-0"></v-divider>
@@ -194,6 +208,9 @@
             </template>
             <template v-slot:item.password="{ item }">
               ********
+            </template>
+            <template v-slot:item.active="{ item }">
+              <v-chip :color="item.active ? 'success' : 'secondary' "> {{ item.active ? 'Active' : 'Inactive' }} </v-chip>
             </template>
           </v-data-table>
         </v-card>
@@ -247,6 +264,7 @@ export default {
         { text: "Database", value: "database" },
         { text: "Username", value: "username" },
         { text: "Password", value: "password" },
+        { text: "Active", value: "active" },
         { text: "Actions", value: "actions", sortable: false, width: "80px"},
       ],
       disabled: false,
@@ -258,12 +276,14 @@ export default {
         database: "",
         username: "",
         sap_db_branches: [],
+        active: true,
       },
       defaultItem: {
         server: "",
         database: "",
         username: "",
         sap_db_branches: [],
+        active: true,
       },
       password: "",
       confirm_password: "",
@@ -363,11 +383,7 @@ export default {
       this.emailReadonly = true;
       this.password = "password";
       this.confirm_password = "password";
-      this.switch1 = true;
-      if(this.editedItem.active === 'N')
-      {
-        this.switch1 = false;
-      }
+  
     },
 
     deleteDatabase(sap_database_id) {

@@ -24,6 +24,12 @@
         <v-card v-if="!loading">
           <v-card-title class="mb-0 pb-0">
             <span class="headline mr-2">TACTICAL REQUISITION </span>
+            <template v-if="!editMode">
+              <v-divider vertical class="mx-2"></v-divider>
+              <v-btn icon color="primary" @click="printPreview()">
+                <v-icon large>mdi-printer</v-icon>
+              </v-btn>
+            </template>
             <v-spacer></v-spacer>
             <v-chip
               :color="
@@ -895,6 +901,7 @@
             </v-btn>
           </template>
         </v-snackbar>
+        <PrintPreviewDialog :dialog="dialog_print_preview" :data="editedItem" @closePrintPreview="closePrintPreview" />
       </v-main>
     </div>
   </div>
@@ -911,11 +918,13 @@ import {
 } from "vuelidate/lib/validators";
 import TimeRangePicker from "vuetify-time-range-picker";
 import { mapState, mapGetters } from "vuex";
+import PrintPreviewDialog from './components/PrintPreviewDialog.vue';
 
 export default {
   mixins: [validationMixin],
   components: {
     TimeRangePicker,
+    PrintPreviewDialog
   },
   validations: {
     editedItem: {
@@ -1053,6 +1062,7 @@ export default {
       action: "",
       editMode: false,
       dialog_remarks: false,
+      dialog_print_preview: true,
     };
   },
 
@@ -1764,6 +1774,12 @@ export default {
       }
       
     },  
+    printPreview() {
+      this.dialog_print_preview = true;
+    },  
+    closePrintPreview() {
+      this.dialog_print_preview = false;
+    },
     isUnauthorized(error) {
       // if unauthenticated (401)
       if (error.response.status == "401") {
@@ -1970,7 +1986,6 @@ export default {
       return editMode ? 'Save' : 'Edit & Re-create';
     },
     timeOptions() {
-      let ctr = 24;
       let options = [];
       for (let hr = 1; hr <= 24; hr++) {
         let meridiem = hr < 12 || hr > 23 ? 'AM' : 'PM'; 

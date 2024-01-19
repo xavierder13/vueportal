@@ -18,7 +18,7 @@ class SAPDatabaseController extends Controller
         $sap_databases = SAPDatabase::with('sap_db_branches')
                                     ->with('sap_db_branches.branch')
                                     ->with('sap_db_branches.sap_database')
-                                    ->select('id', 'server', 'database', 'username')->get();
+                                    ->select('id', 'server', 'database', 'username', 'active')->get();
         return response()->json(['sap_databases' => $sap_databases], 200);
     }
 
@@ -69,6 +69,7 @@ class SAPDatabaseController extends Controller
         $sap_database->database = $request->get('database');
         $sap_database->username = $request->get('username');
         $sap_database->password = Crypt::encrypt($request->get('password'));
+        $sap_database->active = $request->get('active');
         $sap_database->save();
 
         foreach ($request->sap_db_branches as $key => $branch) {
@@ -81,11 +82,11 @@ class SAPDatabaseController extends Controller
         }
 
         $sap_db = SAPDatabase::with('sap_db_branches')
-                                    ->with('sap_db_branches.branch')
-                                    ->with('sap_db_branches.sap_database')
-                                    ->select('id', 'server', 'database', 'username')
-                                    ->where('id', '=', $sap_database->id)
-                                    ->first();
+                            ->with('sap_db_branches.branch')
+                            ->with('sap_db_branches.sap_database')
+                            ->select('id', 'server', 'database', 'username')
+                            ->where('id', '=', $sap_database->id)
+                            ->first();
 
         return response()->json(['success' => 'Record has successfully added', 'sap_database' => $sap_db], 200);
     }
@@ -151,6 +152,7 @@ class SAPDatabaseController extends Controller
         $sap_database->server = $request->get('server');
         $sap_database->database = $request->get('database');
         $sap_database->username = $request->get('username');
+        $sap_database->active = $request->get('active');
         
         if(!empty($request->get('password')))
         {
@@ -181,13 +183,12 @@ class SAPDatabaseController extends Controller
         
         $sap_database = SAPDatabase::with('sap_db_branches')
                                    ->where('id', $sap_database_id)
-                                   ->select('id', 'server', 'database', 'username')
+                                   ->select('id', 'server', 'database', 'username', 'active')
                                    ->first();
 
         return response()->json([
             'success' => 'Record has been updated',
             'sap_database' => $sap_database,
-            $request
             ]
         );
     }

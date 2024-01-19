@@ -825,7 +825,7 @@ class ProductController extends Controller
     {   
         try {
 
-            $databases = SapDatabase::all();
+            $databases = SapDatabase::where('active', true)->get();
 
             foreach ($databases as $key => $db) {
                 
@@ -950,7 +950,9 @@ class ProductController extends Controller
             // START sync branch warehouses
             $whseArr = [];
             
-            $databases = SapDatabase::where('server', '=', '192.168.1.13')->get();
+            $databases = SapDatabase::where('server', '=', '192.168.1.13')
+                                    ->where('active', true)
+                                    ->get();
 
             foreach ($databases as $key => $db) {
                 
@@ -988,7 +990,10 @@ class ProductController extends Controller
             // END sync branch warehouses
                  
 
-            $db = SapDatabase::where('database', '=', 'ReportsFinance')->get()->first();
+            $db = SapDatabase::where('database', '=', 'ReportsFinance')
+                             ->where('active', true)                 
+                             ->get()
+                             ->first();
 
             $password = Crypt::decrypt($db->password);
 
