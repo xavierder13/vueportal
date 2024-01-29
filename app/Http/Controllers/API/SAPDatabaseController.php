@@ -84,7 +84,7 @@ class SAPDatabaseController extends Controller
         $sap_db = SAPDatabase::with('sap_db_branches')
                             ->with('sap_db_branches.branch')
                             ->with('sap_db_branches.sap_database')
-                            ->select('id', 'server', 'database', 'username')
+                            ->select('id', 'server', 'database', 'username', 'active')
                             ->where('id', '=', $sap_database->id)
                             ->first();
 
