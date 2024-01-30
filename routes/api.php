@@ -166,6 +166,11 @@ Route::group(['prefix' => 'product', 'middleware' => ['auth:api', 'product.maint
 
 });
 
+Route::get('/sync_item_master_data', [
+    'uses' => 'API\ProductController@sync_item_master_data',
+    'as' => 'sync.item.master.data'
+]);
+
 // Product Template Download Route
 // Route::get('/product/template/download/{branch_id}', [
 //     'uses' => 'API\ProductController@template_download',
