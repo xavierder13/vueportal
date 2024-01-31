@@ -414,7 +414,7 @@ export default {
                 { 
                   title: 'Scanned Product List',
                   link: '/scanned_product_list',
-                  hasPermission: this.hasPermission('product-list'),
+                  hasPermission: this.hasPermission('product-list-scanned'),
                 },
                 { 
                   title: 'Serial Number Details',

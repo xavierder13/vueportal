@@ -40,6 +40,7 @@ class PermissionSeeder extends Seeder
             'department-delete',
             'product-list',
             'product-list-all',
+            'product-list-scanned',
             'product-create',
             'product-scan',
             'product-edit',
