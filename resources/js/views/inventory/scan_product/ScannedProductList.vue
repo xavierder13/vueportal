@@ -544,11 +544,11 @@ export default {
 
               if(this.editedIndex > -1)
               {
-                Object.assign(this.products[this.editedIndex], this.editedItem);
+                Object.assign(this.products.data[this.editedIndex], this.editedItem);
               }
               else
               {
-                this.products.push(data.product);
+                this.products.data.push(data.product);
               }
               
               this.showAlert(data.success, 'success');
@@ -569,7 +569,7 @@ export default {
     },
 
     editProduct(item) {
-      this.editedIndex = this.products.indexOf(item);
+      this.editedIndex = this.products.data.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.dialog = true;
     },
@@ -726,13 +726,13 @@ export default {
           // <-- if confirmed
 
           const product_id = item.id;
-          const index = this.products.indexOf(item);
+          const index = this.products.data.indexOf(item);
 
           //Call delete Product function
           await this.deleteProduct(product_id);
 
           //Remove item from array products
-          await this.products.splice(index, 1);
+          await this.products.data.splice(index, 1);
 
         }
       });
