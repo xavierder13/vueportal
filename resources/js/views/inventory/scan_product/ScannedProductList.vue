@@ -322,7 +322,7 @@
               <v-icon
                 small
                 color="red"
-                @click="confirmDelete(item)"
+                @click="showConfirmAlert(item)"
                 v-if="hasPermission('product-delete')"
               >
                 mdi-delete
