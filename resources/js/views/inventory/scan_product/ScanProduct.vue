@@ -717,7 +717,7 @@ export default {
         serial: "", 
       };
 
-      this.editedItem.branch = this.user.branch;
+      // this.editedItem.branch = this.user.branch;
       
       // this.editedItem.whse_code = "";
       this.serialsEmpty = false;

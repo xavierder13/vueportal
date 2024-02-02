@@ -540,7 +540,6 @@ class ProductController extends Controller
             {
                 return response()->json($validator->errors(), 200);
             }
-            
     
             if ($request->file('file')) {
                     
@@ -705,7 +704,7 @@ class ProductController extends Controller
                         $product_category_id = ProductCategory::firstOrCreate(['name' => $field['CATEGORY'], 'active' => 'Y'])->id;
                         $serial = $field['SERIAL'];
 
-                        Product::create([
+                        $data = [
                             'user_id' => $user->id,
                             'branch_id' => $branch_id,
                             'brand_id' => $brand_id,
@@ -715,7 +714,23 @@ class ProductController extends Controller
                             'quantity' => $qty,
                             'file_upload_log_id' => $file_upload_log->id,
                             'whse_code' => $whse_code,
-                        ]);
+                        ];
+        
+                        // explode serials with slash('/') - will be used to breakdown/split into 2 or more rows
+                        $serials = explode('/', $serial);
+        
+                        if(count($serials) > 1)
+                        {
+                            // breakdown/split into 2 or more rows
+                            foreach ($serials as $value) {
+                                $data['serial'] = is_numeric($value) ? (integer) $value : $value;
+                                Product::create($data);
+                            }
+                        }
+                        else
+                        {
+                            Product::create($data);
+                        }
                     }
                 }
                 
@@ -1157,4 +1172,5 @@ class ProductController extends Controller
         }
         
     }
+
 }
