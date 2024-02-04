@@ -52,6 +52,7 @@ class ProductController extends Controller
         $search = $request->search;
         $file_upload_log_id = $request->get('file_upload_log_id');
         $file_upload_log = FileUploadLog::with('branch')
+                                        ->with('branch.whse_codes')
                                         ->select(DB::raw("id, branch_id, DATE_FORMAT(docdate, '%m/%d/%Y') as docdate, DATE_FORMAT(created_at, '%m/%d/%Y') as date_uploaded, remarks"))
                                         ->where('id', $file_upload_log_id)
                                         ->first();
@@ -83,7 +84,7 @@ class ProductController extends Controller
                            ->paginate($request->items_per_page);
 
         $brands = Brand::all();
-        $branches = Branch::all();
+        $branches = Branch::with('whse_codes')->get();
         $product_categories = ProductCategory::all();
         
         return response()->json([
@@ -734,7 +735,7 @@ class ProductController extends Controller
                     }
                 }
                 
-                return response()->json(['success' => 'Record has successfully added'], 200);
+                return response()->json(['success' => 'Record has successfully added', 'file_upload_log_id' => $file_upload_log->id], 200);
             }
             else
             {

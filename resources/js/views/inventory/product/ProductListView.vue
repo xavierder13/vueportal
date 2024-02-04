@@ -266,8 +266,9 @@
         :dialog_import="dialog_import"
         :action="action"
         :branches="branches"
+        :whse_codes="whse_codes"
         :docname="'Product List'"
-        @getData="getProduct"
+        @getData="refreshData"
         @closeImportDialog="closeImportDialog"
       />
     </div>
@@ -328,6 +329,7 @@ export default {
       products: [],
       brands: [],
       branches: [],
+      whse_codes: [],
       product_categories: [],
       editedIndex: -1,
       editedItem: {
@@ -390,7 +392,7 @@ export default {
       branch: "",
       inventory_type: "",
       whse_code: "",
-
+    
       page: 1,
       pageCount: 0,
       itemsPerPage: 10,
@@ -449,12 +451,13 @@ export default {
       
       axios.post("/api/product/list/view?page=" + this.page, data).then(
         (response) => {
-          
+          console.log(response.data);
           let data = response.data;
           let log = data.file_upload_log;
           this.branch = log.branch.name;
+          this.whse_codes = log.branch.whse_codes;
           this.file_upload_log = log;
-
+          
           let products = data.products;
 
           this.products = products;
@@ -488,6 +491,15 @@ export default {
           this.isUnauthorized(error);
         }
       );
+    },
+
+    refreshData(file_upload_log_id) {
+
+      this.$router.push({
+        name: 'product.list.view',
+        params: { branch_id: this.file_upload_log.branch.id, file_upload_log_id: file_upload_log_id }
+      });
+
     },
 
     save() {

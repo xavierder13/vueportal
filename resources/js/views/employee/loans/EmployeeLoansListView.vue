@@ -455,7 +455,7 @@
             :branch="branch"
             :api_route="api_route" 
             :dialog_import="dialog_import"
-            @getData="getEmployeeLoans"
+            @getData="refreshData"
             @closeImportDialog="closeImportDialog"
           />
         </v-card>
@@ -686,6 +686,15 @@ export default {
           console.log(error);
         }
       );
+    },
+
+    refreshData(file_upload_log_id) {
+
+      this.$router.push({
+        name: 'employee.loans.list.view',
+        params: { branch_id: this.file_upload_log.branch.id, file_upload_log_id: file_upload_log_id }
+      });
+
     },
 
     save() {
