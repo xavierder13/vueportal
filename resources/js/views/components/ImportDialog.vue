@@ -233,7 +233,7 @@ export default {
         formData.append("docdate", this.docdate);
         formData.append("inventory_type", this.inventory_type);
         formData.append("whse_code", this.whse_code);
-        console.log(formData);
+        
         axios
           .post(this.api_route, formData, {
             headers: {

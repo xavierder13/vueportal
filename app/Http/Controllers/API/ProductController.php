@@ -603,10 +603,10 @@ class ProductController extends Controller
                                     // check duplicates if serial has value
                                     if($x !== $i && $x > $i && $serial)
                                     {
-                                        if($brand === $brand2[0] && //brand
-                                           $model === $model2[1] && //model
-                                           $category === $category2[2] && //category
-                                           $serial === $serial2[3] //serial
+                                        if($brand === $brand2 && //brand
+                                           $model === $model2 && //model
+                                           $category === $category2 && //category
+                                           $serial === $serial2 //serial
                                         ){
                                             $duplicates [$x] = $serial;
                                         }
