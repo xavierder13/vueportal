@@ -9,8 +9,8 @@
             </v-breadcrumbs-item>
           </template>
         </v-breadcrumbs>
+        <!-- :canImport="hasPermission('product-import')" -->
         <MenuActions
-          :canImport="hasPermission('product-import')"
           :canExport="hasPermission('product-export')"
           :canClearList="hasPermission('product-clear-list')"
           :canReconcile="hasPermission('product-reconcile')"
