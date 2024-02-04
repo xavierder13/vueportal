@@ -28,7 +28,7 @@ class ProductsExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
         $products = DB::table('products')
                       ->join('brands', 'products.brand_id', '=', 'brands.id')
                       ->leftJoin('product_categories', 'products.product_category_id', '=', 'product_categories.id')
-                      ->select(DB::raw('brands.name as brand'), 'products.model', DB::raw('product_categories.name as product_category'), 'products.serial')
+                      ->select(DB::raw('brands.name as brand'), 'products.model', DB::raw('product_categories.name as product_category'), 'products.serial', 'products.quantity')
                       ->where(function($query) use ($params){
                             
                         if(isset($params['branch_id']))

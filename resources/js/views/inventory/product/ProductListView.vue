@@ -562,7 +562,8 @@ export default {
     },
 
     exportData() {
-      const data = { branch_id: this.branch_id };
+      // const data = { branch_id: this.branch_id };
+      const data = { file_upload_log_id: this.file_upload_log.id };
       if (this.products.data.length) {
 
         axios.post('/api/product/export', data, { responseType: 'arraybuffer'})
