@@ -589,7 +589,7 @@ export default {
         this.disabled = true;
         this.overlay = true;
         let branch_id = this.editedItem.branch.id;
-        const data = {...this.editedItem,  branch_id:  branch_id};
+        const data = {...this.editedItem,  branch_id:  branch_id, inventory_group: this.inventory_group};
     
         await axios.post("/api/product/store", data).then(
           (response) => {

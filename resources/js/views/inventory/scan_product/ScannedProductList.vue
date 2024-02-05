@@ -20,12 +20,14 @@
         <v-card>
           <v-card-title>
             Scanned Product Lists
+            <v-divider vertical class="mx-4"></v-divider>
             <v-spacer></v-spacer>
             <v-text-field
               v-model="search"
               append-icon="mdi-magnify"
               label="Search"
               single-line
+              hide-details=""
               v-if="hasPermission('product-list')"
               @click:append="searchProduct()"
             ></v-text-field>
@@ -45,6 +47,7 @@
               item-text="code"
               item-value="code"
               label="Warehouse"
+              hide-details=""
               v-if="user.id === 1 || hasPermission('product-list-all')"
             >
               <template slot="selection" slot-scope="data">
@@ -53,6 +56,17 @@
               <template slot="item" slot-scope="data">
                 {{ data.item.code + ' - ' + data.item.branch }}
               </template> 
+            </v-autocomplete>
+            <v-spacer></v-spacer>
+            <v-autocomplete
+              v-model="inventory_group"
+              :items="inventory_groups"
+              item-text="name"
+              item-value="name"
+              label="Inventory Group"
+              hide-details=""
+              v-if="user.id === 1"
+            >
             </v-autocomplete>
             <template>
               <v-toolbar flat>
@@ -485,6 +499,8 @@ export default {
       nextBtnDisable: true,
       firstBtnDisable: true,
       lastBtnDisable: false,
+      inventory_groups: [{ name: "Admin-Branch" }, { name: "Audit-Branch" }],
+      inventory_group: "Admin-Branch",
     };
   },
 

@@ -229,7 +229,6 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
-        // return response()->json(['success' => 'Record has been added'], 200);
         
         $rules = [
             'branch_id.required' => 'Branch is required',
@@ -270,6 +269,20 @@ class ProductController extends Controller
         }
 
         $user = Auth::user();
+
+        // used to group inventoy data. for Admin or Audit
+        $inventory_group = $request->get('inventory_group');
+        if($user->id !== 1)
+        {
+            if($user->hasRole('Audit Admin'))
+            {
+                $inventory_group = 'Audit-Branch';
+            }
+            else
+            {
+                $inventory_group = 'Admin-Branch';
+            }
+        }
         $branch_id = $request->get('branch_id');
         $whse_code = $request->get('whse_code');
         $brand_id = $request->get('brand_id');
@@ -335,6 +348,7 @@ class ProductController extends Controller
                 $product->product_category_id = $product_category_id;
                 $product->serial = $serials[$x]['serial'];
                 $product->quantity = 1;
+                $product->inventory_group = $inventory_group;
                 $product->save();
 
             }
@@ -350,6 +364,7 @@ class ProductController extends Controller
             $product->product_category_id = $product_category_id;
             $product->serial = $serial;
             $product->quantity = 1;
+            $product->inventory_group = $inventory_group;
             $product->save();
         }
         
@@ -509,7 +524,7 @@ class ProductController extends Controller
 
     public function import(Request $request, $branch_id)
     {    
-        
+
         $user = Auth::user();
         $whse_codes = WarehouseCode::all()->pluck('code')->toArray();
         try {
@@ -692,7 +707,22 @@ class ProductController extends Controller
                 $file_upload_log->docdate = $request->get('docdate');
                 $file_upload_log->docname = "Product List";
                 $file_upload_log->remarks = $whse_code ? $whse_code . '-' . $inventory_type : $inventory_type;
+                $file_upload_log->user_id = Auth::user()->id;
                 $file_upload_log->save();
+
+                // used to group inventoy data. for Admin or Audit
+                $inventory_group = $request->get('inventory_group');
+                if($user->id !== 1)
+                {
+                    if($user->hasRole('Audit Admin'))
+                    {
+                        $inventory_group = 'Audit-Branch';
+                    }
+                    else
+                    {
+                        $inventory_group = 'Admin-Branch';
+                    }
+                }
                 
                 foreach ($fields as $field) {
 
@@ -715,6 +745,7 @@ class ProductController extends Controller
                             'quantity' => $qty,
                             'file_upload_log_id' => $file_upload_log->id,
                             'whse_code' => $whse_code,
+                            'inventory_group' => $inventory_group,
                         ];
         
                         // explode serials with slash('/') - will be used to breakdown/split into 2 or more rows

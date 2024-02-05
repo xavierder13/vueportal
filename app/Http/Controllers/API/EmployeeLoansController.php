@@ -472,6 +472,7 @@ class EmployeeLoansController extends Controller
                     $file_upload_log->branch_id = $branch_id;
                     $file_upload_log->docdate = $request->get('docdate');
                     $file_upload_log->docname = "Employee Loans List";
+                    $file_upload_log->user_id = Auth::user()->id;
                     $file_upload_log->save();
 
                     $params = ['branch_id' => $branch_id, 'file_upload_log_id' => $file_upload_log->id];

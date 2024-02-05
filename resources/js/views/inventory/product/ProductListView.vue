@@ -9,8 +9,9 @@
             </v-breadcrumbs-item>
           </template>
         </v-breadcrumbs>
-        <!-- :canImport="hasPermission('product-import')" -->
+        
         <MenuActions
+          :canImport="hasPermission('product-import')"
           :canExport="hasPermission('product-export')"
           :canClearList="hasPermission('product-clear-list')"
           :canReconcile="hasPermission('product-reconcile')"
@@ -266,6 +267,7 @@
         :dialog_import="dialog_import"
         :action="action"
         :branches="branches"
+        :user="user"
         :whse_codes="whse_codes"
         :docname="'Product List'"
         @getData="refreshData"
@@ -279,7 +281,7 @@ import axios from "axios";
 import { validationMixin } from "vuelidate";
 import { required } from "vuelidate/lib/validators";
 import { mapState, mapGetters, mapActions } from "vuex";
-import ImportDialog from '../../components/ImportDialog.vue';
+import ImportDialog from '../components/ImportDialog.vue';
 import MenuActions from "../../components/MenuActions.vue";
 import DataTable from "../../components/DataTable.vue";
 
@@ -494,7 +496,7 @@ export default {
     },
 
     refreshData(file_upload_log_id) {
-
+      this.getProduct(file_upload_log_id);
       this.$router.push({
         name: 'product.list.view',
         params: { branch_id: this.file_upload_log.branch.id, file_upload_log_id: file_upload_log_id }
@@ -570,6 +572,7 @@ export default {
     },
 
     importExcel() {
+      this.action = 'import';
       this.dialog_import = true;
     },
 

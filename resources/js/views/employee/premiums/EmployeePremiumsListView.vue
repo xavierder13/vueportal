@@ -667,7 +667,7 @@ export default {
     },
 
     refreshData(file_upload_log_id) {
-
+      this.getEmployee(file_upload_log_id);
       this.$router.push({
         name: 'employee.premiums.list.view',
         params: { branch_id: this.file_upload_log.branch.id, file_upload_log_id: file_upload_log_id }

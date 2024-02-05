@@ -9,6 +9,18 @@
         <v-divider class="mt-0"></v-divider>
         <v-card-text>
           <v-container>
+            <v-row v-if="user.id === 1">
+              <v-col class="my-0 py-0">
+                <v-autocomplete
+                  v-model="inventory_group"
+                  :items="inventory_groups"
+                  item-text="name"
+                  item-value="name"
+                  label="Inventory Group"
+                >
+                </v-autocomplete>
+              </v-col>
+            </v-row>
             <v-row> 
               <v-col class="my-0 py-0">
                 <v-autocomplete
@@ -216,7 +228,6 @@ export default {
     'branches',
     'databases',
     'action',
-    'inventory_group',
     'whse_codes',
   ],
 
@@ -250,6 +261,8 @@ export default {
       errors_array: [],
       input_docdate: false,
       whse_code: [],
+      inventory_groups: [{ name: "Admin-Branch" }, { name: "Audit-Branch" }],
+      inventory_group: "Admin-Branch",
     }
   },
   methods: {
@@ -349,7 +362,7 @@ export default {
           if (data.success) {
             // send data to Socket.IO Server
             // this.$socket.emit("sendData", { action: "import-project" });
-            this.$emit('getData');
+            this.$emit('getData', data.file_upload_log_id);
             this.$emit('closeImportDialog');
             
             this.showAlert(data.success, 'success');
