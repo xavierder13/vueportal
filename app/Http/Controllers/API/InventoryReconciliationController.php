@@ -95,29 +95,25 @@ class InventoryReconciliationController extends Controller
                                                  ->with('user.position')
                                                  ->find($inventory_recon_id);
         
-        $invty_recon = InventoryReconciliationMap::where('inventory_recon_id', '=', $inventory_recon_id)
-                                                 ->select(DB::raw('UPPER(brand) as brand, UPPER(model) model,  UPPER(product_category) product_category'))
-                                                 ->get();
+        $invty_recon = InventoryReconciliationMap::where('inventory_recon_id', '=', $inventory_recon_id)->get();
         $product_distinct = InventoryReconciliationMap::distinct()
                                                       ->where('inventory_recon_id', '=', $inventory_recon_id)
                                                       ->orderBy('brand', 'ASC')
                                                       ->orderBy('model', 'ASC')
                                                       ->orderBy('product_category', 'ASC')
-                                                      ->select(DB::raw('UPPER(brand) as brand, UPPER(model) model,  UPPER(product_category) product_category'))
-                                                      ->get();
+                                                      ->get(['brand', 'model', 'product_category']);
         $products = [];
 
         // non sap generated serials item
         $non_sap_serialized_items = InventoryReconciliationMap::where('inventory_recon_id', '=', $inventory_recon_id)
-                                                              ->where(function($query) {
+                                                            ->where(function($query) {
                                                                     $warehouses = WarehouseCode::all();
                                                                     foreach ($warehouses as $whse) {
                                                                         $query->where('serial', 'not like', '%'.$whse->code.'%');
                                                                     }
                                                                     $query->where('serial', '<>', '-No Serial-');
-                                                                })
-                                                                ->select(DB::raw('UPPER(brand) as brand, UPPER(model) model,  UPPER(product_category) product_category, UPPER(serial) serial'))
-                                                                ->get();                                                    
+                                                                })->get();
+
         foreach ($product_distinct as $product) {
             $sap_discrepancy = [];
             $physical_discrepancy = [];
@@ -189,7 +185,7 @@ class InventoryReconciliationController extends Controller
         
         return [
             'products' => $products,
-            'reconciliation' => $reconciliation
+            'reconciliation' => $reconciliation,
         ];
     }
 
@@ -749,17 +745,14 @@ class InventoryReconciliationController extends Controller
 
     public function store_invt_recon_breakdown($inventory_recon_id, $status) 
     {
-        $inventory_reconciliation = InventoryReconciliationMap::where('inventory_recon_id', '=', $inventory_recon_id)
-                                                              ->select(DB::raw('UPPER(brand) as brand, UPPER(model) model,  UPPER(product_category) product_category, UPPER(serial) serial'))  
-                                                              ->get();
+        $inventory_reconciliation = InventoryReconciliationMap::where('inventory_recon_id', '=', $inventory_recon_id)->get();
         $product_distinct = InventoryReconciliationMap::distinct()
                                                     ->where('inventory_recon_id', '=', $inventory_recon_id)
                                                     ->orderBy('brand', 'ASC')
                                                     ->orderBy('model', 'ASC')
                                                     ->orderBy('product_category', 'ASC')
                                                     ->orderBy('serial', 'ASC')
-                                                    ->select(DB::raw('UPPER(brand) as brand, UPPER(model) model,  UPPER(product_category) product_category, UPPER(serial) serial'))
-                                                    ->get();
+                                                    ->get(['brand', 'model', 'product_category', 'serial']);
         $sap_inventory = $inventory_reconciliation->where('inventory_type', '=', 'SAP');
         $physical_inventory = $inventory_reconciliation->where('inventory_type', '=', 'Physical');
 
@@ -844,22 +837,20 @@ class InventoryReconciliationController extends Controller
                                                       ->orderBy('brand', 'ASC')
                                                       ->orderBy('model', 'ASC')
                                                       ->orderBy('product_category', 'ASC')
-                                                      ->select(DB::raw('UPPER(brand) as brand, UPPER(model) model,  UPPER(product_category) product_category'))
                                                       ->get(['brand', 'model', 'product_category']);
         $products = [];
 
         // non sap generated serials item
         $non_sap_serialized_items = InventoryReconciliationMap::where('inventory_recon_id', '=', $inventory_recon_id)
-                                                              ->where(function($query) {
+                                                            ->where(function($query) {
                                                                     $warehouses = WarehouseCode::all();
                                                                     foreach ($warehouses as $whse) {
                                                                         $query->where('serial', 'not like', '%'.$whse->code.'%');
                                                                     }
                                                                     $query->where('serial', '<>', '-No Serial-');
-                                                                    
-                                                                })
-                                                                ->select(DB::raw('UPPER(brand) as brand, UPPER(model) model,  UPPER(product_category) product_category, UPPER(serial) serial'))
-                                                                ->get();
+                                                                })->get();
+
+        
 
         foreach ($product_distinct as $product) {
             $sap_discrepancy = [];
