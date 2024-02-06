@@ -101,6 +101,7 @@
                   append-icon="mdi-magnify"
                   label="Search"
                   single-line
+                  @click:append="searchProduct()"
                 ></v-text-field>
                 <v-spacer></v-spacer>
               </v-toolbar>
