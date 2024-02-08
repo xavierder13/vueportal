@@ -1156,9 +1156,9 @@ class ProductController extends Controller
                     
                 }
 
-                if(count($item_name_explode ) === 1)
+                if(count($category_explode ) === 1)
                 {
-                    $item_name = $value->name;
+                    $category = $value->name;
                 }
 
                 DB::connection("ReportsFinance")->insert(
