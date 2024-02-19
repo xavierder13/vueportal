@@ -227,9 +227,12 @@ class InventoryReconciliationController extends Controller
 
         // load/insert all breakdown into single/empty table per inventory_recon_id to load much faster in a single table
         $this->create_inventory_recon_breakdown($inventory_recon_id);
-        
-        $products = InventoryReconciliationBreakdown::where('inventory_recon_id', $inventory_recon_id)
-                                                    ->where(function($query) use ($report_type) {
+
+        $products = [];
+        if($report_type == 'ALL')
+        {
+            $products = InventoryReconciliationBreakdown::where('inventory_recon_id', $inventory_recon_id)
+                                                        ->where(function($query) use ($report_type) {
                                                         // if variable 'report_type' is equal to 'DISCREPANCY' then filter record only with discrepancy
                                                         if($report_type == 'DISCREPANCY')
                                                         {
@@ -238,48 +241,75 @@ class InventoryReconciliationController extends Controller
                                                         }
                                                     })
                                                     ->get();
-
-        // $products = [];
-        // if($report_type == 'BREAKDOWN')
-        // {
-        //     $products = InventoryReconciliationBreakdown::where('inventory_recon_id', $inventory_recon_id)
-        //                                             ->where(function($query) use ($report_type) {
-        //                                                 // if variable 'report_type' is equal to 'DISCREPANCY' then filter record only with discrepancy
-        //                                                 if($report_type == 'DISCREPANCY')
-        //                                                 {
-        //                                                     $query->where('sap_serial', '=', '---')
-        //                                                           ->orWhere('physical_serial', '=', '---');
-        //                                                 }
-        //                                             })
-        //                                             ->get();
-        // }
-        // else
-        // {
-        //     $data = $this->getDiscrepancy($inventory_recon_id)['products'];
-        //     $products = [];
-        //     foreach ($data as $key => $product) {
-        //         $sap_discrepancy = $product['sap_discrepancy'];
-        //         $physical_discrepancy = $product['physical_discrepancy'];
+        }
+        else
+        {
+            $data = $this->getDiscrepancy($inventory_recon_id)['products'];
+            $products = [];
+            
+            foreach ($data as $key => $product) {
+                $sap_discrepancy = $product['sap_discrepancy'];
+                $physical_discrepancy = $product['physical_discrepancy'];
+                $qty_diff = $product['qty_diff'];
                 
-        //         $exploded_sap_discrepancy = explode(',', $sap_discrepancy);
-        //         $exploded_physical_discrepancy = explode(',', $physical_discrepancy);
+                $exploded_sap_discrepancy = explode(',', $sap_discrepancy);
+                $exploded_physical_discrepancy = explode(',', $physical_discrepancy);
+                
+                // SAP Discrepancy
+                if($sap_discrepancy)
+                {
+                    foreach ($exploded_sap_discrepancy as $key => $value) {
+                        $products[] = [
+                            'brand' => $product['brand'],
+                            'model' => $product['model'],
+                            'product_category' => $product['product_category'],
+                            'sap_serial' =>  $value,
+                            'physical_serial' => '---',
+                        ];     
+                    }
+                }
 
-        //         if(count($exploded_sap_discrepancy) || count($exploded_physical_discrepancy))
-        //         {
-                    
-        //         }
+                if($qty_diff < 0)
+                {
+                    for ($i=0; $i > $qty_diff; $i--) { 
+                        $products[] = [
+                            'brand' => $product['brand'],
+                            'model' => $product['model'],
+                            'product_category' => $product['product_category'],
+                            'sap_serial' =>  '',
+                            'physical_serial' => '---',
+                        ];
+                    }
+                }
 
-        //     }
+                // Physical Discrepancy
+                if($physical_discrepancy)
+                {
+                    foreach ($exploded_physical_discrepancy as $key => $value) {
+                        $products[] = [
+                            'brand' => $product['brand'],
+                            'model' => $product['model'],
+                            'product_category' => $product['product_category'],
+                            'sap_serial' =>  '---',
+                            'physical_serial' => $value,
+                        ];
+                    }
+                }
 
-        //     // 'brand' => $product['brand'],
-        //     //         'model' => $product['model'],
-        //     //         'product_category' => $product['product_category'],
-        //     //         'sap_qty' => $sap_qty,
-        //     //         'physical_qty' => $physical_qty,
-        //     //         'qty_diff' => $qty_diff, // physical - sap quantity
-        //     //         'sap_discrepancy' => join(', ', $sap_discrepancy),
-        //     //         'physical_discrepancy' => join(', ', $physical_discrepancy),
-        // }
+                if($qty_diff > 0)
+                {
+                    for ($i=0; $i < $qty_diff; $i++) { 
+                        $products[] = [
+                            'brand' => $product['brand'],
+                            'model' => $product['model'],
+                            'product_category' => $product['product_category'],
+                            'sap_serial' =>  '---',
+                            'physical_serial' => '',
+                        ];
+                    }
+                }
+            }
+        }
         
         return [
             'products' => $products,
