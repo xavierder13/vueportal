@@ -246,7 +246,7 @@ class InventoryReconciliationController extends Controller
         {
             $data = $this->getDiscrepancy($inventory_recon_id)['products'];
             $products = [];
-            
+
             foreach ($data as $key => $product) {
                 $sap_discrepancy = $product['sap_discrepancy'];
                 $physical_discrepancy = $product['physical_discrepancy'];
@@ -269,7 +269,7 @@ class InventoryReconciliationController extends Controller
                     }
                 }
 
-                if($qty_diff < 0)
+                if($qty_diff < 0 && !$sap_discrepancy)
                 {
                     for ($i=0; $i > $qty_diff; $i--) { 
                         $products[] = [
@@ -296,7 +296,7 @@ class InventoryReconciliationController extends Controller
                     }
                 }
 
-                if($qty_diff > 0)
+                if($qty_diff > 0 && !$physical_discrepancy)
                 {
                     for ($i=0; $i < $qty_diff; $i++) { 
                         $products[] = [
