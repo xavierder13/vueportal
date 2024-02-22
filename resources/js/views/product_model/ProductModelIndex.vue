@@ -15,12 +15,16 @@
             <v-spacer></v-spacer>
             <v-text-field
               v-model="search"
-              append-icon="mdi-magnify"
               label="Search"
               single-line
               v-if="hasPermission('product-model-list')"
-              @click:append="searchModel()"
-            ></v-text-field>
+            >
+              <template slot="append">
+                <v-btn small color="primary" icon>
+                  <v-icon @click="searchModel()">mdi-magnify</v-icon>
+                </v-btn>
+              </template>
+            </v-text-field>
             <template>
               <v-toolbar flat>
                 <v-spacer></v-spacer>

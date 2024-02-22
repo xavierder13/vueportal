@@ -30,7 +30,9 @@
               v-if="hasPermission('product-list')"
             >
               <template slot="append">
-                <v-icon color="primary" @click="searchProduct()">mdi-magnify</v-icon>
+                <v-btn small color="primary" icon>
+                  <v-icon @click="searchProduct()">mdi-magnify</v-icon>
+                </v-btn>
               </template>
             </v-text-field>
             <v-spacer></v-spacer>
