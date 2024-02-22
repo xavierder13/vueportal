@@ -18,19 +18,21 @@
           @reconcile="getUnreconciled"
         />
         <v-card>
-          <v-card-title>
+          <v-card-title class="mb-0 pb-0">
             Scanned Product Lists
-            <v-divider vertical class="mx-4"></v-divider>
+            <v-divider vertical class="ml-4"></v-divider>
             <v-spacer></v-spacer>
             <v-text-field
               v-model="search"
-              append-icon="mdi-magnify"
               label="Search"
               single-line
               hide-details=""
               v-if="hasPermission('product-list')"
-              @click:append="searchProduct()"
-            ></v-text-field>
+            >
+              <template slot="append">
+                <v-icon color="primary" @click="searchProduct()">mdi-magnify</v-icon>
+              </template>
+            </v-text-field>
             <v-spacer></v-spacer>
             <!-- <v-autocomplete
               v-model="search_branch"
@@ -68,234 +70,6 @@
               v-if="user.id === 1"
             >
             </v-autocomplete>
-            <template>
-              <v-toolbar flat>
-                <v-spacer></v-spacer>
-                <v-dialog v-model="dialog" max-width="500px" persistent>
-                  <v-card>
-                    <v-card-title class="pa-4">
-                      <span class="headline">{{ formTitle }}</span>
-                    </v-card-title>
-                    <v-divider class="mt-0"></v-divider>
-                    <v-card-text>
-                      <v-container>
-                        <v-row>
-                          <v-col class="my-0 py-0">
-                            <v-autocomplete
-                              v-model="editedItem.brand_id"
-                              :items="brands"
-                              item-text="name"
-                              item-value="id"
-                              label="Brand"
-                              required
-                              :error-messages="brandErrors"
-                              @input="
-                                $v.editedItem.brand_id.$touch() +
-                                  (serialExists = false)
-                              "
-                              @blur="$v.editedItem.brand_id.$touch()"
-                            >
-                            </v-autocomplete>
-                          </v-col>
-                        </v-row>
-                        <v-row>
-                          <v-col class="my-0 py-0">
-                            <v-text-field
-                              name="model"
-                              label="Model"
-                              v-model="editedItem.model"
-                              required
-                              :error-messages="modelErrors"
-                              @input="
-                                $v.editedItem.model.$touch() +
-                                  (serialExists = false)
-                              "
-                              @blur="$v.editedItem.model.$touch()"
-                            ></v-text-field>
-                          </v-col>
-                        </v-row>
-                        <v-row>
-                          <v-col class="my-0 py-0">
-                            <v-autocomplete
-                              v-model="editedItem.product_category_id"
-                              :items="product_categories"
-                              item-text="name"
-                              item-value="id"
-                              label="Product Category"
-                              required
-                              :error-messages="product_categoryErrors"
-                              @input="
-                                $v.editedItem.product_category_id.$touch() +
-                                  (serialExists = false) +
-                                  selectedProductCategory()
-                              "
-                              @blur="$v.editedItem.product_category_id.$touch()"
-                            >
-                            </v-autocomplete>
-                          </v-col>
-                        </v-row>
-                        <v-row>
-                          <v-col class="my-0 py-0">
-                            <v-text-field
-                              name="serial"
-                              label="Serial"
-                              v-model="editedItem.serial"
-                              readonly
-                              required
-                              :error-messages="serialErrors"
-                              @input="$v.editedItem.serial.$touch()"
-                              @blur="$v.editedItem.serial.$touch()"
-                            ></v-text-field>
-                          </v-col>
-                        </v-row>
-                        <v-row>
-                          <v-col class="my-0 py-0">
-                            <v-autocomplete
-                              v-model="editedItem.branch_id"
-                              :items="branches"
-                              item-text="name"
-                              item-value="id"
-                              label="Branch"
-                              required
-                              :error-messages="branchErrors"
-                              @input="$v.editedItem.branch_id.$touch()"
-                              @blur="$v.editedItem.branch_id.$touch()"
-                              v-if="user.id === 1"
-                            >
-                            </v-autocomplete>
-                          </v-col>
-                        </v-row>
-                      </v-container>
-                    </v-card-text>
-                    <v-divider class="mb-3 mt-0"></v-divider>
-                    <v-card-actions class="pa-0">
-                      <v-spacer></v-spacer>
-                      <v-btn color="#E0E0E0" @click="close" class="mb-3">
-                        Cancel
-                      </v-btn>
-                      <v-btn
-                        color="primary"
-                        @click="save"
-                        class="mb-3 mr-4"
-                        :disabled="disabled"
-                      >
-                        Save
-                      </v-btn>
-                    </v-card-actions>
-                  </v-card>
-                </v-dialog>
-
-                <v-dialog
-                  v-model="dialog_unreconciled"
-                  max-width="1100px"
-                  persistent
-                >
-                  <v-card>
-                    <v-card-title class="pa-4">
-                      <span class="headline">Unreconciled Inventories</span>
-                      <v-spacer></v-spacer>
-                      <v-text-field
-                        v-model="search_unreconciled"
-                        append-icon="mdi-magnify"
-                        label="Search"
-                        single-line
-                        hide-details=""
-                      ></v-text-field>
-                      <v-spacer></v-spacer>
-                      <v-autocomplete
-                        v-model="inventory_group"
-                        :items="inventory_groups"
-                        item-text="name"
-                        item-value="name"
-                        label="Inventory Group"
-                        hide-details=""
-                        v-if="user.id === 1"
-                      >
-                      </v-autocomplete>
-                    </v-card-title>
-                    <v-divider class="mt-0"></v-divider>
-                    <v-card-text>
-                      <v-container>
-                        <v-row>
-                          <v-col>
-                            <v-data-table
-                              :headers="unreconciled_headers"
-                              :items="filteredUnreconciled"
-                              :search="search_unreconciled"
-                              :loading="loading_unreconciled"
-                              loading-text="Loading... Please wait"
-                            >
-                              <template v-slot:item.status="{ item }">
-                                <v-chip
-                                  :color="
-                                    item.status == 'unreconciled'
-                                      ? 'red white--text'
-                                      : 'success'
-                                  "
-                                >
-                                  {{ item.status.toUpperCase() }}
-                                </v-chip>
-                              </template>
-                              <template v-slot:item.actions="{ item }">
-                                <v-btn
-                                  x-small
-                                  class="mr-2"
-                                  color="primary"
-                                  @click="reconcileProducts(item)"
-                                >
-                                  <v-icon x-small class="mr-1">
-                                    mdi-file
-                                  </v-icon>
-                                  Reconcile
-                                </v-btn>
-                              </template>
-                            </v-data-table>
-                          </v-col>
-                        </v-row>
-                      </v-container>
-                    </v-card-text>
-                    <v-divider class="mb-3 mt-0"></v-divider>
-                    <v-card-actions class="pa-0">
-                      <v-spacer></v-spacer>
-                      <v-btn
-                        color="#E0E0E0"
-                        @click="
-                          (dialog_unreconciled = false) + (loading = false)
-                        "
-                        class="mb-3 mr-4"
-                      >
-                        Cancel
-                      </v-btn>
-                    </v-card-actions>
-                    <v-dialog v-model="dialog_recon_loading" max-width="500px" persistent>
-                      <v-card>
-                        <v-card-text>
-                          <v-container>
-                            <v-row
-                              class="fill-height"
-                              align-content="center"
-                              justify="center"
-                            >
-                              <v-col class="subtitle-1 font-weight-bold text-center mt-4" cols="12">
-                                Reconciling Products...
-                              </v-col>
-                              <v-col cols="6">
-                                <v-progress-linear
-                                  color="primary"
-                                  indeterminate
-                                  rounded
-                                  height="6"
-                                ></v-progress-linear>
-                              </v-col>
-                            </v-row>
-                          </v-container>
-                        </v-card-text>
-                      </v-card>
-                    </v-dialog>
-                  </v-card>
-                </v-dialog>
-              </v-toolbar>
-            </template>
           </v-card-title>
           <!-- <DataTable
             :headers="headers"
@@ -367,6 +141,229 @@
               >
             </template>
           </v-data-table>
+          <v-dialog v-model="dialog" max-width="500px" persistent>
+            <v-card>
+              <v-card-title class="pa-4">
+                <span class="headline">{{ formTitle }}</span>
+              </v-card-title>
+              <v-divider class="mt-0"></v-divider>
+              <v-card-text>
+                <v-container>
+                  <v-row>
+                    <v-col class="my-0 py-0">
+                      <v-autocomplete
+                        v-model="editedItem.brand_id"
+                        :items="brands"
+                        item-text="name"
+                        item-value="id"
+                        label="Brand"
+                        required
+                        :error-messages="brandErrors"
+                        @input="
+                          $v.editedItem.brand_id.$touch() +
+                            (serialExists = false)
+                        "
+                        @blur="$v.editedItem.brand_id.$touch()"
+                      >
+                      </v-autocomplete>
+                    </v-col>
+                  </v-row>
+                  <v-row>
+                    <v-col class="my-0 py-0">
+                      <v-text-field
+                        name="model"
+                        label="Model"
+                        v-model="editedItem.model"
+                        required
+                        :error-messages="modelErrors"
+                        @input="
+                          $v.editedItem.model.$touch() +
+                            (serialExists = false)
+                        "
+                        @blur="$v.editedItem.model.$touch()"
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                  <v-row>
+                    <v-col class="my-0 py-0">
+                      <v-autocomplete
+                        v-model="editedItem.product_category_id"
+                        :items="product_categories"
+                        item-text="name"
+                        item-value="id"
+                        label="Product Category"
+                        required
+                        :error-messages="product_categoryErrors"
+                        @input="
+                          $v.editedItem.product_category_id.$touch() +
+                            (serialExists = false) +
+                            selectedProductCategory()
+                        "
+                        @blur="$v.editedItem.product_category_id.$touch()"
+                      >
+                      </v-autocomplete>
+                    </v-col>
+                  </v-row>
+                  <v-row>
+                    <v-col class="my-0 py-0">
+                      <v-text-field
+                        name="serial"
+                        label="Serial"
+                        v-model="editedItem.serial"
+                        readonly
+                        required
+                        :error-messages="serialErrors"
+                        @input="$v.editedItem.serial.$touch()"
+                        @blur="$v.editedItem.serial.$touch()"
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                  <v-row>
+                    <v-col class="my-0 py-0">
+                      <v-autocomplete
+                        v-model="editedItem.branch_id"
+                        :items="branches"
+                        item-text="name"
+                        item-value="id"
+                        label="Branch"
+                        required
+                        :error-messages="branchErrors"
+                        @input="$v.editedItem.branch_id.$touch()"
+                        @blur="$v.editedItem.branch_id.$touch()"
+                        v-if="user.id === 1"
+                      >
+                      </v-autocomplete>
+                    </v-col>
+                  </v-row>
+                </v-container>
+              </v-card-text>
+              <v-divider class="mb-3 mt-0"></v-divider>
+              <v-card-actions class="pa-0">
+                <v-spacer></v-spacer>
+                <v-btn color="#E0E0E0" @click="close" class="mb-3">
+                  Cancel
+                </v-btn>
+                <v-btn
+                  color="primary"
+                  @click="save"
+                  class="mb-3 mr-4"
+                  :disabled="disabled"
+                >
+                  Save
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+
+          <v-dialog
+            v-model="dialog_unreconciled"
+            max-width="1100px"
+            persistent
+          >
+            <v-card>
+              <v-card-title class="pa-4">
+                <span class="headline">Unreconciled Inventories</span>
+                <v-spacer></v-spacer>
+                <v-text-field
+                  v-model="search_unreconciled"
+                  append-icon="mdi-magnify"
+                  label="Search"
+                  single-line
+                  hide-details=""
+                ></v-text-field>
+                <v-spacer></v-spacer>
+                <v-autocomplete
+                  v-model="inventory_group"
+                  :items="inventory_groups"
+                  item-text="name"
+                  item-value="name"
+                  label="Inventory Group"
+                  hide-details=""
+                  v-if="user.id === 1"
+                >
+                </v-autocomplete>
+              </v-card-title>
+              <v-divider class="mt-0"></v-divider>
+              <v-card-text>
+                <v-container>
+                  <v-row>
+                    <v-col>
+                      <v-data-table
+                        :headers="unreconciled_headers"
+                        :items="filteredUnreconciled"
+                        :search="search_unreconciled"
+                        :loading="loading_unreconciled"
+                        loading-text="Loading... Please wait"
+                      >
+                        <template v-slot:item.status="{ item }">
+                          <v-chip
+                            :color="
+                              item.status == 'unreconciled'
+                                ? 'red white--text'
+                                : 'success'
+                            "
+                          >
+                            {{ item.status.toUpperCase() }}
+                          </v-chip>
+                        </template>
+                        <template v-slot:item.actions="{ item }">
+                          <v-btn
+                            x-small
+                            class="mr-2"
+                            color="primary"
+                            @click="reconcileProducts(item)"
+                          >
+                            <v-icon x-small class="mr-1">
+                              mdi-file
+                            </v-icon>
+                            Reconcile
+                          </v-btn>
+                        </template>
+                      </v-data-table>
+                    </v-col>
+                  </v-row>
+                </v-container>
+              </v-card-text>
+              <v-divider class="mb-3 mt-0"></v-divider>
+              <v-card-actions class="pa-0">
+                <v-spacer></v-spacer>
+                <v-btn
+                  color="#E0E0E0"
+                  @click="
+                    (dialog_unreconciled = false) + (loading = false)
+                  "
+                  class="mb-3 mr-4"
+                >
+                  Cancel
+                </v-btn>
+              </v-card-actions>
+              <v-dialog v-model="dialog_recon_loading" max-width="500px" persistent>
+                <v-card>
+                  <v-card-text>
+                    <v-container>
+                      <v-row
+                        class="fill-height"
+                        align-content="center"
+                        justify="center"
+                      >
+                        <v-col class="subtitle-1 font-weight-bold text-center mt-4" cols="12">
+                          Reconciling Products...
+                        </v-col>
+                        <v-col cols="6">
+                          <v-progress-linear
+                            color="primary"
+                            indeterminate
+                            rounded
+                            height="6"
+                          ></v-progress-linear>
+                        </v-col>
+                      </v-row>
+                    </v-container>
+                  </v-card-text>
+                </v-card>
+              </v-dialog>
+            </v-card>
+          </v-dialog>
         </v-card>
       </v-main>
     </div>
@@ -498,7 +495,7 @@ export default {
       prevBtnDisable: true,
       nextBtnDisable: true,
       firstBtnDisable: true,
-      lastBtnDisable: false,
+      lastBtnDisable: true,
       inventory_groups: [{ name: "Admin-Branch" }, { name: "Audit-Branch" }],
       inventory_group: "Admin-Branch",
     };

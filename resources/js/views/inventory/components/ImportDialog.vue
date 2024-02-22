@@ -327,6 +327,7 @@ export default {
         (error) => {
           console.log(error);
           this.uploadDisabled = false;
+          this.uploading = false;
           this.showErrorAlert(error, error.response.data.message);
           this.isUnauthorized(error);
           

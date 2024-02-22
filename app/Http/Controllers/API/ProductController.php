@@ -662,7 +662,6 @@ class ProductController extends Controller
                         '*.CATEGORY.required' => 'Product Category is required',
                         // '*.SERIAL.required' => 'Serial is required',
                         '*.QUANTITY.integer' => 'Quantity must be an integer',
-
                     ];
             
                     $valid_fields = [
@@ -726,7 +725,7 @@ class ProductController extends Controller
                 
                 foreach ($fields as $field) {
 
-                    // if either serial or quantiry has value (disregard null serial ang quantity)
+                    // if either serial or quantity has value (disregard null serial ang quantity)
                     if($field['SERIAL'] || $field['QUANTITY'])
                     {
                         $qty = $field['QUANTITY'] ? $field['QUANTITY'] : 1;
