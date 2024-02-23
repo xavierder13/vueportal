@@ -52,7 +52,6 @@
               item-value="code"
               label="Warehouse"
               hide-details=""
-              v-if="user.id === 1 || hasPermission('product-list-all')"
             >
               <template slot="selection" slot-scope="data">
                 {{ data.item.code + ' - ' + data.item.branch }}
@@ -1083,14 +1082,22 @@ export default {
       return branches;
     },
     warehouseOptions() {
-      let whse_codes = [{ code: 'ALL', branch: "ALL" }];
-      this.whse_codes.forEach(v => whse_codes.push(v));
-
+      let whse_codes = [];
+      if(this.hasAnyRole('Administrator', 'Audit Admin', 'Inventory Admin'))
+      {
+        whse_codes.push({ code: 'ALL', branch: "ALL" });
+        this.whse_codes.forEach(v => whse_codes.push(v)); 
+      }
+      else
+      {
+        whse_codes = this.user.branch.whse_codes;
+      }
+      
       return whse_codes;
     },
     ...mapState("auth", ["user", "userIsLoaded"]),
     ...mapState("userRolesPermissions", ["userRolesPermissionsIsLoaded"]),
-    ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission", "hasAnyPermission"]),
+    ...mapGetters("userRolesPermissions", ["hasRole", "hasAnyRole", "hasPermission", "hasAnyPermission"]),
   },
 
   destroyed() {

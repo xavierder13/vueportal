@@ -333,7 +333,7 @@ export default {
       disabled: false,
       editedIndex: -1,
       editedItem: {
-        branch: "1",
+        branch: "",
         whse_code: "",
         brand: "",
         brand_id: "",
@@ -593,6 +593,10 @@ export default {
     
         await axios.post("/api/product/store", data).then(
           (response) => {
+
+            this.overlay = false;
+            this.disabled = false;
+
             if (response.data.success) {
               // send data to Sockot.IO Server
               // this.$socket.emit("sendData", { action: "product-create" });
@@ -625,8 +629,7 @@ export default {
               });
             }
 
-            this.overlay = false;
-            this.disabled = false;
+            
           },
           (error) => {
             this.isUnauthorized(error);
@@ -799,7 +802,7 @@ export default {
     },
   },
   watch: {
-    'editedItem.branch'() {
+    'editedItem.branch.id'() {
       
       if(this.editedItem.branch)
       { 
