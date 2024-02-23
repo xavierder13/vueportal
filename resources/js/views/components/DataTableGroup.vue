@@ -29,7 +29,7 @@
           </v-chip>
         </template>
         <template v-slot:group.header="{ items, headers, toggle, isOpen, }">
-          <td colspan="3">
+          <td colspan="4">
             <v-row>
               <v-col>
                 <v-btn @click="toggle" small icon :ref="items" :data-open="isOpen">
@@ -69,6 +69,7 @@
         <template v-slot:item="{ item }">
           <tr v-for="(value, index) in item.file_upload_logs">
             <td> </td>
+            <td> {{ value.user ? value.user.name : '' }} </td>
             <td> <v-chip color="secondary"> {{ value.date_uploaded }} </v-chip> </td>
             <td> <v-chip color="secondary"> {{ value.docdate }} </v-chip> </td>
             <td>
@@ -120,6 +121,7 @@ export default {
       headers: [
         { text: "Branch", value: "grp_branch" },
         { text: "", value: "name" },
+        { text: "Uploaded By", value: "uploaded_by" },
         { text: "Date Uploaded", value: "date_uploaded" },
         { text: "Document Date", value: "docdate" },
         { text: "Actions", value: "actions", sortable: false, width: "120px" },

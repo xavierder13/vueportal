@@ -24,7 +24,8 @@ class EmployeePremiumsController extends Controller
 
         $branches = Branch::with(['file_upload_logs' => function($query){
                                 $query->select(DB::raw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_uploaded, DATE_FORMAT(docdate, '%m/%d/%Y') as docdate"))
-                                    ->where('docname', '=', 'Employee Premiums');
+                                    ->where('docname', '=', 'Employee Premiums')
+                                    ->with('user');
                             }])
                             ->where(function($query) use ($user_can_employee_premiums_list_all){
                                 // if user has no permission to view all the branches then select the user's branch only

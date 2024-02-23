@@ -168,7 +168,7 @@
                 hide-details=""
               ></v-text-field>
               <v-spacer></v-spacer>
-              <v-autocomplete
+              <!-- <v-autocomplete
                 v-model="inventory_group"
                 :items="inventory_groups"
                 item-text="name"
@@ -177,7 +177,7 @@
                 hide-details=""
                 v-if="user.id === 1"
               >
-              </v-autocomplete>
+              </v-autocomplete> -->
             </v-card-title>
             <v-divider class="mt-0"></v-divider>
             <v-card-text>

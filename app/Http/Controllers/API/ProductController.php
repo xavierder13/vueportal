@@ -32,7 +32,8 @@ class ProductController extends Controller
         $user_can_product_list_all = Auth::user()->can('product-list-all');
         $branches = Branch::with(['file_upload_logs' => function($query){
                                 $query->select(DB::raw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_uploaded, DATE_FORMAT(docdate, '%m/%d/%Y') as docdate"))
-                                    ->where('docname', '=', 'Product List');
+                                      ->where('docname', '=', 'Product List')
+                                      ->with('user');
                             }])
                             ->with('whse_codes')
                             ->where(function($query) use ($user_can_product_list_all){
@@ -103,17 +104,33 @@ class ProductController extends Controller
         $user = Auth::user();
         $search = $request->search;
         $whse_code = $request->whse_code;
+        $inventory_group = $request->inventory_group;
 
         $products = Product::with('brand')
                            ->with('branch')
                            ->with('user')
                            ->with('product_category')
-                           ->where(function($query) use ($user, $whse_code, $search){
-                                $query->where(function($qry) use ($user){
+                           ->where(function($query) use ($user, $whse_code, $search, $inventory_group){
+                                $query->where(function($qry) use ($user, $inventory_group){
                                     if(!$user->hasAnyRole('Administrator', 'Audit Admin', 'Inventory Admin'))
                                     {
                                         $qry->where('user_id', '=', $user->id);
                                     }
+                                    // if user is Inventory Admin or has Role Inventory Admin
+                                    else if(!$user->hasRole('Administrator') && $user->hasRole('Inventory Admin'))
+                                    {
+                                        $qry->where('inventory_group', 'Admin-Branch');
+                                    }
+                                    // if user is Audit or has Role Audit Admin
+                                    else if(!$user->hasRole('Administrator') && $user->hasRole('Audit Admin'))
+                                    {
+                                        $qry->where('inventory_group', 'Audit-Branch');
+                                    }
+                                    else
+                                    {
+                                        $qry->where('inventory_group', '=', $inventory_group);
+                                    }   
+
                                 })
                                 ->where(function($qry){
                                     $qry->whereNull('file_upload_log_id')
@@ -153,7 +170,8 @@ class ProductController extends Controller
             'whse_codes' => $whse_codes,
             'product_categories' => $product_categories,
             'user' => $user,
-            'whse_code' => $whse_code
+            'whse_code' => $whse_code,
+            $inventory_group
         ], 200);
     }
 

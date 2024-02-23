@@ -273,7 +273,7 @@
                   hide-details=""
                 ></v-text-field>
                 <v-spacer></v-spacer>
-                <v-autocomplete
+                <!-- <v-autocomplete
                   v-model="inventory_group"
                   :items="inventory_groups"
                   item-text="name"
@@ -282,7 +282,7 @@
                   hide-details=""
                   v-if="user.id === 1"
                 >
-                </v-autocomplete>
+                </v-autocomplete> -->
               </v-card-title>
               <v-divider class="mt-0"></v-divider>
               <v-card-text>
@@ -506,11 +506,17 @@ export default {
     getProduct() {
       this.loading = true;
 
-      const data = { items_per_page: this.itemsPerPage, whse_code: this.search_whse, search: this.search };
+      const data = { 
+        items_per_page: this.itemsPerPage, 
+        whse_code: this.search_whse, 
+        search: this.search, 
+        inventory_group: this.inventory_group 
+      };
 
       axios.post("/api/product/scanned_products?page=" + this.page, data).then(
         (response) => {
           let data = response.data;
+
           this.file_upload_log = data.file_upload_log;
           this.products = data.products;
           this.brands = data.brands;
@@ -1090,7 +1096,10 @@ export default {
       }
       else
       {
-        whse_codes = this.user.branch.whse_codes;
+        if(this.user)
+        {
+          whse_codes = this.user.branch.whse_codes;
+        }
       }
       
       return whse_codes;
@@ -1107,8 +1116,17 @@ export default {
   async mounted() {
     axios.defaults.headers.common["Authorization"] =
       "Bearer " + localStorage.getItem("access_token");
-    await this.getProduct();
+    
     this.search_branch = this.user.branch_id;
+    
+    if(!this.hasRole('Administrator') && this.hasRole('Inventory Admin'))
+    {
+      this.inventory_group = 'Admin-Branch';
+    }
+    else if(!this.hasRole('Administrator') && this.hasRole('Audit Admin'))
+    {
+      this.inventory_group = 'Audit-Branch';
+    }
 
     if(this.user)
     {
@@ -1118,6 +1136,9 @@ export default {
         this.search_whse = whse_codes[0].code;
       }
     }
+
+    await this.getProduct();
+    
 
     this.$barcodeScanner.init(this.onBarcodeScanned);
 
