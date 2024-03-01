@@ -767,7 +767,7 @@ export default {
           if (result.value) {
             // <-- if confirmed
 
-            let data = { branch_id: this.search_branch, clear_list: true };
+            let data = { branch_id: this.search_branch, whse_code: this.search_whse ,clear_list: true };
 
             axios.post("api/product/delete", data).then(
               (response) => {

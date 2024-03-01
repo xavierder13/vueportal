@@ -496,9 +496,10 @@ class ProductController extends Controller
             // $log->delete();
             $file_upload_log_id = $request->file_upload_log_id;
             $branch_id = $request->branch_id;
+            $whse_code = $request->whse_code;
             $log = FileUploadLog::where('id', $file_upload_log_id)->delete();
             $products = DB::table('products')
-                          ->where(function($query) use ($file_upload_log_id, $branch_id){
+                          ->where(function($query) use ($file_upload_log_id, $whse_code){
 
                             // if file_upload_log_id has value means product list were uploaded; 
                             if($file_upload_log_id)
@@ -507,7 +508,7 @@ class ProductController extends Controller
                             }
                             else
                             {
-                                $query->where('branch_id', $branch_id)
+                                $query->where('whse_code', $whse_code)
                                       ->whereNull('file_upload_log_id');
                             }
                           });
