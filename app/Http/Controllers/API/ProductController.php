@@ -30,6 +30,16 @@ class ProductController extends Controller
     public function index(Request $request)
     {   
         $user_can_product_list_all = Auth::user()->can('product-list-all');
+        $inventory_group = 'Admin-Branch';
+        if(Auth::user()->hasRole('Audit Admin'))
+        {
+            $inventory_group = 'Audit-Branch';
+        }
+        else
+        {
+            $inventory_group = 'Admin-Branch';
+        }
+        
         $branches = Branch::with(['file_upload_logs' => function($query){
                                 $query->select(DB::raw("*, DATE_FORMAT(created_at, '%m/%d/%Y') as date_uploaded, DATE_FORMAT(docdate, '%m/%d/%Y') as docdate"))
                                       ->where('docname', '=', 'Product List')
@@ -340,6 +350,7 @@ class ProductController extends Controller
                                 ->where('brand_id', '=', $brand_id)
                                 ->where('model', '=', $model)
                                 ->whereNull('file_upload_log_id')
+                                ->where('inventory_groud', $inventory_group)
                                 ->where(function($query) use ($serials, $serial){
                                     $query->whereIn('serial', $serials)
                                           ->orWhere('serial', '=', $serial);
@@ -487,7 +498,7 @@ class ProductController extends Controller
 
     public function delete(Request $request)
     {   
-
+        $user = Auth::user();
         if($request->get('clear_list'))
         {   
             
@@ -498,8 +509,23 @@ class ProductController extends Controller
             $branch_id = $request->branch_id;
             $whse_code = $request->whse_code;
             $log = FileUploadLog::where('id', $file_upload_log_id)->delete();
+
+            // used to group inventoy data. for Admin or Audit
+            $inventory_group = $request->get('inventory_group');
+            if($user->id !== 1)
+            {
+                if($user->hasRole('Audit Admin'))
+                {
+                    $inventory_group = 'Audit-Branch';
+                }
+                else
+                {
+                    $inventory_group = 'Admin-Branch';
+                }
+            }
+
             $products = DB::table('products')
-                          ->where(function($query) use ($file_upload_log_id, $whse_code){
+                          ->where(function($query) use ($file_upload_log_id, $whse_code, $inventory_group){
 
                             // if file_upload_log_id has value means product list were uploaded; 
                             if($file_upload_log_id)
@@ -509,6 +535,7 @@ class ProductController extends Controller
                             else
                             {
                                 $query->where('whse_code', $whse_code)
+                                      ->where('inventory_group', $inventory_group)
                                       ->whereNull('file_upload_log_id');
                             }
                           });
