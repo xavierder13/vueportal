@@ -350,7 +350,7 @@ class ProductController extends Controller
                                 ->where('brand_id', '=', $brand_id)
                                 ->where('model', '=', $model)
                                 ->whereNull('file_upload_log_id')
-                                ->where('inventory_groud', $inventory_group)
+                                ->where('inventory_group', $inventory_group)
                                 ->where(function($query) use ($serials, $serial){
                                     $query->whereIn('serial', $serials)
                                           ->orWhere('serial', '=', $serial);
