@@ -773,8 +773,9 @@ class ProductController extends Controller
 
                     // if either serial or quantity has value (disregard null serial ang quantity)
                     if($field['SERIAL'] || $field['QUANTITY'])
-                    {
-                        $qty = $field['QUANTITY'] ? $field['QUANTITY'] : 1;
+                    {   
+                        // check value if contains only whitespace
+                        $qty = $field['QUANTITY'] && !ctype_space($field['QUANTITY']) ? $field['QUANTITY'] : 1;
 
                         $brand_id = Brand::firstOrCreate(['name' => $field['BRAND'], 'active' => 'Y'])->id;
                         $product_category_id = ProductCategory::firstOrCreate(['name' => $field['CATEGORY'], 'active' => 'Y'])->id;
