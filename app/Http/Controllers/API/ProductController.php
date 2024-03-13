@@ -144,11 +144,11 @@ class ProductController extends Controller
                                         // all branches user
                                         $users = User::with('branch')
                                                      ->whereHas('branch', function($qry) {
-                                                        $qry->where('name', '<>', 'Administration');
+                                                        $qry->where('name', 'Administration');
                                                      })->pluck('id');
 
                                         $qry->where('inventory_group', 'Admin-Branch')
-                                            ->whereNotIn('user_id', $users); // products not added by branch users
+                                            ->whereIn('user_id', $users); // products not added by branch users
                                         
                                     }
                                     // if user is Audit or has Role Audit Admin
