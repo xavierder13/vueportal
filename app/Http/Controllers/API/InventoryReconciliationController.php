@@ -588,7 +588,8 @@ class InventoryReconciliationController extends Controller
                         $qry->whereNull('file_upload_log_id')
                             ->orWhere('file_upload_log_id', 0);
 
-                    });
+                    })
+                    ->whereNotNull('inventory_group');
         }
         
         foreach ($products->get() as $product) {
