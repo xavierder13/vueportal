@@ -122,24 +122,53 @@ class ProductController extends Controller
                            ->with('product_category')
                            ->where(function($query) use ($user, $whse_code, $search, $inventory_group){
                                 $query->where(function($qry) use ($user, $inventory_group){
-                                    if(!$user->hasAnyRole('Administrator', 'Audit Admin', 'Inventory Admin'))
-                                    {
-                                        $qry->where('user_id', '=', $user->id);
+                                    if(!$user->hasAnyRole('Administrator', 'Audit Admin', 'Inventory Admin') && $user->hasRole('Inventory Branch'))
+                                    {   
+                                        // get products encoded by branch users
+                                        $user = Auth::user();
+
+                                        // branch users
+                                        $users = User::with('branch')
+                                                     ->whereHas('branch', function($qry) use ($user) {
+                                                        $qry->where('id', $user->branch_id);
+                                                     })->pluck('id');
+
+                                        $qry->where('inventory_group', 'Admin-Branch')
+                                            ->whereIn('user_id', $users);
                                     }
                                     // if user is Inventory Admin or has Role Inventory Admin
                                     else if(!$user->hasRole('Administrator') && $user->hasRole('Inventory Admin'))
-                                    {
-                                        $qry->where('inventory_group', 'Admin-Branch');
+                                    {   
+                                        // get products encoded by admin users; not encoded by branch users
+
+                                        // all branches user
+                                        $users = User::with('branch')
+                                                     ->whereHas('branch', function($qry) {
+                                                        $qry->where('name', '<>', 'Administration');
+                                                     })->pluck('id');
+
+                                        $qry->where('inventory_group', 'Admin-Branch')
+                                            ->whereNotIn('user_id', $users); // products not added by branch users
+                                        
                                     }
                                     // if user is Audit or has Role Audit Admin
                                     else if(!$user->hasRole('Administrator') && $user->hasRole('Audit Admin'))
                                     {
-                                        $qry->where('inventory_group', 'Audit-Branch');
+                                        // get products encoded by admin users; not encoded by branch users
+                            
+                                        // branch users
+                                        $users = User::with('branch')
+                                                     ->whereHas('branch', function($qry) {
+                                                         $qry->where('name', 'Administration');
+                                                     })->pluck('id');
+
+                                        $qry->where('inventory_group', 'Audit-Branch')
+                                            ->whereIn('user_id', $users);
                                     }
                                     else
                                     {
                                         $qry->where('inventory_group', '=', $inventory_group);
-                                    }   
+                                    }
 
                                 })
                                 ->where(function($qry){
@@ -181,7 +210,6 @@ class ProductController extends Controller
             'product_categories' => $product_categories,
             'user' => $user,
             'whse_code' => $whse_code,
-            $inventory_group
         ], 200);
     }
 

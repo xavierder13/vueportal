@@ -15,6 +15,7 @@ use App\InventoryReconciliationBreakdown;
 use App\SapDatabase;
 use App\Exports\InventoryDiscrepancy;
 use App\Exports\InventoryBreakdown;
+use App\User;
 use DB;
 use Validator;
 use Auth;
@@ -531,7 +532,7 @@ class InventoryReconciliationController extends Controller
         $user = Auth::user();
         $products = $request->get('products');
         $inventory_recon_id = $request->get('inventory_recon_id');
-        $inventory_group = 'Admin-Branch';
+        $inventory_group = $request->get('inventory_group');
 
         $rules = [
             'inventory_recon_id.required' => 'Inventory Reconciliation ID is required',
@@ -587,9 +588,58 @@ class InventoryReconciliationController extends Controller
                     ->where(function($qry){
                         $qry->whereNull('file_upload_log_id')
                             ->orWhere('file_upload_log_id', 0);
-
                     })
-                    ->whereNotNull('inventory_group');
+                    ->where(function($query) use ($user, $inventory_group){
+                        $query->whereNotNull('inventory_group');
+
+                        if(!$user->hasAnyRole('Administrator', 'Audit Admin', 'Inventory Admin') && $user->hasRole('Inventory Branch'))
+                        {   
+                            // get products encoded by branch users
+                            $user = Auth::user();
+
+                            // branch users
+                            $users = User::with('branch')
+                                         ->whereHas('branch', function($qry) use ($user) {
+                                            $qry->where('id', $user->branch_id);
+                                         })->pluck('id');
+
+                            $query->where('inventory_group', 'Admin-Branch')
+                                  ->whereIn('user_id', $users);
+                        }
+                        // if user is Inventory Admin or has Role Inventory Admin
+                        else if(!$user->hasRole('Administrator') && $user->hasRole('Inventory Admin'))
+                        {   
+                            // get products encoded by admin users; not encoded by branch users
+
+                            // all branches user
+                            $users = User::with('branch')
+                                        ->whereHas('branch', function($qry) {
+                                            $qry->where('name', 'Administration');
+                                        })->pluck('id');
+
+                            $query->where('inventory_group', 'Admin-Branch')
+                                  ->whereIn('user_id', $users); // products not added by branch users
+                            
+                        }
+                        // if user is Audit or has Role Audit Admin
+                        else if(!$user->hasRole('Administrator') && $user->hasRole('Audit Admin'))
+                        {   
+                            // get products encoded by admin users; not encoded by branch users
+
+                            // branch users
+                            $users = User::with('branch')
+                                        ->whereHas('branch', function($qry) {
+                                            $qry->where('name', 'Administration');
+                                        })->pluck('id');
+
+                            $query->where('inventory_group', 'Audit-Branch')
+                                  ->whereIn('user_id', $users);
+                        }
+                        else
+                        {
+                            $query->where('inventory_group', '=', $inventory_group);
+                        }  
+                    });
         }
         
         foreach ($products->get() as $product) {
