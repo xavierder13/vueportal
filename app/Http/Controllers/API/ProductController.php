@@ -104,7 +104,6 @@ class ProductController extends Controller
             'branches' => $branches,
             'product_categories' => $product_categories,
             'file_upload_log' => $file_upload_log,
-            $file_upload_log_id
         ], 200);
         
     }
@@ -115,13 +114,22 @@ class ProductController extends Controller
         $search = $request->search;
         $whse_code = $request->whse_code;
         $inventory_group = $request->inventory_group;
+        $scanned_by = $request->scanned_by;
 
         $products = Product::with('brand')
                            ->with('branch')
                            ->with('user')
                            ->with('product_category')
-                           ->where(function($query) use ($user, $whse_code, $search, $inventory_group){
-                                $query->where(function($qry) use ($user, $inventory_group){
+                           ->where(function($query) use ($user, $whse_code, $search, $inventory_group, $scanned_by){
+
+                                // if $scanned_by value is 'Admin' then get all users from Administration branch else users from all branches
+                                $users = User::with('branch')
+                                            ->whereHas('branch', function($qry) use ($scanned_by) {
+                                                $condition = $scanned_by == 'Admin' ? '=' : '<>';
+                                                $qry->where('name', $condition, 'Administration');
+                                            })->pluck('id');
+
+                                $query->where(function($qry) use ($user, $users, $inventory_group){
                                     if(!$user->hasAnyRole('Administrator', 'Audit Admin', 'Inventory Admin') && $user->hasRole('Inventory Branch'))
                                     {   
                                         // get products encoded by branch users
@@ -139,16 +147,9 @@ class ProductController extends Controller
                                     // if user is Inventory Admin or has Role Inventory Admin
                                     else if(!$user->hasRole('Administrator') && $user->hasRole('Inventory Admin'))
                                     {   
-                                        // get products encoded by admin users; not encoded by branch users
-
-                                        // all branches user
-                                        $users = User::with('branch')
-                                                     ->whereHas('branch', function($qry) {
-                                                        $qry->where('name', 'Administration');
-                                                     })->pluck('id');
 
                                         $qry->where('inventory_group', 'Admin-Branch')
-                                            ->whereIn('user_id', $users); // products not added by branch users
+                                            ->whereIn('user_id', $users);
                                         
                                     }
                                     // if user is Audit or has Role Audit Admin
@@ -167,7 +168,8 @@ class ProductController extends Controller
                                     }
                                     else
                                     {
-                                        $qry->where('inventory_group', '=', $inventory_group);
+                                        $qry->where('inventory_group', '=', $inventory_group)
+                                            ->whereIn('user_id', $users);
                                     }
 
                                 })
@@ -802,8 +804,9 @@ class ProductController extends Controller
                     // if either serial or quantity has value (disregard null serial ang quantity)
                     if($field['SERIAL'] || $field['QUANTITY'])
                     {   
+                        $qty = $field['QUANTITY'];
                         // check value if contains only whitespace
-                        $qty = $field['QUANTITY'] && !ctype_space($field['QUANTITY']) ? $field['QUANTITY'] : 1;
+                        $qty = $qty && is_numeric($qty) ? $qty : 1;
 
                         $brand_id = Brand::firstOrCreate(['name' => $field['BRAND'], 'active' => 'Y'])->id;
                         $product_category_id = ProductCategory::firstOrCreate(['name' => $field['CATEGORY'], 'active' => 'Y'])->id;

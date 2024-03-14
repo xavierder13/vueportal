@@ -533,6 +533,7 @@ class InventoryReconciliationController extends Controller
         $products = $request->get('products');
         $inventory_recon_id = $request->get('inventory_recon_id');
         $inventory_group = $request->get('inventory_group');
+        $scanned_by = $request->get('scanned_by');
 
         $rules = [
             'inventory_recon_id.required' => 'Inventory Reconciliation ID is required',
@@ -589,7 +590,15 @@ class InventoryReconciliationController extends Controller
                         $qry->whereNull('file_upload_log_id')
                             ->orWhere('file_upload_log_id', 0);
                     })
-                    ->where(function($query) use ($user, $inventory_group){
+                    ->where(function($query) use ($user, $inventory_group, $scanned_by){
+
+                        // if $scanned_by value is 'Admin' then get all users from Administration branch else users from all branches
+                        $users = User::with('branch')
+                                    ->whereHas('branch', function($qry) use ($scanned_by) {
+                                        $condition = $scanned_by == 'Admin' ? '=' : '<>';
+                                        $qry->where('name', $condition, 'Administration');
+                                    })->pluck('id');
+
                         $query->whereNotNull('inventory_group');
 
                         if(!$user->hasAnyRole('Administrator', 'Audit Admin', 'Inventory Admin') && $user->hasRole('Inventory Branch'))
@@ -609,16 +618,9 @@ class InventoryReconciliationController extends Controller
                         // if user is Inventory Admin or has Role Inventory Admin
                         else if(!$user->hasRole('Administrator') && $user->hasRole('Inventory Admin'))
                         {   
-                            // get products encoded by admin users; not encoded by branch users
-
-                            // all branches user
-                            $users = User::with('branch')
-                                        ->whereHas('branch', function($qry) {
-                                            $qry->where('name', 'Administration');
-                                        })->pluck('id');
 
                             $query->where('inventory_group', 'Admin-Branch')
-                                  ->whereIn('user_id', $users); // products not added by branch users
+                                  ->whereIn('user_id', $users);
                             
                         }
                         // if user is Audit or has Role Audit Admin
@@ -637,7 +639,8 @@ class InventoryReconciliationController extends Controller
                         }
                         else
                         {
-                            $query->where('inventory_group', '=', $inventory_group);
+                            $query->where('inventory_group', '=', $inventory_group)
+                                  ->whereIn('user_id', $users);
                         }  
                     });
         }

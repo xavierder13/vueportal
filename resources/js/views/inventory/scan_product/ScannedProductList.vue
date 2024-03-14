@@ -20,7 +20,7 @@
         <v-card>
           <v-card-title class="mb-0 pb-0">
             Scanned Product Lists
-            <v-divider vertical class="ml-4"></v-divider>
+            <v-divider vertical class="mx-4"></v-divider>
             <v-spacer></v-spacer>
             <v-text-field
               v-model="search"
@@ -52,8 +52,10 @@
               item-value="code"
               label="Warehouse"
               hide-details=""
+              style="width: 250px"
+              class="mx-1"
             >
-              <template slot="selection" slot-scope="data">
+              <template slot="selection" slot-scope="data"  >
                 {{ data.item.code + ' - ' + data.item.branch }}
               </template>
               <template slot="item" slot-scope="data">
@@ -61,16 +63,32 @@
               </template> 
             </v-autocomplete>
             <v-spacer></v-spacer>
+            <template v-if="user.id === 1">
+              <v-autocomplete
+                v-model="inventory_group"
+                :items="inventory_groups"
+                item-text="name"
+                item-value="name"
+                label="Inventory Group"
+                hide-details=""
+                v-if="user.id === 1"
+                class="mx-1"
+              >
+              </v-autocomplete>
+              <v-spacer></v-spacer>
+            </template>
             <v-autocomplete
-              v-model="inventory_group"
-              :items="inventory_groups"
+              v-model="scanned_by"
+              :items="scanned_grp_items"
               item-text="name"
               item-value="name"
-              label="Inventory Group"
+              label="Scanned By"
               hide-details=""
-              v-if="user.id === 1"
+              v-if="hasAnyRole('Administrator', 'Inventory Admin', 'Audit Admin')"
+              class="mx-1"
             >
             </v-autocomplete>
+            <v-spacer></v-spacer>
           </v-card-title>
           <!-- <DataTable
             :headers="headers"
@@ -499,6 +517,8 @@ export default {
       lastBtnDisable: true,
       inventory_groups: [{ name: "Admin-Branch" }, { name: "Audit-Branch" }],
       inventory_group: "Admin-Branch",
+      scanned_grp_items: [{ name: "Admin" }, { name: "Branch" }],
+      scanned_by: "Admin",
     };
   },
 
@@ -510,7 +530,8 @@ export default {
         items_per_page: this.itemsPerPage, 
         whse_code: this.search_whse, 
         search: this.search, 
-        inventory_group: this.inventory_group 
+        inventory_group: this.inventory_group,
+        scanned_by: this.scanned_by, 
       };
 
       axios.post("/api/product/scanned_products?page=" + this.page, data).then(
@@ -697,6 +718,7 @@ export default {
             products: this.filteredProducts, // due to pagination, products data is based from api response pagination
             inventory_group: this.inventory_group,
             whse_code: this.search_whse,
+            scanned_by: this.scanned_by,
             product_type: 'scanned', // these products were scanned using barcode scanner
           };
 
@@ -904,6 +926,28 @@ export default {
       }
     },
 
+    setFilterDefaultValue() {
+      this.search_branch = this.user.branch_id;
+
+        if(this.user)
+        {
+          let whse_codes = this.user.branch.whse_codes;
+          if(whse_codes.length)
+          {
+            this.search_whse = whse_codes[0].code;
+          }
+        }
+
+        if(this.hasAnyRole('Administrator', 'Inventory Admin', 'Audit Admin'))
+        {
+          this.scanned_by = 'Admin';
+        }
+        else
+        {
+          this.scanned_by = 'Branch';
+        }
+    },
+
     isUnauthorized(error) {
       // if unauthenticated (401)
       if (error.response.status == "401") {
@@ -929,34 +973,14 @@ export default {
     userIsLoaded: {
       handler() {
         if (this.userIsLoaded && this.userRolesPermissionsIsLoaded) {
-          this.search_branch = this.user.branch_id;
-
-          if(this.user)
-          {
-            let whse_codes = this.user.branch.whse_codes;
-            if(whse_codes.length)
-            {
-              this.search_whse = whse_codes[0].code;
-            }
-          }
-
+          this.setFilterDefaultValue();
         }
       },
     },
     userRolesPermissionsIsLoaded: {
       handler() {
         if (this.userIsLoaded && this.userRolesPermissionsIsLoaded) {
-          this.search_branch = this.user.branch_id;
-
-          if(this.user)
-          {
-            let whse_codes = this.user.branch.whse_codes;
-            if(whse_codes.length)
-            {
-              this.search_whse = whse_codes[0].code;
-            }
-          }
-
+          this.setFilterDefaultValue();
         }
       },
     },
@@ -990,7 +1014,15 @@ export default {
         this.prevBtnDisable = true;
         this.getProduct();
       }
-    }
+    },
+
+    inventory_group() {
+      this.getProduct();
+    },
+
+    scanned_by() {
+      this.getProduct();
+    },
 
   },
   computed: {
