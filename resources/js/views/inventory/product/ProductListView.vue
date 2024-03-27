@@ -445,6 +445,13 @@ export default {
         this.lastBtnDisable = true;
       }
     },
+
+    search() {
+      if(!this.search)
+      {
+        this.getProduct(this.file_upload_log_id);
+      }
+    },
   },
 
   methods: {

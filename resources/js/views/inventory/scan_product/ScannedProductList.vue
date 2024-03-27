@@ -13,7 +13,7 @@
           :canExport="hasPermission('product-export')"
           :canClearList="hasPermission('product-clear-list')"
           :canReconcile="hasPermission('product-reconcile')"
-          @export="exportData"
+          @export="openDialogExport"
           @clearList="clearList"
           @reconcile="getUnreconciled"
         />
@@ -383,6 +383,85 @@
               </v-dialog>
             </v-card>
           </v-dialog>
+          <v-dialog v-model="dialog_export" max-width="500px" persistent>
+            <v-card>
+              <v-card-title class="pa-4">
+                <span class="headline">Export Excel</span>
+                <!-- <v-chip color="secondary" v-if="branch" class="ml-2"> {{ branch }} </v-chip> -->
+              </v-card-title>
+              <v-divider class="mt-0"></v-divider>
+              <v-card-text>
+                <v-container>
+                  <v-row> 
+                    <v-col class="my-0 py-0">
+                      <v-autocomplete
+                        v-model="export_type"
+                        :items="export_types"
+                        item-text="type"
+                        item-value="type"
+                        label="Export Type"
+                        required
+                        :readonly="export_loading"
+                      >
+                      </v-autocomplete>
+                    </v-col>
+                  </v-row>
+                  <v-row> 
+                    <v-col class="my-0 py-0">
+                      <v-autocomplete
+                        v-model="inventory_type"
+                        :items="inventory_types"
+                        item-text="type"
+                        item-value="type"
+                        label="Inventory Type"
+                        required
+                        :readonly="export_loading"
+                        v-if="export_type == 'MERGE PRODUCT TEMPLATE'"
+                      >
+                      </v-autocomplete>
+                    </v-col>
+                  </v-row>
+                  <v-row
+                    class="fill-height"
+                    align-content="center"
+                    justify="center"
+                    v-if="export_loading"
+                  >
+                    <v-col class="subtitle-1 font-weight-bold text-center mt-4" cols="12">
+                      Downloading Excel File...
+                    </v-col>
+                    <v-col cols="6">
+                      <v-progress-linear
+                        color="primary"
+                        indeterminate
+                        rounded
+                        height="6"
+                      ></v-progress-linear>
+                    </v-col>
+                  </v-row>
+                </v-container>
+              </v-card-text>
+              <v-divider class="mb-3 mt-0"></v-divider>
+              <v-card-actions class="pa-0">
+                <v-spacer></v-spacer>
+                <v-btn
+                  color="#E0E0E0"
+                  @click="dialog_export = false"
+                  class="mb-3"
+                >
+                  Cancel
+                </v-btn>
+                <v-btn
+                  color="success"
+                  class="mb-3 mr-4"
+                  @click="exportData()"
+                  :disabled="export_loading"
+                >
+                  Export
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
         </v-card>
       </v-main>
     </div>
@@ -519,6 +598,12 @@ export default {
       inventory_group: "Admin-Branch",
       scanned_grp_items: [{ name: "Admin" }, { name: "Branch" }],
       scanned_by: "Admin",
+      dialog_export: false,
+      inventory_types: [ { type: "OVERALL" }, { type: "REPO" } ],
+      inventory_type: "OVERALL",
+      export_types: [ { type: "MERGE PRODUCT TEMPLATE" }, { type: "SCANNED PRODUCTS" } ],
+      export_type: "SCANNED PRODUCTS",
+      export_loading: false,
     };
   },
 
@@ -635,9 +720,15 @@ export default {
 
     exportData() {
       // const data = { branch_id: this.search_branch };
-      const data = { whse_code: this.search_whse };
-      if (this.filteredProducts.length) {
+      let data = {  
+        inventory_group: this.inventory_group,
+        whse_code: this.search_whse,
+        scanned_by: this.scanned_by,
+        product_type: 'scanned', // these products were scanned using barcode scanner
+      };
 
+      if (this.filteredProducts.length) {
+        this.export_loading = true;
         axios.post('/api/product/export', data, { responseType: 'arraybuffer'})
           .then((response) => {
               var fileURL = window.URL.createObjectURL(new Blob([response.data]));
@@ -646,6 +737,8 @@ export default {
               fileLink.setAttribute('download', 'Products.xls');
               document.body.appendChild(fileLink);
               fileLink.click();
+              this.export_loading = false;
+              this.dialog_export = false;
           }, (error) => {
             console.log(error);
           }
@@ -670,6 +763,11 @@ export default {
             console.log(error);
           }
         );
+    },
+
+    openDialogExport() {
+      this.dialog_export = true;
+      this.export_loading = false;
     },
 
     getUnreconciled() {
@@ -713,6 +811,7 @@ export default {
         if (result.value) {
      
           this.dialog_recon_loading = true;
+          // let branch_id = this.branches.find(value => value.code === this.search_whse).id;
           let data = {
             inventory_recon_id: item.id,
             products: this.filteredProducts, // due to pagination, products data is based from api response pagination

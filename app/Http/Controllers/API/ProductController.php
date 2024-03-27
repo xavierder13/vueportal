@@ -862,6 +862,8 @@ class ProductController extends Controller
             'file_upload_log_id' => $request->get('file_upload_log_id'),
             'branch_id' => $request->get('branch_id'),
             'whse_code' => $request->get('whse_code'),
+            'inventory_group' => $request->get('inventory_group'),
+            'scanned_by' => $request->get('scanned_by'),
         ];
         
         return Excel::download(new ProductsExport($params), 'products.xls');
