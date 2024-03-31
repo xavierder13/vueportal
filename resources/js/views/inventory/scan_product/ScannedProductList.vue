@@ -880,8 +880,8 @@ export default {
           if (result.value) {
             // <-- if confirmed
             console.log(this.search_whse);
-            let branch_id = this.branches.find(value => value.code === this.search_whse).id;
-
+            let branch_id = this.branches.find(value => value.code == this.search_whse).id;
+            console.log(this.branches.find(value => value.code == this.search_whse));
             let data = {
 
               inventory_group: this.inventory_group,
