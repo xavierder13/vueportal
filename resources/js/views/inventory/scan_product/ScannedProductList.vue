@@ -879,14 +879,14 @@ export default {
 
           if (result.value) {
             // <-- if confirmed
-            console.log(this.search_whse);
-            console.log(this.branches.find(value => value.code == this.search_whse));
-            let branch_id = this.branches.find(value => value.code == this.search_whse).id;
+            // console.log(this.search_whse);
+            // console.log(this.branches.find(value => value.code == this.search_whse));
+            // let branch_id = this.branches.find(value => value.code == this.search_whse).id;
             
             let data = {
 
               inventory_group: this.inventory_group,
-              branch_id: branch_id,
+              // branch_id: branch_id,
               whse_code: this.search_whse,
               scanned_by: this.scanned_by,
               clear_list: true 
