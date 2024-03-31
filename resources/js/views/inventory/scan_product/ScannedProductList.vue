@@ -386,7 +386,7 @@
           <v-dialog v-model="dialog_export" max-width="500px" persistent>
             <v-card>
               <v-card-title class="pa-4">
-                <span class="headline">Export Excel</span>
+                <span class="headline">Export Data</span>
                 <!-- <v-chip color="secondary" v-if="branch" class="ml-2"> {{ branch }} </v-chip> -->
               </v-card-title>
               <v-divider class="mt-0"></v-divider>
@@ -601,7 +601,7 @@ export default {
       dialog_export: false,
       inventory_types: [ { type: "OVERALL" }, { type: "REPO" } ],
       inventory_type: "OVERALL",
-      export_types: [ { type: "MERGE PRODUCT TEMPLATE" }, { type: "SCANNED PRODUCTS" } ],
+      export_types: [  { type: "SCANNED PRODUCTS" }, { type: "MERGE PRODUCT TEMPLATE" } ],
       export_type: "SCANNED PRODUCTS",
       export_loading: false,
     };
@@ -719,50 +719,42 @@ export default {
     },
 
     exportData() {
-      // const data = { branch_id: this.search_branch };
-      let data = {  
-        inventory_group: this.inventory_group,
-        whse_code: this.search_whse,
-        scanned_by: this.scanned_by,
-        product_type: 'scanned', // these products were scanned using barcode scanner
-      };
 
-      if (this.filteredProducts.length) {
+      if (this.filteredProducts.length) 
+      {
+        // const data = { branch_id: this.search_branch };
+        
+        let data = {  
+          inventory_group: this.inventory_group,
+          whse_code: this.search_whse,
+          scanned_by: this.scanned_by,
+          product_type: 'scanned', // these products were scanned using barcode scanner
+        };
+
         this.export_loading = true;
-        axios.post('/api/product/export', data, { responseType: 'arraybuffer'})
-          .then((response) => {
-              var fileURL = window.URL.createObjectURL(new Blob([response.data]));
-              var fileLink = document.createElement('a');
-              fileLink.href = fileURL;
-              fileLink.setAttribute('download', 'Products.xls');
-              document.body.appendChild(fileLink);
-              fileLink.click();
-              this.export_loading = false;
-              this.dialog_export = false;
-          }, (error) => {
-            console.log(error);
-          }
-        );
+
+        let api = this.export_type == 'SCANNED PRODUCTS' ? 'export' : 'export_merged_template'
+
+        axios.post('/api/product/' + api, data, { responseType: 'arraybuffer'})
+            .then((response) => {
+                var fileURL = window.URL.createObjectURL(new Blob([response.data]));
+                var fileLink = document.createElement('a');
+                fileLink.href = fileURL;
+                fileLink.setAttribute('download', 'Scanned Products ' + '(' + this.search_whse + ') - Scanned by ' + this.scanned_by + '.xls');
+                document.body.appendChild(fileLink);
+                fileLink.click();
+                this.export_loading = false;
+                this.dialog_export = false;
+                this.export_type = 'SCANNED PRODUCTS';
+            }, (error) => {
+              console.log(error);
+            });
       }
-      else {
+      else
+      {
         this.showAlert('No record found', 'warning');
       }
 
-    },
-
-    downloadTemplate() {
-      axios.post('/api/product/template/download', data, { responseType: 'arraybuffer'})
-          .then((response) => {
-              var fileURL = window.URL.createObjectURL(new Blob([response.data]));
-              var fileLink = document.createElement('a');
-              fileLink.href = fileURL;
-              fileLink.setAttribute('download', 'ProductTemplate.xls');
-              document.body.appendChild(fileLink);
-              fileLink.click();
-          }, (error) => {
-            console.log(error);
-          }
-        );
     },
 
     openDialogExport() {
@@ -887,11 +879,14 @@ export default {
 
           if (result.value) {
             // <-- if confirmed
+            let branch_id = this.branches.find(value => value.code === this.search_whse).id;
 
             let data = {
-              inventory_group: this.inventory_group, 
-              branch_id: this.search_branch, 
+
+              inventory_group: this.inventory_group,
+              branch_id: branch_id,
               whse_code: this.search_whse,
+              scanned_by: this.scanned_by,
               clear_list: true 
             };
 

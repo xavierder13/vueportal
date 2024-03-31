@@ -18,6 +18,7 @@ use App\InventoryReconciliationMap;
 use App\Imports\ProductsImport;
 use App\Exports\ProductsExport;
 use App\Exports\ProductsTemplate;
+use App\Exports\MergedProductTemplate;
 use DB;
 use Validator;
 use Auth;
@@ -532,12 +533,11 @@ class ProductController extends Controller
         if($request->get('clear_list'))
         {   
             
-            // $log = FileUploadLog::find($request->file_upload_log_id);
-            // $file_upload_log_id = $log->id;
-            // $log->delete();
             $file_upload_log_id = $request->file_upload_log_id;
             $branch_id = $request->branch_id;
             $whse_code = $request->whse_code;
+            $inventory_group = $request->inventory_group;
+            $scanned_by = $request->scanned_by;
             $log = FileUploadLog::where('id', $file_upload_log_id)->delete();
 
             // used to group inventoy data. for Admin or Audit
@@ -555,19 +555,85 @@ class ProductController extends Controller
             }
 
             $products = DB::table('products')
-                          ->where(function($query) use ($file_upload_log_id, $whse_code, $inventory_group){
+                          ->where(function($query) use ($file_upload_log_id, $whse_code, $inventory_group, $scanned_by){
 
                             // if file_upload_log_id has value means product list were uploaded; 
+                            // if($file_upload_log_id)
+                            // {
+                            //     $query->where('file_upload_log_id', $file_upload_log_id);
+                            // }
+                            // else
+                            // {
+                            //     $query->where('whse_code', $whse_code)
+                            //           ->where('inventory_group', $inventory_group)
+                            //           ->whereNull('file_upload_log_id');
+                            // }
+
                             if($file_upload_log_id)
                             {
-                                $query->where('file_upload_log_id', $file_upload_log_id);
+                                $query->where('products.file_upload_log_id', '=', $file_upload_log_id);
                             }
                             else
                             {
-                                $query->where('whse_code', $whse_code)
-                                      ->where('inventory_group', $inventory_group)
-                                      ->whereNull('file_upload_log_id');
+                                // if $scanned_by value is 'Admin' then get all users from Administration branch else users from all branches
+                                $users = User::with('branch')
+                                            ->whereHas('branch', function($qry) use ($scanned_by) {
+
+                                                $condition = $scanned_by == 'Admin' ? '=' : '<>';
+                                                $qry->where('name', $condition, 'Administration');
+                                            })->pluck('id');
+
+                                $query->where(function($qry) use ($users, $inventory_group){
+                                        $user = Auth::user();
+                                        
+                                        if(!$user->hasAnyRole('Administrator', 'Audit Admin', 'Inventory Admin') && $user->hasRole('Inventory Branch'))
+                                        {   
+                                            // branch users
+                                            $users = User::with('branch')
+                                                        ->whereHas('branch', function($qry) use ($user) {
+                                                            $qry->where('id', $user->branch_id);
+                                                        })->pluck('id');
+
+                                            $qry->where('inventory_group', 'Admin-Branch')
+                                                ->whereIn('user_id', $users);
+                                        }
+                                        // if user is Inventory Admin or has Role Inventory Admin
+                                        else if(!$user->hasRole('Administrator') && $user->hasRole('Inventory Admin'))
+                                        {   
+
+                                            $qry->where('inventory_group', 'Admin-Branch')
+                                                ->whereIn('user_id', $users);
+                                            
+                                        }
+                                        // if user is Audit or has Role Audit Admin
+                                        else if(!$user->hasRole('Administrator') && $user->hasRole('Audit Admin'))
+                                        {
+                                            // get products encoded by admin users; not encoded by branch users
+                                
+                                            // branch users
+                                            $users = User::with('branch')
+                                                        ->whereHas('branch', function($qry) {
+                                                            $qry->where('name', 'Administration');
+                                                        })->pluck('id');
+
+                                            $qry->where('inventory_group', 'Audit-Branch')
+                                                ->whereIn('user_id', $users);
+                                        }
+                                        else
+                                        {
+                                            $qry->where('inventory_group', '=', $inventory_group)
+                                                ->whereIn('user_id', $users);
+                                        }
+
+                                    })
+                                    ->where('whse_code', $whse_code)
+                                    ->where(function($qry){
+                                        $qry->whereNull('file_upload_log_id')
+                                            ->orWhere('file_upload_log_id', 0);
+
+                                    });
                             }
+
                           });
                         //   ->where('file_upload_log_id', '=', $file_upload_log_id);
             
@@ -867,6 +933,64 @@ class ProductController extends Controller
         ];
         
         return Excel::download(new ProductsExport($params), 'products.xls');
+    }
+
+    public function export_merged_template(Request $request)
+    {
+  
+        // $file_upload_log_id = $request->file_upload_log_id;
+        // $branch_id = $request->branch_id;
+        // $whse_code = $request->whse_code;
+        // $inventory_group = $request->inventory_group;
+        // $scanned_by = $request->scanned_by;
+
+        // $sap_db_branch = SapDbBranch::with('sap_database')
+        //                             ->with('branch')
+        //                             ->where('branch_id', $request->branch_id)->first();
+
+        // $db = $sap_db_branch->sap_database;
+        // $branch = $sap_db_branch->branch->name;
+        // $whse_code = $request->whse_code;
+
+        // $password = Crypt::decrypt($db->password);
+        // Config::set('database.connections.'.$db->database, array(
+        //             'driver' => 'sqlsrv',
+        //             'host' => $db->server,
+        //             'port' => '1433',
+        //             'database' => $db->database,
+        //             'username' => $db->username,
+        //             'password' => $password,   
+        //         ));
+        
+        // $operator = $request->inventory_type === 'OVERALL' ? '<>' : '=';
+
+        // $inventory_onhand = DB::connection($db->database)->select("
+        //     SELECT 
+        //         DISTINCT
+        //         d.FirmName BRAND, 
+        //         c.ItemName MODEL,
+        //         c.FrgnName CATEGORY, 
+        //         '' SERIAL,
+        //         '' as 'Qty'
+        //     FROM 
+        //     OITW a
+        //         LEFT JOIN OSRI b on (a.ItemCode = b.ItemCode and a.WhsCode = b.WhsCode)
+        //         INNER JOIN OITM c on a.ItemCode = c.ItemCode
+        //         INNER JOIN OMRC d on c.FirmCode = d.FirmCode
+        //         INNER JOIN OWHS e on a.WhsCode = e.WhsCode 
+                
+        //     WHERE 
+        //         a.OnHand <> 0 
+        //         and b.Status = '0' 
+        //         and RIGHT(e.WhsCode, 3) ".$operator." 'RPO'
+        //         and LEFT(e.WhsCode, 4) = :whse_code
+        //     ORDER by 1, 2, 3, 4
+        // ", 
+        // ['whse_code' => $whse_code]);
+
+        $products = [];
+
+        return Excel::download(new MergedProductTemplate($products), 'products.xls');
     }
 
     public function template_download(Request $request)
