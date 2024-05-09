@@ -884,7 +884,7 @@ class ProductController extends Controller
                             'brand_id' => $brand_id,
                             'model' => $field['MODEL'],
                             'product_category_id' => $product_category_id,
-                            'serial' => is_numeric($serial) ? (integer) $serial : $serial ,
+                            'serial' => is_numeric($serial) && strlen($serial) < 19 ? (integer) $serial : $serial , //value is different when converting integer with more than 18 digits
                             'quantity' => $qty,
                             'file_upload_log_id' => $file_upload_log->id,
                             'whse_code' => $whse_code,
@@ -898,7 +898,7 @@ class ProductController extends Controller
                         {
                             // breakdown/split into 2 or more rows
                             foreach ($serials as $value) {
-                                $data['serial'] = is_numeric($value) ? (integer) $value : $value;
+                                $data['serial'] = is_numeric($value) && strlen($value) < 19 ? (integer) $value : $value;
                                 Product::create($data);
                             }
                         }
