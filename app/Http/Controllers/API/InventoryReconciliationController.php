@@ -649,7 +649,7 @@ class InventoryReconciliationController extends Controller
 
             $qty = $product->quantity ? $product->quantity : 1;
 
-            $serial = $product->serial;
+            $serial = is_numeric($product->serial) && strlen($product->serial) < 19 && !strpos($product->serial, 'E') ? (integer) $product->serial : $product->serial;
 
             $inventory_recon_map = new InventoryReconciliationMap();
             $inventory_recon_map->inventory_recon_id = $inventory_recon_id;
@@ -658,7 +658,7 @@ class InventoryReconciliationController extends Controller
             $inventory_recon_map->brand = $product->brand->name;
             $inventory_recon_map->model = $product->model;
             $inventory_recon_map->product_category = $product->product_category->name;
-            $inventory_recon_map->serial = is_numeric($serial) ? (integer) $serial : $serial;
+            $inventory_recon_map->serial = $serial;
             $inventory_recon_map->quantity = $qty ;
             $inventory_recon_map->save();
         }
@@ -767,7 +767,8 @@ class InventoryReconciliationController extends Controller
             foreach ($inventory_onhand as $value) {
 
                 $serial = $value->SERIAL;
-
+                $serial = is_numeric($serial) && strlen($serial) < 19 && !strpos($serial, 'E') ? (integer) $serial : $serial;
+                
                 $data = [
                     'inventory_recon_id' => $inventory_reconciliation->id,
                     'user_id' => $user->id,
@@ -786,7 +787,7 @@ class InventoryReconciliationController extends Controller
                 {
                     // breakdown/split into 2 or more rows
                     foreach ($serials as $value) {
-                        $data['serial'] = $value;
+                        $data['serial'] = is_numeric($value) && strlen($value) < 19 && !strpos($value, 'E') ? (integer) $value : $value;
                         InventoryReconciliationMap::create($data);
                     }
                 }

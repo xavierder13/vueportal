@@ -31,7 +31,7 @@ class InventoryReconMapImport implements ToModel
         // insert all rows except first row(header)
         if($this->rows > 0)
         {
-            $serial = is_numeric(@$row[3]) ? (integer) @$row[3] : @$row[3]; // if serial is numeric then convert it to integer due to long serial details
+            $serial = is_numeric(@$row[3]) && strlen(@$row[3]) < 19 && !strpos(@$row[3], 'E') ? (integer) @$row[3] : @$row[3]; // if serial is numeric then convert it to integer due to long serial details
             $data = [
                 'inventory_recon_id' => $this->params['inventory_recon_id'],
                 'user_id' => $this->params['user_id'],
@@ -49,7 +49,7 @@ class InventoryReconMapImport implements ToModel
             {
                 // breakdown/split into 2 or more rows
                 foreach ($serials as $value) {
-                    $data['serial'] = $value;
+                    $data['serial'] = is_numeric($value) && strlen($value) < 19 && !strpos($value, 'E') ? (integer) $value : $value;
                     InventoryReconciliationMap::create($data);
                 }
             }
