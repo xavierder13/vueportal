@@ -1389,15 +1389,15 @@ class ProductController extends Controller
             }
 
             foreach ($brands_sap as $key => $value) {
-                Brand::create(['name' => $value->brand, 'active' => 'Y']);
+                Brand::firstOrCreate(['name' => $value->brand, 'active' => 'Y']);
             }
 
             foreach ($models_sap as $key => $value) {
-                ProductModel::create(['name' => $value->model, 'active' => 'Y']);
+                ProductModel::firstOrCreate(['name' => $value->model, 'active' => 'Y']);
             }
 
             foreach ($categories_sap as $key => $value) {
-                ProductCategory::create(['name' => $value->category, 'active' => 'Y']);     
+                ProductCategory::firstOrCreate(['name' => $value->category, 'active' => 'Y']);     
             }
             
             return response()->json(['success' => 'Item master Data has been synced'], 200);
