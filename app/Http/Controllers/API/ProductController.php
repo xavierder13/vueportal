@@ -877,7 +877,8 @@ class ProductController extends Controller
                         $brand_id = Brand::firstOrCreate(['name' => $field['BRAND'], 'active' => 'Y'])->id;
                         $product_category_id = ProductCategory::firstOrCreate(['name' => $field['CATEGORY'], 'active' => 'Y'])->id;
                         $serial = $field['SERIAL'];
-                        $serial = is_numeric($serial) && strlen($serial) < 19 && !strpos($serial, 'E') ? (integer) $serial : $serial;
+                        // $serial = is_numeric($serial) && strlen($serial) < 19 && !strpos($serial, 'E') ? (integer) $serial : $serial;
+                        $serial = is_numeric($serial) ? ( !strpos((integer) $serial, 'E') ? (integer) $serial : $serial )  : $serial;
 
                         $data = [
                             'user_id' => $user->id,
