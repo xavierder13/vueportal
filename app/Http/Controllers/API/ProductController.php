@@ -903,7 +903,7 @@ class ProductController extends Controller
                             // breakdown/split into 2 or more rows
                             foreach ($serials as $value) {
                                 // $data['serial'] = is_numeric($value) && strlen($value) < 19  && !strpos($value, 'E')? (integer) $value : $value;
-                                $data = is_numeric($value) ? ( !strpos((integer) $value, 'E') ? (integer) $value : (String) $value )  : (String) $value;
+                                $data['serial'] = is_numeric($value) ? ( !strpos((integer) $value, 'E') ? (integer) $value : (String) $value )  : (String) $value;
                                 Product::create($data);
                             }
                         }
