@@ -871,14 +871,14 @@ class ProductController extends Controller
                     if($field['SERIAL'] || $field['QUANTITY'])
                     {   
                         $qty = $field['QUANTITY'];
-                        // check value if contains only whitespace
+                        // check value if conta ins only whitespace
                         $qty = $qty && is_numeric($qty) ? $qty : 1;
 
                         $brand_id = Brand::firstOrCreate(['name' => $field['BRAND'], 'active' => 'Y'])->id;
                         $product_category_id = ProductCategory::firstOrCreate(['name' => $field['CATEGORY'], 'active' => 'Y'])->id;
                         $serial = $field['SERIAL'];
                         // $serial = is_numeric($serial) && strlen($serial) < 19 && !strpos($serial, 'E') ? (integer) $serial : $serial;
-                        $serial = is_numeric($serial) ? ( !strpos((integer) $serial, 'E') ? (integer) $serial : $serial )  : $serial;
+                        $serial = is_numeric($serial) ? ( !strpos((integer) $serial, 'E') ? (integer) $serial : (String) $serial )  : (String) $serial;
 
                         $data = [
                             'user_id' => $user->id,
@@ -900,7 +900,8 @@ class ProductController extends Controller
                         {
                             // breakdown/split into 2 or more rows
                             foreach ($serials as $value) {
-                                $data['serial'] = is_numeric($value) && strlen($value) < 19  && !strpos($value, 'E')? (integer) $value : $value;
+                                // $data['serial'] = is_numeric($value) && strlen($value) < 19  && !strpos($value, 'E')? (integer) $value : $value;
+                                $data = is_numeric($value) ? ( !strpos((integer) $value, 'E') ? (integer) $value : (String) $value )  : (String) $value;
                                 Product::create($data);
                             }
                         }
