@@ -1081,7 +1081,7 @@ class ProductController extends Controller
         try {
 
             $databases = SapDatabase::where('active', true)
-                                    ->where('server', '192.168.1.13')
+                                    ->where('server', '=', '192.168.1.13')
                                     ->get();
 
             foreach ($databases as $key => $db) {

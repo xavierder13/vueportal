@@ -340,7 +340,7 @@ export default {
             }
             else
             {
-              let serial = data.products[0].serial
+              let serial = data.products[0] ? data.products[0].serial : '';
               if(serial)
               {
                 this.serial = serial;
