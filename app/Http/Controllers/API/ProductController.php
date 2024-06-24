@@ -880,7 +880,7 @@ class ProductController extends Controller
 
                         // eliminate numeric value that turns into exponential value (e.g 3.12321E+019)
                         // $serial = is_numeric($serial) && strlen($serial) < 19 && !strpos($serial, 'E') ? (integer) $serial : $serial;
-                        $serial = is_numeric($serial) ? ( !strpos((integer) $serial, 'E') ? (integer) $serial : (String) $serial )  : (String) $serial;
+                        $serial = is_numeric($serial) && !strpos($serial, 'E') ? ( !strpos((integer) $serial, 'E') ? (integer) $serial : (String) $serial )  : (String) $serial;
 
                         $data = [
                             'user_id' => $user->id,
@@ -903,7 +903,7 @@ class ProductController extends Controller
                             // breakdown/split into 2 or more rows
                             foreach ($serials as $value) {
                                 // $data['serial'] = is_numeric($value) && strlen($value) < 19  && !strpos($value, 'E')? (integer) $value : $value;
-                                $data['serial'] = is_numeric($value) ? ( !strpos((integer) $value, 'E') ? (integer) $value : (String) $value )  : (String) $value;
+                                $data['serial'] = is_numeric($value) && !strpos($value, 'E') ? ( !strpos((integer) $value, 'E') ? (integer) $value : (String) $value )  : (String) $value;
                                 Product::create($data);
                             }
                         }
@@ -1190,6 +1190,64 @@ class ProductController extends Controller
             }
 
             return response()->json(['databases' => $databases, 'products' => $products, 'filtered_data' => $filtered_data, 'serials' => array_unique($serials)], 200);
+
+            
+        } catch (\Exception $e) {
+            
+            return response()->json(['error' => $e->getMessage()], 200);
+        }
+
+    }
+
+    public function inventory_on_hand (Request $request)
+    {   
+        try {
+            $data = [];
+            $model = $request->model;
+            $brand = $request->brand;
+            $category = $request->category;
+
+            $params = [
+                'model' => $request->model,
+                'brand' => $request->brand,
+                'category' => $request->category
+            ];
+
+            $databases = SapDatabase::where('active', true)
+                                    ->where('server', '=', '192.168.1.13')
+                                    ->get();
+
+            foreach ($databases as $key => $db) {
+                
+                $password = Crypt::decrypt($db->password);
+
+                Config::set('database.connections.'.$db->database, array(
+                    'driver' => 'sqlsrv',
+                    'host' => $db->server,
+                    'port' => '1433',
+                    'database' => $db->database,
+                    'username' => $db->username,
+                    'password' => $password,   
+                ));
+
+                $data[$db->database] = DB::connection($db->database)
+                               ->select("SELECT 
+                                            d.FirmName BRAND, 
+                                            c.ItemName MODEL,
+                                            c.FrgnName CATEGORY
+                                        FROM 
+                                            OITW a
+                                            INNER JOIN OITM b on a.ItemCode = b.ItemCode
+                                            INNER JOIN OMRC c on b.FirmCode = d.FirmCode
+                                            INNER JOIN OWHS d on a.WhsCode = d.WhsCode 
+                                        WHERE 
+                                            a.OnHand <> 0 
+                                            ORDER by 1, 2, 3
+                                ", $params);
+            }
+
+
+            return response()->json(['databases' => $databases, 'products' => $data], 200);
 
             
         } catch (\Exception $e) {
