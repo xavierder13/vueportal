@@ -40,7 +40,7 @@
                               color="primary" 
                               v-bind="attrs" 
                               v-on="on"
-                              :disabled="model_loading"
+                              :disabled="model_loading || search_loading"
                             >
                               <v-icon>mdi-magnify</v-icon>
                             </v-btn>
@@ -88,7 +88,7 @@
                               color="primary" 
                               v-bind="attrs" 
                               v-on="on"
-                              :disabled="brand_loading"
+                              :disabled="brand_loading || search_loading"
                             >
                               <v-icon>mdi-magnify</v-icon>
                             </v-btn>
@@ -136,7 +136,7 @@
                               color="primary" 
                               v-bind="attrs" 
                               v-on="on"
-                              :disabled="category_loading"
+                              :disabled="category_loading || search_loading"
                             >
                               <v-icon>mdi-magnify</v-icon>
                             </v-btn>
@@ -163,8 +163,8 @@
                 </v-row>
                 <v-row class="mt-6">
                   <v-col class="my-0 py-0" xs="12" sm="12" md="12" lg="12" xl="12">
-                    <v-btn color="primary" @click="getInventory()" class="mb-4">search product</v-btn>
-                    <v-btn color="#E0E0E0" @click="clear()" class="ml-2 mb-4"> clear </v-btn>
+                    <v-btn color="primary" @click="getInventory()" class="mb-4" :disabled="search_loading">search product</v-btn>
+                    <v-btn color="#E0E0E0" @click="clear()" class="ml-2 mb-4" :disabled="search_loading"> clear </v-btn>
                   </v-col>
                 </v-row>
               </v-col>
@@ -389,29 +389,22 @@ export default {
           }
           else
           {
-            this.products = response.data.products;
+            this.products = response.data.products; 
 
             if(!this.products.length)
             {
               this.showAlert('No Record Found', 'warning')
             }
-
-            // this.productBrand.search = data.brand;
-            // this.productBrand.name = data.brand;
-            // this.productBrand.items = [data.brand];
-            // this.productModel.search = data.model;
-            // this.productModel.name = data.model;
-            // this.productModel.items = [data.model];
-            // this.productCategory.search = data.category;
-            // this.productCategory.name = data.category;
-            // this.productCategory.items = [data.category];
-
-            // this.productBrand.search = data.brand;
-            // this.productBrand.name = data.brand;
-            // this.productModel.search = data.model;
-            // this.productModel.name = data.model;
-            // this.productCategory.search = data.category;
-            // this.productCategory.name = data.category;
+  
+            this.productBrand.search = data.brand;
+            this.productBrand.name = data.brand;
+            this.productBrand.items = [data.brand];
+            this.productModel.search = data.model;
+            this.productModel.name = data.model;
+            this.productModel.items = [data.model];
+            this.productCategory.search = data.category;
+            this.productCategory.name = data.category;
+            this.productCategory.items = [data.category];
 
             // this.searchBrand();
             // this.searchModel();

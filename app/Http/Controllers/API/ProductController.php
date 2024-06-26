@@ -1324,11 +1324,26 @@ class ProductController extends Controller
                 }
             }
 
+            $brand = $params['brand'];
+            $model = $params['model'];
+            $category = $params['category'];
+
+            if(isset($products[0]))
+            {
+                $brand = $products[0]->brand;
+                $model = $products[0]->model;
+                $category = $products[0]->category;
+            }
+
             return response()->json([
                 'databases' => $databases, 
                 'products' => $data, 
+                'brand' => $brand,
+                'model' => $model,
+                'category' => $category,
             ], 200);
 
+            
         } catch (\Exception $e) {
             
             return response()->json(['error' => $e->getMessage()], 200);
