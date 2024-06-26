@@ -216,6 +216,21 @@ class ProductController extends Controller
         ], 200);
     }
 
+    public function search_brand(Request $request)
+    {           
+        
+        $brands = Brand::where( function($query) use($request){
+            if($request->search)
+            {
+                $query->where('name', 'like', '%'.$request->search.'%');
+            }
+        })
+        ->orderBy('name', 'asc')
+        ->paginate($request->items_per_page);
+
+        return response()->json(['brands' => $brands], 200);
+    }
+
     public function search_model(Request $request)
     {           
         
@@ -229,6 +244,21 @@ class ProductController extends Controller
         ->paginate($request->items_per_page);
 
         return response()->json(['product_models' => $product_models], 200);
+    }
+
+    public function search_category(Request $request)
+    {           
+        
+        $product_categories = ProductCategory::where( function($query) use($request){
+            if($request->search)
+            {
+                $query->where('name', 'like', '%'.$request->search.'%');
+            }
+        })
+        ->orderBy('name', 'asc')
+        ->paginate($request->items_per_page);
+
+        return response()->json(['product_categories' => $product_categories], 200);
     }
 
     public function search_serial(Request $request){
@@ -1202,6 +1232,7 @@ class ProductController extends Controller
     public function inventory_on_hand (Request $request)
     {   
         try {
+
             $data = [];
             $model = $request->model;
             $brand = $request->brand;
@@ -1213,8 +1244,43 @@ class ProductController extends Controller
                 'category' => $request->category
             ];
 
+            $reportsFinance = SapDatabase::where('server', '192.168.1.13')
+                                         ->where('database', 'ReportsFinance')
+                                         ->get()
+                                         ->first();
+
+            $password = Crypt::decrypt($reportsFinance->password);
+
+            Config::set('database.connections.'.$reportsFinance->database, array(
+                            'driver' => 'sqlsrv',
+                            'host' => $reportsFinance->server,
+                            'port' => '1433',
+                            'database' => $reportsFinance->database,
+                            'username' => $reportsFinance->username,
+                            'password' => $password,   
+                        ));
+
+            $products = DB::connection($reportsFinance->database)
+                        ->select("SELECT 
+                                     DISTINCT
+                                     b.FirmName as brand, 
+                                     a.ItemName as model,
+                                     a.FrgnName as category
+                                 FROM 
+                                     OITM a
+                                     INNER JOIN OMRC b on a.FirmCode = b.FirmCode
+                                 WHERE 
+                                     a.ItemName like '%". $params['model'] ."%'
+                                     and a.FrgnName like '%". $params['category'] ."%'
+                                     and b.FirmName like '%". $params['brand'] ."%'");                    
+            
+            if(count($products) > 1)
+            {
+                return response()->json(['multiple_brand_model_category' => $products, $params], 200);
+            }
+
             $databases = SapDatabase::where('active', true)
-                                    ->where('server', '=', '192.168.1.13')
+                                    ->whereIn('server', ['192.168.1.8', '192.168.1.15'])
                                     ->get();
 
             foreach ($databases as $key => $db) {
@@ -1230,26 +1296,39 @@ class ProductController extends Controller
                     'password' => $password,   
                 ));
 
-                $data[$db->database] = DB::connection($db->database)
+                $items = DB::connection($db->database)
                                ->select("SELECT 
-                                            d.FirmName BRAND, 
-                                            c.ItemName MODEL,
-                                            c.FrgnName CATEGORY
+                                            c.FirmName brand, 
+                                            b.ItemName model,
+                                            b.FrgnName category,
+                                            d.WhsCode whse_code,
+                                            d.WhsName whse_name,
+                                            CAST(a.OnHand as int) onhand,
+                                            CAST(a.IsCommited as int) commited,
+                                            CAST(a.OnOrder as int) ordered,
+                                            CAST(a.OnHand as int) - CAST(a.IsCommited as int) available
                                         FROM 
                                             OITW a
                                             INNER JOIN OITM b on a.ItemCode = b.ItemCode
-                                            INNER JOIN OMRC c on b.FirmCode = d.FirmCode
+                                            INNER JOIN OMRC c on b.FirmCode = c.FirmCode
                                             INNER JOIN OWHS d on a.WhsCode = d.WhsCode 
                                         WHERE 
                                             a.OnHand <> 0 
+                                            and b.ItemName like '%". $params['model'] ."%'
+                                            and b.FrgnName like '%". $params['category'] ."%'
+                                            and c.FirmName like '%". $params['brand'] ."%'
                                             ORDER by 1, 2, 3
-                                ", $params);
+                                ");
+                foreach ($items as $item) {
+                    $data[] = $item;
+                }
             }
 
+            return response()->json([
+                'databases' => $databases, 
+                'products' => $data, 
+            ], 200);
 
-            return response()->json(['databases' => $databases, 'products' => $data], 200);
-
-            
         } catch (\Exception $e) {
             
             return response()->json(['error' => $e->getMessage()], 200);

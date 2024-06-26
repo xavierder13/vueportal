@@ -11,6 +11,7 @@ import ProductListView from './views/inventory/product/ProductListView.vue';
 import ScanProduct from './views/inventory/scan_product/ScanProduct.vue';
 import ScannedProductList from './views/inventory/scan_product/ScannedProductList.vue';
 import SerialNumberDetails from './views/inventory/serial_number_details/SerialNumberDetails.vue';
+import InventoryOnHand from './views/inventory/inventory_on_hand/InventoryOnHand.vue';
 import InventoryReconciliation from './views/inventory/reconciliation/InventoryReconciliation.vue';
 import InventoryDiscrepancy from './views/inventory/reconciliation/InventoryDiscrepancy.vue';
 import InventoryBreakdown from './views/inventory/reconciliation/InventoryBreakdown.vue';
@@ -133,6 +134,11 @@ const routes = [
         path: '/serial_number_details',
         name: 'serial_number_details',
         component: SerialNumberDetails
+      },
+      {
+        path: '/inventory_on_hand',
+        name: 'inventory_on_hand',
+        component: InventoryOnHand
       },
       {
         path: '/branch/index',

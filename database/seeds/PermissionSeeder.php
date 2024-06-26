@@ -169,6 +169,7 @@ class PermissionSeeder extends Seeder
             'sap-database-edit',
             'sap-database-delete',
             'serial-number-details',
+            'inventory-on-hand',
             'sync-item-master-data',
             'activity-logs',
          ];

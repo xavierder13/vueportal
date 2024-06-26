@@ -29,7 +29,9 @@ class ProductMaintenance
         //Product Create
         if($request->is($api . 'create') || 
            $request->is($api . 'store') || 
-           $request->is($api . 'search_model') || 
+           $request->is($api . 'search_brand') ||
+           $request->is($api . 'search_model') ||
+           $request->is($api . 'search_category') || 
            $request->is($api . 'search_serial')
         ){
             if($user->can('product-create')){
@@ -86,6 +88,19 @@ class ProductMaintenance
         // Sync Item Master Data
         if($request->is($api . 'sync_item_master_data')){
             if($user->can('sync-item-master-data')){
+                return $next($request); 
+            }
+            return $next($request); 
+        }
+
+        // Inventory On Hand
+        if($request->is($api . 'inventory_on_hand') ||
+           $request->is($api . 'search_brand') ||
+           $request->is($api . 'search_model') ||
+           $request->is($api . 'search_category') 
+        
+        ){
+            if($user->can('inventory_on_hand')){
                 return $next($request); 
             }
             return $next($request); 

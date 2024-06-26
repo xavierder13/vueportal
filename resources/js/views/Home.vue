@@ -421,6 +421,11 @@ export default {
                   link: '/serial_number_details',
                   hasPermission: this.hasPermission('serial-number-details'),
                 },
+                { 
+                  title: 'Inventory On Hand',
+                  link: '/inventory_on_hand',
+                  hasPermission: this.hasPermission('inventory-on-hand'),
+                },
               ] 
             },
             {

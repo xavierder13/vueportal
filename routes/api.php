@@ -132,9 +132,19 @@ Route::group(['prefix' => 'product', 'middleware' => ['auth:api', 'product.maint
         'as' => 'product.import'
     ]);
 
+    Route::post('/search_brand', [
+        'uses' => 'API\ProductController@search_brand',
+        'as' => 'product.search_brand',
+    ]);
+
     Route::post('/search_model', [
         'uses' => 'API\ProductController@search_model',
         'as' => 'product.search_model',
+    ]);
+
+    Route::post('/search_category', [
+        'uses' => 'API\ProductController@search_category',
+        'as' => 'product.search_category',
     ]);
 
     Route::post('/search_serial', [
@@ -145,6 +155,11 @@ Route::group(['prefix' => 'product', 'middleware' => ['auth:api', 'product.maint
     Route::post('/serial_number_details', [
         'uses' => 'API\ProductController@serial_number_details',
         'as' => 'serial.number.details'
+    ]);
+
+    Route::post('/inventory_on_hand', [
+        'uses' => 'API\ProductController@inventory_on_hand',
+        'as' => 'inventory.on.hand'
     ]);
 
     Route::get('/sync_item_master_data', [
