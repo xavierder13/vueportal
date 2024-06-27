@@ -12,6 +12,17 @@
         <v-card>
           <v-card-title class="mb-0 pb-0">
             Inventory On Hand
+            <v-spacer></v-spacer>
+            <v-btn
+              class="mx-1 white--text"
+              color="success"
+              width="100px"
+              small
+              @click="exportData()"
+            >
+              <v-icon class="mr-1" small> mdi-microsoft-excel </v-icon>
+              Export
+            </v-btn>
           </v-card-title>
           <v-divider class="mb-0 pb-0"></v-divider>
           <v-card-text>
@@ -288,7 +299,7 @@ export default {
         { text: "Warehouse Code", value: "whse_code" },
         { text: "Warehouse Name", value: "whse_name" },
         { text: "In-Stock", value: "onhand" },
-        { text: "Commited", value: "commited" },
+        { text: "Committed", value: "committed" },
         { text: "Ordered", value: "ordered" },
         { text: "Available", value: "available" },
       ],
@@ -614,6 +625,30 @@ export default {
       // await this.searchModel();
       // await this.searchCategory();
       await this.getInventory();
+    },
+
+    exportData() {
+      if (this.products.length) 
+      {
+        console.log(this.products);
+        const data = { products: this.products };
+
+        axios.post('/api/product/export_inventory_on_hand', data, { responseType: 'arraybuffer'})
+          .then((response) => {
+              var fileURL = window.URL.createObjectURL(new Blob([response.data]));
+              var fileLink = document.createElement('a');
+              fileLink.href = fileURL;
+              fileLink.setAttribute('download', 'InventoryOnHand.xls');
+              document.body.appendChild(fileLink);
+              fileLink.click();
+          }, (error) => {
+            console.log(error);
+          }
+        );
+      
+      } else {
+        this.showAlert("No record found", "warning")
+      }
     },
 
     showAlert(msg, icon) {

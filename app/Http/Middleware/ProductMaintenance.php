@@ -97,15 +97,14 @@ class ProductMaintenance
         if($request->is($api . 'inventory_on_hand') ||
            $request->is($api . 'search_brand') ||
            $request->is($api . 'search_model') ||
-           $request->is($api . 'search_category') 
-        
+           $request->is($api . 'search_category') ||
+           $request->is($api . 'export_inventory_on_hand')
         ){
             if($user->can('inventory_on_hand')){
                 return $next($request); 
             }
             return $next($request); 
         }
-
 
         return abort(401, 'Unauthorized');
     }

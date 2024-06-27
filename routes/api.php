@@ -185,6 +185,14 @@ Route::group(['prefix' => 'product', 'middleware' => ['auth:api', 'product.maint
         'as' => 'product.template.download',
     ]);
 
+    // Inventory On Hand Export Route
+    Route::post('/export_inventory_on_hand', [
+        'uses' => 'API\ProductController@export_inventory_on_hand',
+        'as' => 'export.inventory.on.hand',
+    ]);
+
+
+
 });
 
 Route::get('/sync_item_master_data', [

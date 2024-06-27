@@ -19,6 +19,7 @@ use App\Imports\ProductsImport;
 use App\Exports\ProductsExport;
 use App\Exports\ProductsTemplate;
 use App\Exports\MergedProductTemplate;
+use App\Exports\InventoryOnHandExport;
 use DB;
 use Validator;
 use Auth;
@@ -1304,7 +1305,7 @@ class ProductController extends Controller
                                             d.WhsCode whse_code,
                                             d.WhsName whse_name,
                                             CAST(a.OnHand as int) onhand,
-                                            CAST(a.IsCommited as int) commited,
+                                            CAST(a.IsCommited as int) [committed],
                                             CAST(a.OnOrder as int) ordered,
                                             CAST(a.OnHand as int) - CAST(a.IsCommited as int) available
                                         FROM 
@@ -1349,6 +1350,11 @@ class ProductController extends Controller
             return response()->json(['error' => $e->getMessage()], 200);
         }
 
+    }
+
+    public function export_inventory_on_hand(Request $request)
+    {   
+        return Excel::download(new InventoryOnHandExport($request->products), 'InventoryOnHand.xls');
     }
 
     public function sync_item_master_data()
