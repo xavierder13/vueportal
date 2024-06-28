@@ -1261,6 +1261,10 @@ class ProductController extends Controller
                             'password' => $password,   
                         ));
 
+            $firmNameCondition = !$params['brand'] ? "b.FirmName like '%". $params['brand'] ."%'" : "b.FirmName = '". $params['brand'] ."'";
+            $itemNameCondition = !$params['model'] ? "a.ItemName like '%". $params['model'] ."%'" : "a.ItemName = '". $params['model'] ."'";
+            $frgnNameCondition = !$params['category'] ? "a.FrgnName like '%". $params['category'] ."%'" : "a.FrgnName = '". $params['category'] ."'";
+
             $products = DB::connection($reportsFinance->database)
                         ->select("SELECT 
                                      DISTINCT
@@ -1271,9 +1275,9 @@ class ProductController extends Controller
                                      OITM a
                                      INNER JOIN OMRC b on a.FirmCode = b.FirmCode
                                  WHERE 
-                                     a.ItemName like '%". $params['model'] ."%'
-                                     and a.FrgnName like '%". $params['category'] ."%'
-                                     and b.FirmName like '%". $params['brand'] ."%'");                    
+                                     ". $itemNameCondition ."
+                                     and ". $frgnNameCondition ."
+                                     and ". $firmNameCondition );                    
             
             if(count($products) > 1)
             {
