@@ -754,6 +754,22 @@ class InventoryReconciliationController extends Controller
             {
                 return response()->json(['empty' => 'No record found', $db], 200);
             }
+
+            // if user has role then get all Inventory Reconciliation with inventory_group = 'Audit-Branch'
+            if($user->hasRole('Audit Admin'))
+            {
+                $inventory_group = 'Audit-Branch';
+            }
+            //if user has role then get all Inventory Reconciliation with inventory_group = 'Admin-Branch'
+            else if($user->hasRole('Inventory Admin'))
+            {
+                $inventory_group = 'Admin-Branch';
+            }
+            // if user has role Inventory Branch then show record with branch_id = user's branch
+            else if($user->hasRole('Inventory Branch'))
+            {
+                $inventory_group ='Admin-Branch';
+            }
     
             $inventory_reconciliation = new InventoryReconciliation();
             $inventory_reconciliation->branch_id = $branch_id;

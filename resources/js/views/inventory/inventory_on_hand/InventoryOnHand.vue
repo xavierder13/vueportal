@@ -254,7 +254,6 @@
         <!-- loader-dialog -->
         <v-dialog
           v-model="search_loading"
-          hide-overlay
           persistent
           width="300"
         >
