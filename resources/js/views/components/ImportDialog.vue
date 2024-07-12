@@ -223,7 +223,7 @@ export default {
       // this.fileIsInvalid = false;
 
       
-      if (!this.$v.file.$error) {
+      if (!this.$v.file.$error && !this.fileIsInvalid) {
         this.uploadDisabled = true;
         this.uploading = true;
 
@@ -344,7 +344,7 @@ export default {
           let split_arr = this.file.name.split('.');
           let split_ctr = split_arr.length;
           let extension = split_arr[split_ctr - 1];
-          let extensions = ['xls', 'xlxs', 'ods', 'csv'];
+          let extensions = ['xls', 'xlsx', 'ods', 'csv'];
 
           if(!extensions.includes(extension))
           {
