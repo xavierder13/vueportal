@@ -466,7 +466,12 @@ export default {
               hasPermission: false,
               children: [
                 { 
-                  title: 'Employee Lists',
+                  title: 'Master Data',
+                  link: '/employee/master_data',
+                  hasPermission: this.hasPermission('employee-list'),
+                },
+                { 
+                  title: 'Employee Reports',
                   link: '/employee/list',
                   hasPermission: this.hasPermission('employee-list'),
                 },
@@ -661,6 +666,11 @@ export default {
                   title: 'Department',
                   link: '/department/index',
                   hasPermission: this.hasAnyPermission('department-list', 'department-create'),
+                },
+                { 
+                  title: 'Division',
+                  link: '/division/index',
+                  hasPermission: this.hasAnyPermission('division-list', 'division-create'),
                 },
                 { 
                   title: 'Role',

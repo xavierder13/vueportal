@@ -18,10 +18,12 @@ import InventoryBreakdown from './views/inventory/reconciliation/InventoryBreakd
 import BrandIndex from './views/brand/BrandIndex.vue';
 import PositionIndex from './views/position/PositionIndex.vue';
 import DepartmentIndex from './views/department/DepartmentIndex.vue';
+import DivisionIndex from './views/division/DivisionIndex.vue';
 import ProductCategoryIndex from './views/product_category/ProductCategoryIndex.vue';
 import ProductModelIndex from './views/product_model/ProductModelIndex.vue';
 import BranchIndex from './views/branch/BranchIndex.vue';
 import CompanyIndex from './views/company/CompanyIndex.vue';
+import EmployeeMasterData from './views/employee/EmployeeMasterData.vue';
 import EmployeeIndex from './views/employee/EmployeeIndex.vue';
 import EmployeeListView from './views/employee/EmployeeListView.vue';
 import EmployeeAttlogIndex from './views/employee/attlog/EmployeeAttlogIndex.vue';
@@ -159,6 +161,16 @@ const routes = [
         path: '/department/index',
         name: 'department.index',
         component: DepartmentIndex
+      },
+      {
+        path: '/division/index',
+        name: 'division.index',
+        component: DivisionIndex
+      },
+      {
+        path: '/employee/master_data',
+        name: 'employee.master.data',
+        component: EmployeeMasterData
       },
       {
         path: '/employee/list',

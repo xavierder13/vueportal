@@ -19,14 +19,14 @@
         </v-breadcrumbs>
         <v-card>
           <v-card-title>
-            Department Lists
+            Division Lists
             <v-spacer></v-spacer>
             <v-text-field
               v-model="search"
               append-icon="mdi-magnify"
               label="Search"
               single-line
-              v-if="hasPermission('department-list')"
+              v-if="hasPermission('division-list')"
             ></v-text-field>
             <template>
               <v-toolbar flat>
@@ -38,7 +38,7 @@
                   dark
                   class="mb-2"
                   @click="clear() + (dialog = true)"
-                  v-if="hasPermission('department-create')"
+                  v-if="hasPermission('division-create')"
                 >
                   <v-icon>mdi-plus</v-icon>
                 </v-btn>
@@ -54,30 +54,14 @@
                         <v-row>
                           <v-col class="my-0 py-0">
                             <v-text-field
-                              name="department"
-                              v-model="editedItem.department"
-                              label="Department"
-                              required
-                              :error-messages="departmentErrors + departmentError.department"
-                              @input="$v.editedItem.department.$touch() + (departmentError.department = [])"
-                              @blur="$v.editedItem.department.$touch()"
-                            ></v-text-field>
-                          </v-col>
-                        </v-row>
-                        <v-row>
-                          <v-col class="my-0 py-0">
-                            <v-autocomplete
                               name="division"
-                              :items="divisions"
-                              item-text="name"
-                              item-value="id"
-                              v-model="editedItem.division_id"
+                              v-model="editedItem.division"
                               label="Division"
                               required
-                              :error-messages="divisionErrors + departmentError.division_id"
-                              @input="$v.editedItem.division_id.$touch() + (departmentError.division_id = [])"
-                              @blur="$v.editedItem.division_id.$touch()"
-                            ></v-autocomplete>
+                              :error-messages="divisionErrors + divisionError.division"
+                              @input="$v.editedItem.division.$touch() + (divisionError.division = [])"
+                              @blur="$v.editedItem.division.$touch()"
+                            ></v-text-field>
                           </v-col>
                         </v-row>
                         <v-row>
@@ -112,19 +96,19 @@
           </v-card-title>
           <v-data-table
             :headers="headers"
-            :items="departments"
+            :items="divisions"
             :search="search"
             :loading="loading"
             loading-text="Loading... Please wait"
-            v-if="hasPermission('department-list')"
+            v-if="hasPermission('division-list')"
           >
             <template v-slot:item.actions="{ item }">
               <v-icon
                 small
                 class="mr-2"
                 color="green"
-                @click="editDepartment(item)"
-                v-if="hasPermission('department-edit')"
+                @click="editDivision(item)"
+                v-if="hasPermission('division-edit')"
               >
                 mdi-pencil
               </v-icon>
@@ -133,7 +117,7 @@
                 small
                 color="red"
                 @click="showConfirmAlert(item)"
-                v-if="hasPermission('department-delete')"
+                v-if="hasPermission('division-delete')"
               >
                 mdi-delete
               </v-icon>
@@ -155,8 +139,7 @@ export default {
 
   validations: {
     editedItem: {
-      department: { required },
-      division_id: { required },
+      division: { required },
     },
   },
   data() {
@@ -166,24 +149,20 @@ export default {
       switch1: true,
       search: "",
       headers: [
-        { text: "Department", value: "name" },
-        { text: "Division", value: "division.name" },
+        { text: "Division", value: "name" },
         { text: "Active", value: "active" },
         { text: "Actions", value: "actions", sortable: false, width: "80px" },
       ],
       disabled: false,
       dialog: false,
-      departments: [],
       divisions: [],
       editedIndex: -1,
       editedItem: {
-        department: "",
-        division_id: "",
+        division: "",
         active: "Y",
       },
       defaultItem: {
-        department: "",
-        division_id: "",
+        division: "",
         active: "Y",
       },
       items: [
@@ -193,24 +172,22 @@ export default {
           link: "/dashboard",
         },
         {
-          text: "Department Lists",
+          text: "Division Lists",
           disabled: true,
         },
       ],
       loading: true,
-      departmentError: {
-        department: [],
-        division_id: [],
+      divisionError: {
+        division: [],
       }
     };
   },
 
   methods: {
-    getDepartment() {
+    getDivision() {
       this.loading = true;
-      axios.get("/api/department/index").then(
+      axios.get("/api/division/index").then(
         (response) => {
-          this.departments = response.data.departments;
           this.divisions = response.data.divisions;
           this.loading = false;
         },
@@ -220,11 +197,10 @@ export default {
       );
     },
 
-    editDepartment(item) {
-      this.editedIndex = this.departments.indexOf(item);
+    editDivision(item) {
+      this.editedIndex = this.divisions.indexOf(item);
       this.editedItem.id = item.id;
-      this.editedItem.department = item.name;
-      this.editedItem.division_id = item.division_id;
+      this.editedItem.division = item.name;
       this.editedItem.active = item.active;
       this.switch1 = true;
       if(this.editedItem.active === 'N')
@@ -234,15 +210,15 @@ export default {
       this.dialog = true;
     },
 
-    deleteDepartment(department_id) {
-      const data = { department_id: department_id };
+    deleteDivision(division_id) {
+      const data = { division_id: division_id };
 
-      axios.post("/api/department/delete", data).then(
+      axios.post("/api/division/delete", data).then(
         (response) => {
           // console.log(response.data);
           if (response.data.success) {
             // send data to Socket.IO Server
-            // this.$socket.emit("sendData", { action: "department-delete" });
+            // this.$socket.emit("sendData", { action: "division-delete" });
           }
         },
         (error) => {
@@ -276,14 +252,14 @@ export default {
         if (result.value) {
           // <-- if confirmed
 
-          const department_id = item.id;
-          const index = this.departments.indexOf(item);
+          const division_id = item.id;
+          const index = this.divisions.indexOf(item);
 
-          //Call delete Department function
-          this.deleteDepartment(department_id);
+          //Call delete Division function
+          this.deleteDivision(division_id);
 
           //Remove item from array services
-          this.departments.splice(index, 1);
+          this.divisions.splice(index, 1);
 
           this.$swal({
             position: "center",
@@ -307,9 +283,8 @@ export default {
 
     save() {
       this.$v.$touch();
-      this.departmentError = {
-        department: [],
-        division_id: [],
+      this.divisionError = {
+        division: [],
       };
 
       if (!this.$v.$error) {
@@ -318,19 +293,18 @@ export default {
 
         if (this.editedIndex > -1) {
           const data = this.editedItem;
-          const department_id = this.editedItem.id;
+          const division_id = this.editedItem.id;
 
-          axios.post("/api/department/update/" + department_id, data).then(
+          axios.post("/api/division/update/" + division_id, data).then(
             (response) => {
               if (response.data.success) {
                 // send data to Socket.IO Server
-                // this.$socket.emit("sendData", { action: "department-edit" });
+                // this.$socket.emit("sendData", { action: "division-edit" });
 
-                // Object.assign(
-                //   this.departments[this.editedIndex],
-                //   response.data.department
-                // );
-                this.getDepartment();
+                Object.assign(
+                  this.divisions[this.editedIndex],
+                  response.data.division
+                );
                 this.showAlert();
                 this.close();
               } 
@@ -340,7 +314,7 @@ export default {
                 let errorNames = Object.keys(response.data);
 
                 errorNames.forEach(value => {
-                  this.departmentError[value].push(errors[value]);
+                  this.divisionError[value].push(errors[value]);
                 });
                 
               }
@@ -355,17 +329,17 @@ export default {
         } else {
           const data = this.editedItem;
 
-          axios.post("/api/department/store", data).then(
+          axios.post("/api/division/store", data).then(
             (response) => {
               if (response.data.success) {
                 // send data to Socket.IO Server
-                // this.$socket.emit("sendData", { action: "department-create" });
+                // this.$socket.emit("sendData", { action: "division-create" });
 
                 this.showAlert();
                 this.close();
 
                 //push recently added data from database
-                this.departments.push(response.data.department);
+                this.divisions.push(response.data.division);
               } 
               else
               { 
@@ -373,7 +347,7 @@ export default {
                 let errorNames = Object.keys(response.data);
 
                 errorNames.forEach(value => {
-                  this.departmentError[value].push(errors[value]);
+                  this.divisionError[value].push(errors[value]);
                 });
                 
               }
@@ -390,12 +364,11 @@ export default {
     },
     clear() {
       this.$v.$reset();
-      this.editedItem.department = "";
+      this.editedItem.division = "";
       this.editedItem.active = "Y";
       this.switch1 = true;
-      this.departmentError = {
-        department: [],
-        division_id: [],
+      this.divisionError = {
+        division: []
       };
       
     },
@@ -413,30 +386,23 @@ export default {
         let action = data.action;
 
         if (
-          action == "department-create" ||
-          action == "department-edit" ||
-          action == "department-delete"
+          action == "division-create" ||
+          action == "division-edit" ||
+          action == "division-delete"
         ) {
-          this.getDepartment();
+          this.getDivision();
         }
       };
     },
   },
   computed: {
     formTitle() {
-      return this.editedIndex === -1 ? "New Department" : "Edit Department";
-    },
-    departmentErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.department.$dirty) return errors;
-      !this.$v.editedItem.department.required &&
-        errors.push("Department is required.");
-      return errors;
+      return this.editedIndex === -1 ? "New Division" : "Edit Division";
     },
     divisionErrors() {
       const errors = [];
-      if (!this.$v.editedItem.division_id.$dirty) return errors;
-      !this.$v.editedItem.division_id.required &&
+      if (!this.$v.editedItem.division.$dirty) return errors;
+      !this.$v.editedItem.division.required &&
         errors.push("Division is required.");
       return errors;
     },
@@ -455,7 +421,7 @@ export default {
     axios.defaults.headers.common["Authorization"] =
       "Bearer " + localStorage.getItem("access_token");
 
-    this.getDepartment();
+    this.getDivision();
     // this.websocket();
   },
 };

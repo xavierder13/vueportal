@@ -5,15 +5,17 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Department;
+use App\Division;
 use Validator;
 
 class DepartmentController extends Controller
 {
     public function index()
     {
-        $departments = Department::all();
+        $departments = Department::with('division')->get();
+        $divisions = Division::all();
 
-        return response()->json(['departments' => $departments], 200);
+        return response()->json(['departments' => $departments, 'divisions' => $divisions], 200);
     }
 
 
@@ -22,11 +24,14 @@ class DepartmentController extends Controller
         // return $request;
         $rules = [
             'department.required' => 'Department is required',
-            'department.unique' => 'Department already exists'
+            'department.unique' => 'Department already exists',
+            'division_id.required' => 'Division is required',
+            'division.integer' => 'Division value must be an integer',
         ];
 
         $validator = Validator::make($request->all(),[
-            'department' => 'required|unique:departments,name'
+            'department' => 'required|unique:departments,name',
+            'division' => 'required.integer',
         ], $rules);
 
         if($validator->fails())
@@ -36,6 +41,7 @@ class DepartmentController extends Controller
 
         $department = new Department();
         $department->name = $request->get('department');
+        $department->division_id = $request->get('division_id');
         $department->active = $request->get('active');
         $department->save();
 
@@ -47,11 +53,14 @@ class DepartmentController extends Controller
         // return $request;
         $rules = [
             'department.required' => 'Department is required',
-            'department.unique' => 'Department already exists'
+            'department.unique' => 'Department already exists',
+            'division_id.required' => 'Division is required',
+            'division.integer' => 'Division value must be an integer',
         ];
 
         $validator = Validator::make($request->all(),[
-            'department' => 'required|unique:departments,name,'.$department_id
+            'department' => 'required|unique:departments,name,'.$department_id,
+            'division' => 'required.integer',
         ], $rules);
 
         if($validator->fails())
@@ -61,6 +70,7 @@ class DepartmentController extends Controller
 
         $department = Department::find($department_id);
         $department->name = $request->get('department');
+        $department->division_id = $request->get('division_id');
         $department->active = $request->get('active');
         $department->save();
 

@@ -284,6 +284,39 @@ Route::group(['prefix' => 'inventory_reconciliation', 'middleware' => ['auth:api
     ]);
 });
 
+//Employee Master Data Routes
+Route::group(['prefix' => 'employee_master_data', 'middleware' => ['auth:api', 'employee.master.data.maintenance']], function() {
+    Route::get('/index', [
+        'uses' => 'API\EmployeeMasterDataController@index',
+        'as' => 'employee.master.data.index'
+    ]);
+
+    Route::post('/store', [
+        'uses' => 'API\EmployeeMasterDataController@store',
+        'as' => 'employee.master.data.store'
+    ]); 
+
+    Route::post('/update/{id}', [
+        'uses' => 'API\EmployeeMasterDataController@update',
+        'as' => 'employee.master.data.store'
+    ]); 
+
+    Route::post('/delete', [
+        'uses' => 'API\EmployeeMasterDataController@delete',
+        'as' => 'employee.master.data.delete'
+    ]); 
+
+    Route::post('/import', [
+        'uses' => 'API\EmployeeMasterDataController@import',
+        'as' => 'employee.master.data.import'
+    ]); 
+
+    Route::get('/export', [
+        'uses' => 'API\EmployeeMasterDataController@export',
+        'as' => 'employee.master.data.export'
+    ]); 
+});
+
 // Employee Routes
 Route::group(['prefix' => 'employee', 'middleware' => ['auth:api', 'employee.maintenance']], function(){
     Route::get('/index', [
@@ -1054,6 +1087,35 @@ Route::group(['prefix' => 'department', 'middleware' => ['auth:api', 'department
     Route::post('/delete', [
         'uses' => 'API\DepartmentController@delete',
         'as' => 'department.delete',
+    ]);
+
+});
+
+// Division Routes
+Route::group(['prefix' => 'division', 'middleware' => ['auth:api', 'division.maintenance']], function(){
+    Route::get('/index', [
+        'uses' => 'API\DivisionController@index',
+        'as' => 'division.index',
+    ]);
+    Route::get('/create', [
+        'uses' => 'API\DivisionController@create',
+        'as' => 'division.create',
+    ]);
+    Route::post('/store', [
+        'uses' => 'API\DivisionController@store',
+        'as' => 'division.store',
+    ]);
+    Route::post('/edit', [
+        'uses' => 'API\DivisionController@edit',
+        'as' => 'division.edit',
+    ]);
+    Route::post('/update/{id}', [
+        'uses' => 'API\DivisionController@update',
+        'as' => 'division.update',
+    ]);
+    Route::post('/delete', [
+        'uses' => 'API\DivisionController@delete',
+        'as' => 'division.delete',
     ]);
 
 });

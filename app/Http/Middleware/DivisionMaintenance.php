@@ -5,7 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Auth;
 
-class DepartmentMaintenance
+class DivisionMaintenance
 {
     /**
      * Handle an incoming request.
@@ -18,30 +18,30 @@ class DepartmentMaintenance
     {
         $user = Auth::user();
 
-        //Department Record
-        if($request->is('api/department/index')){
-            if($user->can('department-list')){
+        //Division Record
+        if($request->is('api/division/index')){
+            if($user->can('division-list')){
                 return $next($request); 
             }
         }
 
-        //Department Create
-        if($request->is('api/department/create') || $request->is('api/department/store')){
-            if($user->can('department-create')){
+        //Division Create
+        if($request->is('api/division/create') || $request->is('api/division/store')){
+            if($user->can('division-create')){
                 return $next($request); 
             }
         }
 
-        //Department Edit
-        if($request->is('api/department/edit/*') || $request->is('api/department/update/*')){
-            if($user->can('department-edit')){
+        //Division Edit
+        if($request->is('api/division/edit/*') || $request->is('api/division/update/*')){
+            if($user->can('division-edit')){
                 return $next($request); 
             }
         }
 
-        //Department Delete
-        if($request->is('api/department/delete')){
-            if($user->can('department-delete')){
+        //Division Delete
+        if($request->is('api/division/delete')){
+            if($user->can('division-delete')){
                 return $next($request); 
             }
         }

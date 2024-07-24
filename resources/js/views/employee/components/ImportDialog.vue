@@ -8,7 +8,7 @@
         <v-divider class="mt-0"></v-divider>
         <v-card-text>
           <v-container>
-            <v-row>
+            <v-row v-if="docname != 'Employee Master Data'">
               <v-col>
                 <v-menu
                   v-model="input_docdate"
@@ -145,7 +145,7 @@
 <script>
 import axios from "axios";
 import { validationMixin } from "vuelidate";
-import { required, maxLength, email } from "vuelidate/lib/validators";
+import { required, requiredIf, email } from "vuelidate/lib/validators";
 import { mapState } from "vuex";
 export default {
   
@@ -154,11 +154,16 @@ export default {
     'importedData',
     'api_route',
     'dialog_import',
+    'docname'
   ],
   mixins: [validationMixin],
   validations: {
     file: { required },
-    docdate: { required },
+    docdate: { 
+      requiredIf: function() {
+        return this.docname != 'Employee Master Data';
+      }
+    },
   },
   data () {
     return {
@@ -200,12 +205,16 @@ export default {
           .then(
             (response) => {
               this.errors_array = [];
-
-              if (response.data.success) {
+              let data = response.data;
+              console.log(data);
+              if (data.success) {
                 // send data to Socket.IO Server
                 // this.$socket.emit("sendData", { action: "import-project" });
-                this.file_upload_log_id = response.data.file_upload_log_id;
+                this.file_upload_log_id = data.file_upload_log_id;
                 
+                // Note: file_upload_log_id is for Employee List upload with document date, used for MSS compliance, uploading for monthly report.
+                // disregard file_upload_log_id and leave empty value for uploading Employee Master Data
+
                 this.$emit('getData', this.file_upload_log_id);
                 this.$swal({
                   position: "center",
@@ -217,15 +226,19 @@ export default {
                 this.$v.$reset();
                 this.closeDialog();
 
-              } else if (response.data.error_column) {
-                this.errors_array = response.data.error_column;
+              } else if (data.error_column) {
+                this.errors_array = data.error_column;
                 this.dialog_error_list = true;
-              } else if (response.data.error_row_data) {
-                let error_keys = Object.keys(response.data.error_row_data);
-                let errors = response.data.error_row_data;
-                let field_values = response.data.field_values;
+              } else if (data.error_row_data) {
+                console.log(data);
+                let error_keys = Object.keys(data.error_row_data);
+                let errors = data.error_row_data;
+                let field_values = data.field_values;
                 let row = "";
                 let col = "";
+
+                console.log(errors);
+                console.log(error_keys);
 
                 error_keys.forEach((value, index) => {
                   row = value.split(".")[0];
@@ -245,14 +258,13 @@ export default {
                 });
 
                 this.dialog_error_list = true;
-              } else if (response.data.error_empty) {
+              } else if (data.error_empty) {
                 this.fileIsEmpty = true;
               } else {
                 this.fileIsInvalid = true;
               }
               this.uploadDisabled = false;
               this.uploading = false;
-              console.log(response.data);
             },
             (error) => {
               this.isUnauthorized(error);
@@ -275,6 +287,8 @@ export default {
       this.docdate = new Date().toISOString().substr(0, 10);
       this.file = [];
       this.fileIsEmpty = false;
+      this.uploadDisabled = false;
+      this.uploading = false;
       this.$v.$reset();
     }, 
     isUnauthorized(error) {
