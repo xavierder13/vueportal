@@ -18,7 +18,6 @@ class EmployeeMasterData extends Model
         'email',
         'position_id',
         'department_id',
-        'job_description',
         'date_employed',
         'date_resigned',
         'gender',

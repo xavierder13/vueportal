@@ -12,19 +12,15 @@ use App\Imports\EmployeeMasterDataImport;
 use App\Exports\EmployeeMasterDataExport;
 use Validator;
 use Excel;
+use DB;
 
 class EmployeeMasterDataController extends Controller
 {
     public function index()
     {
-        $employees = EmployeeMasterData::with('branch')
-                                       ->with('branch.company')
-                                       ->with('department')
-                                       ->with('department.division')
-                                       ->with('position')
-                                       ->get();
+        $employees = $this->getEmployees()->get();
         $branches = Branch::with('company')->get();
-        $positions = Position::all();
+        $positions = Position::with('rank')->get();
         $departments = Department::with('division')->get();
 
         return response()->json([
@@ -33,6 +29,23 @@ class EmployeeMasterDataController extends Controller
             'positions' => $positions,
             'departments' => $departments
         ], 200);
+    }
+
+    public function getEmployees() 
+    {
+        return EmployeeMasterData::with('branch')
+        ->with('branch.company')
+        ->with('department')
+        ->with('department.division')
+        ->with('position')
+        ->with('position.rank')
+        ->select(DB::raw("*,
+                 CONCAT(FLOOR((TIMESTAMPDIFF(DAY, date_employed, date_format(IFNULL(date_resigned, NOW()),'%Y-%m-%d')) / 365)), ' years(s) ',
+                 FLOOR(((TIMESTAMPDIFF(DAY, date_employed, date_format(IFNULL(date_resigned, NOW()),'%Y-%m-%d')) % 365) / 30)), ' month(s) ',
+                 ((TIMESTAMPDIFF(DAY, date_employed, date_format(IFNULL(date_resigned, NOW()),'%Y-%m-%d')) % 365) % 30), ' day(s)')  as length_of_service
+                 "
+             )
+        );
     }
 
     public function validator($data)
@@ -49,7 +62,6 @@ class EmployeeMasterDataController extends Controller
             'contact.required' => 'Contact is required',
             'position_id.required' => 'Rank is required',
             'department_id.required' => 'Department is required',
-            'job_description.required' => 'Job Description is required',
             'date_employed.required' => 'Date Employed is required',
             'date_employed.date_format' => 'Invalid date. Format: (YYYY-MM-DD)',
             'gender.required' => 'Gender is required',
@@ -75,7 +87,6 @@ class EmployeeMasterDataController extends Controller
             'email' => 'required',
             'position_id' => 'required',
             'department_id' => 'required',
-            'job_description' => 'required',
             'date_employed' => 'required|date_format:Y-m-d',
             'gender' => 'required',
             'civil_status' => 'required',
@@ -107,7 +118,6 @@ class EmployeeMasterDataController extends Controller
         $employee->email = $data->get('email');
         $employee->position_id = $data->get('position_id');
         $employee->department_id = $data->get('department_id');
-        $employee->job_description = $data->get('job_description');
         $employee->date_employed = $data->get('date_employed');
         $employee->date_resigned = $data->get('date_resigned');
         $employee->gender = $data->get('gender');
@@ -138,12 +148,7 @@ class EmployeeMasterDataController extends Controller
         $employee = new EmployeeMasterData();
         $employee = $this->save($employee, $request);
  
-        $employee = EmployeeMasterData::with('branch')
-                                    ->with('branch.company')
-                                    ->with('department')
-                                    ->with('department.division')
-                                    ->with('position')
-                                    ->find($employee->id);
+        $employee = $this->getEmployees()->find($employee->id);
 
         return response()->json(['success' => 'Record has been added', 'employee' => $employee], 200);
     }
@@ -159,15 +164,9 @@ class EmployeeMasterDataController extends Controller
 
         $employee = EmployeeMasterData::find($employee_id);
         $employee = $this->save($employee, $request);
-        
-        $employee = EmployeeMasterData::with('branch')
-                                    ->with('branch.company')
-                                    ->with('department')
-                                    ->with('department.division')
-                                    ->with('position')
-                                    ->find($employee->id);
-
-        return response()->json(['success' => 'Record has been updated', 'employee' => $employee], 200);
+        $employee = $this->getEmployees()->find($employee->id);
+  
+        return response()->json(['success' => 'Record has been updated', 'employee' => $employee, $this->index()], 200);
 
     }
 
@@ -208,7 +207,6 @@ class EmployeeMasterDataController extends Controller
                     'email',
                     'position',
                     'department',
-                    'job_description',
                     'date_employed',
                     'date_resigned',
                     'gender',
@@ -276,7 +274,6 @@ class EmployeeMasterDataController extends Controller
                         '*.email.email' => 'Invalid Email format',
                         '*.position.required' => 'Rank is required',
                         '*.department.required' => 'Department is required',
-                        '*.job_description.required' => 'Job Description is required',
                         '*.date_employed.required' => 'Date Employed is required',
                         '*.date_employed.date_format' => 'Invalid date. Format: (YYYY-MM-DD)',
                         '*.date_resigned.date_format' => 'Invalid date. Format: (YYYY-MM-DD)',
@@ -306,7 +303,6 @@ class EmployeeMasterDataController extends Controller
                         '*.email' => 'nullable|email',
                         '*.position' => 'required',
                         '*.department' => 'required',
-                        '*.job_description' => 'required',
                         '*.date_employed' => 'required|date_format:Y-m-d',
                         '*.date_resigned' => 'nullable|date_format:Y-m-d',
                         '*.gender' => 'required|in:Male,Female,MALE,FEMALE',
@@ -390,7 +386,6 @@ class EmployeeMasterDataController extends Controller
                             'email' => $field['email'],
                             'position_id' => $position_id,
                             'department_id' => $department_id,
-                            'job_description' => $field['job_description'],
                             'date_employed' => $field['date_employed'],
                             'date_resigned' => $field['date_resigned'],
                             'gender' => $field['gender'],

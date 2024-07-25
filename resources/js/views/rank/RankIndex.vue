@@ -11,14 +11,14 @@
         </v-breadcrumbs>
         <v-card>
           <v-card-title>
-            Position Lists
+            Rank Lists
             <v-spacer></v-spacer>
             <v-text-field
               v-model="search"
               append-icon="mdi-magnify"
               label="Search"
               single-line
-              v-if="hasPermission('position-list')"
+              v-if="hasPermission('rank-list')"
             ></v-text-field>
             <template>
               <v-toolbar flat>
@@ -29,7 +29,7 @@
                   dark
                   class="mb-2"
                   @click="clear() + (dialog = true)"
-                  v-if="hasPermission('position-create')"
+                  v-if="hasPermission('rank-create')"
                 >
                   <v-icon>mdi-plus</v-icon>
                 </v-btn>
@@ -42,32 +42,16 @@
                     <v-card-text>
                       <v-container>
                         <v-row>
-                          <v-col class="my-0 py-0">
+                          <v-col class="mt-0 mb-0 pt-0 pb-0">
                             <v-text-field
-                              name="position"
-                              v-model="editedItem.name"
-                              label="Position"
-                              required
-                              :error-messages="positionErrors + positionError.name"
-                              @input="$v.editedItem.name.$touch() + (positionError.name = [])"
-                              @blur="$v.editedItem.name.$touch()"
-                            ></v-text-field>
-                          </v-col>
-                        </v-row>
-                        <v-row>
-                          <v-col class="my-0 py-0">
-                            <v-autocomplete
                               name="rank"
-                              :items="ranks"
-                              item-text="name"
-                              item-value="id"
-                              v-model="editedItem.rank_id"
+                              v-model="editedItem.name"
                               label="Rank"
                               required
-                              :error-messages="positionErrors + positionError.rank_id"
-                              @input="$v.editedItem.rank_id.$touch() + (positionError.rank_id = [])"
-                              @blur="$v.editedItem.rank_id.$touch()"
-                            ></v-autocomplete>
+                              :error-messages="rankErrors + rankError.name"
+                              @input="$v.editedItem.name.$touch() + (rankError.name = [])"
+                              @blur="$v.editedItem.name.$touch()"
+                            ></v-text-field>
                           </v-col>
                         </v-row>
                       </v-container>
@@ -95,19 +79,19 @@
           
           <v-data-table
             :headers="headers"
-            :items="positions"
+            :items="ranks"
             :search="search"
             :loading="loading"
             loading-text="Loading... Please wait"
-            v-if="hasPermission('position-list')"
+            v-if="hasPermission('rank-list')"
           >
             <template v-slot:item.actions="{ item }">
               <v-icon
                 small
                 class="mr-2"
                 color="green"
-                @click="editPosition(item)"
-                v-if="hasPermission('position-edit')"
+                @click="editRank(item)"
+                v-if="hasPermission('rank-edit')"
               >
                 mdi-pencil
               </v-icon>
@@ -115,7 +99,7 @@
                 small
                 color="red"
                 @click="showConfirmAlert(item)"
-                v-if="hasPermission('position-delete')"
+                v-if="hasPermission('rank-delete')"
               >
                 mdi-delete
               </v-icon>
@@ -140,30 +124,25 @@ export default {
   validations: {
     editedItem: {
       name: { required },
-      rank_id: { required },
     },
   },
   data() {
     return {
       search: "",
       headers: [
-        { text: "Position", value: "name" },
-        { text: "Rank", value: "rank.name" },
+        { text: "Rank", value: "name" },
         { text: "Actions", value: "actions", sortable: false, width: "80px" },
       ],
       switch1: true,
       disabled: false,
       dialog: false,
-      positions: [],
       ranks: [],
       editedIndex: -1,
       editedItem: {
         name: "",
-        rank_id: "",
       },
       defaultItem: {
         name: "",
-        rank_id: "",
       },
       items: [
         {
@@ -172,24 +151,22 @@ export default {
           link: "/",
         },
         {
-          text: "Position Lists",
+          text: "RankLists",
           disabled: true,
         },
       ],
       loading: true,
-      positionError: {
+      rankError: {
         name: [],
-        rank_id: [],
       }
     };
   },
 
   methods: {
-    getPosition() {
+    getRank() {
       this.loading = true;
-      axios.get("/api/position/index").then(
+      axios.get("/api/rank/index").then(
         (response) => {
-          this.positions = response.data.positions;
           this.ranks = response.data.ranks;
           this.loading = false;
         },
@@ -199,8 +176,8 @@ export default {
       );
     },
 
-    editPosition(item) {
-      this.editedIndex = this.positions.indexOf(item);
+    editRank(item) {
+      this.editedIndex = this.ranks.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.dialog = true;
       this.switch1 = true;
@@ -210,14 +187,14 @@ export default {
       }
     },
 
-    deletePosition(position_id) {
-      const data = { position_id: position_id };
+    deleteRank(rank_id) {
+      const data = { rank_id: rank_id };
       this.loading = true;
-      axios.post("/api/position/delete", data).then(
+      axios.post("/api/rank/delete", data).then(
         (response) => {
           if (response.data.success) {
             // send data to Sockot.IO Server
-            // this.$socket.emit("sendData", { action: "position-delete" });
+            // this.$socket.emit("sendData", { action: "rank-delete" });
           }
           this.loading = false;
         },
@@ -229,7 +206,7 @@ export default {
 
     showAlert() {
       this.$swal({
-        position: "center",
+        rank: "center",
         icon: "success",
         title: "Record has been saved",
         showConfirmButton: false,
@@ -252,17 +229,17 @@ export default {
         if (result.value) {
           // <-- if confirmed
 
-          const position_id = item.id;
-          const index = this.positions.indexOf(item);
+          const rank_id = item.id;
+          const index = this.ranks.indexOf(item);
 
-          //Call delete Position function
-          this.deletePosition(position_id);
+          //Call delete Rank function
+          this.deleteRank(rank_id);
 
-          //Remove item from array positions
-          this.positions.splice(index, 1);
+          //Remove item from array ranks
+          this.ranks.splice(index, 1);
 
           this.$swal({
-            position: "center",
+            rank: "center",
             icon: "success",
             title: "Record has been deleted",
             showConfirmButton: false,
@@ -283,9 +260,8 @@ export default {
 
     save() {
       this.$v.$touch();
-      this.positionError = {
+      this.rankError = {
         name: [],
-        rank_id: [],
       };
 
       if (!this.$v.$error) {
@@ -293,16 +269,16 @@ export default {
 
         if (this.editedIndex > -1) {
           const data = this.editedItem;
-          const position_id = this.editedItem.id;
+          const rank_id = this.editedItem.id;
 
-          axios.post("/api/position/update/" + position_id, data).then(
+          axios.post("/api/rank/update/" + rank_id, data).then(
             (response) => {
               if (response.data.success) {
                 // send data to Sockot.IO Server
-                // this.$socket.emit("sendData", { action: "position-edit" });
+                // this.$socket.emit("sendData", { action: "rank-edit" });
 
                 Object.assign(
-                  this.positions[this.editedIndex],
+                  this.ranks[this.editedIndex],
                   this.editedItem
                 );
                 this.showAlert();
@@ -314,7 +290,7 @@ export default {
                 let errorNames = Object.keys(response.data);
 
                 errorNames.forEach(value => {
-                  this.positionError[value].push(errors[value]);
+                  this.rankError[value].push(errors[value]);
                 });
                 
               }
@@ -329,17 +305,17 @@ export default {
         } else {
           const data = this.editedItem;
 
-          axios.post("/api/position/store", data).then(
+          axios.post("/api/rank/store", data).then(
             (response) => {
               if (response.data.success) {
                 // send data to Sockot.IO Server
-                // this.$socket.emit("sendData", { action: "position-create" });
+                // this.$socket.emit("sendData", { action: "rank-create" });
 
                 this.showAlert();
                 this.close();
 
                 //push recently added data from database
-                this.positions.push(response.data.position);
+                this.ranks.push(response.data.rank);
               }
               else
               { 
@@ -347,7 +323,7 @@ export default {
                 let errorNames = Object.keys(response.data);
 
                 errorNames.forEach(value => {
-                  this.positionError[value].push(errors[value]);
+                  this.rankError[value].push(errors[value]);
                 });
                 
               }
@@ -365,10 +341,8 @@ export default {
     clear() {
       this.$v.$reset();
       this.editedItem.name = "";
-      this.editedItem.rank_id = "";
-      this.positionError = {
-        name: [],
-        rank_id: [],
+      this.rankError = {
+        name: []
       }
     },
     
@@ -384,30 +358,23 @@ export default {
       this.$options.sockets.sendData = (data) => {
         let action = data.action;
         if (
-          action == "position-create" ||
-          action == "position-edit" ||
-          action == "position-delete"
+          action == "rank-create" ||
+          action == "rank-edit" ||
+          action == "rank-delete"
         ) {
-          this.getPosition();
+          this.getRank();
         }
       };
     },
   },
   computed: {
     formTitle() {
-      return this.editedIndex === -1 ? "New Position" : "Edit Position";
-    },
-    positionErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.name.$dirty) return errors;
-      !this.$v.editedItem.name.required &&
-        errors.push("Position is required.");
-      return errors;
+      return this.editedIndex === -1 ? "New Rank" : "Edit Rank";
     },
     rankErrors() {
       const errors = [];
-      if (!this.$v.editedItem.rank_id.$dirty) return errors;
-      !this.$v.editedItem.rank_id.required &&
+      if (!this.$v.editedItem.name.$dirty) return errors;
+      !this.$v.editedItem.name.required &&
         errors.push("Rank is required.");
       return errors;
     },
@@ -425,7 +392,7 @@ export default {
   mounted() {
     axios.defaults.headers.common["Authorization"] =
       "Bearer " + localStorage.getItem("access_token");
-    this.getPosition();
+    this.getRank();
     // this.websocket();
   },
 };

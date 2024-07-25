@@ -174,7 +174,7 @@
               </v-icon>
             </template>
           </v-data-table>
-          <v-dialog v-model="dialog" max-width="1000px" persistent>
+          <v-dialog v-model="dialog" max-width="1200px" persistent>
             <v-card>
               <v-card-title class="pa-4">
                 <span class="headline">{{ formTitle }}</span>
@@ -258,7 +258,6 @@
                             @input="input_birth_date = false"
                           ></v-date-picker>
                         </v-menu>
-                        {{ computedBirthDateFormatted }}
                       </v-col>
                       <v-col cols="3" class="my-0 py-0">
                         <v-autocomplete
@@ -334,13 +333,21 @@
                           :items="positions"
                           item-text="name"
                           item-value="id"
-                          label="Rank"
+                          label="Job Description"
                           return-object
-                          :error-messages="rankErrors"
+                          :error-messages="positionErrors"
                           @input="$v.editedItem.position.$touch()"
                           @blur="$v.editedItem.position.$touch()"
                         >
                         </v-autocomplete>
+                      </v-col>
+                      <v-col cols="3" class="my-0 py-0">
+                        <v-text-field
+                          name="rank"
+                          v-model="editedItem.rank"
+                          label="rank"
+                          readonly
+                        ></v-text-field>
                       </v-col>
                       <v-col cols="3" class="my-0 py-0">
                         <v-autocomplete
@@ -364,6 +371,8 @@
                           readonly
                         ></v-text-field>
                       </v-col>
+                    </v-row>
+                    <v-row>
                       <v-col cols="3" class="my-0 py-0">
                         <v-autocomplete
                           v-model="editedItem.branch"
@@ -378,24 +387,12 @@
                         >
                         </v-autocomplete>
                       </v-col>
-                    </v-row>
-                    <v-row>
                       <v-col cols="3" class="my-0 py-0">
                         <v-text-field
                           name="company"
                           v-model="editedItem.company"
                           label="Company"
                           readonly
-                        ></v-text-field>
-                      </v-col>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-text-field
-                          name="job_description"
-                          v-model="editedItem.job_description"
-                          :error-messages="jobDescriptionErrors"
-                          label="Job Description"
-                          @input="$v.editedItem.job_description.$touch()"
-                          @blur="$v.editedItem.job_description.$touch()"
                         ></v-text-field>
                       </v-col>
                       <v-col cols="3" class="my-0 py-0">
@@ -499,6 +496,16 @@
                       </v-col>
                     </v-row>
                     <v-row>
+                      <v-col cols="3" class="my-0 py-0">
+                        <v-text-field
+                          name="length_of_service"
+                          v-model="editedItem.length_of_service"
+                          label="Length of Service"
+                          readonly
+                        ></v-text-field>
+                      </v-col>
+                    </v-row>
+                    <v-row>
                       <v-col class="my-0 py-0">
                         <v-divider class="my-0 py-0"></v-divider>
                       </v-col>
@@ -594,6 +601,7 @@ import { mapState, mapGetters } from "vuex";
 import ImportDialog from "./components/ImportDialog.vue";
 import MenuActions from "../components/MenuActions.vue";
 import DataTable from "../components/DataTable.vue";
+import moment from "moment";
 
 export default {
 
@@ -622,7 +630,6 @@ export default {
       email: { email },
       position: { required },
       department: { required },
-      job_description: { required },
       date_employed: { required },
       tin_no: { required },
       pagibig_no: { required },
@@ -648,10 +655,10 @@ export default {
         { text: "Address", value: "address" },
         { text: "Contact #", value: "contact" },
         { text: "Email", value: "email" },
-        { text: "Rank", value: "position.name" },
+        { text: "Job Description", value: "position.name" },
+        { text: "Rank", value: "position.rank.name" },
         { text: "Department", value: "department.name" },
-        { text: "Department", value: "department.division.name" },
-        { text: "Job Description", value: "job_description" },
+        { text: "Division", value: "department.division.name" },
         { text: "Date Employed", value: "date_employed" },
         { text: "Gender", value: "gender" },
         { text: "Civil Status", value: "civil_status" },
@@ -716,7 +723,7 @@ export default {
         position: "",
         department: "",
         department_id: "",
-        job_description: "",
+        rank: "",
         date_employed: "",
         date_signed: "",
         gender: "",
@@ -728,6 +735,7 @@ export default {
         educ_attain: "",
         school_attended: "",
         course: "",
+        length_of_service: "",
         active: true,
       },
       defaultItem: {
@@ -744,7 +752,7 @@ export default {
         position: "",
         department: "",
         department_id: "",
-        job_description: "",
+        rank: "",
         date_employed: "",
         date_signed: "",
         gender: "",
@@ -756,6 +764,7 @@ export default {
         educ_attain: "",
         school_attended: "",
         course: "",
+        length_of_service: "",
         active: true,
       },
       input_birth_date: false,
@@ -778,7 +787,7 @@ export default {
         { text: "Lastname", value: "last_name" },
         { text: "Firstname", value: "first_name" },
         { text: "Middlename", value: "middle_name" },
-        { text: "Rank", value: "position.name" },
+        { text: "Job Description", value: "position.name" },
         { text: "Branch", value: "branch.name" },
         { text: "Department", value: "department" },
         { text: "Date Employed", value: "date_employed" },
@@ -810,6 +819,7 @@ export default {
       );
     },
     editEmployee(item) {
+      console.log(item);
       this.editedItem.gender = item.gender.toUpperCase();
       this.editedItem.civil_status = item.civil_status.toUpperCase();
 
@@ -864,7 +874,7 @@ export default {
             this.overlay = false;
             this.disabled = false;
             let data = response.data;
-    
+            console.log(data);
             if (data.success) {
               // send data to Sockot.IO Server
               // this.$socket.emit("sendData", { action: "employee-master-data-edit" });
@@ -1068,10 +1078,10 @@ export default {
       !this.$v.editedItem.email.email && errors.push("Must be valid e-mail");
       return errors;
     },
-    rankErrors() {
+    positionErrors() {
       const errors = [];
       if (!this.$v.editedItem.position.$dirty) return errors;
-      !this.$v.editedItem.position.required && errors.push("Rank is required.");
+      !this.$v.editedItem.position.required && errors.push("Job Description is required.");
       return errors;
     },
     departmentErrors() {
@@ -1079,13 +1089,6 @@ export default {
       if (!this.$v.editedItem.department.$dirty) return errors;
       !this.$v.editedItem.department.required &&
         errors.push("Department is required.");
-      return errors;
-    },
-    jobDescriptionErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.job_description.$dirty) return errors;
-      !this.$v.editedItem.job_description.required &&
-        errors.push("Job Description is required.");
       return errors;
     },
     contactErrors() {
@@ -1237,6 +1240,21 @@ export default {
       let company = this.editedItem.branch.company;
       this.editedItem.company = company ? company.name : '';
     },
+    'editedItem.position'() {
+      let rank = this.editedItem.position.rank;
+      // console.log(this.editedItem.position);
+      this.editedItem.rank = rank ? rank.name : '';
+    },
+    'editedItem.date_employed'() {
+      // var date_resigned = this.editedItem.date_resigned ? moment(this.editedItem.date_resigned) : moment();//now
+      // var date_employed = moment(new Date(this.editedItem.date_employed));
+
+      // console.log(date_resigned.diff(date_employed, 'years')) // 44700
+      // console.log(date_resigned.diff(date_employed, 'months')) // 745
+      // console.log(date_resigned.diff(date_employed, 'days')) // 31
+
+    },
+
   }, 
 
   mounted() {

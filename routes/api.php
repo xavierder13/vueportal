@@ -1033,6 +1033,35 @@ Route::group(['prefix' => 'company', 'middleware' => ['auth:api', 'company.maint
 
 });
 
+// Rank Routes
+Route::group(['prefix' => 'rank', 'middleware' => ['auth:api', 'rank.maintenance']], function(){
+    Route::get('/index', [
+        'uses' => 'API\RankController@index',
+        'as' => 'rank.index',
+    ]);
+    Route::get('/create', [
+        'uses' => 'API\RankController@create',
+        'as' => 'rank.create',
+    ]);
+    Route::post('/store', [
+        'uses' => 'API\RankController@store',
+        'as' => 'rank.store',
+    ]);
+    Route::post('/edit', [
+        'uses' => 'API\RankController@edit',
+        'as' => 'rank.edit',
+    ]);
+    Route::post('/update/{id}', [
+        'uses' => 'API\RankController@update',
+        'as' => 'rank.update',
+    ]);
+    Route::post('/delete', [
+        'uses' => 'API\RankController@delete',
+        'as' => 'rank.delete',
+    ]);
+
+});
+
 // Position Routes
 Route::group(['prefix' => 'position', 'middleware' => ['auth:api', 'position.maintenance']], function(){
     Route::get('/index', [

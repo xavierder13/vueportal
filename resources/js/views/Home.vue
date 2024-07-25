@@ -658,6 +658,11 @@ export default {
                   hasPermission: this.hasAnyPermission('company-list', 'company-create'),
                 },
                 { 
+                  title: 'Rank',
+                  link: '/rank/index',
+                  hasPermission: this.hasAnyPermission('rank-list', 'rank-create'),
+                },
+                { 
                   title: 'Position',
                   link: '/position/index',
                   hasPermission: this.hasAnyPermission('position-list', 'position-create'),

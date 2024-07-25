@@ -17,6 +17,7 @@ import InventoryDiscrepancy from './views/inventory/reconciliation/InventoryDisc
 import InventoryBreakdown from './views/inventory/reconciliation/InventoryBreakdown.vue';
 import BrandIndex from './views/brand/BrandIndex.vue';
 import PositionIndex from './views/position/PositionIndex.vue';
+import RankIndex from './views/rank/RankIndex.vue';
 import DepartmentIndex from './views/department/DepartmentIndex.vue';
 import DivisionIndex from './views/division/DivisionIndex.vue';
 import ProductCategoryIndex from './views/product_category/ProductCategoryIndex.vue';
@@ -156,6 +157,11 @@ const routes = [
         path: '/position/index',
         name: 'position.index',
         component: PositionIndex
+      },
+      {
+        path: '/rank/index',
+        name: 'rank.index',
+        component: RankIndex
       },
       {
         path: '/department/index',

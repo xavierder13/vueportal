@@ -26,9 +26,8 @@ class CreateEmployeeMasterDataTable extends Migration
             $table->string('email')->nullable();
             $table->string('position_id');
             $table->integer('department_id');
-            $table->string('job_description');
             $table->date('date_employed');
-            $table->date('date_resigned');
+            $table->date('date_resigned')->nullable();
             $table->string('gender');
             $table->string('civil_status');
             $table->string('tin_no')->nullab();
