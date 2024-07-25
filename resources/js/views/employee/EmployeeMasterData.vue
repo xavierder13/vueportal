@@ -819,7 +819,7 @@ export default {
       );
     },
     editEmployee(item) {
-      console.log(item);
+
       this.editedItem.gender = item.gender.toUpperCase();
       this.editedItem.civil_status = item.civil_status.toUpperCase();
 
@@ -874,7 +874,7 @@ export default {
             this.overlay = false;
             this.disabled = false;
             let data = response.data;
-            console.log(data);
+     
             if (data.success) {
               // send data to Sockot.IO Server
               // this.$socket.emit("sendData", { action: "employee-master-data-edit" });
@@ -943,8 +943,7 @@ export default {
       });
     },
 
-    close(e) {
-      console.log();
+    close() {
       this.dialog = false;
       this.clear();
       this.$nextTick(() => {
