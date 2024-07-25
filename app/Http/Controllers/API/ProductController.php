@@ -1301,9 +1301,9 @@ class ProductController extends Controller
                     'password' => $password,   
                 ));
 
-                $firmNameCondition = !$params['brand'] ? "b.FirmName like '%". $params['brand'] ."%'" : "b.FirmName = '". $params['brand'] ."'";
-                $itemNameCondition = !$params['model'] ? "a.ItemName like '%". $params['model'] ."%'" : "a.ItemName = '". $params['model'] ."'";
-                $frgnNameCondition = !$params['category'] ? "a.FrgnName like '%". $params['category'] ."%'" : "a.FrgnName = '". $params['category'] ."'";
+                $firmNameCondition = !$params['brand'] ? "c.FirmName like '%". $params['brand'] ."%'" : "c.FirmName = '". $params['brand'] ."'";
+                $itemNameCondition = !$params['model'] ? "b.ItemName like '%". $params['model'] ."%'" : "b.ItemName = '". $params['model'] ."'";
+                $frgnNameCondition = !$params['category'] ? "b.FrgnName like '%". $params['category'] ."%'" : "b.FrgnName = '". $params['category'] ."'";
 
                 $items = DB::connection($db->database)
                                ->select("SELECT 
