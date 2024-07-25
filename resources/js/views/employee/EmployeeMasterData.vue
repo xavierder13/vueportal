@@ -345,7 +345,7 @@
                         <v-text-field
                           name="rank"
                           v-model="editedItem.rank"
-                          label="rank"
+                          label="Rank"
                           readonly
                         ></v-text-field>
                       </v-col>
