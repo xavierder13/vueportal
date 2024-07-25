@@ -1301,6 +1301,10 @@ class ProductController extends Controller
                     'password' => $password,   
                 ));
 
+                $firmNameCondition = !$params['brand'] ? "b.FirmName like '%". $params['brand'] ."%'" : "b.FirmName = '". $params['brand'] ."'";
+                $itemNameCondition = !$params['model'] ? "a.ItemName like '%". $params['model'] ."%'" : "a.ItemName = '". $params['model'] ."'";
+                $frgnNameCondition = !$params['category'] ? "a.FrgnName like '%". $params['category'] ."%'" : "a.FrgnName = '". $params['category'] ."'";
+
                 $items = DB::connection($db->database)
                                ->select("SELECT 
                                             c.FirmName brand, 
@@ -1319,9 +1323,9 @@ class ProductController extends Controller
                                             INNER JOIN OWHS d on a.WhsCode = d.WhsCode 
                                         WHERE 
                                             a.OnHand <> 0 
-                                            and b.ItemName like '%". $params['model'] ."%'
-                                            and b.FrgnName like '%". $params['category'] ."%'
-                                            and c.FirmName like '%". $params['brand'] ."%'
+                                            and ". $itemNameCondition ."
+                                            and ". $frgnNameCondition ."
+                                            and ". $firmNameCondition ."
                                             ORDER by 1, 2, 3
                                 ");
                 foreach ($items as $item) {
