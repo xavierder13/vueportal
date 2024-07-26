@@ -1349,7 +1349,6 @@ class ProductController extends Controller
                 'brand' => $brand,
                 'model' => $model,
                 'category' => $category,
-                $params,
             ], 200);
 
             
