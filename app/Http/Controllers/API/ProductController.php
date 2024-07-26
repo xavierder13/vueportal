@@ -1319,11 +1319,14 @@ class ProductController extends Controller
                                             INNER JOIN OWHS d on a.WhsCode = d.WhsCode 
                                         WHERE 
                                             a.OnHand <> 0 
-                                            and b.ItemName like '%". $params['model'] ."%'
-                                            and b.FrgnName like '%". $params['category'] ."%'
-                                            and c.FirmName like '%". $params['brand'] ."%'
+                                            and b.ItemName = '". $params['model'] ."'
+                                            and b.FrgnName = '". $params['category'] ."'
+                                            and c.FirmName = '". $params['brand'] ."'
                                             ORDER by 1, 2, 3
                                 ");
+                                // and b.ItemName like '%". $params['model'] ."%'
+                                // and b.FrgnName like '%". $params['category'] ."%'
+                                // and c.FirmName like '%". $params['brand'] ."%'
                 foreach ($items as $item) {
                     $data[] = $item;
                 }
