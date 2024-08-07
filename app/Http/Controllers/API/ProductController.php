@@ -1278,7 +1278,7 @@ class ProductController extends Controller
                                      ". $itemNameCondition ."
                                      and ". $frgnNameCondition ."
                                      and ". $firmNameCondition );                    
-            
+
             if(count($products) > 1)
             {
                 return response()->json(['multiple_brand_model_category' => $products, $params], 200);
@@ -1319,9 +1319,9 @@ class ProductController extends Controller
                                             INNER JOIN OWHS d on a.WhsCode = d.WhsCode 
                                         WHERE 
                                             a.OnHand <> 0 
-                                            and b.ItemName = '". $params['model'] ."'
-                                            and b.FrgnName = '". $params['category'] ."'
-                                            and c.FirmName = '". $params['brand'] ."'
+                                            and b.ItemName = '". $products[0]->model ."'
+                                            and b.FrgnName = '". $products[0]->category ."'
+                                            and c.FirmName = '". $products[0]->brand ."'
                                             ORDER by 1, 2, 3
                                 ");
                                 // and b.ItemName like '%". $params['model'] ."%'

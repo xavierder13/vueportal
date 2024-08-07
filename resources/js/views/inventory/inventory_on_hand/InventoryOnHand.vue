@@ -423,6 +423,7 @@ export default {
 
         },
         (error) => {
+          this.search_loading = false;
           this.isUnauthorized(error);
           this.overlay = false;
 
