@@ -19,4 +19,10 @@ class Position extends Model
         return $this->hasOne('App\Rank', 'id', 'rank_id');
         //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
     }
+
+    public function required_employees()
+    {
+        return $this->hasMany('App\RequiredEmployeeMap', 'position_id', 'id');
+        //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
+    }
 }

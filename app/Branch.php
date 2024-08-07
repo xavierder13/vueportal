@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Branch extends Model
 {
 
-    protected $fillable = ['code', 'name'];
+    protected $fillable = ['code', 'name', 'company_id'];
 
     public function employees()
     {
@@ -60,6 +60,12 @@ class Branch extends Model
     public function inventory_reconciliations()
     {
         return $this->hasMany('App\InventoryReconciliation', 'branch_id', 'id');
+        //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
+    }
+
+    public function required_employees()
+    {
+        return $this->hasMany('App\RequiredEmployeeMap', 'branch_id', 'id');
         //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
     }
 

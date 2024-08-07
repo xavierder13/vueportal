@@ -24,7 +24,7 @@ import ProductCategoryIndex from './views/product_category/ProductCategoryIndex.
 import ProductModelIndex from './views/product_model/ProductModelIndex.vue';
 import BranchIndex from './views/branch/BranchIndex.vue';
 import CompanyIndex from './views/company/CompanyIndex.vue';
-import EmployeeMasterData from './views/employee/EmployeeMasterData.vue';
+import EmployeeMasterData from './views/employee/master_data/EmployeeMasterData.vue';
 import EmployeeIndex from './views/employee/EmployeeIndex.vue';
 import EmployeeListView from './views/employee/EmployeeListView.vue';
 import EmployeeAttlogIndex from './views/employee/attlog/EmployeeAttlogIndex.vue';

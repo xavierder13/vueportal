@@ -70,6 +70,43 @@
                             ></v-autocomplete>
                           </v-col>
                         </v-row>
+                        <v-row>
+                          <v-col class="my-0 py-0">
+                            <v-toolbar color="grey darken-1 white--text font-weight-bold" height="40px">
+                              <span> Required Employee Per Branch</span>
+                              <span class=" ml-2 font-italic font-weight-medium red--text" v-if="fieldsHasError">
+                                Fill out all required fields
+                              </span>
+                            </v-toolbar>
+                            <v-responsive class="overflow-y-auto" max-height="300px" id="serial-table">
+                              <v-simple-table dense class="mt-2">
+                                <!-- <thead class="grey darken-1 white--text font-weight-bold">
+                                  <tr>
+                                    <td>Branch</td>
+                                    <td width="50px"></td>
+                                  </tr>
+                                </thead> -->
+                                <tbody>
+                                  <tr v-for="(branch, index) in branchRequirement" :key="index">
+                                    <td> <span>{{ branch.branch }}</span></td>
+                                    <td width="150px">
+                                      <v-text-field
+                                        dense
+                                        height="20px"
+                                        v-model="branch.quantity"
+                                        hide-details=""
+                                        outlined
+                                        :error-messages="branch.error"
+                                        @keypress="intNumValFilter() + (branch.error = null)"
+                                        @blur="validateField(index)"
+                                      ></v-text-field>
+                                    </td>
+                                  </tr>
+                                </tbody>
+                              </v-simple-table>
+                            </v-responsive>
+                          </v-col>
+                        </v-row>
                       </v-container>
                     </v-card-text>
                     <v-divider class="mb-3 mt-0"></v-divider>
@@ -156,6 +193,7 @@ export default {
       dialog: false,
       positions: [],
       ranks: [],
+      branches: [],
       editedIndex: -1,
       editedItem: {
         name: "",
@@ -180,7 +218,8 @@ export default {
       positionError: {
         name: [],
         rank_id: [],
-      }
+      },
+      branchRequirement: [],
     };
   },
 
@@ -189,9 +228,24 @@ export default {
       this.loading = true;
       axios.get("/api/position/index").then(
         (response) => {
-          this.positions = response.data.positions;
-          this.ranks = response.data.ranks;
           this.loading = false;
+          let data = response.data;
+
+          this.positions = data.positions;
+          this.ranks = data.ranks;
+          this.branches = data.branches;
+
+          this.branches.forEach(value => {
+
+            this.branchRequirement.push({ 
+              branch_id: value.id, 
+              branch: value.name, 
+              quantity: 15, 
+              error: null 
+            });
+       
+          });
+            
         },
         (error) => {
           this.isUnauthorized(error);
@@ -200,6 +254,7 @@ export default {
     },
 
     editPosition(item) {
+      
       this.editedIndex = this.positions.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.dialog = true;
@@ -208,6 +263,34 @@ export default {
       {
         this.switch1 = false;
       }
+
+      this.branchRequirement = [];
+
+      let required_employees = item.required_employees;
+
+      this.branches.forEach(branch => {
+
+        let rowData = required_employees.find(v => v.branch_id == branch.id);
+        let data = null;
+        
+        if(rowData)
+        {
+          data = {
+            branch_id: rowData.branch_id,
+            branch: rowData.branch.name,
+            quantity: rowData.quantity,
+            error: null,
+          };
+        }
+        else
+        {
+          data = { branch_id: branch.id, branch: branch.name, quantity: null, error: null };
+        }
+        
+        this.branchRequirement.push(data);
+    
+      });
+
     },
 
     deletePosition(position_id) {
@@ -279,6 +362,15 @@ export default {
         this.editedItem = Object.assign({}, this.defaultItem);
         this.editedIndex = -1;
       });
+      this.branchRequirement = [];
+      this.branches.forEach(value => {
+        this.branchRequirement.push({ 
+          branch_id: value.id, 
+          branch: value.name, 
+          quantity: null, 
+          error: null 
+        });
+      });
     },
 
     save() {
@@ -288,77 +380,81 @@ export default {
         rank_id: [],
       };
 
-      if (!this.$v.$error) {
+      let api = "";
+      Object.assign(this.editedItem, { branchRequirement: this.branchRequirement });
+      const data = this.editedItem;
+
+      this.branchRequirement.forEach((value, index) => {
+        this.validateField(index);
+      });
+      
+      if (!this.$v.$error && !this.fieldsHasError) {
         this.disabled = true;
 
         if (this.editedIndex > -1) {
-          const data = this.editedItem;
           const position_id = this.editedItem.id;
+          api = "/api/position/update/" + position_id;
+        } else {
+          api = "/api/position/store";
+        }
 
-          axios.post("/api/position/update/" + position_id, data).then(
-            (response) => {
-              if (response.data.success) {
-                // send data to Sockot.IO Server
-                // this.$socket.emit("sendData", { action: "position-edit" });
+        axios.post(api, data).then(
+          (response) => {
+            this.disabled = false;
+            let data = response.data;
+            console.log(data);
+            
+            if (data.success) {
+              // send data to Sockot.IO Server
+              // this.$socket.emit("sendData", { action: "position-create" });
 
+              this.showAlert();
+              this.close();
+
+              if (this.editedIndex > -1) 
+              {
                 Object.assign(
                   this.positions[this.editedIndex],
-                  this.editedItem
+                  data.position
                 );
-                this.showAlert();
-                this.close();
               }
               else
-              { 
-                let errors = response.data;
-                let errorNames = Object.keys(response.data);
-
-                errorNames.forEach(value => {
-                  this.positionError[value].push(errors[value]);
-                });
-                
-              }
-
-              this.disabled = false;
-            },
-            (error) => {
-              this.isUnauthorized(error);
-              this.disabled = false;
-            }
-          );
-        } else {
-          const data = this.editedItem;
-
-          axios.post("/api/position/store", data).then(
-            (response) => {
-              if (response.data.success) {
-                // send data to Sockot.IO Server
-                // this.$socket.emit("sendData", { action: "position-create" });
-
-                this.showAlert();
-                this.close();
-
+              {
                 //push recently added data from database
-                this.positions.push(response.data.position);
+                this.positions.push(data.position);
               }
-              else
-              { 
-                let errors = response.data;
-                let errorNames = Object.keys(response.data);
-
-                errorNames.forEach(value => {
-                  this.positionError[value].push(errors[value]);
-                });
-                
-              }
-              this.disabled = false;
-            },
-            (error) => {
-              this.isUnauthorized(error);
-              this.disabled = false;
+              
             }
-          );
-        }
+            else
+            { 
+              let errors = data;
+              let errorNames = Object.keys(data);
+
+              errorNames.forEach(value => {
+                
+                let splitted_key = value.split('.');
+                if(splitted_key.length)
+                {
+                  let [key, index, field] = splitted_key;
+
+                  this.branchRequirement[index].error = errors[value];
+
+                }
+                else
+                {
+                  this.positionError[value].push(errors[value]);
+                }
+                
+              });
+              
+            }
+            
+          },
+          (error) => {
+            this.disabled = false;
+            this.isUnauthorized(error);
+          }
+        );
       }
     },
 
@@ -370,6 +466,26 @@ export default {
         name: [],
         rank_id: [],
       }
+    },
+
+    intNumValFilter(evt) {
+      evt = (evt) ? evt : window.event;
+      let value = evt.target.value.toString() + evt.key.toString();
+
+      if (!/^[-+]?[0-9]*?[0-9]*$/.test(value)) {
+        evt.preventDefault();
+      }
+      else {
+
+        return true;
+      }
+    },
+
+    validateField(index) {
+      if(!this.branchRequirement[index].quantity)
+      {
+        this.branchRequirement[index].error = 'Branch is required';
+      } 
     },
     
     isUnauthorized(error) {
@@ -419,6 +535,9 @@ export default {
         this.editedItem.active = "N";
         return " Inactive";
       }
+    },
+    fieldsHasError() {
+      return this.branchRequirement.find(value => value.error) ? true : false;
     },
     ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission"]),
   },

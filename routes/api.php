@@ -311,7 +311,7 @@ Route::group(['prefix' => 'employee_master_data', 'middleware' => ['auth:api', '
         'as' => 'employee.master.data.import'
     ]); 
 
-    Route::get('/export', [
+    Route::post('/export', [
         'uses' => 'API\EmployeeMasterDataController@export',
         'as' => 'employee.master.data.export'
     ]); 

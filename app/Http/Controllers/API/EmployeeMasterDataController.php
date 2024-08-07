@@ -8,11 +8,14 @@ use App\EmployeeMasterData;
 use App\Branch;
 use App\Department;
 use App\Position;
+use App\RequiredEmployeeMap;
 use App\Imports\EmployeeMasterDataImport;
 use App\Exports\EmployeeMasterDataExport;
+use App\Exports\BranchManpowerReport;
 use Validator;
 use Excel;
 use DB;
+use Carbon\Carbon;
 
 class EmployeeMasterDataController extends Controller
 {
@@ -172,8 +175,15 @@ class EmployeeMasterDataController extends Controller
     }
 
     public function delete(Request $request)
-    {
-        $employee = EmployeeMasterData::findOrFail($request->employee_id);
+    {   
+        $employee_id = $request->employee_id;
+        $employee = EmployeeMasterData::findOrFail($employee_id);
+
+        if(is_array($employee_id))
+        {
+            $employee = EmployeeMasterData::whereIn('id', $employee_id);
+        }
+        
         $employee->delete();
 
         return response()->json(['success' => 'Record has been deleed'], 200);
@@ -422,7 +432,27 @@ class EmployeeMasterDataController extends Controller
 
     public function export(Request $request)
     {
+        $asOf = $request->asOfDate;
+        $asOfLastDayLastMonth = Carbon::parse($asOf)->subMonthsNoOverflow()->endOfMonth()->toDateString();
+        $firstOfMonth = Carbon::parse($asOf)->firstOfMonth();
+        $branch_id = $request->branch_id;
 
+        if($request->report_type == 'Employee List')
+        {
+            return Excel::download(new EmployeeMasterDataExport($request->all()), 'Employee List.xls');
+        }
+        else if($request->report_type == 'Branch Manpower Report')
+        {   
+            $params = [
+                'branch_id' => $branch_id,
+                'asOf' => $asOf,
+                'asOfLastDayLastMonth' => $asOfLastDayLastMonth,
+                'firstOfMonth' => $firstOfMonth
+            ];
+
+            return Excel::download(new BranchManpowerReport($params), 'Branch Manpower Report.xls');
+        }
+        
     }
 
     

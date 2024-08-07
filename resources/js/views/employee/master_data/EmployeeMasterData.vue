@@ -64,6 +64,9 @@
             :search="search"
             :loading="loading"
             loading-text="Loading... Please wait"
+            v-model="selectedItems"
+            item-key="id"
+            show-select
           > 
             <template v-slot:top>
               <v-toolbar flat class="my-2 pt-2">
@@ -87,7 +90,7 @@
                   
                   <span>Add Data</span>
                 </v-tooltip>
-                <v-tooltip top>
+                <v-tooltip top v-if="hasPermission('employee-master-data-list')">
                   <template v-slot:activator="{ on, attrs }">
                     <v-btn 
                       small 
@@ -103,6 +106,24 @@
                     </v-btn>
                   </template>
                   <span>Refresh Data</span>
+                </v-tooltip> 
+                <v-tooltip top v-if=" hasPermission('employee-master-data-delete')">
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-btn 
+                      small
+                      class="mr-2 mt-4" 
+                      color="error" 
+                      rounded 
+                      fab 
+                      :disabled="selectedItems.length ? false : deleteIsDisabled"
+                      @click="showConfirmAlert(selectedItems, 'Multiple Delete')"
+                      v-bind="attrs" 
+                      v-on="on"
+                    > 
+                      <v-icon>mdi-delete</v-icon> 
+                    </v-btn>
+                  </template>
+                  <span>Delete Selected Row</span>
                 </v-tooltip> 
                 <v-spacer></v-spacer>
                 <v-text-field
@@ -142,6 +163,19 @@
                   </template>
                 </v-autocomplete>
               </v-toolbar>
+            </template>
+            <template v-slot:header.data-table-select="{ props, on }">
+              <v-simple-checkbox
+                v-model="selectAll"
+                v-on="on"
+                :indeterminate="indeterminate"
+                color="primary"
+                @click="selectUnselect(props)"
+              />
+            </template>
+          
+            <template v-slot:item.data-table-select="{ isSelected, select }">
+              <v-simple-checkbox color="primary" v-ripple :value="isSelected" @input="select($event)"></v-simple-checkbox>
             </template>
             <template v-slot:item.date_employed="{ item }">
               {{ formatDate(item.date_employed) }}
@@ -588,6 +622,12 @@
             @getData="getEmployee"
             @closeImportDialog="closeImportDialog"
           />
+          <ExportDialog 
+            :dialog="dialog_export"
+            :branches="branches"
+            @closeDialog="closeExportDialog"
+          />
+
         </v-card>
       </v-main>
     </div>
@@ -598,9 +638,8 @@ import axios from "axios";
 import { validationMixin } from "vuelidate";
 import { required, maxLength, email } from "vuelidate/lib/validators";
 import { mapState, mapGetters } from "vuex";
-import ImportDialog from "./components/ImportDialog.vue";
-import MenuActions from "../components/MenuActions.vue";
-import DataTable from "../components/DataTable.vue";
+import ImportDialog from "../components/ImportDialog.vue";
+import ExportDialog from "../components/ExportDialog.vue";
 import moment from "moment";
 
 export default {
@@ -608,8 +647,7 @@ export default {
   name: "EmployeeListView",
   components: {
     ImportDialog,
-    MenuActions,
-    DataTable,
+    ExportDialog,
   },
   props: {
 
@@ -771,6 +809,7 @@ export default {
       input_date_employed: false,
       input_date_resigned: false,
       dialog_import: false,
+      dialog_export: false,
       api_route: "/api/employee_master_data/import", // api rout for uploading excel file
       swalAttr: {
         title: "",
@@ -793,6 +832,20 @@ export default {
         { text: "Date Employed", value: "date_employed" },
         { text: "Status", value: "active" },
       ],
+      selectedItems: [],
+      deleteIsDisabled: true,
+      swalDeleteAttr: {
+        title: "Delete Record",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#6c757d",
+        confirmButtonColor: "#d33", 
+        confirmButtonText: "Delete Record"
+      },
+      selectAll: false,
+      indeterminate: false,
     };
   },
 
@@ -839,15 +892,16 @@ export default {
       // this.editedItem.date_resigned = `${year}-${month}-${day}`;
     },
 
-    deleteEmployee(employee_id) {
-      const data = { employee_id: employee_id };
-
+    deleteEmployee(data) {
+      
       axios.post("/api/employee_master_data/delete", data).then(
         (response) => {
+          console.log(response.data);
           if (response.data.success) {
             // send data to Sockot.IO Server
             // this.$socket.emit("sendData", { action: "employee-master-data-delete" });
-             this.showAlert(response.data.success, "success")
+             this.showAlert(response.data.success, "success");
+             this.getEmployee();
           }
         },
         (error) => {
@@ -922,8 +976,22 @@ export default {
       });
     },
 
-    showConfirmAlert(item) {
+    showConfirmAlert(item, action) {
+
       Object.assign(this.swalAttr, { title: "Delete Record", confirmButtonText: "Delete Record!" });
+      let data = { employee_id: item.id } 
+
+      if(action == 'Multiple Delete')
+      {
+        Object.assign(this.swalAttr, { 
+          title: "Delete Multiple Record", 
+          confirmButtonText: "Delete Record",
+          confirmButtonColor: "#d33", 
+        });
+
+        data = { employee_id: item.map(value => value.id) };
+        
+      }
 
       this.$swal(this.swalAttr).then(async (result) => {
         // <--
@@ -931,14 +999,14 @@ export default {
         if (result.value) {
           // <-- if confirmed
 
-          const employee_id = item.id;
-          const index = this.employees.indexOf(item);
+          // const employee_id = item.id;
+          // const index = this.employees.indexOf(item);
 
           //Call delete User function
-          this.deleteEmployee(employee_id);
+          this.deleteEmployee(data);
 
-          //Remove item from array services
-          this.employees.splice(index, 1);
+          // //Remove item from array services
+          // this.employees.splice(index, 1);
         }
       });
     },
@@ -974,21 +1042,13 @@ export default {
 
     exportData() {
       if (this.employees.length) {
-        axios.get('/api/employee_master_data/export', { responseType: 'arraybuffer'})
-          .then((response) => {
-              var fileURL = window.URL.createObjectURL(new Blob([response.data]));
-              var fileLink = document.createElement('a');
-              fileLink.href = fileURL;
-              fileLink.setAttribute('download', 'EmployeeList.xls');
-              document.body.appendChild(fileLink);
-              fileLink.click();
-          }, (error) => {
-            console.log(error);
-          }
-        );
+       this.dialog_export = true;
       } else {
         this.showAlert("No record found", "warning")
       }
+    },
+    closeExportDialog() {
+      this.dialog_export = false;
     },
     formatDate(date) {
       if (!date) return null;
@@ -998,6 +1058,34 @@ export default {
     removeSelectedHeader(item) {
       let index = this.selectedTableHeaders.findIndex(header => header.value === item.value);
       this.selectedTableHeaders.splice(index, 1);
+    },
+    validateDate(model) {
+      let min_date = new Date('1900-01-01').getTime();
+      let max_date = new Date().getTime();
+      let date = this[model];
+      let date_value = new Date(date).getTime();
+      
+      let [year, month, day] = date.split('-');
+
+      this.dateErrors[model] = false;
+
+      if (date_value < min_date || year.length > 4) {
+        this.dateErrors[model] = true;
+      }  
+    },
+
+    validateDateRange(min, max) {
+      let hasError = false;
+      min = min ? new Date(min) : new Date('1900-01-01').getTime();
+      max = max ? new Date(max) : new Date().getTime();
+
+      if (max < min) {
+        hasError = true;
+      }  
+      return { hasError: hasError };
+    },
+    selectUnselect(status) {
+      
     },
     websocket() {
       // Socket.IO fetch data
@@ -1252,6 +1340,38 @@ export default {
       // console.log(date_resigned.diff(date_employed, 'months')) // 745
       // console.log(date_resigned.diff(date_employed, 'days')) // 31
 
+    },
+    selectAll() {
+      if(this.selectAll)
+      {
+        this.selectedItems = this.employees;
+      }
+      else if(!this.indeterminate && !this.selectAll)
+      {
+        this.selectedItems = [];
+      }
+    },  
+    selectedItems() {
+      let selectedItemsID = this.selectedItems.map(value => value.id);
+      let employeesID = this.employees.map(value => value.id);
+      this.selectAll = false;
+      this.indeterminate = false;
+      if(selectedItemsID.length == employeesID.length && employeesID.length != 0)
+      {
+        this.selectAll = true;
+      }
+      else if(selectedItemsID.length > 0 && selectedItemsID.length != employeesID.length)
+      {
+        this.indeterminate = true;
+      }
+
+    },
+    employees() {
+      if(this.employees.length == 0)
+      {
+        this.selectAll = false;
+        this.indeterminate = false;
+      }
     },
 
   }, 
