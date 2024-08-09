@@ -375,7 +375,7 @@ export default {
         let from_value = "Admin-Inventory Department";
 
         let beneath_table =
-          "Please verify, reconcile and coordinate to admin for the reconciliation of the discrepancies within Ten (10) days upon the receipt of this Memo.";
+          "Please verify, reconcile and coordinate to admin for the reconciliation of the discrepancies within Five (5) days upon the receipt of this Memo.";
         let beneath_from = "Physical Inventory Report for the month of";
         let beneath_from_value = documentMonth + " " + docYear;
         let date_submitted = "Date Submitted:";
@@ -489,12 +489,14 @@ export default {
         doc.text(beneath_table, 80, doc.lastAutoTable.finalY + 15);
 
         let prepared_by = "Prepared by:";
-        let prepared_by_value = this.prepared_by;
-        let prepared_by_position = this.prepared_by_position;
+        let prepared_by_value = 'Classification, Quality Control, Reconciliation Section Staff';
+        let prepared_by_position = '';
+        // let prepared_by_value = this.prepared_by;
+        // let prepared_by_position = this.prepared_by_position;
 
         let verified_by = "Verified by:";
-        let verified_by_value = "ELEAZAR ABON";
-        let verified_by_position = "Inventory Recon Section Head";
+        let verified_by_value = "MARK DELOS SANTOS";
+        let verified_by_position = "Classification, Quality Control, Reconciliation Section Head";
         let verified_by_value_2 = "PERLA LEBASTE";
         let verified_by_position_2 = "Inventory & Warehousing Manager";
 
@@ -527,10 +529,10 @@ export default {
         doc.text(verified_by_position, 80, doc.lastAutoTable.finalY + 65);
 
         doc.setFont("", "bold");
-        doc.text(verified_by_value_2, 180, doc.lastAutoTable.finalY + 60);
+        doc.text(verified_by_value_2, 250, doc.lastAutoTable.finalY + 60);
 
         doc.setFont("normal");
-        doc.text(verified_by_position_2, 180, doc.lastAutoTable.finalY + 65);
+        doc.text(verified_by_position_2, 250, doc.lastAutoTable.finalY + 65);
 
         // VERIFIED BY
         doc.setFontSize(7);
@@ -544,10 +546,10 @@ export default {
         doc.text(noted_by_position, 80, doc.lastAutoTable.finalY + 85);
 
         doc.setFont("", "bold");
-        doc.text(noted_by_value_2, 180, doc.lastAutoTable.finalY + 80);
+        doc.text(noted_by_value_2, 250, doc.lastAutoTable.finalY + 80);
 
         doc.setFont("normal");
-        doc.text(noted_by_position_2, 180, doc.lastAutoTable.finalY + 85);
+        doc.text(noted_by_position_2, 250, doc.lastAutoTable.finalY + 85);
 
         // doc.output("dataurlnewwindow");
 
