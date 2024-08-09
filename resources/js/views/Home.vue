@@ -468,7 +468,7 @@ export default {
                 { 
                   title: 'Master Data',
                   link: '/employee/master_data',
-                  hasPermission: this.hasPermission('employee-list'),
+                  hasPermission: this.hasPermission('employee-master-data-list'),
                 },
                 { 
                   title: 'Employee Reports',
