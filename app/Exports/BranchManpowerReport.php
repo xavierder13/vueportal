@@ -61,26 +61,38 @@ class BranchManpowerReport implements FromCollection, WithHeadings
             $data[$i] = ['branch' => $branch->name];
             foreach ($this->positions as $j => $position) {
                 $required_employee = RequiredEmployeeMap::with('position')
-                                                ->whereHas('position', function($query) use ($position) {
-                                                    $query->where('name', $position);
-                                                })
-                                                ->where('branch_id', $branch->id)
-                                                ->first();
+                                                        ->whereHas('position', function($query) use ($position) {
+                                                            $query->where('name', $position);
+                                                        })
+                                                        ->where('branch_id', $branch->id)
+                                                        ->first();
 
                 $required = $required_employee ? $required_employee->quantity : null;
 
                 $existing = EmployeeMasterData::whereDate('date_employed', '<=', $asOfLastDayLastMonth)
                                               ->whereDate('date_resigned', '>', $asOfLastDayLastMonth)
+                                              ->whereHas('position', function($query) use ($position) {
+                                                    $query->where('name', $position);
+                                              })
+                                              ->where('branch_id', $branch->id)
                                               ->get()
                                               ->count();
 
                 $deployed = EmployeeMasterData::whereDate('date_employed', '>=', $firstOfMonth)
                                               ->whereDate('date_employed', '<=', $asOf)
+                                              ->whereHas('position', function($query) use ($position) {
+                                                $query->where('name', $position);
+                                              })
+                                              ->where('branch_id', $branch->id)
                                               ->get()
                                               ->count();
 
                 $resigned = EmployeeMasterData::whereDate('date_resigned', '>=', $firstOfMonth)
                                               ->whereDate('date_resigned', '<=', $asOf)
+                                              ->whereHas('position', function($query) use ($position) {
+                                                $query->where('name', $position);
+                                              })
+                                              ->where('branch_id', $branch->id)
                                               ->get()
                                               ->count();
 
