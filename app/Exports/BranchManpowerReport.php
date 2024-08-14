@@ -96,10 +96,10 @@ class BranchManpowerReport implements FromCollection, WithHeadings
                                               ->get()
                                               ->count();
 
-                $data[$i]['required.' . $position] = $required;
-                $data[$i]['deployed.' . $position] = $deployed;
-                $data[$i]['res/term.' . $position] = $resigned;
-                $data[$i]['existing.' . $position] = $existing;
+                $data[$i]['required.' . $position] = $required ? $required : 0;
+                $data[$i]['deployed.' . $position] = $deployed ? $deployed : 0;
+                $data[$i]['res/term.' . $position] = $resigned ? $resigned : 0;
+                $data[$i]['existing.' . $position] = $existing ? $existing : 0;
                 $data[$i]['vacant.' . $position] = $required - (($existing + $deployed) - $resigned);
             }
         }
