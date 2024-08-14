@@ -70,7 +70,11 @@ class BranchManpowerReport implements FromCollection, WithHeadings
                 $required = $required_employee ? $required_employee->quantity : null;
 
                 $existing = EmployeeMasterData::whereDate('date_employed', '<=', $asOfLastDayLastMonth)
-                                              ->whereDate('date_resigned', '>', $asOfLastDayLastMonth)
+                                              
+                                              ->where(function($query) use ($asOfLastDayLastMonth) {
+                                                    $query->whereDate('date_resigned', '>', $asOfLastDayLastMonth)
+                                                          ->orWhereNull('date_resigned');
+                                              })
                                               ->whereHas('position', function($query) use ($position) {
                                                     $query->where('name', $position);
                                               })
