@@ -482,7 +482,7 @@ export default {
     },
 
     validateField(index) {
-      if(!this.branchRequirement[index].quantity)
+      if(!this.branchRequirement[index].quantity && this.branchRequirement[index].quantity != 0)
       {
         this.branchRequirement[index].error = 'Branch is required';
       } 
