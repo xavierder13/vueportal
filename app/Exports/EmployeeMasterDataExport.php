@@ -23,7 +23,7 @@ class EmployeeMasterDataExport implements FromCollection, WithHeadings
                  ->leftJoin('branches as b', 'a.branch_id', '=', 'b.id')
                  ->leftJoin('companies as c', 'b.company_id', '=', 'c.id')
                  ->leftJoin('departments as d', 'a.department_id', '=', 'd.id')
-                 ->leftJoin('divisions as e', 'd.division_id', '=', 'c.id')
+                 ->leftJoin('divisions as e', 'd.division_id', '=', 'e.id')
                  ->leftJoin('positions as f', 'a.position_id', '=', 'f.id')
                  ->leftJoin('ranks as g', 'f.rank_id', '=', 'g.id')
                  ->where(function($query) use ($params) {
