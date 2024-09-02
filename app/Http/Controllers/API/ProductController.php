@@ -895,7 +895,7 @@ class ProductController extends Controller
                         $inventory_group = 'Admin-Branch';
                     }
                 }
-                
+          
                 foreach ($fields as $field) {
 
                     // if either serial or quantity has value (disregard null serial ang quantity)
@@ -910,16 +910,28 @@ class ProductController extends Controller
                         $serial = $field['SERIAL'];
 
                         // eliminate numeric value that turns into exponential value (e.g 3.12321E+019)
-                        // $serial = is_numeric($serial) && strlen($serial) < 19 && !strpos($serial, 'E') ? (integer) $serial : $serial;
-                        $serial = is_numeric($serial) && !strpos($serial, 'E') ? ( !strpos((integer) $serial, 'E') ? (integer) $serial : (String) $serial )  : (String) $serial;
+                        // $serial = is_numeric($serial) && !strpos($serial, 'E') ? ( !strpos((integer) $serial, 'E') ? (integer) $serial : (String) $serial )  : (String) $serial;
+                        
+                        // eliminate numeric value that changes when serial exceeds the maximum value/length of Integer Data type
+                        // validate numeric serial that exceeds Integer maximum length. 
+                        $sn = (String) $serial;
 
+                        if(is_numeric($serial) && !strpos($serial, 'E'))
+                        {   
+                            // if serial has no 'E' after converted into integer
+                            if(!strpos((integer) $sn, 'E') && (integer) $sn == (String) $sn)
+                            {
+                                $sn = (integer) $serial; 
+                            }
+                        }
+                        
                         $data = [
                             'user_id' => $user->id,
                             'branch_id' => $branch_id,
                             'brand_id' => $brand_id,
                             'model' => $field['MODEL'],
                             'product_category_id' => $product_category_id,
-                            'serial' => $serial, //value is different when converting integer with more than 18 digits
+                            'serial' => $sn, //value is different when converting integer with more than 18 digits
                             'quantity' => $qty,
                             'file_upload_log_id' => $file_upload_log->id,
                             'whse_code' => $whse_code,
@@ -932,9 +944,25 @@ class ProductController extends Controller
                         if(count($serials) > 1)
                         {
                             // breakdown/split into 2 or more rows
-                            foreach ($serials as $value) {
-                                // $data['serial'] = is_numeric($value) && strlen($value) < 19  && !strpos($value, 'E')? (integer) $value : $value;
-                                $data['serial'] = is_numeric($value) && !strpos($value, 'E') ? ( !strpos((integer) $value, 'E') ? (integer) $value : (String) $value )  : (String) $value;
+                            foreach ($serials as $sn) {
+                                
+                                // $data['serial'] = is_numeric($sn) && !strpos($sn, 'E') ? ( !strpos((integer) $sn, 'E') ? (integer) $sn : (String) $sn )  : (String) $sn;
+                                
+                                // eliminate numeric value that changes when serial exceeds the maximum value/length of Integer Data type
+                                // validate numeric serial that exceeds Integer maximum length. 
+                                
+                                $data['serial'] = (String) $sn;
+
+                                if(is_numeric($sn) && !strpos($sn, 'E'))
+                                {
+                                    // if serial has no 'E' after converted into integer
+                                    if(!strpos((integer) $sn, 'E') && (integer) $sn == (String) $sn)
+                                    {
+                                        $data['serial'] = (integer) $sn; 
+                                    }
+        
+                                }
+                                
                                 Product::create($data);
                             }
                         }

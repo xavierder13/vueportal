@@ -649,9 +649,19 @@ class InventoryReconciliationController extends Controller
 
             $qty = $product->quantity ? $product->quantity : 1;
 
-            // $serial = is_numeric($product->serial) && strlen($product->serial) < 19 && !strpos($product->serial, 'E') ? (integer) $product->serial : $product->serial;
             $serial = $product->serial;
-            $serial = is_numeric($serial) && !strpos($serial, 'E') ? ( !strpos((integer) $serial, 'E') ? (integer) $serial : (String) $serial )  : (String) $serial;
+            // $serial = is_numeric($serial) && !strpos($serial, 'E') ? ( !strpos((integer) $serial, 'E') ? (integer) $serial : (String) $serial )  : (String) $serial;
+
+            $sn = (String) $serial;
+
+            if(is_numeric($serial) && !strpos($serial, 'E'))
+            {   
+                // if serial has no 'E' after converted into integer
+                if(!strpos((integer) $sn, 'E') && (integer) $sn == (String) $sn)
+                {
+                    $sn = (integer) $serial; 
+                }
+            }
 
             $inventory_recon_map = new InventoryReconciliationMap();
             $inventory_recon_map->inventory_recon_id = $inventory_recon_id;
@@ -660,7 +670,7 @@ class InventoryReconciliationController extends Controller
             $inventory_recon_map->brand = $product->brand->name;
             $inventory_recon_map->model = $product->model;
             $inventory_recon_map->product_category = $product->product_category->name;
-            $inventory_recon_map->serial = $serial;
+            $inventory_recon_map->serial = $sn;
             $inventory_recon_map->quantity = $qty ;
             $inventory_recon_map->save();
         }
@@ -786,8 +796,20 @@ class InventoryReconciliationController extends Controller
 
                 $serial = $value->SERIAL;
                 // eliminate numeric value that turns into exponential value (e.g 3.12321E+019)
-                // $serial = is_numeric($serial) && strlen($serial) < 19 && !strpos($serial, 'E') ? (integer) $serial : $serial;
-                $serial = is_numeric($serial) && !strpos($serial, 'E') ? ( !strpos((integer) $serial, 'E') ? (integer) $serial : (String) $serial )  : (String) $serial;
+                // $serial = is_numeric($serial) && !strpos($serial, 'E') ? ( !strpos((integer) $serial, 'E') ? (integer) $serial : (String) $serial )  : (String) $serial;
+                
+                // eliminate numeric value that changes when serial exceeds the maximum value/length of Integer Data type
+                // validate numeric serial that exceeds Integer maximum length. 
+                $sn = (String) $serial;
+
+                if(is_numeric($serial) && !strpos($serial, 'E'))
+                {   
+                    // if serial has no 'E' after converted into integer
+                    if(!strpos((integer) $sn, 'E') && (integer) $sn == (String) $sn)
+                    {
+                        $sn = (integer) $serial; 
+                    }
+                }
                 
                 $data = [
                     'inventory_recon_id' => $inventory_reconciliation->id,
@@ -796,7 +818,7 @@ class InventoryReconciliationController extends Controller
                     'brand' => $value->BRAND,
                     'model' => $value->MODEL,
                     'product_category' => $value->CATEGORY,
-                    'serial' => $serial,
+                    'serial' => $sn,
                     'quantity' => 1,
                 ];
 
@@ -806,9 +828,24 @@ class InventoryReconciliationController extends Controller
                 if(count($serials) > 1)
                 {
                     // breakdown/split into 2 or more rows
-                    foreach ($serials as $value) {
-                        // $data['serial'] = is_numeric($value) && strlen($value) < 19 && !strpos($value, 'E') ? (integer) $value : $value;
-                        $data['serial'] = is_numeric($value) && !strpos($value, 'E') ? ( !strpos((integer) $value, 'E') ? (integer) $value : (String) $value )  : (String) $value;
+                    foreach ($serials as $sn) {
+                        
+                        // $data['serial'] = is_numeric($sn) && !strpos($sn, 'E') ? ( !strpos((integer) $sn, 'E') ? (integer) $sn : (String) $sn )  : (String) $sn;
+                        // eliminate numeric value that changes when serial exceeds the maximum value/length of Integer Data type
+                        // validate numeric serial that exceeds Integer maximum length. 
+                        
+                        $data['serial'] = (String) $sn;
+
+                        if(is_numeric($sn) && !strpos($sn, 'E'))
+                        {
+                            // if serial has no 'E' after converted into integer
+                            if(!strpos((integer) $sn, 'E') && (integer) $sn == (String) $sn)
+                            {
+                                $data['serial'] = (integer) $sn; 
+                            }
+
+                        }
+                        
                         InventoryReconciliationMap::create($data);
                     }
                 }
