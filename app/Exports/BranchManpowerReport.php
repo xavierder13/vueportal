@@ -104,7 +104,9 @@ class BranchManpowerReport implements FromCollection, WithHeadings
                 $data[$i]['deployed.' . $position] = $deployed ? $deployed : 0;
                 $data[$i]['res/term.' . $position] = $resigned ? $resigned : 0;
                 $data[$i]['existing.' . $position] = $existing ? $existing : 0;
-                $data[$i]['vacant.' . $position] = $required - (($existing + $deployed) - $resigned);
+                $current_employee = ($existing + $deployed) - $resigned;
+                $data[$i]['vacant.' . $position] = $required - $current_employee;
+                $data[$i]['ending.' . $position] = $current_employee;
             }
         }
 
@@ -114,7 +116,7 @@ class BranchManpowerReport implements FromCollection, WithHeadings
 
     public function headings(): array
     {   
-        $column_names = ['Required', 'Deployed', 'Resigned/Terminated', 'Existing', 'Vacant'];
+        $column_names = ['Required', 'Deployed', 'Resigned/Terminated', 'Existing', 'Vacant', 'Ending'];
         $headings = ['Branch'];
         
         foreach ($this->positions as $position) {
