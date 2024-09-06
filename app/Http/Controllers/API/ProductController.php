@@ -1143,6 +1143,8 @@ class ProductController extends Controller
                                     ->where('server', '=', '192.168.1.13')
                                     ->get();
 
+            $product_histories = [];
+
             foreach ($databases as $key => $db) {
                 
                 $password = Crypt::decrypt($db->password);
@@ -1160,18 +1162,22 @@ class ProductController extends Controller
 
                 $data[$db->database] = DB::connection($db->database)
                                ->select("SELECT	
-                                            CASE WHEN a.BaseType = N'20' THEN 'GRPO' ELSE 'GOODS ISSUE' END DocType,
-                                            CASE WHEN a.BaseType = N'20' THEN MAX(h.DocNum) ELSE MAX(i.DocNum) END DocNum,
-                                            CAST(MAX(a.DocDate) as Date) as DocDate,
-                                            c.ItemName as Model,
-                                            c.FrgnName as ProductCategory,
-                                            d.FirmName as Brand,
-                                            e.ItmsGrpNam as ItemGroup,
-                                            b.IntrSerial as Serial,
-                                            j.CardName as Supplier,
-                                            f.U_branch1 as Branch,
-                                            g.Name as Company,
-                                            isnull(MAX(h.Comments), (SELECT Comments from OIGE where DocNum = MAX(i.DocNum))) as Remarks
+                                            CASE WHEN a.BaseType = N'20' THEN 'GRPO' ELSE 'GOODS ISSUE' END doctype,
+                                            max(h.DocNum) as grpo_number,
+                                            max(i.DocNum) as gi_number,
+                                            CAST(MAX(h.DocDate) as Date) as date_purchase,
+                                            CAST(MAX(i.DocDate) as Date) as date_issued,
+                                            c.ItemName as model,
+                                            c.FrgnName as product_category,
+                                            d.FirmName as brand,
+                                            e.ItmsGrpNam as item_group,
+                                            b.IntrSerial as [serial],
+                                            ISNULL(max(l.price), max(k.price)) as price,
+                                            j.CardName as supplier,
+                                            f.U_branch1 as branch,
+                                            g.Name as company,
+                                            MAX(h.Comments) as grpo_remarks,
+                                            MAX(i.Comments) as gi_remarks
                                         FROM
                                             SRI1 a
                                             INNER JOIN OSRI b on a.ItemCode = b.ItemCode and a.SysSerial = b.SysSerial
@@ -1183,9 +1189,12 @@ class ProductController extends Controller
                                             LEFT JOIN OPDN h on a.BaseType = h.ObjType and h.DocEntry = a.BaseEntry
                                             LEFT JOIN OIGE i on a.BaseType = i.ObjType and i.DocEntry = a.BaseEntry
                                             LEFT JOIN OCRD j on c.CardCode = j.CardCode
+                                            LEFT JOIN PDN1 k on a.BaseType = k.ObjType and a.BaseEntry = k.DocEntry and a.BaseLinNum = k.LineNum
+                                            LEFT JOIN IGE1 l on a.BaseType = l.ObjType and a.BaseEntry = l.DocEntry and a.BaseLinNum = l.LineNum
                                         WHERE a.BaseType in (60, 20) and b.IntrSerial like '%" . $serial . "%'
                                         GROUP BY a.BaseType, c.ItemName, c.FrgnName, d.FirmName, e.ItmsGrpNam, b.IntrSerial, j.CardName, f.U_branch1, g.Name");
             }
+            $product_histories = $data;
 
             $filtered_data = array_filter($data);
             $database = ""; 
@@ -1202,7 +1211,7 @@ class ProductController extends Controller
                 $databases[] = $key; //database
 
                 foreach ($row as $i => $value) {
-                    $serials[] = $value->Serial;
+                    $serials[] = $value->serial;
                     $data[] = $value; // insert into $data array all values from nested array ($filtered_data) ; $filtered_data is from different databases
                 }
 
@@ -1215,32 +1224,34 @@ class ProductController extends Controller
                 $GI_company = '';
 
                 foreach ($data as $i => $value) {
-                    if($serial === $value->Serial)
+                    if($serial === $value->serial)
                     {   
 
-                        if($value->DocType === 'GRPO')
+                        if($value->doctype === 'GRPO')
                         {
-                            $product['date_purchase'] = $value->DocDate;
-                            $product['grpo_number'] = $value->DocNum;
-                            $product['grpo_remarks'] = $value->Remarks;
+                            $product['date_purchase'] = $value->date_purchase;
+                            $product['grpo_number'] = $value->grpo_number;
+                            $product['grpo_remarks'] = $value->grpo_remarks;
                         }
                         else {
-                            $product['date_issued'] = $value->DocDate;
-                            $product['gi_number'] = $value->DocNum;
-                            $product['gi_remarks'] = $value->Remarks;
-                            $GI_branch = $value->Branch;
-                            $GI_company = $value->Company;
+                            $product['date_issued'] = $value->date_issued;
+                            $product['gi_number'] = $value->gi_number;
+                            $product['gi_remarks'] = $value->gi_remarks;
+                            $GI_branch = $value->branch;
+                            $GI_company = $value->company;
                         }
 
-                        $product['branch'] = $GI_branch ? $GI_branch : $value->Branch;
-                        $product['company'] = $GI_company ? $GI_company : $value->Company;
+                        $product['branch'] = $GI_branch ? $GI_branch : $value->branch;
+                        $product['company'] = $GI_company ? $GI_company : $value->company;
 
-                        $product['supplier'] = $value->Supplier;
-                        $product['model'] = $value->Model;
-                        $product['brand'] = $value->Brand;
-                        $product['product_category'] = $value->ProductCategory;
-                        $product['item_group'] = $value->ItemGroup;
-                        $product['serial'] = $value->Serial;
+                        $product['doctype'] = $value->doctype;
+                        $product['supplier'] = $value->supplier;
+                        $product['model'] = $value->model;
+                        $product['brand'] = $value->brand;
+                        $product['product_category'] = $value->product_category;
+                        $product['item_group'] = $value->item_group;
+                        $product['serial'] = $value->serial;
+                        $product['price'] = $value->price;
                         
                     }
                 }
@@ -1248,7 +1259,13 @@ class ProductController extends Controller
                 $products[] = $product;
             }
 
-            return response()->json(['databases' => $databases, 'products' => $products, 'filtered_data' => $filtered_data, 'serials' => array_unique($serials)], 200);
+            return response()->json([
+                'databases' => $databases, 
+                'products' => $products, 
+                'filtered_data' => $filtered_data, 
+                'serials' => array_unique($serials), 
+                'product_histories' => $product_histories,
+            ], 200);
 
             
         } catch (\Exception $e) {

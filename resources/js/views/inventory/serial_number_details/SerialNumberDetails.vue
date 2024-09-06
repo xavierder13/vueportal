@@ -19,7 +19,15 @@
         </v-breadcrumbs>
         <v-card>
           <v-card-title class="mb-0 pb-0">
-            <span class="headline">Serial Number Details</span>
+            <span class="headline mr-3">Serial Number Details {{  editedItem.doctype ? ' - ' + editedItem.doctype : '' }}</span>
+            <v-btn 
+              color="primary" 
+              small 
+              @click="dialog_product_history = true"
+              v-if="product_histories.length"
+            >  
+             <v-icon small class="mr-1">mdi-eye</v-icon>  View Product History 
+            </v-btn>
           </v-card-title>
           <v-divider></v-divider>
           <v-card-text class="px-6">
@@ -91,7 +99,7 @@
               </v-col>
             </v-row>
             <v-row>
-              <v-col cols="4" class="my-0 py-0">
+              <v-col class="my-0 py-0">
                 <v-text-field
                   v-model="datePurchase"
                   label="Date Purchase"
@@ -99,7 +107,7 @@
                   readonly
                 ></v-text-field>
               </v-col>
-              <v-col cols="4" class="my-0 py-0">
+              <v-col class="my-0 py-0">
                 <v-text-field
                   v-model="dateIssued"
                   label="Date Issued"
@@ -107,11 +115,26 @@
                   readonly
                 ></v-text-field>
               </v-col>
-              <v-col cols="4" class="my-0 py-0">
+              <v-col class="my-0 py-0">
+                <v-text-field
+                  v-model="Number(editedItem.price).toLocaleString('en', numOpts)"
+                  label="price"
+                  readonly
+                ></v-text-field>
+              </v-col>
+              <v-col class="my-0 py-0">
                 <v-text-field
                   name="grpo_number"
                   v-model="editedItem.grpo_number"
                   label="GRPO Number"
+                  readonly
+                ></v-text-field>
+              </v-col>
+              <v-col class="my-0 py-0">
+                <v-text-field
+                  name="gi_number"
+                  v-model="editedItem.gi_number"
+                  label="Goods Issue Number"
                   readonly
                 ></v-text-field>
               </v-col>
@@ -133,14 +156,6 @@
                   readonly
                 ></v-text-field>
               </v-col>
-              <v-col cols="4" class="my-0 py-0">
-                <v-text-field
-                  name="gi_number"
-                  v-model="editedItem.gi_number"
-                  label="Goods Issue Number"
-                  readonly
-                ></v-text-field>
-              </v-col>
             </v-row>
             <v-row>
               <v-col cols="6" class="my-0 py-0">
@@ -158,7 +173,6 @@
                   label="Goods Issue Remarks"
                   readonly
                   rows="4"
-
                 >
                 </v-textarea>
               </v-col>
@@ -186,43 +200,67 @@
               <v-icon @click="dialog = false">mdi-close</v-icon>
           </v-card-title>
           <v-card-text>
-              <v-data-table
-                :headers="headers"
-                :items="products"
-                :search="search"
-                :loading="loading"
-                loading-text="Loading... Please wait"
-                class="elevation-1 "
-              > 
-                <template v-slot:item="{ item }">
-                  <tr @click="selectProduct(item)" style="cursor: pointer;">
-                    <td>
-                      {{ item.branch }}
-                    </td>
-                    <td>
-                      {{ item.company }}
-                    </td>
-                    <td>
-                      {{ item.serial }}
-                    </td>
-                    <td>
-                      {{ item.model }}
-                    </td>
-                    <td>
-                      {{ item.brand }}
-                    </td>
-                    <td>
-                      {{ item.supplier }}
-                    </td>
-                    <td>
-                      {{ dateFormat(item.date_purchase) }}
-                    </td>
-                    <td>
-                      {{ dateFormat(item.date_issued) }}
-                    </td>
-                  </tr>
-                </template>
-              </v-data-table>
+            <v-data-table
+              :headers="headers"
+              :items="products"
+              :search="search"
+              :loading="loading"
+              loading-text="Loading... Please wait"
+              class="elevation-1 "
+            > 
+              <template v-slot:item="{ item }">
+                <tr @click="selectProduct(item)" style="cursor: pointer;">
+                  <td> {{ item.branch }} </td>
+                  <td> {{ item.company }} </td>
+                  <td> {{ item.serial }} </td>
+                  <td> {{ item.model }} </td>
+                  <td> {{ item.brand }} </td>
+                  <td> {{ item.supplier }} </td>
+                  <td> {{ dateFormat(item.date_purchase) }} </td>
+                  <td> {{ dateFormat(item.date_issued) }} </td>
+                </tr>
+              </template>
+            </v-data-table>
+          </v-card-text>
+        </v-card>
+      </v-dialog>
+      <v-dialog v-model="dialog_product_history" max-width="1500px" persistent>
+        <v-card>
+          <v-card-title>
+            <span class="headline">Products</span>
+            <v-spacer></v-spacer>
+            <v-text-field
+              v-model="search"
+              append-icon="mdi-magnify"
+              label="Search"
+              single-line
+            ></v-text-field>
+            <v-spacer></v-spacer>
+            <v-icon @click="dialog_product_history = false">mdi-close</v-icon>
+          </v-card-title>
+          <v-card-text>
+            <v-data-table
+              :headers="headers"
+              :items="product_histories"
+              :search="search_history"
+              :loading="loading"
+              loading-text="Loading... Please wait"
+              class="elevation-1 "
+            > 
+              <template v-slot:item="{ item }">
+                <tr @click="selectProduct(item)" style="cursor: pointer;">
+                  <td> {{ item.doctype }} </td>
+                  <td> {{ dateFormat( item.date_purchase ? item.date_purchase : item.date_issued ) }} </td>
+                  <td> {{ item.branch }} </td>
+                  <td> {{ item.company }} </td>
+                  <td> {{ item.serial }} </td>
+                  <td> {{ Number(item.price).toLocaleString('en', numOpts) }} </td>
+                  <td> {{ item.model }} </td>
+                  <td> {{ item.brand }} </td>
+                  <td> {{ item.supplier }} </td>
+                </tr>
+              </template>
+            </v-data-table>
           </v-card-text>
         </v-card>
       </v-dialog>
@@ -261,6 +299,7 @@ export default {
       serial: "",
       model: "",
       editedItem: {
+        doctype: "",
         serial: "",
         branch: "",
         company: "",
@@ -274,8 +313,11 @@ export default {
         model: "",
         product_category: "",
         grpo_remarks: "",
+        gi_remakrs: "",
+        price: "",
       },
       defaultItem: {
+        doctype: "",
         serial: "",
         branch: "",
         company: "",
@@ -289,11 +331,16 @@ export default {
         model: "",
         product_category: "",
         grpo_remarks: "",
+        gi_remakrs: "",
+        price: "",
       },
       dialog: false,
+      dialog_product_history: false,
       products: [],
+      product_histories: [],
       loading: false,
       search: "",
+      search_history: "",
       headers: [
         { text: "Branch", value: "branch" },
         { text: "Company", value: "company" },
@@ -304,6 +351,21 @@ export default {
         { text: "Date Purchase", value: "date_puchase" },
         { text: "Date Issued", value: "date_issued" },
       ],
+      headers: [
+        { text: "DocType", value: "" },
+        { text: "Document Date", value: "" },
+        { text: "Branch", value: "" },
+        { text: "Company", value: "" },
+        { text: "Serial", value: "" },
+        { text: "Price", value: "" },
+        { text: "Model", value: "" },
+        { text: "Brand", value: "" },
+        { text: "Supplier", value: "" },
+      ],
+      numOpts: { 
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2 
+      },
     };
   },
 
@@ -312,13 +374,16 @@ export default {
 
       if (!this.$v.serial.$error)
       {
+        this.product_histories = [];
         this.overlay = true;
         
         axios.post("/api/product/serial_number_details", data).then(
           (response) => {
             this.overlay = false;
             
-            let data = response.data
+            let data = response.data   
+            console.log(data);
+            
 
             if(data.error)
             {
@@ -345,6 +410,19 @@ export default {
               {
                 this.serial = serial;
                 this.editedItem = data.products[0];
+                let product_histories = data.product_histories;
+                let databases = Object.keys(product_histories);
+
+                databases.forEach(database => {
+                  product_histories[database].forEach(value => {
+                    this.product_histories.push(value);
+                  });
+                });
+                
+
+                console.log(this.product_histories);
+                
+
               }
               else if(!data.error)
               {
@@ -398,7 +476,7 @@ export default {
     {
       this.serial = item.serial;
       this.editedItem = item;
-      this.dialog = false;
+      this.dialog_product_history = false;
     },
 
     showAlert() {
