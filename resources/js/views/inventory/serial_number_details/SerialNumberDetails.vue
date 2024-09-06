@@ -125,7 +125,7 @@
               <v-col class="my-0 py-0">
                 <v-text-field
                   name="grpo_number"
-                  v-model="editedItem.grpo_number"
+                  v-model="grpo_number"
                   label="GRPO Number"
                   readonly
                 ></v-text-field>
@@ -160,7 +160,7 @@
             <v-row>
               <v-col cols="6" class="my-0 py-0">
                 <v-textarea 
-                  v-model="editedItem.grpo_remarks"
+                  v-model="grpo_remarks"
                   label="GRPO Remarks"
                   readonly
                   rows="4"
@@ -334,6 +334,9 @@ export default {
         gi_remakrs: "",
         price: "",
       },
+      grpo_number: "",
+      grpo_remarks: "",
+      date_purchase: "",
       dialog: false,
       dialog_product_history: false,
       products: [],
@@ -410,6 +413,9 @@ export default {
               {
                 this.serial = serial;
                 this.editedItem = data.products[0];
+                this.date_purchase = this.editedItem.date_purchase;
+                this.grpo_number = this.editedItem.grpo_number;
+                this.grpo_remarks = this.editedItem.grpo_remarks;
                 let product_histories = data.product_histories;
                 let databases = Object.keys(product_histories);
 
@@ -523,7 +529,7 @@ export default {
       return errors;
     },
     datePurchase() {
-      let date = this.editedItem.date_purchase
+      let date = this.date_purchase
       if (!date) return null;
 
       const [year, month, day] = date.split("-");
