@@ -159,6 +159,7 @@ class EmployeeMasterDataController extends Controller
 
     public function update(Request $request, $employee_id)
     {
+   
         $validator = $this->validator($request->all());
 
         if($validator->fails())

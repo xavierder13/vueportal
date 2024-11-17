@@ -208,395 +208,26 @@
               </v-icon>
             </template>
           </v-data-table>
-          <v-dialog v-model="dialog" max-width="1200px" persistent>
+          <v-dialog v-model="dialog" max-width="1400px" persistent>
             <v-card>
               <v-card-title class="pa-4">
                 <span class="headline">{{ formTitle }}</span>
               </v-card-title>
               <v-divider class="mt-0"></v-divider>
               <v-card-text>
-                <v-container>
-                  <fieldset>
-                    <legend class="mb-6">Personal Information</legend>
-                    <v-row>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-text-field
-                          name="employee_code"
-                          v-model="editedItem.employee_code"
-                          :error-messages="employeeCodeErrors"
-                          label="Employee Code"
-                          @input="$v.editedItem.employee_code.$touch()"
-                          @blur="$v.editedItem.employee_code.$touch()"
-                        ></v-text-field>
-                      </v-col>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-text-field
-                          name="last_name"
-                          v-model="editedItem.last_name"
-                          :error-messages="lastNameErrors"
-                          label="Last Name"
-                          @input="$v.editedItem.last_name.$touch()"
-                          @blur="$v.editedItem.last_name.$touch()"
-                        ></v-text-field>
-                      </v-col>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-text-field
-                          name="first_name"
-                          v-model="editedItem.first_name"
-                          :error-messages="firstNameErrors"
-                          label="First Name"
-                          @input="$v.editedItem.first_name.$touch()"
-                          @blur="$v.editedItem.first_name.$touch()"
-                        ></v-text-field>
-                      </v-col>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-text-field
-                          name="middle_name"
-                          v-model="editedItem.middle_name"
-                          label="Middle Name"
-                        ></v-text-field>
-                      </v-col>
-                    </v-row>
-                    <!-- <v-row>
-                    <v-col class="my-0 py-0">
-                      <v-divider class="my-0 py-0"></v-divider>
-                    </v-col>
-                  </v-row> -->
-                    <v-row>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-menu
-                          v-model="input_birth_date"
-                          :close-on-content-click="false"
-                          transition="scale-transition"
-                          offset-y
-                          max-width="290px"
-                          min-width="290px"
-                        >
-                          <template v-slot:activator="{ on, attrs }">
-                            <v-text-field
-                              name="birth_date"
-                              v-model="computedBirthDateFormatted"
-                              label="Birth Date (MM/DD/YYYY)"
-                              persistent-hint
-                              readonly
-                              v-bind="attrs"
-                              v-on="on"
-                              :error-messages="birthdateErrors"
-                              @input="$v.editedItem.birth_date.$touch()"
-                              @blur="$v.editedItem.birth_date.$touch()"
-                            ></v-text-field>
-                          </template>
-                          <v-date-picker
-                            v-model="editedItem.birth_date"
-                            no-title
-                            @input="input_birth_date = false"
-                          ></v-date-picker>
-                        </v-menu>
-                      </v-col>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-autocomplete
-                          v-model="editedItem.gender"
-                          :items="gender_items"
-                          item-text="text"
-                          item-value="value"
-                          label="Gender"
-                          :error-messages="genderErrors"
-                          @input="$v.editedItem.gender.$touch()"
-                          @blur="$v.editedItem.gender.$touch()"
-                        >
-                        </v-autocomplete>
-                      </v-col>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-autocomplete
-                          v-model="editedItem.civil_status"
-                          :items="civil_status_items"
-                          item-text="text"
-                          item-value="value"
-                          label="Civil Status"
-                          :error-messages="civilStatusErrors"
-                          @input="$v.editedItem.civil_status.$touch()"
-                          @blur="$v.editedItem.civil_status.$touch()"
-                        >
-                        </v-autocomplete>
-                      </v-col>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-text-field
-                          name="contact"
-                          v-model="editedItem.contact"
-                          :error-messages="contactErrors"
-                          label="Contact No."
-                          @input="$v.editedItem.contact.$touch()"
-                          @blur="$v.editedItem.contact.$touch()"
-                        ></v-text-field>
-                      </v-col>
-                    </v-row>
-                    <v-row>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-text-field
-                          name="email"
-                          v-model="editedItem.email"
-                          :error-messages="emailErrors"
-                          label="E-mail"
-                          @input="$v.editedItem.email.$touch()"
-                          @blur="$v.editedItem.email.$touch()"
-                        ></v-text-field>
-                      </v-col>
-                      <v-col cols="9" class="my-0 py-0">
-                        <v-text-field
-                          name="address"
-                          v-model="editedItem.address"
-                          :error-messages="addressErrors"
-                          label="Address"
-                          @input="$v.editedItem.address.$touch()"
-                          @blur="$v.editedItem.address.$touch()"
-                        ></v-text-field>
-                      </v-col>
-                    </v-row>
-                    <v-row>
-                      <v-col class="my-0 py-0">
-                        <v-divider class="my-0 py-0"></v-divider>
-                      </v-col>
-                    </v-row>
-                  </fieldset>
-                  <fieldset>
-                    <legend class="mb-6 mt-6">Employment Information</legend>
-                    <v-row>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-autocomplete
-                          v-model="editedItem.position"
-                          :items="positions"
-                          item-text="name"
-                          item-value="id"
-                          label="Job Description"
-                          return-object
-                          :error-messages="positionErrors"
-                          @input="$v.editedItem.position.$touch()"
-                          @blur="$v.editedItem.position.$touch()"
-                        >
-                        </v-autocomplete>
-                      </v-col>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-text-field
-                          name="rank"
-                          v-model="editedItem.rank"
-                          label="Rank"
-                          readonly
-                        ></v-text-field>
-                      </v-col>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-autocomplete
-                          v-model="editedItem.department"
-                          :items="departments"
-                          item-text="name"
-                          item-value="id"
-                          label="Department"
-                          return-object
-                          :error-messages="departmentErrors"
-                          @input="$v.editedItem.department.$touch()"
-                          @blur="$v.editedItem.department.$touch()"
-                        >
-                        </v-autocomplete>
-                      </v-col>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-text-field
-                          name="division"
-                          v-model="editedItem.division"
-                          label="Division"
-                          readonly
-                        ></v-text-field>
-                      </v-col>
-                    </v-row>
-                    <v-row>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-autocomplete
-                          v-model="editedItem.branch"
-                          :items="branches"
-                          item-text="name"
-                          item-value="id"
-                          label="Branch"
-                          return-object
-                          :error-messages="branchErrors"
-                          @input="$v.editedItem.branch.$touch()"
-                          @blur="$v.editedItem.branch.$touch()"
-                        >
-                        </v-autocomplete>
-                      </v-col>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-text-field
-                          name="company"
-                          v-model="editedItem.company"
-                          label="Company"
-                          readonly
-                        ></v-text-field>
-                      </v-col>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-menu
-                          v-model="input_date_employed"
-                          :close-on-content-click="false"
-                          transition="scale-transition"
-                          offset-y
-                          max-width="290px"
-                          min-width="290px"
-                        >
-                          <template v-slot:activator="{ on, attrs }">
-                            <v-text-field
-                              name="date_employed"
-                              v-model="computedDateEmployedFormatted"
-                              label="Date Employed (MM/DD/YYYY)"
-                              persistent-hint
-                              readonly
-                              v-bind="attrs"
-                              v-on="on"
-                              :error-messages="dateEmployedErrors"
-                              @input="$v.editedItem.date_employed.$touch()"
-                              @blur="$v.editedItem.date_employed.$touch()"
-                            ></v-text-field>
-                          </template>
-                          <v-date-picker
-                            v-model="editedItem.date_employed"
-                            no-title
-                            @input="input_date_employed = false"
-                          ></v-date-picker>
-                        </v-menu>
-                      </v-col>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-menu
-                          v-model="input_date_resigned"
-                          :close-on-content-click="false"
-                          transition="scale-transition"
-                          offset-y
-                          max-width="290px"
-                          min-width="290px"
-                        >
-                          <template v-slot:activator="{ on, attrs }">
-                            <v-text-field
-                              name="date_resigned"
-                              v-model="computedDateResignedFormatted"
-                              label="Date Resigned (MM/DD/YYYY)"
-                              persistent-hint
-                              readonly
-                              v-bind="attrs"
-                              v-on="on"
-                            ></v-text-field>
-                          </template>
-                          <v-date-picker
-                            v-model="editedItem.date_resigned"
-                            no-title
-                            @input="input_date_resigned = false"
-                          ></v-date-picker>
-                        </v-menu>
-                      </v-col>
-                    </v-row>
-                    <v-row>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-text-field
-                          name="tin_no"
-                          v-model="editedItem.tin_no"
-                          :error-messages="tinNoErrors"
-                          label="TIN No."
-                          @input="$v.editedItem.tin_no.$touch()"
-                          @blur="$v.editedItem.tin_no.$touch()"
-                        ></v-text-field>
-                      </v-col>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-text-field
-                          name="pagibig_no"
-                          v-model="editedItem.pagibig_no"
-                          :error-messages="pagibigNoErrors"
-                          label="PAG-IBIG No."
-                          @input="$v.editedItem.pagibig_no.$touch()"
-                          @blur="$v.editedItem.pagibig_no.$touch()"
-                        ></v-text-field>
-                      </v-col>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-text-field
-                          name="philhealth_no"
-                          v-model="editedItem.philhealth_no"
-                          :error-messages="philhealthNoErrors"
-                          label="PHILHEALTH No."
-                          @input="$v.editedItem.philhealth_no.$touch()"
-                          @blur="$v.editedItem.philhealth_no.$touch()"
-                        ></v-text-field>
-                      </v-col>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-text-field
-                          name="sss_no"
-                          v-model="editedItem.sss_no"
-                          :error-messages="sssNoErrors"
-                          label="SSS No."
-                          @input="$v.editedItem.sss_no.$touch()"
-                          @blur="$v.editedItem.sss_no.$touch()"
-                        ></v-text-field>
-                      </v-col>
-                    </v-row>
-                    <v-row>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-text-field
-                          name="length_of_service"
-                          v-model="editedItem.length_of_service"
-                          label="Length of Service"
-                          readonly
-                        ></v-text-field>
-                      </v-col>
-                    </v-row>
-                    <v-row>
-                      <v-col class="my-0 py-0">
-                        <v-divider class="my-0 py-0"></v-divider>
-                      </v-col>
-                    </v-row>
-                  </fieldset>
-                  <fieldset>
-                    <legend class="mb-6 mt-6">Educational Background</legend>
-                    <v-row>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-text-field
-                          name="educ_attain"
-                          v-model="editedItem.educ_attain"
-                          :error-messages="educAttainErrors"
-                          label="Educational Attainment"
-                          @input="$v.editedItem.educ_attain.$touch()"
-                          @blur="$v.editedItem.educ_attain.$touch()"
-                        ></v-text-field>
-                      </v-col>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-text-field
-                          name="school_attended"
-                          v-model="editedItem.school_attended"
-                          :error-messages="schoolAttendedErrors"
-                          label="School Attended"
-                          @input="$v.editedItem.school_attended.$touch()"
-                          @blur="$v.editedItem.school_attended.$touch()"
-                        ></v-text-field>
-                      </v-col>
-                      <v-col cols="3" class="my-0 py-0">
-                        <v-text-field
-                          name="course"
-                          v-model="editedItem.course"
-                          :error-messages="courseErrors"
-                          label="Course"
-                          @input="$v.editedItem.course.$touch()"
-                          @blur="$v.editedItem.course.$touch()"
-                        ></v-text-field>
-                      </v-col>
-                    </v-row>
-                    <v-row>
-                      <v-col class="my-0 py-0">
-                        <v-divider class="my-0 py-0"></v-divider>
-                      </v-col>
-                    </v-row>
-                  </fieldset>
-                  <fieldset>
-                    <legend class="mb-6 mt-6">Status</legend>
-                    <v-row>
-                      <v-col cols="2" class="my-0 py-0">
-                        <v-switch
-                          v-model="editedItem.active"
-                          :label="activeStatus"
-                        ></v-switch>
-                      </v-col>
-                    </v-row>
-                  </fieldset>
-                </v-container>
+                <EmployeeInformationTabs
+                  :data="editedItem"
+                  :editedIndex="editedIndex"
+                  :positions="positions"
+                  :branches="branches"
+                  :departments="departments"
+                  @openAttachFileDialog="openAttachFileDialog"
+                  ref="EmployeeInformationTabs"
+                />
+                <AttachFileDialog 
+                  :dialog="attach_file_dialog" 
+                  @closeAttachFileDialog="closeAttachFileDialog"
+                />
               </v-card-text>
               <v-divider class="mb-3 mt-0"></v-divider>
               <v-card-actions class="pa-0">
@@ -640,7 +271,8 @@ import { required, maxLength, email } from "vuelidate/lib/validators";
 import { mapState, mapGetters } from "vuex";
 import ImportDialog from "../components/ImportDialog.vue";
 import ExportDialog from "../components/ExportDialog.vue";
-import moment from "moment";
+import EmployeeInformationTabs from './component/EmployeeInformationTabs.vue';
+import AttachFileDialog from './component/AttachFileDialog.vue';
 
 export default {
 
@@ -648,37 +280,39 @@ export default {
   components: {
     ImportDialog,
     ExportDialog,
+    EmployeeInformationTabs,
+    AttachFileDialog
   },
   props: {
 
   },
   mixins: [validationMixin],
 
-  validations: {
-    editedItem: {
-      branch: { required },
-      employee_code: { required },
-      last_name: { required },
-      first_name: { required },
-      gender: { required },
-      civil_status: { required },
-      birth_date: { required },
-      address: { required },
-      contact: { required },
-      email: { email },
-      position: { required },
-      department: { required },
-      date_employed: { required },
-      tin_no: { required },
-      pagibig_no: { required },
-      philhealth_no: { required },
-      sss_no: { required },
-      educ_attain: { required },
-      school_attended: { required },
-      course: { required },
-    },
+  // validations: {
+  //   editedItem: {
+  //     branch: { required },
+  //     employee_code: { required },
+  //     last_name: { required },
+  //     first_name: { required },
+  //     gender: { required },
+  //     civil_status: { required },
+  //     birth_date: { required },
+  //     address: { required },
+  //     contact: { required },
+  //     email: { email },
+  //     position: { required },
+  //     department: { required },
+  //     date_employed: { required },
+  //     tin_no: { required },
+  //     pagibig_no: { required },
+  //     philhealth_no: { required },
+  //     sss_no: { required },
+  //     educ_attain: { required },
+  //     school_attended: { required },
+  //     course: { required },
+  //   },
     
-  },
+  // },
   data() {
     return {
       search: "",
@@ -714,6 +348,7 @@ export default {
       disabled: false,
       dialog: false,
       employees: [],
+      employee_files: [],
       branches: [],
       departments: [],
       positions: [],
@@ -733,81 +368,7 @@ export default {
           disabled: true,
         },
       ],
-      gender_items: [
-        { text: "MALE", value: "MALE" },
-        { text: "FEMALE", value: "FEMALE" },
-      ],
-      civil_status_items: [
-        { text: "SINGLE", value: "SINGLE" },
-        { text: "MARRIED", value: "MARRIED" },
-        { text: "DIVORCED", value: "DIVORCED" },
-        { text: "WIDOWED", value: "WIDOWED" },
-      ],
-      loading: true,
-      branch: "",
-      branch_id: "",
-      editedIndex: -1,
-      editedItem: {
-        branch_id: "",
-        branch: "",
-        employee_code: "",
-        last_name: "",
-        first_name: "",
-        birth_date: "",
-        address: "",
-        contact: "",
-        email: "",
-        position_id: "",
-        position: "",
-        department: "",
-        department_id: "",
-        rank: "",
-        date_employed: "",
-        date_signed: "",
-        gender: "",
-        civil_status: "",
-        tin_no: "",
-        pagibig_no: "",
-        philhealth_no: "",
-        sss_no: "",
-        educ_attain: "",
-        school_attended: "",
-        course: "",
-        length_of_service: "",
-        active: true,
-      },
-      defaultItem: {
-        branch_id: "",
-        branch: "",
-        employee_code: "",
-        last_name: "",
-        first_name: "",
-        birth_date: "",
-        address: "",
-        contact: "",
-        email: "",
-        position_id: "",
-        position: "",
-        department: "",
-        department_id: "",
-        rank: "",
-        date_employed: "",
-        date_signed: "",
-        gender: "",
-        civil_status: "",
-        tin_no: "",
-        pagibig_no: "",
-        philhealth_no: "",
-        sss_no: "",
-        educ_attain: "",
-        school_attended: "",
-        course: "",
-        length_of_service: "",
-        active: true,
-      },
-      input_birth_date: false,
-      input_date_employed: false,
-      input_date_resigned: false,
+      loading: false,
       dialog_import: false,
       dialog_export: false,
       api_route: "/api/employee_master_data/import", // api rout for uploading excel file
@@ -846,6 +407,9 @@ export default {
       },
       selectAll: false,
       indeterminate: false,
+      editedItem: {},
+      editedIndex: -1,
+      attach_file_dialog: false,
     };
   },
 
@@ -882,6 +446,8 @@ export default {
       this.editedItem = Object.assign({}, item);
       this.dialog = true;
 
+      this.employee_files = item.employee_files;
+
       // let [month, day, year] = this.editedItem.dob.split("/");
       // this.editedItem.birth_date = `${year}-${month}-${day}`;
 
@@ -911,59 +477,67 @@ export default {
     },
 
     save() {
-      this.$v.editedItem.$touch();
-      if (!this.$v.$error) {
-        this.disabled = true;
-        this.overlay = true;
+
+
+      // from EmployeeInformationTabs component
+      let EmployeeInformationTabs = this.$refs.EmployeeInformationTabs;
+      let dateModelHasErrors = Object.values(EmployeeInformationTabs.dateErrors).map((obj) => obj.status).includes(true);
+
+      this.$refs.EmployeeInformationTabs.$v.editedItem.$touch();
+      
+      // this.$v.editedItem.$touch();
+      // if (!this.$v.$error) {
+      //   this.disabled = true;
+      //   this.overlay = true;
         
-        this.editedItem.branch_id = this.editedItem.branch.id;
-        this.editedItem.department_id = this.editedItem.department.id;
-        this.editedItem.position_id = this.editedItem.position.id;
-        const data = this.editedItem;
-        const employee_id = this.editedItem.id;
-        let url = "/api/employee_master_data" + (this.editedIndex > -1 ? "/update/" + employee_id : "/store");
+      //   this.editedItem.branch_id = this.editedItem.branch.id;
+      //   this.editedItem.department_id = this.editedItem.department.id;
+      //   this.editedItem.position_id = this.editedItem.position.id;
+      //   const data = this.editedItem;
+      //   const employee_id = this.editedItem.id;
+      //   let url = "/api/employee_master_data" + (this.editedIndex > -1 ? "/update/" + employee_id : "/store");
 
-        axios.post(url, data).then(
-          (response) => {
-            this.overlay = false;
-            this.disabled = false;
-            let data = response.data;
+      //   axios.post(url, data).then(
+      //     (response) => {
+      //       this.overlay = false;
+      //       this.disabled = false;
+      //       let data = response.data;
      
-            if (data.success) {
-              // send data to Sockot.IO Server
-              // this.$socket.emit("sendData", { action: "employee-master-data-edit" });
+      //       if (data.success) {
+      //         // send data to Sockot.IO Server
+      //         // this.$socket.emit("sendData", { action: "employee-master-data-edit" });
 
-              let employee = data.employee;
+      //         let employee = data.employee;
               
-              // format date_granted
-              // let [year, month, day] = employee.dob.split("-");
-              // employee.birth_date = `${month}/${day}/${year}`;
+      //         // format date_granted
+      //         // let [year, month, day] = employee.dob.split("-");
+      //         // employee.birth_date = `${month}/${day}/${year}`;
 
-              // [year, month, day] = employee.date_employed.split("-");
-              // employee.date_employed = `${month}/${day}/${year}`;
+      //         // [year, month, day] = employee.date_employed.split("-");
+      //         // employee.date_employed = `${month}/${day}/${year}`;
 
-              if(this.editedIndex > -1)
-              {
-                Object.assign(this.employees[this.editedIndex], employee );
-              }
-              else
-              {
-                this.employees.push(employee);
-              }
+      //         if(this.editedIndex > -1)
+      //         {
+      //           Object.assign(this.employees[this.editedIndex], employee );
+      //         }
+      //         else
+      //         {
+      //           this.employees.push(employee);
+      //         }
 
-              this.showAlert(data.success, "success");
-              this.close();
-            } else {
-            }
-          },
-          (error) => {
-            this.isUnauthorized(error);
+      //         this.showAlert(data.success, "success");
+      //         this.close();
+      //       } else {
+      //       }
+      //     },
+      //     (error) => {
+      //       this.isUnauthorized(error);
 
-            this.overlay = false;
-            this.disabled = false;
-          }
-        );
-      }
+      //       this.overlay = false;
+      //       this.disabled = false;
+      //     }
+      //   );
+      // }
     },
 
     showAlert(title, icon) {
@@ -1025,8 +599,15 @@ export default {
     },
 
     clear() {
-      this.$v.$reset();
       this.editedItem = Object.assign({}, this.defaultItem);
+    },
+    
+    openAttachFileDialog() {
+      this.attach_file_dialog = true;
+    },
+
+    closeAttachFileDialog() {
+      this.attach_file_dialog = false;
     },
 
     isUnauthorized(error) {
@@ -1059,31 +640,6 @@ export default {
       let index = this.selectedTableHeaders.findIndex(header => header.value === item.value);
       this.selectedTableHeaders.splice(index, 1);
     },
-    validateDate(model) {
-      let min_date = new Date('1900-01-01').getTime();
-      let max_date = new Date().getTime();
-      let date = this[model];
-      let date_value = new Date(date).getTime();
-      
-      let [year, month, day] = date.split('-');
-
-      this.dateErrors[model] = false;
-
-      if (date_value < min_date || year.length > 4) {
-        this.dateErrors[model] = true;
-      }  
-    },
-
-    validateDateRange(min, max) {
-      let hasError = false;
-      min = min ? new Date(min) : new Date('1900-01-01').getTime();
-      max = max ? new Date(max) : new Date().getTime();
-
-      if (max < min) {
-        hasError = true;
-      }  
-      return { hasError: hasError };
-    },
     selectUnselect(status) {
       
     },
@@ -1106,165 +662,6 @@ export default {
   computed: {
     formTitle() {
       return this.editedIndex === -1 ? "New Employee" : "Edit Employee";
-    },
-    branchErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.branch.$dirty) return errors;
-      !this.$v.editedItem.branch.required &&
-        errors.push("Branch is required.");
-      return errors;
-    },
-    employeeCodeErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.employee_code.$dirty) return errors;
-      !this.$v.editedItem.employee_code.required &&
-        errors.push("Employee Code is required.");
-      return errors;
-    },
-    lastNameErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.last_name.$dirty) return errors;
-      !this.$v.editedItem.last_name.required &&
-        errors.push("Last Name is required.");
-      return errors;
-    },
-    firstNameErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.first_name.$dirty) return errors;
-      !this.$v.editedItem.first_name.required &&
-        errors.push("First Name is required.");
-      return errors;
-    },
-    birthdateErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.birth_date.$dirty) return errors;
-      !this.$v.editedItem.birth_date.required && errors.push("Birthdate is required.");
-      return errors;
-    },
-    computedBirthDateFormatted() {
-      return this.formatDate(this.editedItem.birth_date);
-    },
-    addressErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.address.$dirty) return errors;
-      !this.$v.editedItem.address.required &&
-        errors.push("Address is required.");
-      return errors;
-    },
-    contactErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.contact.$dirty) return errors;
-      !this.$v.editedItem.contact.required &&
-        errors.push("Contact is required.");
-      return errors;
-    },
-    emailErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.email.$dirty) return errors;
-      // !this.$v.editedItem.email.required && errors.push("Email is required.");
-      !this.$v.editedItem.email.email && errors.push("Must be valid e-mail");
-      return errors;
-    },
-    positionErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.position.$dirty) return errors;
-      !this.$v.editedItem.position.required && errors.push("Job Description is required.");
-      return errors;
-    },
-    departmentErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.department.$dirty) return errors;
-      !this.$v.editedItem.department.required &&
-        errors.push("Department is required.");
-      return errors;
-    },
-    contactErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.contact.$dirty) return errors;
-      !this.$v.editedItem.contact.required &&
-        errors.push("Contact is required.");
-      return errors;
-    },
-    dateEmployedErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.date_employed.$dirty) return errors;
-      !this.$v.editedItem.date_employed.required &&
-        errors.push("Date Employed is required.");
-      return errors;
-    },
-    computedDateEmployedFormatted() {
-      return this.formatDate(this.editedItem.date_employed);
-    },
-    computedDateResignedFormatted() {
-      return this.formatDate(this.editedItem.date_resigned);
-    },
-    contactErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.contact.$dirty) return errors;
-      !this.$v.editedItem.contact.required &&
-        errors.push("Contact is required.");
-      return errors;
-    },
-    genderErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.gender.$dirty) return errors;
-      !this.$v.editedItem.gender.required && errors.push("Gender is required.");
-      return errors;
-    },
-    civilStatusErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.civil_status.$dirty) return errors;
-      !this.$v.editedItem.civil_status.required &&
-        errors.push("Civil Status is required.");
-      return errors;
-    },
-    tinNoErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.tin_no.$dirty) return errors;
-      !this.$v.editedItem.tin_no.required &&
-        errors.push("TIN No. is required.");
-      return errors;
-    },
-    pagibigNoErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.pagibig_no.$dirty) return errors;
-      !this.$v.editedItem.pagibig_no.required &&
-        errors.push("PagIbig No. is required.");
-      return errors;
-    },
-    philhealthNoErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.philhealth_no.$dirty) return errors;
-      !this.$v.editedItem.philhealth_no.required &&
-        errors.push("Philhealth No. is required.");
-      return errors;
-    },
-    sssNoErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.sss_no.$dirty) return errors;
-      !this.$v.editedItem.sss_no.required &&
-        errors.push("SSS No. is required.");
-      return errors;
-    },
-    educAttainErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.educ_attain.$dirty) return errors;
-      !this.$v.editedItem.educ_attain.required &&
-        errors.push("Educ. Attainment is required.");
-      return errors;
-    },
-    schoolAttendedErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.school_attended.$dirty) return errors;
-      !this.$v.editedItem.school_attended.required &&
-        errors.push("School Attended is required.");
-      return errors;
-    },
-    courseErrors() {
-      const errors = [];
-      if (!this.$v.editedItem.course.$dirty) return errors;
-      !this.$v.editedItem.course.required && errors.push("Course is required.");
-      return errors;
     },
     tableHeaders() {
       
@@ -1299,7 +696,7 @@ export default {
           headers.push(Object.assign(header, { disable: disable }));
         }
         //disable all unselected items when selected items is equal to 9
-        else if(selected_items.length == 9)
+        else if(selected_items.length == this.defaultTableHeaders.length)
         { 
           let index = selected_items.findIndex(item => item.value === header.value);  
           disable = index > -1 ? false : true;
