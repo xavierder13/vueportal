@@ -1170,7 +1170,7 @@ export default {
     },
   },
   watch: {
-    editedIndex() {
+    dialog() {
       
       if(this.editedIndex > -1)
       {
@@ -1485,6 +1485,13 @@ export default {
   },
   mounted() {
     // this.editedItem = Object.assign({}, this.data);
+    if(this.editedIndex > -1)
+    {
+      let fields = Object.keys(this.editedItem);
+
+      this.editedItem = Object.assign({}, this.data);
+    }
+    
     this.removedFiles = [];
   }
 }
