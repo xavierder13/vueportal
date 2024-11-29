@@ -1,110 +1,112 @@
 <template>
   <div>
-    <v-card class="mx-2">
-      <v-card-title class="subtitle-1">Monthly Key Performance </v-card-title>
-      <v-card-text>
-        <v-simple-table class="elevation-1" id="monthly_key_performances" style="max-height: 250px; overflow-y: scroll; overflow-y: auto !important">
-          <template v-slot:default>
-            <thead>
-              <tr>
-                <th class="pa-2" width="10px">#</th>
-                <th class="pa-2">Year</th>
-                <th class="pa-2">Month</th>
-                <th class="pa-2" width="250px">Actual Grade(%)</th>
-                <th class="pa-2" width="80px"> Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(item, index) in monthly_key_performances" :class="index === editedIndex ? 'blue lighten-5' : ''">
-                <td class="pa-2"> {{ index + 1 }} </td>
+    <v-simple-table class="elevation-1" id="monthly_key_performances" style="max-height: 250px; overflow-y: scroll; overflow-y: auto !important">
+      <template v-slot:default>
+        <thead>
+          <tr>
+            <th class="pa-2" width="10px">#</th>
+            <th class="pa-2">Year</th>
+            <th class="pa-2">Month</th>
+            <th class="pa-2" width="250px">Actual Grade(%)</th>
+            <th class="pa-2" width="80px"> Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(item, index) in monthly_key_performances" :class="index === editedIndex ? 'blue lighten-5' : ''">
+            <td class="pa-2"> {{ index + 1 }} </td>
 
-                <!-- START Show Data if row is not for edit (show by default) -->
-                <td class="pa-2"> {{ item.year }} </td>
-                <td class="pa-2"> {{ item.month }}</td>
-                <template v-if="index !== editedIndex && item.status !== 'New'">
-                  <td class="pa-2"> {{ item.grade }} </td>
-                </template>
-                <!-- END Show Data if row is not for edit (show by default) -->
+            <!-- START Show Data if row is not for edit (show by default) -->
+            <td class="pa-2"> {{ item.year }} </td>
+            <td class="pa-2"> {{ item.month }}</td>
+            <template v-if="index !== editedIndex && item.status !== 'New'">
+              <td class="pa-2"> {{ item.grade }} </td>
+            </template>
+            <!-- END Show Data if row is not for edit (show by default) -->
 
-                <!-- START Show Fields if row is for edit -->
-                <template v-if="index === editedIndex || item.status === 'New'">
-                  <td class="pa-2">
-                    <v-text-field
-                      name="grade"
-                      v-model="editedItem.grade"
-                      dense
-                      hide-details
-                      :error-messages="gradeErrors"
-                      @input="$v.editedItem.grade.$touch()"
-                      @blur="$v.editedItem.grade.$touch()"
-                      @keypress="decNumValFilter()"
-                    ></v-text-field>
-                  </td>
-                </template>
-                <!-- END Show Fields if row is for edit -->
-                
-                <!-- START Show Edit(pencil icon) and Delete (trash icon) button if not Edit Mode (show by default) -->
-                <template v-if="index !== editedIndex && item.status !== 'New' ">
-                  <td class="pa-2">
-                    <v-icon
-                      small
-                      class="mr-2"
-                      color="green"
-                      @click="editItem(item)"
-                      :disabled="actionMode === 'Add' ? true : false"
-                    >
-                      mdi-pencil
-                    </v-icon>
+            <!-- START Show Fields if row is for edit -->
+            <template v-if="index === editedIndex || item.status === 'New'">
+              <td class="pa-2">
+                <v-text-field
+                  name="grade"
+                  v-model="editedItem.grade"
+                  dense
+                  hide-details
+                  :error-messages="gradeErrors"
+                  @input="$v.editedItem.grade.$touch()"
+                  @blur="$v.editedItem.grade.$touch()"
+                  @keypress="intNumValFilter()"
+                ></v-text-field>
+              </td>
+            </template>
+            <!-- END Show Fields if row is for edit -->
+            
+            <!-- START Show Edit(pencil icon) and Delete (trash icon) button if not Edit Mode (show by default) -->
+            <template v-if="index !== editedIndex && item.status !== 'New' ">
+              <td class="pa-2">
+                <v-icon
+                  small
+                  class="mr-2"
+                  color="green"
+                  @click="editItem(item)"
+                  :disabled="actionMode === 'Add' ? true : false"
+                >
+                  mdi-pencil
+                </v-icon>
 
-                    <v-icon
-                      small
-                      color="red"
-                      @click="showConfirmAlert(item)"
-                      :disabled="['Add', 'Edit'].includes(actionMode)"
-                    >
-                      mdi-delete
-                    </v-icon>
-                  </td>
-                </template>
-                <!-- END  Show Edit(pencil icon) and Delete (trash icon) button if not Edit Mode (show by default) -->
+                <v-icon
+                  small
+                  color="red"
+                  @click="showConfirmAlert(item)"
+                  :disabled="['Add', 'Edit'].includes(actionMode)"
+                >
+                  mdi-delete
+                </v-icon>
+              </td>
+            </template>
+            <!-- END  Show Edit(pencil icon) and Delete (trash icon) button if not Edit Mode (show by default) -->
 
-                <!-- START  Show Save and Cancel button if Edit Mode -->
-                <template v-if="index === editedIndex ? true : false || item.status === 'New' ">
-                  <td class="pa-2">
-                    <v-btn
-                      x-small
-                      :disabled="disabled"
-                      @click="saveItem()"
-                      icon
-                    >
-                      <v-icon color="primary">mdi-content-save</v-icon>
-                    </v-btn>
-                    <v-btn
-                      x-small
-                      color="#E0E0E0"
-                      @click="cancelEvent(item)"
-                      icon
-                    >
-                      <v-icon color="red">mdi-cancel</v-icon>
-                    </v-btn>
-                  </td>
-                </template>
-                <!-- END  Show Save and Cancel button if Edit Mode -->
-              </tr>
-            </tbody>
-            <tfoot>
-              <tr>
-                <td colspan="9" class="text-right">
-                  <v-btn class="primary" x-small @click="newItem()" :disabled="['Add', 'Edit'].includes(actionMode)">add item</v-btn>
-                </td>
-              </tr>
-            </tfoot>
-          </template>
-        </v-simple-table>
-      </v-card-text>
-    </v-card>
+            <!-- START  Show Save and Cancel button if Edit Mode -->
+            <template v-if="index === editedIndex ? true : false || item.status === 'New' ">
+              <td class="pa-2">
+                <v-btn
+                  x-small
+                  :disabled="disabled"
+                  @click="saveItem()"
+                  icon
+                >
+                  <v-icon color="primary">mdi-content-save</v-icon>
+                </v-btn>
+                <v-btn
+                  x-small
+                  color="#E0E0E0"
+                  @click="cancelEvent(item)"
+                  icon
+                >
+                  <v-icon color="red">mdi-cancel</v-icon>
+                </v-btn>
+              </td>
+            </template>
+            <!-- END  Show Save and Cancel button if Edit Mode -->
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="9" class="text-right">
+              <v-btn class="primary" x-small @click="newItem()" :disabled="['Add', 'Edit'].includes(actionMode)">add item</v-btn>
+            </td>
+          </tr>
+        </tfoot>
+      </template>
+    </v-simple-table>
   </div>
 </template>
+<style scoped>
+  .full-height {
+    height: calc(85vh - 110px); /* Adjust 270px to suits your needs */
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+</style>
 <script>
 
 import axios from "axios";
@@ -260,7 +262,7 @@ export default {
       });
     },
 
-    decNumValFilter(evt) {
+    intNumValFilter(evt) {
       evt = (evt) ? evt : window.event;
       let value = evt.target.value.toString() + evt.key.toString();
 
