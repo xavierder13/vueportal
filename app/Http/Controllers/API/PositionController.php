@@ -49,6 +49,7 @@ class PositionController extends Controller
             'name.unique' => 'Position already exists',
             'rank_id.required' => 'Rank is required',
             'rank.integer' => 'Rank must be an integer',
+            'cost_center.required' => 'Please enter Cost Center',
             'branchRequirement.*.branch_id.required' => 'Branch is required',
             'branchRequirement.*.branch_id.integer' => 'Branch ID must be an integer',
             'branchRequirement.*.quantity.required' => 'Quantity is required',
@@ -58,6 +59,7 @@ class PositionController extends Controller
         $validator = Validator::make($request->all(),[
             'name' => 'required|unique:positions,name',
             'rank_id' => 'required|integer',
+            'cost_center' => 'required',
             'branchRequirement.*.branch_id' => 'required|integer',
             'branchRequirement.*.quantity' => 'required|integer',
         ], $rules);
@@ -70,6 +72,7 @@ class PositionController extends Controller
         $position = new Position();
         $position->name = $request->get('name');
         $position->rank_id = $request->get('rank_id');
+        $position->cost_center = $request->get('cost_center');
         $position->save();
 
         // branchRequirement is list of required employees per branch
@@ -116,11 +119,19 @@ class PositionController extends Controller
             'name.unique' => 'Position already exists',
             'rank_id.required' => 'Rank is required',
             'rank.integer' => 'Rank must be an integer',
+            'cost_center.required' => 'Please enter Cost Center',
+            'branchRequirement.*.branch_id.required' => 'Branch is required',
+            'branchRequirement.*.branch_id.integer' => 'Branch ID must be an integer',
+            'branchRequirement.*.quantity.required' => 'Quantity is required',
+            'branchRequirement.*.quantity.integer' => 'Quantity must be an integer',
         ];
 
         $validator = Validator::make($request->all(),[
             'name' => 'required|unique:positions,name,'.$position_id,
             'rank_id' => 'required|integer',
+            'cost_center' => 'required',
+            'branchRequirement.*.branch_id' => 'required|integer',
+            'branchRequirement.*.quantity' => 'required|integer',
         ], $rules);
 
         if($validator->fails())
@@ -138,6 +149,7 @@ class PositionController extends Controller
 
         $position->name = $request->get('name');
         $position->rank_id = $request->get('rank_id');
+        $position->cost_center = $request->get('cost_center');
         $position->save();
 
         // branchRequirement is list of required employees per branch

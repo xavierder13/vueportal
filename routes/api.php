@@ -315,6 +315,16 @@ Route::group(['prefix' => 'employee_master_data', 'middleware' => ['auth:api', '
         'uses' => 'API\EmployeeMasterDataController@export',
         'as' => 'employee.master.data.export'
     ]); 
+
+    Route::post('/file_upload', [
+        'uses' => 'API\EmployeeMasterDataController@file_upload',
+        'as' => 'employee.master.data.file_upload'
+    ]); 
+
+    Route::post('/file_download', [
+        'uses' => 'API\EmployeeMasterDataController@file_download',
+        'as' => 'employee.master.data.file_download'
+    ]); 
 });
 
 // Employee Routes

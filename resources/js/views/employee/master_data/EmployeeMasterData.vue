@@ -208,10 +208,14 @@
               </v-icon>
             </template>
           </v-data-table>
-          <v-dialog v-model="dialog" max-width="1400px" persistent>
+          <v-dialog v-model="dialog" persistent fullscreen>
             <v-card>
               <v-card-title class="pa-4">
                 <span class="headline">{{ formTitle }}</span>
+                <v-spacer></v-spacer>
+                <v-btn @click="close()" icon>
+                  <v-icon> mdi-close </v-icon>
+                </v-btn>
               </v-card-title>
               <v-divider class="mt-0"></v-divider>
               <v-card-text>
@@ -223,16 +227,13 @@
                   :departments="departments"
                   @openAttachFileDialog="openAttachFileDialog"
                   ref="EmployeeInformationTabs"
-                />
-                <AttachFileDialog 
-                  :dialog="attach_file_dialog" 
-                  @closeAttachFileDialog="closeAttachFileDialog"
+                  :key="employeeInformationComponentKey"
                 />
               </v-card-text>
               <v-divider class="mb-3 mt-0"></v-divider>
               <v-card-actions class="pa-0">
                 <v-spacer></v-spacer>
-                <v-btn color="#E0E0E0" @click="close" class="mb-3">
+                <v-btn color="#E0E0E0" @click="clear() + (dialog = false)" class="mb-3">
                   Cancel
                 </v-btn>
                 <v-btn
@@ -359,12 +360,7 @@ export default {
           link: "/",
         },
         {
-          text: "Employee Lists",
-          disabled: false,
-          link: "/employee_master_data/list",
-        },
-        {
-          text: "View",
+          text: "Employee Master Data",
           disabled: true,
         },
       ],
@@ -410,6 +406,7 @@ export default {
       editedItem: {},
       editedIndex: -1,
       attach_file_dialog: false,
+      employeeInformationComponentKey: 0,
     };
   },
 
@@ -478,66 +475,100 @@ export default {
 
     save() {
 
-
-      // from EmployeeInformationTabs component
       let EmployeeInformationTabs = this.$refs.EmployeeInformationTabs;
+
       let dateModelHasErrors = Object.values(EmployeeInformationTabs.dateErrors).map((obj) => obj.status).includes(true);
 
-      this.$refs.EmployeeInformationTabs.$v.editedItem.$touch();
+      EmployeeInformationTabs.$v.editedItem.$touch();
       
-      // this.$v.editedItem.$touch();
-      // if (!this.$v.$error) {
-      //   this.disabled = true;
-      //   this.overlay = true;
-        
-      //   this.editedItem.branch_id = this.editedItem.branch.id;
-      //   this.editedItem.department_id = this.editedItem.department.id;
-      //   this.editedItem.position_id = this.editedItem.position.id;
-      //   const data = this.editedItem;
-      //   const employee_id = this.editedItem.id;
-      //   let url = "/api/employee_master_data" + (this.editedIndex > -1 ? "/update/" + employee_id : "/store");
+      if (!EmployeeInformationTabs.$v.editedItem.$error && !dateModelHasErrors) {
 
-      //   axios.post(url, data).then(
-      //     (response) => {
-      //       this.overlay = false;
-      //       this.disabled = false;
-      //       let data = response.data;
-     
-      //       if (data.success) {
-      //         // send data to Sockot.IO Server
-      //         // this.$socket.emit("sendData", { action: "employee-master-data-edit" });
+        this.disabled = true;
+        this.overlay = true;
 
-      //         let employee = data.employee;
+        const employee_id = this.editedItem.id;
+        let url = "/api/employee_master_data" + (this.editedIndex > -1 ? "/update/" + employee_id : "/store");
+
+        axios.post(url, this.formData()).then(
+          (response) => {
+            this.overlay = false;
+            this.disabled = false;
+            let data = response.data;
+            console.log(data);
+            
+            if (data.success) {
+              // send data to Sockot.IO Server
+              // this.$socket.emit("sendData", { action: "employee-master-data-edit" });
+
+              let employee = data.employee;
+              console.log(employee);
               
-      //         // format date_granted
-      //         // let [year, month, day] = employee.dob.split("-");
-      //         // employee.birth_date = `${month}/${day}/${year}`;
+              // format date_granted
+              let [year, month, day] = employee.dob.split("-");
+              employee.birth_date = `${month}/${day}/${year}`;
 
-      //         // [year, month, day] = employee.date_employed.split("-");
-      //         // employee.date_employed = `${month}/${day}/${year}`;
+              [year, month, day] = employee.date_employed.split("-");
+              employee.date_employed = `${month}/${day}/${year}`;
 
-      //         if(this.editedIndex > -1)
-      //         {
-      //           Object.assign(this.employees[this.editedIndex], employee );
-      //         }
-      //         else
-      //         {
-      //           this.employees.push(employee);
-      //         }
+              if(this.editedIndex > -1)
+              {
+                Object.assign(this.employees[this.editedIndex], employee );
+              }
+              else
+              {
+                this.employees.push(employee);
+              }
 
-      //         this.showAlert(data.success, "success");
-      //         this.close();
-      //       } else {
-      //       }
-      //     },
-      //     (error) => {
-      //       this.isUnauthorized(error);
+              this.showAlert(data.success, "success");
+              this.close();
+            } else {
+            }
+          },
+          (error) => {
+            this.isUnauthorized(error);
 
-      //       this.overlay = false;
-      //       this.disabled = false;
-      //     }
-      //   );
-      // }
+            this.overlay = false;
+            this.disabled = false;
+          }
+        );
+      }
+    },
+
+    formData(){
+      let formData = new FormData();
+
+        // from EmployeeInformationTabs component
+      let EmployeeInformationTabs = this.$refs.EmployeeInformationTabs;
+      let AttachFileDialog = this.$refs.AttachFileDialog;
+      
+      let data = EmployeeInformationTabs.editedItem
+      data.branch_id = data.branch.id;
+      data.department_id = data.department.id;
+      data.position_id = data.position.id;                                        
+
+      let fields = Object.keys(data);
+
+      fields.forEach(field => {
+        let fieldValue = data[`${field}`];
+        formData.append(field, fieldValue);
+      });
+
+      let activeStatus = ['True', 'true', true].includes(data.active) ? 1 : ['False', 'false', false].includes(data.active) ? 0 : 0;
+      
+      formData.append('active', activeStatus);
+
+      console.log(formData);
+      
+
+      let employee_files = EmployeeInformationTabs.employee_files;
+      
+      employee_files.forEach(item => {
+  
+        formData.append('employee_files[]', item.file);
+        formData.append('document_types[]', item.document_types);
+      });
+
+      return formData;
     },
 
     showAlert(title, icon) {
@@ -592,6 +623,14 @@ export default {
         this.editedItem = Object.assign({}, this.defaultItem);
         this.editedIndex = -1;
       });
+
+      let EmployeeInformationTabs = this.$refs.EmployeeInformationTabs
+      
+
+      EmployeeInformationTabs.$v.$reset();
+
+      EmployeeInformationTabs.editedItem = Object.assign({}, EmployeeInformationTabs.defaultItem);
+
     },
 
     closeImportDialog() {
@@ -608,6 +647,23 @@ export default {
 
     closeAttachFileDialog() {
       this.attach_file_dialog = false;
+    },
+
+    uploadFile(data) {
+      
+      console.log('asdad');
+
+      if(this.editedIndex > -1) //update mode
+      {
+        this.employees[this.editedIndex].employee_files.push(data);
+      }
+      else
+      {
+        this.employee_files.push(data);
+      }
+
+      // this.employeeInformationComponentKey += 1;
+      
     },
 
     isUnauthorized(error) {
@@ -716,28 +772,6 @@ export default {
   },
 
   watch: {
-    'editedItem.department'() { 
-      let division = this.editedItem.department.division;
-      this.editedItem.division = division ? division.name : '';
-    },
-    'editedItem.branch'() {
-      let company = this.editedItem.branch.company;
-      this.editedItem.company = company ? company.name : '';
-    },
-    'editedItem.position'() {
-      let rank = this.editedItem.position.rank;
-      // console.log(this.editedItem.position);
-      this.editedItem.rank = rank ? rank.name : '';
-    },
-    'editedItem.date_employed'() {
-      // var date_resigned = this.editedItem.date_resigned ? moment(this.editedItem.date_resigned) : moment();//now
-      // var date_employed = moment(new Date(this.editedItem.date_employed));
-
-      // console.log(date_resigned.diff(date_employed, 'years')) // 44700
-      // console.log(date_resigned.diff(date_employed, 'months')) // 745
-      // console.log(date_resigned.diff(date_employed, 'days')) // 31
-
-    },
     selectAll() {
       if(this.selectAll)
       {

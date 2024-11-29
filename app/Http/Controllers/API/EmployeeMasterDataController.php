@@ -69,7 +69,9 @@ class EmployeeMasterDataController extends Controller
             'date_employed.required' => 'Date Employed is required',
             'date_employed.date_format' => 'Invalid date. Format: (YYYY-MM-DD)',
             'gender.required' => 'Gender is required',
+            'gender.in' => 'Gender value must be "Female" or "Male"',
             'civil_status.required' => 'Civil Status is required',
+            'civil_status.in' => 'Civil Status value must be Single, Married, Widowed or Legally Separated',
             'tin_no.required' => 'TIN No. is required',
             'pagibig_no.required' => 'Pag-IBIG No. is required',
             'philhealth_no.required' => 'PhilHealth No. is required',
@@ -77,6 +79,8 @@ class EmployeeMasterDataController extends Controller
             'educ_attain.required' => 'Educational Attainment is required',
             'school_attended.required' => 'School Attended is required',
             'course.required' => 'Course is required',
+            'employment_type.required' => 'Employment Type is required',
+            'employment_type.in' => 'Civil Status value must be Probitionary or Regular',
             'active' => 'Status is required',
         ];
 
@@ -92,14 +96,15 @@ class EmployeeMasterDataController extends Controller
             'position_id' => 'required',
             'department_id' => 'required',
             'date_employed' => 'required|date_format:Y-m-d',
-            'gender' => 'required',
-            'civil_status' => 'required',
+            'gender' => 'required|in:Male,Female,MALE,FEMALE',
+            'civil_status' => 'required|in:Single,Married,Widowed,Legally Separated,SINGLE,MARRIED,WIDOWED,LEGALLY SEPARATED',
             'tin_no' => 'required',
             'pagibig_no' => 'required',
             'philhealth_no' => 'required',
             'sss_no' => 'required',
             'educ_attain' => 'required',
             'school_attended' => 'required',
+            'employment_type' => 'required|in:Probitionary,Regular,PROBITIONARY,REGULAR',
             'course' => 'required',
             'active' => 'required|boolean',
         ];
@@ -133,6 +138,7 @@ class EmployeeMasterDataController extends Controller
         $employee->educ_attain = $data->get('educ_attain');
         $employee->school_attended = $data->get('school_attended');
         $employee->course = $data->get('course');
+        $employee->employment_type = $data->get('employment_type');
         $employee->active = $data->get('active');
         $employee->save();
 
@@ -140,8 +146,8 @@ class EmployeeMasterDataController extends Controller
     }
 
     public function store(Request $request)
-    {   
-
+    {       
+        // return $request;
         $validator = $this->validator($request->all());
         
         if($validator->fails())
@@ -151,10 +157,87 @@ class EmployeeMasterDataController extends Controller
 
         $employee = new EmployeeMasterData();
         $employee = $this->save($employee, $request);
- 
+
+        $employee_files_errors = [];
+        
+        // upload files
+        foreach ($request->employee_files as $key => $file) {
+            if($file)
+            {
+                $file_validator = $this->file_validator($file);
+
+                if($file_validator->fails())
+                {
+                    $employee_files_errors[$key] =   $file_validator->errors();
+                }
+            }
+        }
+
+        if(count($employee_files_errors))
+        {
+            return response()->json(['employee_files_errors' => $employee_files_errors], 200);
+        }
+
         $employee = $this->getEmployees()->find($employee->id);
 
         return response()->json(['success' => 'Record has been added', 'employee' => $employee], 200);
+    }
+
+    public function file_validator($file) 
+    {   
+    
+        $file_extension = $file->getClientOriginalExtension();
+
+        return Validator::make(
+            [   
+                'file_ext' => strtolower($file_extension),
+                'file' => $file,
+            ],
+            [
+                'file_ext' => 'in:jpeg,jpg,png,docs,docx,pdf',
+                'file' => 'max: 5200'
+            ], 
+            [
+                'file_ext.in' => 'File type must be jpeg, jpg, png, docs, docx or pdf.',
+                'file.max' => 'File size maximum is 5MB.'
+            ]
+        );  
+        
+    }
+
+    public function upload_file(Request $request, $employee_id)
+    {
+
+        try {
+
+            $validator = $this->file_validator($request->file);
+            
+            if($validator->fails())
+            {
+                return response()->json(['error' => $validator->errors()], 200);
+            }  
+
+            $file_date = Carbon::now()->format('Y-m-d');
+            $uploadedFile = $request->file('file');
+            $file_name = time().$uploadedFile->getClientOriginalName();
+            $file_path = '/wysiwyg/employee_basic_requirements/' . $file_date;
+
+            $uploadedFile->move(public_path() . $file_path, $file_name);
+            
+            // $applicant_file = new EmployeeMasterDataFile();
+            // $applicant_file->applicant_id = $employee_id;
+            // $applicant_file->file_name = $file_name;
+            // $applicant_file->file_path = $file_path;
+            // $applicant_file->file_type = $file_extension;
+            // $applicant_file->title = $request->document_type;
+            // $applicant_file->save();
+                
+        } catch (\Exception $e) {
+        
+            return response()->json(['error' => $e->getMessage()], 200);
+        }
+
+        return response()->json(['success' => 'File has been uploaded'], 200);
     }
 
     public function update(Request $request, $employee_id)
@@ -228,8 +311,16 @@ class EmployeeMasterDataController extends Controller
                     'philhealth_no',
                     'sss_no',
                     'educ_attain',
+                    'school_year',
                     'school_attended',
                     'course',
+                    'employment_type',
+                    'regularization_date',
+                    'last_day_of_work',
+                    'reason_of_resignation',
+                    'coe_is_issued',
+                    'last_pay_is_issued',
+                    'compliance',
                     'active',
                 ]; 
 
@@ -298,8 +389,16 @@ class EmployeeMasterDataController extends Controller
                         '*.philhealth_no.required' => 'PhilHealth No. is required',
                         '*.sss_no.required' => 'SSS No. is required',
                         '*.educ_attain.required' => 'Educational Attainment is required',
+                        '*.school_year.required' => 'School Year is required',
                         '*.school_attended.required' => 'School Attended is required',
                         '*.course.required' => 'Course is required',
+                        '*.employment_type.required' => 'Employment Type is required',
+                        '*.employment_type.in' => 'Civil Status value must be Probitionary or Regular',
+                        '*.regularization_date.date_format' => 'Invalid date. Format: (YYYY-MM-DD)',
+                        '*.last_day_of_work.date_format' => 'Invalid date. Format: (YYYY-MM-DD)',
+                        '*.coe_is_issued.in' => 'Issued COE field value must be 0 (Inactive) or 1 (Active)',
+                        '*.last_pay_is_issued.in' => 'Issued Last Pay field value must be 0 (Inactive) or 1 (Active)',
+                        '*.compliance.in' => 'Compliance value must be Render 30 Days, Render 60 Days or Non-Compliant',
                         '*.active.required' => 'Active field is required',
                         '*.active.in' => 'Active value must be 0 (Inactive) or 1 (Active)',
                     ];
@@ -326,6 +425,12 @@ class EmployeeMasterDataController extends Controller
                         '*.educ_attain' => 'required',
                         '*.school_attended' => 'required',
                         '*.course' => 'required',
+                        '*.employment_type' => 'required|in:Probitionary,Regular',
+                        '*.regularization_date' => 'nullable|date_format:Y-m-d',
+                        '*.last_day_of_work' => 'nullable|date_format:Y-m-d',
+                        '*.coe_is_issued' => 'nullable|boolean|in:0,1',
+                        '*.last_pay_is_issued' => 'nullable|boolean|in:0,1',
+                        '*.compliance' => 'nullable|in:Render 30 Days,Render 60 Days,Non-Compliant',
                         '*.active' => 'required|boolean|in:0,1',
                     ];
                     
@@ -407,8 +512,16 @@ class EmployeeMasterDataController extends Controller
                             'philhealth_no' => $field['philhealth_no'],
                             'sss_no' => $field['sss_no'],
                             'educ_attain' => $field['educ_attain'],
+                            'school_year' => $field['school_year'],
                             'school_attended' => $field['school_attended'],
                             'course' => $field['course'],
+                            'employment_type' => $field['employment_type'],
+                            'regularization_date' => $field['regularization_date'],
+                            'last_day_of_work' => $field['last_day_of_work'],
+                            'reason_of_resignation' => $field['reason_of_resignation'],
+                            'coe_is_issued' => $field['coe_is_issued'],
+                            'last_pay_is_issued' => $field['last_pay_is_issued'],
+                            'compliance' => $field['compliance'],
                             'active' => $field['active']
                         ]);
                     }

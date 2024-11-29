@@ -71,6 +71,20 @@
                           </v-col>
                         </v-row>
                         <v-row>
+                          <v-col class="my-0 pt-0">
+                            <v-autocomplete
+                              name="cost_center"
+                              :items="cost_centers"
+                              v-model="editedItem.cost_center"
+                              label="Cost Center"
+                              required
+                              :error-messages="costCenterErrors + positionError.cost_center"
+                              @input="$v.editedItem.cost_center.$touch() + (positionError.cost_center = [])"
+                              @blur="$v.editedItem.cost_center.$touch()"
+                            ></v-autocomplete>
+                          </v-col>
+                        </v-row>
+                        <v-row>
                           <v-col class="my-0 py-0">
                             <v-toolbar color="grey darken-1 white--text font-weight-bold" height="40px">
                               <span> Required Employee Per Branch</span>
@@ -178,6 +192,7 @@ export default {
     editedItem: {
       name: { required },
       rank_id: { required },
+      cost_center: { required },
     },
   },
   data() {
@@ -193,15 +208,18 @@ export default {
       dialog: false,
       positions: [],
       ranks: [],
+      cost_centers: ['HQ-Management', 'BR-Officer', 'BR-Rank & File'],
       branches: [],
       editedIndex: -1,
       editedItem: {
         name: "",
         rank_id: "",
+        cost_center: "",
       },
       defaultItem: {
         name: "",
         rank_id: "",
+        cost_center: "",
       },
       items: [
         {
@@ -218,6 +236,7 @@ export default {
       positionError: {
         name: [],
         rank_id: [],
+        cost_center: []
       },
       branchRequirement: [],
     };
@@ -378,6 +397,7 @@ export default {
       this.positionError = {
         name: [],
         rank_id: [],
+        cost_center: [],
       };
 
       let api = "";
@@ -465,6 +485,7 @@ export default {
       this.positionError = {
         name: [],
         rank_id: [],
+        cost_center: [],
       }
     },
 
@@ -525,6 +546,13 @@ export default {
       if (!this.$v.editedItem.rank_id.$dirty) return errors;
       !this.$v.editedItem.rank_id.required &&
         errors.push("Rank is required.");
+      return errors;
+    },
+    costCenterErrors() {
+      const errors = [];
+      if (!this.$v.editedItem.cost_center.$dirty) return errors;
+      !this.$v.editedItem.cost_center.required &&
+        errors.push("Cost Center is required.");
       return errors;
     },
     activeStatus() {
