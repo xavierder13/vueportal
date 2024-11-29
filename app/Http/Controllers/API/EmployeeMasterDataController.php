@@ -270,7 +270,7 @@ class EmployeeMasterDataController extends Controller
         
         $employee->delete();
 
-        return response()->json(['success' => 'Record has been deleed'], 200);
+        return response()->json(['success' => 'Record has been deleted'], 200);
     }
 
     public function import(Request $request)

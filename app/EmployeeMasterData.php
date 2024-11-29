@@ -27,8 +27,16 @@ class EmployeeMasterData extends Model
         'philhealth_no',
         'sss_no',
         'educ_attain',
+        'school_year',
         'school_attended',
         'course',
+        'employment_type',
+        'regularization_date',
+        'last_day_of_work',
+        'reason_of_resignation',
+        'coe_is_issued',
+        'last_pay_is_issued',
+        'compliance',
         'active',
     ];
 
@@ -47,6 +55,36 @@ class EmployeeMasterData extends Model
     public function department()
     {
         return $this->hasOne('App\Department', 'id', 'department_id');
+        //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
+    }
+
+    public function files()
+    {
+        return $this->hasOne('App\EmployeeMasterDataFile', 'employee_id', 'id');
+        //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
+    }
+
+    public function disciplinary_measures()
+    {
+        return $this->hasOne('App\EmployeeDisciplinaryMeasures', 'employee_id', 'id');
+        //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
+    }
+
+    public function employment_histories()
+    {
+        return $this->hasOne('App\EmployeeEmploymentHistory', 'employee_id', 'id');
+        //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
+    }
+
+    public function merit_histories()
+    {
+        return $this->hasOne('App\EmployeeMeritHistory', 'employee_id', 'id');
+        //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
+    }
+
+    public function trainings()
+    {
+        return $this->hasOne('App\EmployeeTraining', 'employee_id', 'id');
         //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
     }
 }
