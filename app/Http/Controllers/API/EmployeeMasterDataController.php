@@ -316,11 +316,11 @@ class EmployeeMasterDataController extends Controller
                     'course',
                     'employment_type',
                     'regularization_date',
-                    'last_day_of_work',
-                    'reason_of_resignation',
-                    'coe_is_issued',
-                    'last_pay_is_issued',
-                    'compliance',
+                    // 'last_day_of_work',
+                    // 'reason_of_resignation',
+                    // 'coe_is_issued',
+                    // 'last_pay_is_issued',
+                    // 'compliance',
                     'active',
                 ]; 
 
@@ -395,10 +395,10 @@ class EmployeeMasterDataController extends Controller
                         '*.employment_type.required' => 'Employment Type is required',
                         '*.employment_type.in' => 'Civil Status value must be Probitionary or Regular',
                         '*.regularization_date.date_format' => 'Invalid date. Format: (YYYY-MM-DD)',
-                        '*.last_day_of_work.date_format' => 'Invalid date. Format: (YYYY-MM-DD)',
-                        '*.coe_is_issued.in' => 'Issued COE field value must be 0 (Inactive) or 1 (Active)',
-                        '*.last_pay_is_issued.in' => 'Issued Last Pay field value must be 0 (Inactive) or 1 (Active)',
-                        '*.compliance.in' => 'Compliance value must be Render 30 Days, Render 60 Days or Non-Compliant',
+                        // '*.last_day_of_work.date_format' => 'Invalid date. Format: (YYYY-MM-DD)',
+                        // '*.coe_is_issued.in' => 'Issued COE field value must be 0 (Inactive) or 1 (Active)',
+                        // '*.last_pay_is_issued.in' => 'Issued Last Pay field value must be 0 (Inactive) or 1 (Active)',
+                        // '*.compliance.in' => 'Compliance value must be Render 30 Days, Render 60 Days or Non-Compliant',
                         '*.active.required' => 'Active field is required',
                         '*.active.in' => 'Active value must be 0 (Inactive) or 1 (Active)',
                     ];
@@ -427,10 +427,10 @@ class EmployeeMasterDataController extends Controller
                         '*.course' => 'required',
                         '*.employment_type' => 'required|in:Probitionary,Regular',
                         '*.regularization_date' => 'nullable|date_format:Y-m-d',
-                        '*.last_day_of_work' => 'nullable|date_format:Y-m-d',
-                        '*.coe_is_issued' => 'nullable|boolean|in:0,1',
-                        '*.last_pay_is_issued' => 'nullable|boolean|in:0,1',
-                        '*.compliance' => 'nullable|in:Render 30 Days,Render 60 Days,Non-Compliant',
+                        // '*.last_day_of_work' => 'nullable|date_format:Y-m-d',
+                        // '*.coe_is_issued' => 'nullable|boolean|in:0,1',
+                        // '*.last_pay_is_issued' => 'nullable|boolean|in:0,1',
+                        // '*.compliance' => 'nullable|in:Render 30 Days,Render 60 Days,Non-Compliant',
                         '*.active' => 'required|boolean|in:0,1',
                     ];
                     
@@ -517,11 +517,6 @@ class EmployeeMasterDataController extends Controller
                             'course' => $field['course'],
                             'employment_type' => $field['employment_type'],
                             'regularization_date' => $field['regularization_date'],
-                            'last_day_of_work' => $field['last_day_of_work'],
-                            'reason_of_resignation' => $field['reason_of_resignation'],
-                            'coe_is_issued' => $field['coe_is_issued'],
-                            'last_pay_is_issued' => $field['last_pay_is_issued'],
-                            'compliance' => $field['compliance'],
                             'active' => $field['active']
                         ]);
                     }

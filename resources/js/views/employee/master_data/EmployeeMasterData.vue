@@ -444,6 +444,7 @@ export default {
       this.dialog = true;
 
       this.employee_files = item.employee_files;
+      this.employeeInformationComponentKey += 1;
 
       // let [month, day, year] = this.editedItem.dob.split("/");
       // this.editedItem.birth_date = `${year}-${month}-${day}`;
