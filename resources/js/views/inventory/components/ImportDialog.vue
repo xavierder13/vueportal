@@ -95,14 +95,14 @@
               <v-col class="my-0 py-0">
                 <v-autocomplete
                   v-model="database"
-                  :items="databases"
+                  :items="filteredDatabases"
                   label="SAP Database"
                   prepend-icon="mdi-database"
                   required
                   :readonly="uploadDisabled"
                   :error-messages="databaseErrors"
-                  item-text="database"
-                  item-value="database"
+                  no-filter
+                  :search-input.sync="search"
                   return-object
                   @input="$v.database.$touch()"
                   @blur="$v.database.$touch()"
@@ -266,6 +266,7 @@ export default {
       whse_code: [],
       inventory_groups: [{ name: "Admin-Branch" }, { name: "Audit-Branch" }],
       inventory_group: "Admin-Branch",
+      search: "",
     }
   },
   methods: {
@@ -301,7 +302,7 @@ export default {
       axios.post(this.api_route, data).then(
         (response) => {
           let data = response.data;
-          
+
           this.uploadDisabled = false;
           this.uploading = false;
 
@@ -565,6 +566,19 @@ export default {
       let date = new Date();
       return date.toISOString().slice(0,10);
     },
+    // getItemText(item) {
+    //   return `${item.server} - ${item.database}`;
+    // },
+    filteredDatabases() {
+      let search = this.search ? this.search.toLowerCase() : '';
+      let databases = this.databases.filter((value) =>{
+        return value.database.toLowerCase().includes(search);
+      });
+
+      // return default list this.databases if search is null;
+      return search ? databases : this.databases;
+    
+    },
     ...mapState("auth", ["user"]),
     ...mapGetters("userRolesPermissions", ["hasAnyRole", "hasPermission"]),
   },
@@ -575,7 +589,8 @@ export default {
       {
         this.whse_code = this.whse_codes[0].code;
       }
-    }
+    },
+
   },
   
 }
