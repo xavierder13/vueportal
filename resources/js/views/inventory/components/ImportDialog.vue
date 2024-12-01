@@ -102,7 +102,7 @@
                   :readonly="uploadDisabled"
                   :error-messages="databaseErrors"
                   item-text="database"
-                  item-value="database"
+                  item-value="id"
                   return-object
                   @input="$v.database.$touch()"
                   @blur="$v.database.$touch()"
