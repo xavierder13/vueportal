@@ -572,7 +572,7 @@ export default {
     filteredDatabases() {
       let search = this.search ? this.search.toLowerCase() : '';
       let databases = this.databases.filter((value) =>{
-        return value.database.toLowerCase().includes(search);
+        return value.database.toLowerCase().includes(search) || value.server.toLowerCase().includes(search);
       });
 
       // return default list this.databases if search is null;
