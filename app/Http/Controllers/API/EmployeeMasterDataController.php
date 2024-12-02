@@ -80,7 +80,7 @@ class EmployeeMasterDataController extends Controller
             'school_attended.required' => 'School Attended is required',
             'course.required' => 'Course is required',
             'employment_type.required' => 'Employment Type is required',
-            'employment_type.in' => 'Civil Status value must be Probitionary or Regular',
+            'employment_type.in' => 'Civil Status value must be Probationary or Regular',
             'active' => 'Status is required',
         ];
 
@@ -104,7 +104,7 @@ class EmployeeMasterDataController extends Controller
             'sss_no' => 'required',
             'educ_attain' => 'required',
             'school_attended' => 'required',
-            'employment_type' => 'required|in:Probitionary,Regular,PROBITIONARY,REGULAR',
+            'employment_type' => 'required|in:Probationary,Regular,Probationary,REGULAR',
             'course' => 'required',
             'active' => 'required|boolean',
         ];
@@ -205,7 +205,7 @@ class EmployeeMasterDataController extends Controller
         
     }
 
-    public function upload_file(Request $request, $employee_id)
+    public function file_upload(Request $request, $employee_id)
     {
 
         try {
@@ -393,7 +393,7 @@ class EmployeeMasterDataController extends Controller
                         '*.school_attended.required' => 'School Attended is required',
                         '*.course.required' => 'Course is required',
                         '*.employment_type.required' => 'Employment Type is required',
-                        '*.employment_type.in' => 'Civil Status value must be Probitionary or Regular',
+                        '*.employment_type.in' => 'Civil Status value must be Probationary or Regular',
                         '*.regularization_date.date_format' => 'Invalid date. Format: (YYYY-MM-DD)',
                         // '*.last_day_of_work.date_format' => 'Invalid date. Format: (YYYY-MM-DD)',
                         // '*.coe_is_issued.in' => 'Issued COE field value must be 0 (Inactive) or 1 (Active)',
@@ -425,7 +425,7 @@ class EmployeeMasterDataController extends Controller
                         '*.educ_attain' => 'required',
                         '*.school_attended' => 'required',
                         '*.course' => 'required',
-                        '*.employment_type' => 'required|in:Probitionary,Regular',
+                        '*.employment_type' => 'required|in:Probationary,Regular',
                         '*.regularization_date' => 'nullable|date_format:Y-m-d',
                         // '*.last_day_of_work' => 'nullable|date_format:Y-m-d',
                         // '*.coe_is_issued' => 'nullable|boolean|in:0,1',

@@ -920,7 +920,7 @@ export default {
       input_date_employed: false,
       input_date_resigned: false,
       cost_centers: ['HQ-Management', 'BR-Officer', 'BR-Rank & Files',],
-      employment_types: ['Regular', 'Probitionary'],
+      employment_types: ['Regular', 'Probationary'],
       compliances: ['Render 30 Days', 'Render 60 days', 'Non-Compliant'],
       regularization_file_input: [],
       regularization_memo_file_input: [],
