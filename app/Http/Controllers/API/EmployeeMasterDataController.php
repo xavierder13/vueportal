@@ -9,6 +9,7 @@ use App\Branch;
 use App\Department;
 use App\Position;
 use App\RequiredEmployeeMap;
+use App\EmployeeMasterDataFile;
 use App\Imports\EmployeeMasterDataImport;
 use App\Exports\EmployeeMasterDataExport;
 use App\Exports\BranchManpowerReport;
@@ -42,6 +43,7 @@ class EmployeeMasterDataController extends Controller
         ->with('department.division')
         ->with('position')
         ->with('position.rank')
+        ->with('files')
         ->select(DB::raw("*,
                  CONCAT(FLOOR((TIMESTAMPDIFF(DAY, date_employed, date_format(IFNULL(date_resigned, NOW()),'%Y-%m-%d')) / 365)), ' years(s) ',
                  FLOOR(((TIMESTAMPDIFF(DAY, date_employed, date_format(IFNULL(date_resigned, NOW()),'%Y-%m-%d')) % 365) / 30)), ' month(s) ',
@@ -208,14 +210,16 @@ class EmployeeMasterDataController extends Controller
     public function file_upload(Request $request, $employee_id)
     {
 
-        try {
-
+        try {   
+            $file = $request->file;
             $validator = $this->file_validator($request->file);
             
             if($validator->fails())
             {
                 return response()->json(['error' => $validator->errors()], 200);
             }  
+
+            $file_extension = $file->getClientOriginalExtension();
 
             $file_date = Carbon::now()->format('Y-m-d');
             $uploadedFile = $request->file('file');
@@ -224,13 +228,13 @@ class EmployeeMasterDataController extends Controller
 
             $uploadedFile->move(public_path() . $file_path, $file_name);
             
-            // $applicant_file = new EmployeeMasterDataFile();
-            // $applicant_file->applicant_id = $employee_id;
-            // $applicant_file->file_name = $file_name;
-            // $applicant_file->file_path = $file_path;
-            // $applicant_file->file_type = $file_extension;
-            // $applicant_file->title = $request->document_type;
-            // $applicant_file->save();
+            $applicant_file = new EmployeeMasterDataFile();
+            $applicant_file->employee_id = $employee_id;
+            $applicant_file->file_name = $file_name;
+            $applicant_file->file_path = $file_path;
+            $applicant_file->file_type = $file_extension;
+            $applicant_file->title = $request->document_type;
+            $applicant_file->save();
                 
         } catch (\Exception $e) {
         
@@ -238,6 +242,32 @@ class EmployeeMasterDataController extends Controller
         }
 
         return response()->json(['success' => 'File has been uploaded'], 200);
+    }
+
+    public function file_download(Request $request)
+    {
+        try {
+
+            $file = EmployeeMasterDataFile::find($request->file_id);
+
+            $title = $file->title; 
+            $file_path = $file->file_path;    
+            $file_name = $file->file_name;
+            $file_type = $file->file_type;
+
+            $exploded = explode('/', $title); //explode or split the file type e.g 'Diploma/Copy of grades'
+
+            $title = count($exploded) ? join('_', $exploded) : $title;
+
+            $file = public_path() . $file_path . "/" . $file_name;
+            $headers = array('Content-Type: application/' . $file_type,);
+
+            return response()->download($file, $title . '.' . $file_type, $headers);
+
+        } catch (\Exception $e) {
+                
+            return response()->json(['error' => $e->getMessage()], 200);
+        }
     }
 
     public function update(Request $request, $employee_id)
@@ -276,15 +306,6 @@ class EmployeeMasterDataController extends Controller
     public function import(Request $request)
     {
         try {
-            $file_extension = '';
-            $path = '';
-            if($request->file('file'))
-            {   
-                $path1 = $request->file('file')->store('temp'); 
-                $path=storage_path('app').'/'.$path1;  
-                // $path = $request->file('file')->getRealPath();
-                $file_extension = $request->file('file')->getClientOriginalExtension();
-            }
     
             if ($request->file('file')) {
                     
@@ -393,7 +414,7 @@ class EmployeeMasterDataController extends Controller
                         '*.school_attended.required' => 'School Attended is required',
                         '*.course.required' => 'Course is required',
                         '*.employment_type.required' => 'Employment Type is required',
-                        '*.employment_type.in' => 'Civil Status value must be Probationary or Regular',
+                        '*.employment_type.in' => 'Employment Type value must be Probationary or Regular',
                         '*.regularization_date.date_format' => 'Invalid date. Format: (YYYY-MM-DD)',
                         // '*.last_day_of_work.date_format' => 'Invalid date. Format: (YYYY-MM-DD)',
                         // '*.coe_is_issued.in' => 'Issued COE field value must be 0 (Inactive) or 1 (Active)',
