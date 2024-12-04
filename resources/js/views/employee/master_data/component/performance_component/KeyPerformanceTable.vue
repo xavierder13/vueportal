@@ -169,7 +169,7 @@ export default {
     },
 
     saveItem(){
-      console.log(this.editedItem);
+ 
       this.$v.editedItem.$touch();
 
       if(!this.$v.editedItem.$error)

@@ -60,7 +60,7 @@ class EmployeeMasterData extends Model
 
     public function files()
     {
-        return $this->hasOne('App\EmployeeMasterDataFile', 'employee_id', 'id');
+        return $this->hasMany('App\EmployeeMasterDataFile', 'employee_id', 'id');
         //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
     }
 

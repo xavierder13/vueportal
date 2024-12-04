@@ -22,7 +22,7 @@
     </v-tabs>
     <v-tabs-items v-model="tab">
       <v-tab-item :transition="false" class="full-height-tab-main py-2">
-        <v-tabs vertical color="primary" light class="pa-0 ma-0">
+        <v-tabs v-model="tab_personal_data" vertical color="primary" light class="pa-0 ma-0">
           <v-tab class="vertical-tab-menu mt-2">
             Personal Information
           </v-tab>
@@ -86,7 +86,7 @@
                   <v-col cols="3" class="my-0 py-0">
                     <v-text-field
                       name="age"
-                      v-model="age"
+                      v-model="editedItem.age"
                       label="Age"
                       readonly
                     ></v-text-field>
@@ -248,9 +248,15 @@
                         <th width="10px">#</th>
                         <th width="300px" class="pa-2">
                           File Name
-                          <v-btn x-small color="primary" class="ml-4" @click="attach_file_dialog = true">
+                          <v-btn 
+                            x-small 
+                            color="primary" 
+                            class="ml-4" 
+                            @click="openAttachFileDialog()"
+                            v-if="hasPermission('employee-master-data-file-upload')"
+                          >
                             Upload File
-                            <v-icon small>mdi-upload</v-icon>
+                            <v-icon small class="ml-1">mdi-upload</v-icon>
                           </v-btn>
                         </th>
                         <th width="80px">Actions</th>
@@ -284,11 +290,11 @@
                         <td> {{ i + 1 }} </td>
                         <td class="pa-2"> 
                           <span class="subtitle-1">
-                            {{ file.document_type }} 
+                            {{ file.title ? file.title : file.document_type }} 
                           </span>
                         </td>
                         <td>
-                          <v-tooltip top v-if="editedIndex > 1">
+                          <v-tooltip top v-if="editedIndex > -1">
                             <template v-slot:activator="{ on, attrs }">
                               <v-btn 
                                 x-small
@@ -296,10 +302,11 @@
                                 rounded
                                 icon
                                 @click="downloadFile(file)"
+                                v-if="hasPermission('employee-master-data-file-download')"
                                 v-bind="attrs" 
                                 v-on="on"
                               > 
-                                <v-icon>mdi-download</v-icon> 
+                                <v-icon class="ml-1">mdi-download</v-icon> 
                               </v-btn>
                             </template>
                             <span>Download</span>
@@ -313,6 +320,7 @@
                                 rounded
                                 icon
                                 @click="confirmDeleteFile(file)"
+                                v-if="hasPermission('employee-master-data-file-delete')"
                                 v-bind="attrs" 
                                 v-on="on"
                               > 
@@ -546,7 +554,7 @@
                       required
                       multiple
                       :error-messages="regularizationFileErrors"
-                      @change="validateFile()"
+                      @change="validateFile('regularization_file_input')"
                       clearable
                     >
                     </v-file-input>
@@ -586,7 +594,7 @@
                       required
                       multiple
                       :error-messages="regularizationMemoFileErrors"
-                      @change="validateFile()"
+                      @change="validateFile('regularization_memo_file_input')"
                       clearable
                     >
                     </v-file-input>
@@ -703,13 +711,13 @@
         </v-card>
       </v-tab-item>
     </v-tabs-items>  
-    <AttachFileDialog 
+    <!-- <AttachFileDialog 
       :dialog="attach_file_dialog" 
       :employee_id="data.id"
       :editedIndex="editedIndex"
       @closeAttachFileDialog="closeAttachFileDialog"
       @uploadFile="uploadFile"
-    />
+    /> -->
     <v-dialog v-model="dialog_delete_loading" max-width="500px" persistent>
       <v-card>
         <v-card-text>
@@ -776,8 +784,10 @@
   }
 </style>
 <script>
+import axios from "axios";
 import { validationMixin } from "vuelidate";
 import { required, maxLength, email } from "vuelidate/lib/validators";
+import { mapState, mapGetters } from "vuex";
 import AttachFileDialog from './AttachFileDialog.vue';
 import KeyPerformanceTable from './performance_component/KeyPerformanceTable.vue';
 
@@ -788,6 +798,7 @@ export default {
   },
   props: [
     'data',
+    'files',
     'branches',
     'positions',
     'departments',
@@ -823,6 +834,7 @@ export default {
   data() {
     return {
       tab: 0,
+      tab_personal_data: 0,
       tab_performance: 0,
       gender_items: [
         { text: "MALE", value: "MALE" },
@@ -844,6 +856,7 @@ export default {
         last_name: "",
         first_name: "",
         birth_date: "",
+        age: "",
         address: "",
         contact: "",
         email: "",
@@ -877,6 +890,7 @@ export default {
         last_name: "",
         first_name: "",
         birth_date: "",
+        age: "",
         address: "",
         contact: "",
         email: "",
@@ -940,19 +954,23 @@ export default {
       },
       dialog_delete_loading: false,
       removedFiles: [],
+      employeeFilesComponentKey: 0,
     }
   },
   methods: {
     openAttachFileDialog() {
       this.$emit('openAttachFileDialog');
     },
-    downloadFile(data) {
+    downloadFile(file) {
+      
+      const data = { file_id: file.id };
+
       axios.post('/api/employee_master_data/file_download', data, { responseType: 'arraybuffer'})
           .then((response) => {
             var fileURL = window.URL.createObjectURL(new Blob([response.data]));
             var fileLink = document.createElement('a');
             fileLink.href = fileURL;
-            fileLink.setAttribute('download', 'Shellsinformation.xls');
+            fileLink.setAttribute('download', file.title + '.' + file.file_type);
             document.body.appendChild(fileLink);
             fileLink.click();
         }, (error) => {
@@ -1021,9 +1039,8 @@ export default {
       }
   
     },
-    validateFile(){
-      let myFileInput = this.applicant.myFileInput;
-      let copy_of_grades = this.applicant.copy_of_grades;
+    validateFile(file){
+      let myFileInput = this[file];
 
       let extensions = ['docs', 'docx', 'pdf', 'jpg', 'jpeg', 'png'];
     
@@ -1149,8 +1166,6 @@ export default {
     },
 
     uploadFile(data) {
-      
-      console.log(data);
 
       if(this.editedIndex > -1) //update mode
       {
@@ -1162,6 +1177,23 @@ export default {
       }
       
     },
+    showAlert(msg) {
+      this.$swal({
+        position: "center",
+        icon: "success",
+        title: msg,
+        showConfirmButton: false,
+        timer: 2500,
+      });
+    },
+    clear() {
+      this.$v.$reset();
+      this.tab = 0;
+      this.tab_personal_data = 0;
+      this.tab_performance = 0;
+      this.editedItem = Object.assign({}, this.defaultItem);
+      this.employee_files = [];
+    },
     isUnauthorized(error) {
       // if unauthenticated (401)
       if (error.response.status == "401") {
@@ -1171,7 +1203,7 @@ export default {
   },
   watch: {
     dialog() {
-      
+      this.employee_files = [];
       if(this.editedIndex > -1)
       {
         let fields = Object.keys(this.editedItem);
@@ -1204,6 +1236,14 @@ export default {
       // console.log(date_resigned.diff(date_employed, 'days')) // 31
 
     },
+    'editedItem.birth_date'() {
+      let currentDate = new Date();
+      let birthDate = new Date(this.editedItem.birth_date);
+      let difference = currentDate - birthDate;
+      let age = Math.floor(difference/31557600000);
+      this.editedItem.age = this.editedItem.birth_date ? age : '';      
+    
+    } 
   },
   computed: {
     branchErrors() {
@@ -1481,16 +1521,20 @@ export default {
     },
     tabCSS() {
       return "color: #1E88E5 !important; background-color: white !important;";
-    }
+    },
+    ...mapGetters("userRolesPermissions", ["hasRole", "hasAnyRole", "hasPermission", "hasAnyPermission"]),
   },
   mounted() {
     // this.editedItem = Object.assign({}, this.data);
+
     if(this.editedIndex > -1)
     {
       let fields = Object.keys(this.editedItem);
 
       this.editedItem = Object.assign({}, this.data);
-    }
+
+      this.employee_files = this.files;
+    }  
     
     this.removedFiles = [];
   }
