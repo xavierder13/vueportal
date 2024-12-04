@@ -150,7 +150,7 @@ class EmployeeMasterDataController extends Controller
 
     public function store(Request $request)
     {       
-        return $request;
+ 
         $validator = $this->validator($request->all());
         
         if($validator->fails())
