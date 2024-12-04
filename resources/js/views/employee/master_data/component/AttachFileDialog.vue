@@ -92,6 +92,7 @@
   </div>
 </template>
 <script>
+  import axios from "axios";
   import { required, requiredIf } from "vuelidate/lib/validators";
   import { validationMixin } from "vuelidate";
   export default {
@@ -146,20 +147,23 @@
             formData.append('file', this.file);
             formData.append('document_type', this.document_type);
 
-            axios.post('/api/employee_master_data/file_upload', formData, {
+            axios.post('/api/employee_master_data/file_upload/' + this.employee_id, formData, {
               headers: {
                 Authorization: "Bearer " + localStorage.getItem("access_token"),
                 "Content-Type": "multipart/form-data",
               }
             }).then(
               (response) => {
+                this.dialog_uploading = false;
                 let data = response.data;
+                
                 this.showAlert(data.success);
                 this.$emit('uploadFile', data.file);
                 this.closeDialog();
                 this.resetData();
               },
               (error) => {
+                this.dialog_uploading = false;
                 console.log(error);
               }
             )
@@ -178,9 +182,9 @@
 
       },
       closeDialog() {
-        // this.$v.$reset();
-        // this.file = [];
-        // this.document_type = "";
+        this.$v.$reset();
+        this.file = [];
+        this.document_type = "";
         this.$emit('closeAttachFileDialog');
       },
       showAlert(msg) {
@@ -218,7 +222,7 @@
               this.fileInvalid = true;
             }
 
-            if(this.file.size > 5000000) // 5000000 bytes or 20MB
+            if(this.file.size > 5000000) // 5000000 bytes or 5MB
             {
               this.fileInvalid = true;
             }

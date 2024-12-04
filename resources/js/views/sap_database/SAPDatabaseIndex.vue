@@ -41,8 +41,7 @@
                 >
                   <v-icon>mdi-plus</v-icon>
                 </v-btn>
-
-                <v-dialog v-model="dialog" max-width="500px" persistent>
+                <v-dialog v-model="dialog" max-width="800px" persistent>
                   <v-card>
                     <v-card-title class="mb-0 pb-0">
                       <span class="headline">{{ formTitle }}</span>
@@ -50,111 +49,165 @@
                     <v-divider></v-divider>
                     <v-card-text>
                       <v-container>
-                        <v-row>
-                          <v-col class="my-0 py-0">
-                            <v-text-field
-                              name="server"
-                              v-model="editedItem.server"
-                              :error-messages="serverErrors"
-                              label="Server"
-                              @input="$v.editedItem.server.$touch()"
-                              @blur="$v.editedItem.server.$touch()"
-                            ></v-text-field>
-                          </v-col>
-                        </v-row>
-                        <v-row>
-                          <v-col class="my-0 py-0">
-                            <v-text-field
-                              name="database"
-                              v-model="editedItem.database"
-                              :error-messages="databaseErrors"
-                              label="Database"
-                              @input="$v.editedItem.database.$touch()"
-                              @blur="$v.editedItem.database.$touch()"
-                            ></v-text-field>
-                          </v-col>
-                        </v-row>
-                        <v-row>
-                          <v-col class="my-0 py-0">
-                            <v-text-field
-                              name="username"
-                              v-model="editedItem.username"
-                              :error-messages="usernameErrors"
-                              label="Username"
-                              @input="$v.editedItem.username.$touch()"
-                              @blur="$v.editedItem.username.$touch()"
-                            ></v-text-field>
-                          </v-col>
-                        </v-row>
-                        <v-row>
-                          <v-col class="my-0 py-0">
-                            <v-text-field
-                              name="password"
-                              v-model="password"
-                              :error-messages="passwordErrors"
-                              label="Password"
-                              required
-                              @input="$v.password.$touch()"
-                              @blur="$v.password.$touch() + dummyPassword"
-                              @keyup="passwordChange()"
-                              @focus="onFocus()"
-                              type="password"
-                            ></v-text-field>
-                          </v-col>
-                        </v-row>
-                        <v-row>
-                          <v-col class="my-0 py-0">
-                            <v-text-field
-                              name="confirm_password"
-                              v-model="confirm_password"
-                              :error-messages="confirm_passwordErrors"
-                              label="Confirm Password"
-                              required
-                              @input="$v.confirm_password.$touch()"
-                              @blur="$v.confirm_password.$touch() + dummyPassword"
-                              @keyup="passwordChange()"
-                              @focus="onFocus()"
-                              type="password"
-                            ></v-text-field>
-                          </v-col>
-                        </v-row>
-                        <v-row>
-                          <v-col class="my-0 py-0">
-                            <v-autocomplete
-                              v-model="editedItem.sap_db_branches"
-                              :items="branches"
-                              item-text="name"
-                              item-value="id"
-                              label="Branch"
-                              multiple
-                              chips
-                            >
-                              <template v-slot:selection="data">
-                                <v-chip
-                                  color="secondary"
-                                  v-bind="data.attrs"
-                                  :input-value="data.selected"
-                                  close
-                                  @click:close="removeItem(data.item)"
+                         <v-row>
+                          <v-col>
+                            <v-row>
+                              <v-col class="my-0 py-0">
+                                <v-text-field
+                                  name="server"
+                                  v-model="editedItem.server"
+                                  :error-messages="serverErrors"
+                                  label="Server"
+                                  @input="$v.editedItem.server.$touch()"
+                                  @blur="$v.editedItem.server.$touch()"
+                                ></v-text-field>
+                              </v-col>
+                            </v-row>
+                            <v-row>
+                              <v-col class="my-0 py-0">
+                                <v-text-field
+                                  name="database"
+                                  v-model="editedItem.database"
+                                  :error-messages="databaseErrors"
+                                  label="Database"
+                                  @input="$v.editedItem.database.$touch()"
+                                  @blur="$v.editedItem.database.$touch()"
+                                ></v-text-field>
+                              </v-col>
+                            </v-row>
+                            <v-row>
+                              <v-col class="my-0 py-0">
+                                <v-text-field
+                                  name="username"
+                                  v-model="editedItem.username"
+                                  :error-messages="usernameErrors"
+                                  label="Username"
+                                  @input="$v.editedItem.username.$touch()"
+                                  @blur="$v.editedItem.username.$touch()"
+                                ></v-text-field>
+                              </v-col>
+                            </v-row>
+                            <v-row>
+                              <v-col class="my-0 py-0">
+                                <v-text-field
+                                  name="password"
+                                  v-model="password"
+                                  :error-messages="passwordErrors"
+                                  label="Password"
+                                  required
+                                  @input="$v.password.$touch()"
+                                  @blur="$v.password.$touch() + dummyPassword"
+                                  @keyup="passwordChange()"
+                                  @focus="onFocus()"
+                                  type="password"
+                                ></v-text-field>
+                              </v-col>
+                            </v-row>
+                            <v-row>
+                              <v-col class="my-0 py-0">
+                                <v-text-field
+                                  name="confirm_password"
+                                  v-model="confirm_password"
+                                  :error-messages="confirm_passwordErrors"
+                                  label="Confirm Password"
+                                  required
+                                  @input="$v.confirm_password.$touch()"
+                                  @blur="$v.confirm_password.$touch() + dummyPassword"
+                                  @keyup="passwordChange()"
+                                  @focus="onFocus()"
+                                  type="password"
+                                ></v-text-field>
+                              </v-col>
+                            </v-row>
+                            <v-row>
+                              <v-col class="my-0 py-0">
+                                <v-switch
+                                  v-model="editedItem.active"
+                                  hide-details=""
                                 >
-                                  {{ data.item.name }}
-                                </v-chip>
-                              </template>
-                            </v-autocomplete>
+                                  <template v-slot:label>
+                                    <v-chip :color="editedItem.active ? 'primary' : 'secondary' " class="ml-1 mt-2"> 
+                                      {{ editedItem.active ? 'Active' : 'Inactive' }} 
+                                    </v-chip>
+                                  </template>
+                                </v-switch>
+                              </v-col>
+                            </v-row>
                           </v-col>
-                        </v-row>
-                        <v-row>
-                          <v-col class="my-0 py-0">
-                            <v-switch
-                              v-model="editedItem.active"
-                              hide-details=""
-                            >
-                              <template v-slot:label>
-                                <v-chip :color="editedItem.active ? 'primary' : 'secondary' " class="ml-1 mt-2"> 
-                                  {{ editedItem.active ? 'Active' : 'Inactive' }} 
-                                </v-chip>
-                              </template>
-                            </v-switch>
+                          <v-divider vertical></v-divider>
+                          <v-col>
+                            <!-- <v-row>
+                              <v-col>
+                                <v-card>
+                                  <v-card-title class="py-0">
+                                    <v-switch
+                                      v-model="switchFilter"
+                                      label="Filter Selected Permission"
+                                      class="pa-3"
+                                      hide-details=""
+                                    ></v-switch>
+                                    <v-spacer></v-spacer>
+                                    <v-text-field
+                                      v-model="searchBranch"
+                                      append-icon="mdi-magnify"
+                                      label="Search"
+                                      single-line
+                                      hide-details=""
+                                    ></v-text-field>
+                                    <v-spacer></v-spacer>
+                                  </v-card-title>
+                                  <v-data-table
+                                    v-model="editedItem.sap_db_branches"
+                                    :headers="[{ text: 'Branch', value: 'name' }]"
+                                    :items="filteredSapBranches"
+                                    item-key="id"
+                                    show-select
+                                    :search="search"
+                                    :loading="loading"
+                                    loading-text="Loading... Please wait"
+                                  >
+                                    <template v-slot:header.data-table-select="{ props, on }">
+                                      <v-simple-checkbox
+                                        v-model="selectAll"
+                                        :value="props.value || props.indeterminate"
+                                        v-on="on"
+                                        :indeterminate="props.indeterminate"
+                                        color="primary"
+                                      />
+                                    </template>
+                                  
+                                    <template v-slot:item.data-table-select="{ isSelected, select }">
+                                      <v-simple-checkbox color="primary" v-ripple :value="isSelected" @input="select($event)" ></v-simple-checkbox>
+                                    </template>
+                                  </v-data-table>
+                                </v-card>
+                              </v-col>
+                            </v-row> -->
+                            <v-row>
+                              <v-col class="my-0 py-0">
+                                <span class="subtitle-1">Branches</span>
+                                <v-autocomplete
+                                  v-model="editedItem.sap_db_branches"
+                                  :items="branches"
+                                  item-text="name"
+                                  item-value="id"
+                                  multiple
+                                  chips
+                                >
+                                  <template v-slot:selection="data">
+                                    <v-chip
+                                      color="secondary"
+                                      v-bind="data.attrs"
+                                      :input-value="data.selected"
+                                      close
+                                      @click:close="removeItem(data.item)"
+                                    >
+                                      {{ data.item.name }}
+                                    </v-chip>
+                                  </template>
+                                </v-autocomplete>
+                              </v-col>
+                            </v-row>
                           </v-col>
                          </v-row>
                       </v-container>
@@ -289,6 +342,9 @@ export default {
       confirm_password: "",
       loading: true,
       passwordHasChanged: false,
+      switchFilter: false,
+      selectAll: false,
+      searchBranch: "",
     };
   },
 
@@ -559,6 +615,33 @@ export default {
           this.confirm_password = "password";
         }
       }
+    },
+    filteredSapBranches() {
+      let filteredSapBranches = [];
+
+      filteredSapBranches = this.branches;
+
+      // if switch is true then filter all checked permissions
+      if(this.switchFilter)
+      {
+        filteredSapBranches = [];
+
+        this.branches.forEach(branch => {
+          this.editedItem.sap_db_branches.forEach(value => {
+            console.log(value);
+            
+            if(branch.id == value.branch_id)
+            {
+              filteredSapBranches.push(value);
+            }
+          });
+          
+
+        });
+        
+      }
+      
+      return filteredSapBranches;
     },
     ...mapState("branches", ["branches"]),
     ...mapGetters("userRolesPermissions", ["hasRole", "hasPermission"]),

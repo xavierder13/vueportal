@@ -66,6 +66,27 @@ class EmployeeMasterDataMaintenance
                 return $next($request); 
             }
         }
+
+        //Employee Master Data File Upload
+        if($request->is('api/employee_master_data/file_upload/*')){
+            if($user->can('employee-master-data-file-upload')){
+                return $next($request); 
+            }
+        }
+
+        //Employee Master Data File Delete
+        if($request->is('api/employee_master_data/file_delete')){
+            if($user->can('employee-master-data-file-delete')){
+                return $next($request); 
+            }
+        }
+
+        //Employee Master Data File Download
+        if($request->is('api/employee_master_data/file_download')){
+            if($user->can('employee-master-data-file-download')){
+                return $next($request); 
+            }
+        }
         
 
         return abort(401, 'Unauthorized');

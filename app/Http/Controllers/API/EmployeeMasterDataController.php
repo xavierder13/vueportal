@@ -45,6 +45,7 @@ class EmployeeMasterDataController extends Controller
         ->with('position.rank')
         ->with('files')
         ->select(DB::raw("*,
+                 FLOOR((TIMESTAMPDIFF(DAY, dob, date_format(NOW(),'%Y-%m-%d')) / 365)) as age,
                  CONCAT(FLOOR((TIMESTAMPDIFF(DAY, date_employed, date_format(IFNULL(date_resigned, NOW()),'%Y-%m-%d')) / 365)), ' years(s) ',
                  FLOOR(((TIMESTAMPDIFF(DAY, date_employed, date_format(IFNULL(date_resigned, NOW()),'%Y-%m-%d')) % 365) / 30)), ' month(s) ',
                  ((TIMESTAMPDIFF(DAY, date_employed, date_format(IFNULL(date_resigned, NOW()),'%Y-%m-%d')) % 365) % 30), ' day(s)')  as length_of_service
@@ -149,21 +150,19 @@ class EmployeeMasterDataController extends Controller
 
     public function store(Request $request)
     {       
-        // return $request;
+ 
         $validator = $this->validator($request->all());
         
         if($validator->fails())
         {
             return response()->json($validator->errors());
         }
-
-        $employee = new EmployeeMasterData();
-        $employee = $this->save($employee, $request);
-
         $employee_files_errors = [];
-        
+        $employee_files = $request->employee_files;
+        $document_types = $request->document_types;
+
         // upload files
-        foreach ($request->employee_files as $key => $file) {
+        foreach ($employee_files as $key => $file) {
             if($file)
             {
                 $file_validator = $this->file_validator($file);
@@ -180,8 +179,23 @@ class EmployeeMasterDataController extends Controller
             return response()->json(['employee_files_errors' => $employee_files_errors], 200);
         }
 
+        $employee = new EmployeeMasterData();
+        $employee = $this->save($employee, $request);
+
+        foreach ($employee_files as $key => $file) {
+            $document_type = $document_types[$key];
+            $data = [
+                'employee_id' => $employee->id,
+                'file' => $file,
+                'title' => $document_type,
+            ];
+
+            $this->file_save($data);
+        }
+
         $employee = $this->getEmployees()->find($employee->id);
 
+        
         return response()->json(['success' => 'Record has been added', 'employee' => $employee], 200);
     }
 
@@ -207,12 +221,11 @@ class EmployeeMasterDataController extends Controller
         
     }
 
-    public function file_upload(Request $request, $employee_id)
+    public function file_save ($data)
     {
-
         try {   
-            $file = $request->file;
-            $validator = $this->file_validator($request->file);
+            $file = $data['file'];
+            $validator = $this->file_validator($file);
             
             if($validator->fails())
             {
@@ -222,26 +235,37 @@ class EmployeeMasterDataController extends Controller
             $file_extension = $file->getClientOriginalExtension();
 
             $file_date = Carbon::now()->format('Y-m-d');
-            $uploadedFile = $request->file('file');
-            $file_name = time().$uploadedFile->getClientOriginalName();
+            $file_name = time().$file->getClientOriginalName();
             $file_path = '/wysiwyg/employee_basic_requirements/' . $file_date;
 
-            $uploadedFile->move(public_path() . $file_path, $file_name);
+            $file->move(public_path() . $file_path, $file_name);
             
-            $applicant_file = new EmployeeMasterDataFile();
-            $applicant_file->employee_id = $employee_id;
-            $applicant_file->file_name = $file_name;
-            $applicant_file->file_path = $file_path;
-            $applicant_file->file_type = $file_extension;
-            $applicant_file->title = $request->document_type;
-            $applicant_file->save();
+            $employee_file = new EmployeeMasterDataFile();
+            $employee_file->employee_id = $data['employee_id'];
+            $employee_file->file_name = $file_name;
+            $employee_file->file_path = $file_path;
+            $employee_file->file_type = $file_extension;
+            $employee_file->title = $data['title'];
+            $employee_file->save();
+
+            return response()->json(['success' => 'File has been uploaded', 'file' => $employee_file], 200);
                 
         } catch (\Exception $e) {
         
             return response()->json(['error' => $e->getMessage()], 200);
         }
+    }
 
-        return response()->json(['success' => 'File has been uploaded'], 200);
+    public function file_upload(Request $request, $employee_id)
+    {
+        $data = [
+            'employee_id' => $employee_id,
+            'file' => $request->file,
+            'title' => $request->document_type,
+        ];
+
+        return $this->file_save($data);
+        
     }
 
     public function file_download(Request $request)
@@ -299,6 +323,45 @@ class EmployeeMasterDataController extends Controller
         }
         
         $employee->delete();
+
+        $files = EmployeeMasterDataFile::where('employee_id', $employee_id)->get();
+    
+		foreach ($files as $file) {
+
+			//if record is empty then display error page
+			if(empty($file->id))
+			{
+				return abort(404, 'Not Found');
+			}
+
+			EmployeeMasterDataFile::find($file->id)->delete();
+
+			$file_path = $file->file_path;
+
+			$path = public_path() . $file_path . "/" . $file->file_name;
+			unlink($path);
+		}
+
+        return response()->json(['success' => 'Record has been deleted'], 200);
+    }
+
+    public function file_delete(Request $request)
+    {
+
+        $file = EmployeeMasterDataFile::find($request->get('id'));
+        
+        //if record is empty then display error page
+        if(empty($file->id))
+        {
+            return abort(404, 'Not Found');
+        }
+
+        $file->delete();
+
+        $file_path = $file->file_path;
+
+        $path = public_path() . $file_path . "/" . $file->file_name;
+        unlink($path);
 
         return response()->json(['success' => 'Record has been deleted'], 200);
     }

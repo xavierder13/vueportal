@@ -221,6 +221,7 @@
               <v-card-text>
                 <EmployeeInformationTabs
                   :data="editedItem"
+                  :files="employee_files"
                   :editedIndex="editedIndex"
                   :positions="positions"
                   :branches="branches"
@@ -233,7 +234,7 @@
               <v-divider class="mb-3 mt-0"></v-divider>
               <v-card-actions class="pa-0">
                 <v-spacer></v-spacer>
-                <v-btn color="#E0E0E0" @click="clear() + (dialog = false)" class="mb-3">
+                <v-btn color="#E0E0E0" @click="close()" class="mb-3">
                   Cancel
                 </v-btn>
                 <v-btn
@@ -247,6 +248,13 @@
               </v-card-actions>
             </v-card>
           </v-dialog>
+          <AttachFileDialog 
+            :dialog="attach_file_dialog" 
+            :employee_id="editedItem.id"
+            :editedIndex="editedIndex"
+            @closeAttachFileDialog="closeAttachFileDialog"
+            @uploadFile="uploadFile"
+          />
           <ImportDialog 
             :api_route="api_route" 
             :dialog_import="dialog_import"
@@ -407,6 +415,7 @@ export default {
       editedIndex: -1,
       attach_file_dialog: false,
       employeeInformationComponentKey: 0,
+      employee_files_error: [],
     };
   },
 
@@ -433,7 +442,7 @@ export default {
       );
     },
     editEmployee(item) {
-
+      
       this.editedItem.gender = item.gender.toUpperCase();
       this.editedItem.civil_status = item.civil_status.toUpperCase();
 
@@ -443,7 +452,7 @@ export default {
       this.editedItem = Object.assign({}, item);
       this.dialog = true;
 
-      this.employee_files = item.employee_files;
+      this.employee_files = item.files;
       this.employeeInformationComponentKey += 1;
 
       // let [month, day, year] = this.editedItem.dob.split("/");
@@ -460,7 +469,6 @@ export default {
       
       axios.post("/api/employee_master_data/delete", data).then(
         (response) => {
-          console.log(response.data);
           if (response.data.success) {
             // send data to Sockot.IO Server
             // this.$socket.emit("sendData", { action: "employee-master-data-delete" });
@@ -489,27 +497,32 @@ export default {
 
         const employee_id = this.editedItem.id;
         let url = "/api/employee_master_data" + (this.editedIndex > -1 ? "/update/" + employee_id : "/store");
-
+        
         axios.post(url, this.formData()).then(
           (response) => {
             this.overlay = false;
             this.disabled = false;
             let data = response.data;
             console.log(data);
+
+            if(data.employee_files_error)
+            {
+              this.employee_files_error = data.employee_files_error;
+            }
             
             if (data.success) {
               // send data to Sockot.IO Server
               // this.$socket.emit("sendData", { action: "employee-master-data-edit" });
 
               let employee = data.employee;
-              console.log(employee);
+              // console.log(employee);
               
               // format date_granted
-              let [year, month, day] = employee.dob.split("-");
-              employee.birth_date = `${month}/${day}/${year}`;
+              // let [year, month, day] = employee.dob.split("-");
+              // employee.birth_date = `${month}/${day}/${year}`;
 
-              [year, month, day] = employee.date_employed.split("-");
-              employee.date_employed = `${month}/${day}/${year}`;
+              // [year, month, day] = employee.date_employed.split("-");
+              // employee.date_employed = `${month}/${day}/${year}`;
 
               if(this.editedIndex > -1)
               {
@@ -558,15 +571,12 @@ export default {
       
       formData.append('active', activeStatus);
 
-      console.log(formData);
-      
-
       let employee_files = EmployeeInformationTabs.employee_files;
       
-      employee_files.forEach(item => {
+      employee_files.forEach((item, i) => {
   
         formData.append('employee_files[]', item.file);
-        formData.append('document_types[]', item.document_types);
+        formData.append('document_types[]', item.document_type);
       });
 
       return formData;
@@ -624,14 +634,11 @@ export default {
         this.editedItem = Object.assign({}, this.defaultItem);
         this.editedIndex = -1;
       });
+      this.employee_files = [];
 
       let EmployeeInformationTabs = this.$refs.EmployeeInformationTabs
+      EmployeeInformationTabs.clear();
       
-
-      EmployeeInformationTabs.$v.$reset();
-
-      EmployeeInformationTabs.editedItem = Object.assign({}, EmployeeInformationTabs.defaultItem);
-
     },
 
     closeImportDialog() {
@@ -651,18 +658,20 @@ export default {
     },
 
     uploadFile(data) {
-      
-      console.log('asdad');
-
+      let EmployeeInformationTabs = this.$refs.EmployeeInformationTabs;
       if(this.editedIndex > -1) //update mode
       {
-        this.employees[this.editedIndex].employee_files.push(data);
+        this.employees[this.editedIndex].files.push(data);
       }
       else
       {
         this.employee_files.push(data);
       }
 
+      
+
+      EmployeeInformationTabs.employee_files = this.employee_files;
+      
       // this.employeeInformationComponentKey += 1;
       
     },
