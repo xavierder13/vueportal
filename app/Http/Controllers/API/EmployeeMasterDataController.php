@@ -131,7 +131,7 @@ class EmployeeMasterDataController extends Controller
         $employee->position_id = $data->get('position_id');
         $employee->department_id = $data->get('department_id');
         $employee->date_employed = $data->get('date_employed');
-        $employee->date_resigned = $data->get('date_resigned');
+        $employee->date_resigned = $data->get('date_resigned') ? $data->get('date_resigned') : null;
         $employee->gender = $data->get('gender');
         $employee->civil_status = $data->get('civil_status');
         $employee->tin_no = $data->get('tin_no');
@@ -143,8 +143,8 @@ class EmployeeMasterDataController extends Controller
         $employee->school_attended = $data->get('school_attended');
         $employee->course = $data->get('course');
         $employee->employment_type = $data->get('employment_type');
-        $employee->regularization_date = $data->get('regularization_date');
-        $employee->last_day_of_work = $data->get('last_day_of_work');
+        $employee->regularization_date = $data->get('regularization_date') ? $data->get('regularization_date') : null;
+        $employee->last_day_of_work = $data->get('last_day_of_work') ? $data->get('last_day_of_work') : null;
         $employee->reason_of_resignation = $data->get('reason_of_resignation');
         $employee->coe_is_issued = $data->get('coe_is_issued');
         $employee->last_pay_is_issued = $data->get('last_pay_is_issued');
@@ -157,6 +157,7 @@ class EmployeeMasterDataController extends Controller
 
     public function store(Request $request)
     {       
+        
         $validator = $this->validator($request->all());
         
         if($validator->fails())
