@@ -139,9 +139,16 @@ class EmployeeMasterDataController extends Controller
         $employee->philhealth_no = $data->get('philhealth_no');
         $employee->sss_no = $data->get('sss_no');
         $employee->educ_attain = $data->get('educ_attain');
+        $employee->school_year = $data->get('school_year');
         $employee->school_attended = $data->get('school_attended');
         $employee->course = $data->get('course');
         $employee->employment_type = $data->get('employment_type');
+        $employee->regularization_date = $data->get('regularization_date');
+        $employee->last_day_of_work = $data->get('last_day_of_work');
+        $employee->reason_of_resignation = $data->get('reason_of_resignation');
+        $employee->coe_is_issued = $data->get('coe_is_issued');
+        $employee->last_pay_is_issued = $data->get('last_pay_is_issued');
+        $employee->compliance = $data->get('compliance');
         $employee->active = $data->get('active');
         $employee->save();
 
@@ -150,7 +157,6 @@ class EmployeeMasterDataController extends Controller
 
     public function store(Request $request)
     {       
- 
         $validator = $this->validator($request->all());
         
         if($validator->fails())

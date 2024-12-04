@@ -503,7 +503,7 @@ export default {
             this.overlay = false;
             this.disabled = false;
             let data = response.data;
-
+    
             if(data.employee_files_error)
             {
               this.employee_files_error = data.employee_files_error;
@@ -566,7 +566,7 @@ export default {
         formData.append(field, fieldValue);
       });
 
-      let activeStatus = ['True', 'true', true].includes(data.active) ? 1 : ['False', 'false', false].includes(data.active) ? 0 : 0;
+      let activeStatus = ['True', 'true', true, 1, '1'].includes(data.active) ? 1 : ['False', 'false', false, '0', 0].includes(data.active) ? 0 : 0;
       
       formData.append('active', activeStatus);
 
