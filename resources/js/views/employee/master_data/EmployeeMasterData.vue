@@ -497,6 +497,7 @@ export default {
 
         const employee_id = this.editedItem.id;
         let url = "/api/employee_master_data" + (this.editedIndex > -1 ? "/update/" + employee_id : "/store");
+        console.log(this.formData());
         
         axios.post(url, this.formData()).then(
           (response) => {
