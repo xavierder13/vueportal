@@ -163,10 +163,11 @@ class EmployeeMasterDataController extends Controller
         {
             return response()->json($validator->errors());
         }
-        $employee_files_errors = [];
-        $employee_files = $request->employee_files;
-        $document_types = $request->document_types;
 
+        $employee_files_errors = [];
+        $employee_files = is_array($request->employee_files) ? $request->employee_files : [];
+        $document_types = $request->document_types;
+        
         // upload files
         foreach ($employee_files as $key => $file) {
             if($file)
@@ -201,7 +202,6 @@ class EmployeeMasterDataController extends Controller
 
         $employee = $this->getEmployees()->find($employee->id);
 
-        
         return response()->json(['success' => 'Record has been added', 'employee' => $employee], 200);
     }
 

@@ -467,6 +467,9 @@
                   v-model="editedItem.employment_type"
                   :items="employment_types"
                   label="Employment Type"
+                  :error-messages="employmentTypeErrors"
+                  @input="$v.editedItem.employment_type.$touch()"
+                  @blur="$v.editedItem.employment_type.$touch()"
                 >
                 </v-autocomplete>
               </v-col>
@@ -828,6 +831,7 @@ export default {
       school_year: { required },
       school_attended: { required },
       course: { required },
+      employment_type: { required },
     },
     
   },
@@ -1441,8 +1445,11 @@ export default {
       !this.$v.editedItem.course.required && errors.push("Course is required.");
       return errors;
     },
-    age() {
-      return "";
+    employmentTypeErrors() {
+      const errors = [];
+      if (!this.$v.editedItem.employment_type.$dirty) return errors;
+      !this.$v.editedItem.employment_type.required && errors.push("Employment Type is required.");
+      return errors;
     },
     regularizationFileErrors() {
       

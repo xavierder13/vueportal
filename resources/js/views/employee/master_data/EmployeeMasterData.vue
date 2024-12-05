@@ -500,6 +500,8 @@ export default {
         
         axios.post(url, this.formData()).then(
           (response) => {
+            console.log(response.data);
+            
             this.overlay = false;
             this.disabled = false;
             let data = response.data;
@@ -570,10 +572,9 @@ export default {
       
       formData.append('active', activeStatus);
 
-      let employee_files = EmployeeInformationTabs.employee_files;
-      
+      let employee_files = EmployeeInformationTabs.employee_files;   
+
       employee_files.forEach((item, i) => {
-  
         formData.append('employee_files[]', item.file);
         formData.append('document_types[]', item.document_type);
       });
@@ -775,6 +776,12 @@ export default {
     activeStatus() {
       return this.editedItem.active ? 'Active' : 'Inactive';
     },
+    // editedValues() {
+    //   let edited = this.$refs.EmployeeInformationTabs.editedItem;
+    //   let editedItem = { title: edited.title, url: edited.url, description: edited.description };
+
+    //   return JSON.stringify(editedItem)
+    // },
     ...mapState("auth", ["user", "userIsLoaded"]),
     ...mapState("userRolesPermissions", ["userRolesPermissionsIsLoaded"]),
     ...mapGetters("userRolesPermissions", ["hasRole", "hasAnyRole", "hasPermission", "hasAnyPermission"]),
@@ -813,6 +820,23 @@ export default {
         this.indeterminate = false;
       }
     },
+
+    // editedValues() {
+    //   let edited = this.editedItem;
+    //   let original = this.originalItem;
+    //   let editedItem = { title: edited.title, url: edited.url, description: edited.description };
+    //   let originalItem = { title: original.title, url: original.url, description: original.description };
+
+    //   if(this.editedIndex > -1)
+    //   {
+    //     this.btnText = "OK";
+    //     if(JSON.stringify(editedItem) != JSON.stringify(originalItem))
+    //     {
+    //       this.btnText = "Update"; 
+    //     }
+    //   }
+      
+    // },
 
   }, 
 

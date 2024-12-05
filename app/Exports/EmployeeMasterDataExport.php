@@ -50,7 +50,9 @@ class EmployeeMasterDataExport implements FromCollection, WithHeadings
                     d.name as department,
                     e.name as division,		
                     date_format(a.date_employed,'%m/%d/%Y') as date_employed,
-                    date_format(a.date_resigned,'%m/%d/%Y') as date_resigned,
+                    CASE WHEN date_format(a.date_resigned,'%m/%d/%Y') = '00/00/0000' THEN '' ELSE
+                        date_format(a.date_resigned,'%m/%d/%Y')
+                    END as date_resigned,
                     a.gender,	
                     a.civil_status,	
                     a.tin_no,	
@@ -58,8 +60,22 @@ class EmployeeMasterDataExport implements FromCollection, WithHeadings
                     a.philhealth_no,
                     a.sss_no,
                     a.educ_attain,
+                    a.school_year,
                     a.school_attended,
                     a.course,
+                    a.employment_type,
+                    CASE WHEN date_format(a.regularization_date,'%m/%d/%Y') = '00/00/0000' THEN '' ELSE
+                        date_format(a.regularization_date,'%m/%d/%Y')
+                    END as regularization_date,
+                    CASE WHEN date_format(a.last_day_of_work,'%m/%d/%Y') = '00/00/0000' THEN '' ELSE
+                        date_format(a.last_day_of_work,'%m/%d/%Y')
+                    END as last_day_of_work,
+                    CASE WHEN a.reason_of_resignation = NULL or a.reason_of_resignation = 'NULL' THEN '' ELSE
+                        IFNULL(a.reason_of_resignation, '') 
+                    END as reason_of_resignation,
+                    CASE WHEN a.compliance = NULL or a.compliance = 'NULL' THEN '' ELSE
+                        IFNULL(a.compliance, '') 
+                    END as compliance,
                     CONCAT(FLOOR((TIMESTAMPDIFF(DAY, date_employed, date_format(IFNULL(date_resigned, NOW()),'%Y-%m-%d')) / 365)), ' years(s) ',
                     FLOOR(((TIMESTAMPDIFF(DAY, date_employed, date_format(IFNULL(date_resigned, NOW()),'%Y-%m-%d')) % 365) / 30)), ' month(s) ',
                     ((TIMESTAMPDIFF(DAY, date_employed, date_format(IFNULL(date_resigned, NOW()),'%Y-%m-%d')) % 365) % 30), ' day(s)')  as length_of_service
@@ -93,8 +109,14 @@ class EmployeeMasterDataExport implements FromCollection, WithHeadings
             'PHILHEALTH NO.',	
             'SSS NO.',	
             'EDUCATIONAL ATTAINMENT',
+            'SCHOOL YEAR',
             'SCHOOL ATTENDED',
             'COURSE',
+            'EMPLOYMENT TYPE',
+            'REGULARIZATION DATE',
+            'LAST DAY OF WORK',
+            'REASON OF RESIGNATION',
+            'COMPLIANCE',
             'LENGTH OF SERVICE',
 																				
         ];
