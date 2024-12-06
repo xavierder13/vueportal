@@ -9,14 +9,14 @@ class SAPDatabaseSeeder extends Seeder
     public function run()
     {
         $databases = [
-            'AddessaJul2024',
-            'AppliantechJul2024',
-            'EasyToOwnJul2024',
-            'ElectroloopJul2024',
-            'OutexcelJul2024',
-            'PanApplianceJul2024',
-            'SteadfordJul2024',
-            'ThreathonsJul2024',
+            'AddessaNov2024',
+            'AppliantechNov2024',
+            'EasyToOwnNov2024',
+            'ElectroloopNov2024',
+            'OutexcelNov2024',
+            'PanApplianceNov2024',
+            'SteadfordNov2024',
+            'ThreathonsNov2024',
         ];
 
         foreach ($databases as $key => $database) {
