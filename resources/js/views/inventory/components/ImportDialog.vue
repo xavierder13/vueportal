@@ -3,7 +3,7 @@
     <v-dialog v-model="dialog_import" max-width="500px" persistent>
       <v-card>
         <v-card-title class="pa-4">
-          <span class="headline">Import Data </span>
+          <span class="headline"> {{ actionLabel }} Data </span>
           <v-chip color="secondary" v-if="branch" class="ml-2"> {{ branch }} </v-chip>
         </v-card-title>
         <v-divider class="mt-0"></v-divider>
@@ -173,7 +173,7 @@
             @click="submit()"
             :disabled="uploadDisabled"
           >
-            {{ btnLabel }}
+            {{ actionLabel }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -546,7 +546,7 @@ export default {
     imported_file_errors() {
       return this.errors_array.sort();
     },
-    btnLabel(){
+    actionLabel(){
       return this.action === 'import' ? 'Upload' : 'Sync';
     },
     loadingLabel(){

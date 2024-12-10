@@ -579,6 +579,21 @@ export default {
         formData.append('document_types[]', item.document_type);
       });
 
+      let regularization_file_input = EmployeeInformationTabs.regularization_file_input;
+      let regularization_memo_file_input = EmployeeInformationTabs.regularization_memo_file_input;
+      
+      if(regularization_file_input.name)
+      {
+        formData.append('employee_files[]', regularization_file_input);
+        formData.append('document_types[]', 'Performance for Regularization');
+      }
+
+      if(regularization_memo_file_input.name)
+      {
+        formData.append('employee_files[]', regularization_memo_file_input);
+        formData.append('document_types[]', 'Memo of Regularization');
+      }
+
       return formData;
     },
 

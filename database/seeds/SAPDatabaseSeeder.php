@@ -17,6 +17,7 @@ class SAPDatabaseSeeder extends Seeder
             'PanApplianceNov2024',
             'SteadfordNov2024',
             'ThreathonsNov2024',
+            'MetroIlocosNov2024',
         ];
 
         foreach ($databases as $key => $database) {

@@ -286,7 +286,7 @@
                           </v-tooltip> 
                         </td>
                       </tr> -->
-                      <tr v-for="(file, i) in employee_files">
+                      <tr v-for="(file, i) in employeeFilesRequirements">
                         <td> {{ i + 1 }} </td>
                         <td class="pa-2"> 
                           <span class="subtitle-1">
@@ -525,8 +525,17 @@
                 <v-row>
                   <v-col class="my-0 py-0 mt-4">
                     <span class="subtitle-1">Evaluation of Performance for Regularization (attachment): </span>
-                    <template v-if="regularization_file">
-                      <span> <a href="http://">asdsadasdasads.pdf</a> </span>
+                    <template v-if="regularizationFile">
+                      <span> 
+                        <v-btn 
+                          small 
+                          color="primary" 
+                          text 
+                          @click="hasAnyPermission('employee-master-data-file-download') ? downloadFile(regularizationFile) : ''"
+                        > 
+                          {{ regularizationFile.file_name }} 
+                        </v-btn> 
+                      </span>
                       <v-tooltip top>
                         <template v-slot:activator="{ on, attrs }">
                           <v-btn 
@@ -534,7 +543,8 @@
                             color="error" 
                             rounded
                             icon
-                            @click="showConfirmAlert()"
+                            @click="confirmDeleteFile(regularizationFile)"
+                            v-if="hasAnyPermission('employee-master-data-file-delete')"
                             v-bind="attrs" 
                             v-on="on"
                           > 
@@ -544,18 +554,16 @@
                         <span>Delete File</span>
                       </v-tooltip> 
                     </template>
-                    
                   </v-col>
                 </v-row>
-                <v-row v-if="!regularization_memo_file">
-                  <v-col cols="4" class="my-0 py-0">
+                <v-row v-if="!regularizationFile">
+                  <v-col cols="4">
                     <v-file-input
                       v-model="regularization_file_input"
                       show-size
                       label="Attach File"
                       prepend-icon="mdi-paperclip"
                       required
-                      multiple
                       :error-messages="regularizationFileErrors"
                       @change="validateFile('regularization_file_input')"
                       clearable
@@ -565,9 +573,16 @@
                 </v-row>
                 <v-row>
                   <v-col class="my-0 py-0">
-                    <span>Memo of Regularization (attachment): </span>
-                    <template v-if="regularization_memo_file">
-                      <span> <a href="http://">asdsadasdasads.pdf</a> </span>
+                    <span class="subtitle-1">Memo of Regularization (attachment): </span>
+                    <template v-if="regularizationMemoFile">
+                      <v-btn 
+                          small 
+                          color="primary" 
+                          text 
+                          @click="hasAnyPermission('employee-master-data-file-download') ? downloadFile(regularizationMemoFile) : ''"
+                        > 
+                        {{ regularizationMemoFile.file_name }} 
+                      </v-btn> 
                       <v-tooltip top>
                         <template v-slot:activator="{ on, attrs }">
                           <v-btn 
@@ -575,7 +590,8 @@
                             color="error" 
                             rounded
                             icon
-                            @click="showConfirmAlert()"
+                            @click="confirmDeleteFile(regularizationMemoFile)"
+                            v-if="hasAnyPermission('employee-master-data-file-delete')"
                             v-bind="attrs" 
                             v-on="on"
                           > 
@@ -587,7 +603,7 @@
                     </template>
                   </v-col>
                 </v-row>
-                <v-row v-if="!regularization_memo_file">
+                <v-row v-if="!regularizationMemoFile">
                   <v-col cols="4" class="my-0 py-0">
                     <v-file-input
                       v-model="regularization_memo_file_input"
@@ -595,7 +611,6 @@
                       label="Attach File"
                       prepend-icon="mdi-paperclip"
                       required
-                      multiple
                       :error-messages="regularizationMemoFileErrors"
                       @change="validateFile('regularization_memo_file_input')"
                       clearable
@@ -609,10 +624,9 @@
                       label="Date of Regularization"
                       type="date"
                       prepend-icon="mdi-calendar"
-                      v-model="editedItem.date_regularization"
+                      v-model="editedItem.regularization_date"
                       :error-messages="dateRegularizationErrors"
-                      @input="$v.editedItem.date_regularization.$touch() + validateDate('date_regularization')"
-                      @blur="$v.editedItem.date_regularization.$touch()"
+                      @input="validateDate('regularization_date')"
                     ></v-text-field>
                   </v-col>
                 </v-row>
@@ -657,33 +671,21 @@
           <v-tab-item :transition="false" class="full-height-tab-performance py-2">
             <v-card class="mx-2 elevation-10" height="100%">
               <v-card-text>
-                <span>Evaluation of Performance for Regularization (attachment): </span>
-                <template v-if="regularization_file">
-                  <span> <a href="http://">asdsadasdasads.pdf</a> </span>
-                </template>
-                <v-btn v-if="!regularization_file" @click="openAttachFileDialog()">Upload File</v-btn>
+               
               </v-card-text>
             </v-card>
           </v-tab-item>
           <v-tab-item :transition="false" class="full-height-tab-performance py-2">
             <v-card class="mx-2 elevation-10" height="100%">
               <v-card-text>
-                <span>Evaluation of Performance for Regularization (attachment): </span>
-                <template v-if="regularization_file">
-                  <span> <a href="http://">asdsadasdasads.pdf</a> </span>
-                </template>
-                <v-btn v-if="!regularization_file" @click="openAttachFileDialog()">Upload File</v-btn>
+                
               </v-card-text>
             </v-card>
           </v-tab-item>
           <v-tab-item :transition="false" class="full-height-tab-performance py-2">
             <v-card class="mx-2 elevation-10" height="100%">
               <v-card-text>
-                <span>Evaluation of Performance for Regularization (attachment): </span>
-                <template v-if="regularization_file">
-                  <span> <a href="http://">asdsadasdasads.pdf</a> </span>
-                </template>
-                <v-btn v-if="!regularization_file" @click="openAttachFileDialog()">Upload File</v-btn>
+               
               </v-card-text>
             </v-card>
           </v-tab-item>
@@ -885,6 +887,12 @@ export default {
         length_of_service: "",
         cost_center: "",
         employment_type: "",
+        regularization_date: "",
+        last_day_of_work: "",
+        reason_of_resignation: "",
+        coe_is_issued: "",
+        last_pay_is_issued: "",
+        compliance: "",
         active: true,
       },
       defaultItem: {
@@ -932,7 +940,7 @@ export default {
         birth_date: { status: false, msg: "" },
         date_employed: { status: false, msg: "" },
         date_resigned: { status: false, msg: "" },
-        date_regularization: { status: false, msg: "" },
+        regularization_date: { status: false, msg: "" },
       },
       input_birth_date: false,
       input_date_employed: false,
@@ -942,8 +950,6 @@ export default {
       compliances: ['Render 30 Days', 'Render 60 days', 'Non-Compliant'],
       regularization_file_input: [],
       regularization_memo_file_input: [],
-      regularization_file: "",
-      regularization_memo_file: "",
       fileInvalid: false,
       attach_file_dialog: false,
       swalAttr: {
@@ -1068,35 +1074,6 @@ export default {
         }
       }
 
-      if(copy_of_grades.length)
-      {
-        copy_of_grades.forEach(file => {
-          if(file.name)
-          {
-            let split_arr = file.name.split('.');
-            let split_ctr = split_arr.length;
-            let extension = split_arr[split_ctr - 1].toLowerCase();
-            
-            if(!extensions.includes(extension))
-            {
-              this.fileInvalid = true;
-            }
-
-            if(file.size > 5000000) // 5000000 bytes or 20MB
-            {
-              this.fileInvalid = true;
-            }
-          }
-        });
-        
-      }
-
-      this.continue_2 = true;
-
-      if(!myFileInput || myFileInput.length == 0 || !copy_of_grades.length || this.fileInvalid){
-        this.continue_2 = false;
-      }
-      
     },
     confirmDeleteFile(item) {
      
@@ -1358,9 +1335,9 @@ export default {
     dateRegularizationErrors() {
       const errors = [];
 
-      if(this.dateErrors.date_regularization.msg)
+      if(this.dateErrors.regularization_date.msg)
       {
-        errors.push(this.dateErrors.date_regularization.msg);
+        errors.push(this.dateErrors.regularization_date.msg);
       }
       return errors;
     },
@@ -1453,78 +1430,90 @@ export default {
     },
     regularizationFileErrors() {
       
-      const errors = [];
+      // const errors = [];
 
-      let file = this.regularization_file_input;
-      let extensions = ['docs', 'docx', 'pdf', 'jpg', 'jpeg', 'png'];
-      let errorMsg = "";
-      let fileInvalid = false;
+      // let file = this.regularization_file_input;
+      // let extensions = ['docs', 'docx', 'pdf', 'jpg', 'jpeg', 'png'];
+      // let errorMsg = "";
+      // let fileInvalid = false;
     
-      if(file)
-      {
-        if(file.name)
-        {
-          let split_arr = file.name.split('.');
-          let split_ctr = split_arr.length;
-          let extension = split_arr[split_ctr - 1].toLowerCase();
+      // if(file)
+      // {
+      //   if(file.name)
+      //   {
+      //     let split_arr = file.name.split('.');
+      //     let split_ctr = split_arr.length;
+      //     let extension = split_arr[split_ctr - 1].toLowerCase();
           
-          if(!extensions.includes(extension))
-          {
-            fileInvalid = true;
-            errorMsg = `File type must be ${extensions.join(', ')}.`;
-          }
+      //     if(!extensions.includes(extension))
+      //     {
+      //       fileInvalid = true;
+      //       errorMsg = `File type must be ${extensions.join(', ')}.`;
+      //     }
 
-          if(file.size > 5000000) // 5000000 bytes or 20MB
-          {
-            errorMsg = "File size maximum is 5MB";
-            fileInvalid = true;
-          }
-        }
-      }
-      this.fileInvalid = fileInvalid;
-      fileInvalid && errors.push(errorMsg);
+      //     if(file.size > 5000000) // 5000000 bytes or 20MB
+      //     {
+      //       errorMsg = "File size maximum is 5MB";
+      //       fileInvalid = true;
+      //     }
+      //   }
+      // }
+      // this.fileInvalid = fileInvalid;
+      // fileInvalid && errors.push(errorMsg);
 
-      return errors
+      // return errors
         
     },
     regularizationMemoFileErrors() {
       
-      const errors = [];
+      // const errors = [];
 
-      let file = this.regularization_memo_file_input;
-      let extensions = ['docs', 'docx', 'pdf', 'jpg', 'jpeg', 'png'];
-      let errorMsg = "";
-      let fileInvalid = false;
+      // let file = this.regularization_memo_file_input;
+      // let extensions = ['docs', 'docx', 'pdf', 'jpg', 'jpeg', 'png'];
+      // let errorMsg = "";
+      // let fileInvalid = false;
     
-      if(file)
-      {
-        if(file.name)
-        {
-          let split_arr = file.name.split('.');
-          let split_ctr = split_arr.length;
-          let extension = split_arr[split_ctr - 1].toLowerCase();
+      // if(file)
+      // {
+      //   if(file.name)
+      //   {
+      //     let split_arr = file.name.split('.');
+      //     let split_ctr = split_arr.length;
+      //     let extension = split_arr[split_ctr - 1].toLowerCase();
           
-          if(!extensions.includes(extension))
-          {
-            fileInvalid = true;
-            errorMsg = `File type must be ${extensions.join(', ')}.`;
-          }
+      //     if(!extensions.includes(extension))
+      //     {
+      //       fileInvalid = true;
+      //       errorMsg = `File type must be ${extensions.join(', ')}.`;
+      //     }
 
-          if(file.size > 5000000) // 5000000 bytes or 20MB
-          {
-            errorMsg = "File size maximum is 5MB";
-            fileInvalid = true;
-          }
-        }
-      }
-      this.fileInvalid = fileInvalid;
-      fileInvalid && errors.push(errorMsg);
+      //     if(file.size > 5000000) // 5000000 bytes or 20MB
+      //     {
+      //       errorMsg = "File size maximum is 5MB";
+      //       fileInvalid = true;
+      //     }
+      //   }
+      // }
+      // this.fileInvalid = fileInvalid;
+      // fileInvalid && errors.push(errorMsg);
 
-      return errors
+      // return errors
         
     },
     activeStatus() {
       return this.editedItem.active ? 'Active' : 'Inactive';
+    },
+    employeeFilesRequirements() {
+      // exclude Performance for Regularization', 'Memo of Regularization'
+      return this.employee_files.filter((value) => {
+        return !['Performance for Regularization', 'Memo of Regularization'].includes(value.title);
+      });
+    },
+    regularizationFile() {
+      return this.employee_files.find((value) => value.title == 'Performance for Regularization');
+    },
+    regularizationMemoFile() {
+      return this.employee_files.find((value) => value.title == 'Memo of Regularization');
     },
     tabCSS() {
       return "color: #1E88E5 !important; background-color: white !important;";
