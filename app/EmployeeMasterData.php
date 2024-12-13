@@ -64,6 +64,12 @@ class EmployeeMasterData extends Model
         //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
     }
 
+    public function key_performances()
+    {
+        return $this->hasMany('App\EmployeeKeyPerformance', 'employee_id', 'id');
+        //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
+    }
+
     public function disciplinary_measures()
     {
         return $this->hasOne('App\EmployeeDisciplinaryMeasures', 'employee_id', 'id');

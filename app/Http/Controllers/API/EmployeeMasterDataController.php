@@ -10,6 +10,7 @@ use App\Department;
 use App\Position;
 use App\RequiredEmployeeMap;
 use App\EmployeeMasterDataFile;
+use App\EmployeeKeyPerformance;
 use App\Imports\EmployeeMasterDataImport;
 use App\Exports\EmployeeMasterDataExport;
 use App\Exports\BranchManpowerReport;
@@ -44,6 +45,7 @@ class EmployeeMasterDataController extends Controller
         ->with('position')
         ->with('position.rank')
         ->with('files')
+        ->with('key_performances')
         ->select(DB::raw("*,
                  FLOOR((TIMESTAMPDIFF(DAY, dob, date_format(NOW(),'%Y-%m-%d')) / 365)) as age,
                  CONCAT(FLOOR((TIMESTAMPDIFF(DAY, date_employed, date_format(IFNULL(date_resigned, NOW()),'%Y-%m-%d')) / 365)), ' years(s) ',
@@ -200,6 +202,20 @@ class EmployeeMasterDataController extends Controller
             $this->file_save($data);
         }
 
+        $performances = json_decode($request->monthly_key_performances);
+        if(is_array($performances))
+        {
+            foreach ($performances as $key => $performance) {
+
+                EmployeeKeyPerformance::create([
+                    'employee_id' => $employee->id,
+                    'year' => $performance->year,
+                    'month' => $performance->month,
+                    'grade' => $performance->grade,
+                ]);
+            }
+        }
+        
         $employee = $this->getEmployees()->find($employee->id);
 
         return response()->json(['success' => 'Record has been added', 'employee' => $employee], 200);
@@ -347,6 +363,8 @@ class EmployeeMasterDataController extends Controller
 			$path = public_path() . $file_path . "/" . $file->file_name;
 			unlink($path);
 		}
+
+        EmployeeKeyPerformance::where('employee_id', $employee_id)->delete();
 
         return response()->json(['success' => 'Record has been deleted'], 200);
     }
@@ -653,6 +671,5 @@ class EmployeeMasterDataController extends Controller
         }
         
     }
-
     
 }

@@ -222,6 +222,7 @@
                 <EmployeeInformationTabs
                   :data="editedItem"
                   :files="employee_files"
+                  :key_performances="monthly_key_performances"
                   :editedIndex="editedIndex"
                   :positions="positions"
                   :branches="branches"
@@ -358,6 +359,7 @@ export default {
       dialog: false,
       employees: [],
       employee_files: [],
+      monthly_key_performances: [],
       branches: [],
       departments: [],
       positions: [],
@@ -454,6 +456,8 @@ export default {
 
       this.employee_files = item.files;
       this.employeeInformationComponentKey += 1;
+
+      this.monthly_key_performances = item.key_performances;
 
       // let [month, day, year] = this.editedItem.dob.split("/");
       // this.editedItem.birth_date = `${year}-${month}-${day}`;
@@ -559,7 +563,7 @@ export default {
       let data = EmployeeInformationTabs.editedItem
       data.branch_id = data.branch.id;
       data.department_id = data.department.id;
-      data.position_id = data.position.id;                                        
+      data.position_id = data.position.id;       
 
       let fields = Object.keys(data);
 
@@ -593,6 +597,9 @@ export default {
         formData.append('employee_files[]', regularization_memo_file_input);
         formData.append('document_types[]', 'Memo of Regularization');
       }
+
+      let monthly_key_performances = EmployeeInformationTabs.keyPerformances;
+      formData.append('monthly_key_performances', JSON.stringify(monthly_key_performances));
 
       return formData;
     },

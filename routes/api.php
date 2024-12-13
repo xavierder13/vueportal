@@ -298,7 +298,7 @@ Route::group(['prefix' => 'employee_master_data', 'middleware' => ['auth:api', '
 
     Route::post('/update/{id}', [
         'uses' => 'API\EmployeeMasterDataController@update',
-        'as' => 'employee.master.data.store'
+        'as' => 'employee.master.data.update'
     ]); 
 
     Route::post('/delete', [
@@ -329,6 +329,29 @@ Route::group(['prefix' => 'employee_master_data', 'middleware' => ['auth:api', '
     Route::post('/file_download', [
         'uses' => 'API\EmployeeMasterDataController@file_download',
         'as' => 'employee.master.data.file_download'
+    ]); 
+});
+
+//Employee Master Data Key Performance Routes
+Route::group(['prefix' => 'employee_master_data/key_performance', 'middleware' => ['auth:api', 'employee.key.performance.maintenance']], function() {
+    Route::get('/index', [
+        'uses' => 'API\EmployeeKeyPerformanceController@index',
+        'as' => 'employee.key.performance.index'
+    ]);
+
+    Route::post('/store', [
+        'uses' => 'API\EmployeeKeyPerformanceController@store',
+        'as' => 'employee.key.performance.store'
+    ]); 
+
+    Route::post('/update/{id}', [
+        'uses' => 'API\EmployeeKeyPerformanceController@update',
+        'as' => 'employee.key.performance.update'
+    ]); 
+
+    Route::post('/delete', [
+        'uses' => 'API\EmployeeKeyPerformanceController@delete',
+        'as' => 'employee.key.performance.delete'
     ]); 
 });
 
