@@ -325,7 +325,7 @@ export default {
           this.loading = false;
           
           this.showAlert(response.data.success);
-          this.deleted_monthly_performance = [];
+          this.deleted_monthly_key_performance = [];
         },
         (error) => {
           this.showErrorAlert(error);
@@ -380,7 +380,7 @@ export default {
         // deleted period from monthly_key_performances if editedIndex > -1 (edit mode)
         if(this.editedIndex > -1)
         {
-          this.deleted_monthly_performances.push(value)
+          this.deleted_monthly_key_performances.push(value)
         }
       });
 
