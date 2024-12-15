@@ -429,7 +429,7 @@ export default {
       axios.get("/api/employee_master_data/index").then(
         (response) => {
           // if user has no permission to view overall list
-          let data = response.data; 
+          let data = response.data;          
 
           this.employees = data.employees;
           this.branches = data.branches;
@@ -798,11 +798,81 @@ export default {
     activeStatus() {
       return this.editedItem.active ? 'Active' : 'Inactive';
     },
-    // editedValues() {
-    //   let edited = this.$refs.EmployeeInformationTabs.editedItem;
-    //   let editedItem = { title: edited.title, url: edited.url, description: edited.description };
+    // personalDataTabItem() {
+    //   if (this.$refs.EmployeeInformationTabs) {
+    //     let editedItem = this.$refs.EmployeeInformationTabs.editedItem;
+    //     let fields = [  
+    //       'employee_code',
+    //       'last_name',
+    //       'first_name',
+    //       'birth_date',
+    //       'address',
+    //       'contact',
+    //       'email',
+    //       'gender',
+    //       'civil_status',
+    //       'tin_no',
+    //       'pagibig_no',
+    //       'philhealth_no',
+    //       'sss_no',
+    //       'educ_attain',
+    //       'school_year',
+    //       'school_attended',
+    //       'course',
+    //     ];
 
-    //   return JSON.stringify(editedItem)
+    //     let data = {};
+
+    //     fields.forEach(field => {
+    //       Object.assign(...data, editedItem[field])
+    //     });
+
+    //     return JSON.stringify(data);
+    //   }
+    //   else
+    //   {
+    //     return '';
+    //   }
+      
+      
+    // },
+    // employeeDetailsTabItem() {
+      
+    //   if (this.$refs.EmployeeInformationTabs) {
+    //     let editedItem = this.$refs.EmployeeInformationTabs.editedItem;
+    //     let fields = [
+    //       'branch_id',
+    //       'branch',
+    //       'company',
+    //       'position_id',
+    //       'position',
+    //       'department',
+    //       'department_id',
+    //       'division',
+    //       'rank',
+    //       'date_employed',
+    //       'date_resigned',
+    //       'date_assigned',
+    //       'length_of_service',
+    //       'cost_center',
+    //       'employment_type',
+    //       'regularization_date',
+    //       'active',
+    //     ];
+
+    //     let data = {};
+
+    //     fields.forEach(field => {
+    //       Object.assign(...data, this.editedItem[field]);
+    //     });
+
+    //     return JSON.stringify(data);
+    //   }
+    //   else
+    //   {
+    //     return '';
+    //   }
+      
     // },
     ...mapState("auth", ["user", "userIsLoaded"]),
     ...mapState("userRolesPermissions", ["userRolesPermissionsIsLoaded"]),
@@ -843,11 +913,39 @@ export default {
       }
     },
 
-    // editedValues() {
+    // employeeDetailsTabItem() {
+    //   console.log('asdad');
+      
+    //   let editedItem = this.$refs.EmployeeInformationTabs.editedItem;
+    //   let originalItem = this.$refs.EmployeeInformationTabs.originalItem;
+    //   let fields = [  
+    //     'employee_code',
+    //     'last_name',
+    //     'first_name',
+    //     'birth_date',
+    //     'address',
+    //     'contact',
+    //     'email',
+    //     'gender',
+    //     'civil_status',
+    //     'tin_no',
+    //     'pagibig_no',
+    //     'philhealth_no',
+    //     'sss_no',
+    //     'educ_attain',
+    //     'school_year',
+    //     'school_attended',
+    //     'course',
+    //   ];
+
+    //   let data = {};
+
+    //   fields.forEach(field => {
+    //     Object.assign(...data, editedItem[field])
+    //   });
+
     //   let edited = this.editedItem;
     //   let original = this.originalItem;
-    //   let editedItem = { title: edited.title, url: edited.url, description: edited.description };
-    //   let originalItem = { title: original.title, url: original.url, description: original.description };
 
     //   if(this.editedIndex > -1)
     //   {

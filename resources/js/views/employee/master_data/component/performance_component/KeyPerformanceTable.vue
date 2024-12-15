@@ -28,6 +28,7 @@
             color="error" 
             rounded 
             fab 
+            :disabled="!monthly_key_performances.length"
             @click="openPeriodDialog('Delete')"
             v-bind="attrs" 
             v-on="on"
@@ -276,10 +277,10 @@ export default {
 
     storePeriod() {
       let data = { employee_id: this.employee_id, monthly_key_performances: this.added_monthly_key_performances };
-      console.log(data);
       
       axios.post("/api/employee_master_data/key_performance/store", data).then(
         (response) => {
+          this.dialog_period = false;
           this.loading = false;
           let data = response.data;
           
@@ -287,14 +288,10 @@ export default {
           {
             let performances = data.performances;
 
-            performances.forEach(value => {
-              this.monthly_key_performances.push(value);              
-            });
+            this.monthly_key_performances = performances;
 
             this.showAlert(response.data.success);
           }
-          
-          console.log(response.data);
           
           // reset array
           this.added_monthly_key_performances = [];
@@ -312,8 +309,6 @@ export default {
         (response) => {
           this.loading = false;
           this.showAlert(response.data.success);
-
-          console.log(response);
           
         },
         (error) => {
@@ -324,14 +319,16 @@ export default {
 
     deletePeriod() {
 
-      let data = { id: this.editedItem.id, grade: this.editedItem.grade };
+      let data = { employee_id: this.employee_id, period: this.period };
       axios.post("/api/employee_master_data/key_performance/delete", data).then(
         (response) => {
           this.loading = false;
+          
           this.showAlert(response.data.success);
           this.deleted_monthly_performance = [];
         },
         (error) => {
+          this.showErrorAlert(error);
           this.isUnauthorized(error);
         }
       );
@@ -383,7 +380,7 @@ export default {
         // deleted period from monthly_key_performances if editedIndex > -1 (edit mode)
         if(this.editedIndex > -1)
         {
-          this.deleted_monthly_performance.push(value)
+          this.deleted_monthly_performances.push(value)
         }
       });
 
@@ -479,6 +476,16 @@ export default {
       });
     },
 
+    showErrorAlert(msg) {     
+      this.$swal({
+        position: "center",
+        icon: "error",
+        title: msg,
+        showConfirmButton: false,
+        timer: 2500,
+      });
+    },
+
     showConfirmAlert() {
    
       if(this.editedIndex > -1)
@@ -496,15 +503,25 @@ export default {
 
           if (result.value) {
             // <-- if confirmed
-            let data = { monthly_key_performances: this.deleted_monthly_key_performances };
+            let data = { employee_id: this.employee_id, period: this.period };
             this.loading = true;
             axios.post("/api/employee_master_data/key_performance/delete", data).then(
               (response) => {
                 this.loading = false;
-                this.showAlert(response.data.success);
-                this.removePeriod();
+                let data = response.data;
+                if(data.success)
+                {
+                  this.showAlert(data.success);
+                  this.removePeriod();
+                  this.dialog_period = false;
+                }
+                else
+                {
+                  this.showErrorAlert(data.error);
+                }
               },
               (error) => {
+                this.showErrorAlert(error.response.statusText)
                 this.isUnauthorized(error);
               }
             );
@@ -599,6 +616,7 @@ export default {
       return yearArr;
     },
 
+    ...mapGetters("auth", ["isUnauthorized"]),
     ...mapGetters("userRolesPermissions", ["hasRole", "hasAnyRole", "hasPermission", "hasAnyPermission"]),
 
   },

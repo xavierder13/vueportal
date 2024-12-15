@@ -63,7 +63,7 @@ class EmployeeKeyPerformanceController extends Controller
         
 
         $performances = EmployeeKeyPerformance::where('employee_id', $request->employee_id)
-                                              ->where('year', $year)
+                                              ->orderBy('year')
                                               ->orderBy('id')
                                               ->get();
 
@@ -113,11 +113,21 @@ class EmployeeKeyPerformanceController extends Controller
     
     public function delete(Request $request)
     {
-        $performance_id = $request->performance_id;
-        $performance = EmployeeKeyPerformance::findOrFail($performance_id);
+        // $performance_id = $request->performance_id;
+        // $performance = EmployeeKeyPerformance::findOrFail($performance_id);
         
-        $performance->delete();
+        // $performance->delete();
 
+        $performances = EmployeeKeyPerformance::where('employee_id', $request->employee_id)
+                                              ->where('year', $request->period);
+
+        if(!count($performances->get()))
+        {
+            return response()->json(['error' => 'No record found'], 200);
+        }
+
+        $performances->delete();
+        
         return response()->json(['success' => 'Record has been deleted'], 200);
     }
 }

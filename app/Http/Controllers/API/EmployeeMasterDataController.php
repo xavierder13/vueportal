@@ -45,7 +45,9 @@ class EmployeeMasterDataController extends Controller
         ->with('position')
         ->with('position.rank')
         ->with('files')
-        ->with('key_performances')
+        ->with(['key_performances' => function($query) {
+            $query->orderBy('year');
+        }])
         ->select(DB::raw("*,
                  FLOOR((TIMESTAMPDIFF(DAY, dob, date_format(NOW(),'%Y-%m-%d')) / 365)) as age,
                  CONCAT(FLOOR((TIMESTAMPDIFF(DAY, date_employed, date_format(IFNULL(date_resigned, NOW()),'%Y-%m-%d')) / 365)), ' years(s) ',

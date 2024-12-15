@@ -6,7 +6,15 @@ const state = {
   userIsLoaded: false,
 };
 
-const getters = {};
+const getters = {
+  
+  isUnauthorized: (state) => (error) => {
+     // if unauthenticated (401)
+    if (error.response.status == "401") {
+      router.push({ name: "unauthorize" });
+    }
+  },
+};
 
 const actions = {
   getUser({ commit }) {

@@ -523,37 +523,51 @@
             <v-card class="mx-2 elevation-10" height="100%">
               <v-card-text>
                 <v-row>
+                  <v-col cols="4" class="my-0 py-0 mt-4">
+                    <v-text-field
+                      label="Date of Regularization"
+                      type="date"
+                      prepend-icon="mdi-calendar"
+                      v-model="editedItem.regularization_date"
+                      :error-messages="dateRegularizationErrors"
+                      @input="validateDate('regularization_date')"
+                    ></v-text-field>
+                  </v-col>
+                </v-row>
+                <v-row>
                   <v-col class="my-0 py-0 mt-4">
                     <span class="subtitle-1">Evaluation of Performance for Regularization (attachment): </span>
-                    <template v-if="regularizationFile">
-                      <span> 
+                  </v-col>
+                </v-row>
+                <v-row v-if="regularizationFile">
+                  <v-col>
+                    <span> 
+                      <v-btn 
+                        small 
+                        color="primary" 
+                        text 
+                        @click="hasAnyPermission('employee-master-data-file-download') ? downloadFile(regularizationFile) : ''"
+                      > 
+                        {{ regularizationFile.file_name }} 
+                      </v-btn> 
+                    </span>
+                    <v-tooltip top>
+                      <template v-slot:activator="{ on, attrs }">
                         <v-btn 
-                          small 
-                          color="primary" 
-                          text 
-                          @click="hasAnyPermission('employee-master-data-file-download') ? downloadFile(regularizationFile) : ''"
+                          x-small
+                          color="error" 
+                          rounded
+                          icon
+                          @click="confirmDeleteFile(regularizationFile)"
+                          v-if="hasAnyPermission('employee-master-data-file-delete')"
+                          v-bind="attrs" 
+                          v-on="on"
                         > 
-                          {{ regularizationFile.file_name }} 
-                        </v-btn> 
-                      </span>
-                      <v-tooltip top>
-                        <template v-slot:activator="{ on, attrs }">
-                          <v-btn 
-                            x-small
-                            color="error" 
-                            rounded
-                            icon
-                            @click="confirmDeleteFile(regularizationFile)"
-                            v-if="hasAnyPermission('employee-master-data-file-delete')"
-                            v-bind="attrs" 
-                            v-on="on"
-                          > 
-                            <v-icon>mdi-delete</v-icon> 
-                          </v-btn>
-                        </template>
-                        <span>Delete File</span>
-                      </v-tooltip> 
-                    </template>
+                          <v-icon>mdi-delete</v-icon> 
+                        </v-btn>
+                      </template>
+                      <span>Delete File</span>
+                    </v-tooltip> 
                   </v-col>
                 </v-row>
                 <v-row v-if="!regularizationFile">
@@ -574,33 +588,35 @@
                 <v-row>
                   <v-col class="my-0 py-0">
                     <span class="subtitle-1">Memo of Regularization (attachment): </span>
-                    <template v-if="regularizationMemoFile">
-                      <v-btn 
-                          small 
-                          color="primary" 
-                          text 
-                          @click="hasAnyPermission('employee-master-data-file-download') ? downloadFile(regularizationMemoFile) : ''"
+                  </v-col>
+                </v-row>
+                <v-row v-if="regularizationMemoFile">
+                  <v-col>
+                    <v-btn 
+                        small 
+                        color="primary" 
+                        text 
+                        @click="hasAnyPermission('employee-master-data-file-download') ? downloadFile(regularizationMemoFile) : ''"
+                      > 
+                      {{ regularizationMemoFile.file_name }} 
+                    </v-btn> 
+                    <v-tooltip top>
+                      <template v-slot:activator="{ on, attrs }">
+                        <v-btn 
+                          x-small
+                          color="error" 
+                          rounded
+                          icon
+                          @click="confirmDeleteFile(regularizationMemoFile)"
+                          v-if="hasAnyPermission('employee-master-data-file-delete')"
+                          v-bind="attrs" 
+                          v-on="on"
                         > 
-                        {{ regularizationMemoFile.file_name }} 
-                      </v-btn> 
-                      <v-tooltip top>
-                        <template v-slot:activator="{ on, attrs }">
-                          <v-btn 
-                            x-small
-                            color="error" 
-                            rounded
-                            icon
-                            @click="confirmDeleteFile(regularizationMemoFile)"
-                            v-if="hasAnyPermission('employee-master-data-file-delete')"
-                            v-bind="attrs" 
-                            v-on="on"
-                          > 
-                            <v-icon>mdi-delete</v-icon> 
-                          </v-btn>
-                        </template>
-                        <span>Delete File</span>
-                      </v-tooltip> 
-                    </template>
+                          <v-icon>mdi-delete</v-icon> 
+                        </v-btn>
+                      </template>
+                      <span>Delete File</span>
+                    </v-tooltip> 
                   </v-col>
                 </v-row>
                 <v-row v-if="!regularizationMemoFile">
@@ -618,26 +634,18 @@
                     </v-file-input>
                   </v-col>
                 </v-row>
-                <v-row>
-                  <v-col cols="4" class="my-0 py-0">
-                    <v-text-field
-                      label="Date of Regularization"
-                      type="date"
-                      prepend-icon="mdi-calendar"
-                      v-model="editedItem.regularization_date"
-                      :error-messages="dateRegularizationErrors"
-                      @input="validateDate('regularization_date')"
-                    ></v-text-field>
-                  </v-col>
-                </v-row>
               </v-card-text>
             </v-card>
           </v-tab-item>
           <v-tab-item :transition="false" class="full-height-tab-performance py-2">
             <v-card class="mx-2 elevation-10" height="100%">
-              <v-card-title class="subtitle-1">Monthly Key Performance </v-card-title>
               <v-card-text>
-                <KeyPerformanceTable/>
+                <KeyPerformanceTable 
+                  :employee_id="data.id"
+                  :editedIndex="editedIndex" 
+                  :key_performances="monthly_key_performances"
+                  ref="KeyPerformanceTable"
+                />
               </v-card-text>
             </v-card>
             
@@ -773,7 +781,7 @@
     margin: 13px 13px;
   }
   .full-height-tab-performance {
-    height: calc(85vh - 200px); /* Adjust 270px to suits your needs */
+    height: calc(85vh - 130px); /* Adjust 270px to suits your needs */
     overflow-y: auto;
     overflow-x: hidden;
   }
@@ -804,6 +812,7 @@ export default {
   props: [
     'data',
     'files',
+    'key_performances',
     'branches',
     'positions',
     'departments',
@@ -855,6 +864,7 @@ export default {
       loading: true,
       branch: "",
       branch_id: "",
+      original: {},
       editedItem: {
         branch_id: "",
         branch: "",
@@ -936,6 +946,7 @@ export default {
         active: true,
       },
       employee_files: [],
+      monthly_key_performances: [],
       dateErrors: {
         birth_date: { status: false, msg: "" },
         date_employed: { status: false, msg: "" },
@@ -1174,6 +1185,7 @@ export default {
       this.tab_performance = 0;
       this.editedItem = Object.assign({}, this.defaultItem);
       this.employee_files = [];
+      this.$refs.KeyPerformanceTable ? this.$refs.KeyPerformanceTable.clear() : '';
     },
     isUnauthorized(error) {
       // if unauthenticated (401)
@@ -1227,6 +1239,9 @@ export default {
     } 
   },
   computed: {
+    keyPerformances() {
+      return this.$refs.KeyPerformanceTable.monthly_key_performances;
+    },
     branchErrors() {
       const errors = [];
       if (!this.$v.editedItem.branch.$dirty) return errors;
@@ -1530,6 +1545,7 @@ export default {
       this.editedItem = Object.assign({}, this.data);
 
       this.employee_files = this.files;
+      this.monthly_key_performances = this.key_performances;
     }  
     
     this.removedFiles = [];
