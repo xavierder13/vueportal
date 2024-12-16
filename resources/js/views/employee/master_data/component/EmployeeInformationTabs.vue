@@ -500,7 +500,7 @@
         </v-card>
       </v-tab-item>
       <v-tab-item :transition="false" class="full-height-tab-main">
-        <v-tabs vertical color="primary" light class="pa-0 ma-0">
+        <v-tabs v-model="tab_performance_management" vertical color="primary" light class="pa-0 ma-0">
           <v-tab class="vertical-tab-menu mt-2">
             Evaluation & Regularization
           </v-tab>
@@ -850,7 +850,7 @@ export default {
     return {
       tab: 0,
       tab_personal_data: 0,
-      tab_performance: 0,
+      tab_performance_management: 0,
       gender_items: [
         { text: "MALE", value: "MALE" },
         { text: "FEMALE", value: "FEMALE" },
@@ -1182,9 +1182,11 @@ export default {
       this.$v.$reset();
       this.tab = 0;
       this.tab_personal_data = 0;
-      this.tab_performance = 0;
+      this.tab_performance_management = 0;
       this.editedItem = Object.assign({}, this.defaultItem);
       this.employee_files = [];
+      this.regularization_file_input = [];
+      this.regularization_memo_file_input = [];
       this.$refs.KeyPerformanceTable ? this.$refs.KeyPerformanceTable.clear() : '';
     },
     isUnauthorized(error) {
@@ -1543,6 +1545,7 @@ export default {
       let fields = Object.keys(this.editedItem);
 
       this.editedItem = Object.assign({}, this.data);
+      this.originalItem = Object.assign({}, this.data);
 
       this.employee_files = this.files;
       this.monthly_key_performances = this.key_performances;

@@ -504,7 +504,6 @@ export default {
         
         axios.post(url, this.formData()).then(
           (response) => {
-            console.log(response.data);
             
             this.overlay = false;
             this.disabled = false;
@@ -683,14 +682,14 @@ export default {
       let EmployeeInformationTabs = this.$refs.EmployeeInformationTabs;
       if(this.editedIndex > -1) //update mode
       {
+        
+        
         this.employees[this.editedIndex].files.push(data);
       }
       else
       {
         this.employee_files.push(data);
       }
-
-      
 
       EmployeeInformationTabs.employee_files = this.employee_files;
       
