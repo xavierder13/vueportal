@@ -504,7 +504,6 @@ export default {
         
         axios.post(url, this.formData()).then(
           (response) => {
-            console.log(response.data);
             
             this.overlay = false;
             this.disabled = false;
@@ -575,7 +574,7 @@ export default {
       let activeStatus = ['True', 'true', true, 1, '1'].includes(data.active) ? 1 : ['False', 'false', false, '0', 0].includes(data.active) ? 0 : 0;
       
       formData.append('active', activeStatus);
-      
+
       if(this.editedIndex == -1) //ADD MODE
       {
         let employee_files = EmployeeInformationTabs.employee_files;   
