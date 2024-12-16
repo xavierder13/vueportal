@@ -329,8 +329,43 @@ class EmployeeMasterDataController extends Controller
             return response()->json($validator->errors());
         }
 
+        
+        $employee_files_errors = [];
+        $employee_files = is_array($request->employee_files) ? $request->employee_files : [];
+        $document_types = $request->document_types;
+        
+        // upload files
+        foreach ($employee_files as $key => $file) {
+            if($file)
+            {
+                $file_validator = $this->file_validator($file);
+
+                if($file_validator->fails())
+                {
+                    $employee_files_errors[$key] =   $file_validator->errors();
+                }
+            }
+        }
+
+        if(count($employee_files_errors))
+        {
+            return response()->json(['employee_files_errors' => $employee_files_errors], 200);
+        }
+
         $employee = EmployeeMasterData::find($employee_id);
         $employee = $this->save($employee, $request);
+
+        foreach ($employee_files as $key => $file) {
+            $document_type = $document_types[$key];
+            $data = [
+                'employee_id' => $employee->id,
+                'file' => $file,
+                'title' => $document_type,
+            ];
+
+            $this->file_save($data);
+        }
+
         $employee = $this->getEmployees()->find($employee->id);
   
         return response()->json(['success' => 'Record has been updated', 'employee' => $employee, $this->index()], 200);

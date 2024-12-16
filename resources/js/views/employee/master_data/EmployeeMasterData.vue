@@ -504,6 +504,7 @@ export default {
         
         axios.post(url, this.formData()).then(
           (response) => {
+            console.log(response.data);
             
             this.overlay = false;
             this.disabled = false;
@@ -574,14 +575,16 @@ export default {
       let activeStatus = ['True', 'true', true, 1, '1'].includes(data.active) ? 1 : ['False', 'false', false, '0', 0].includes(data.active) ? 0 : 0;
       
       formData.append('active', activeStatus);
-
-      let employee_files = EmployeeInformationTabs.employee_files;   
-
-      employee_files.forEach((item, i) => {
-        formData.append('employee_files[]', item.file);
-        formData.append('document_types[]', item.document_type);
-      });
-
+      
+      if(this.editedIndex == -1) //ADD MODE
+      {
+        let employee_files = EmployeeInformationTabs.employee_files;   
+        employee_files.forEach((item, i) => {
+          formData.append('employee_files[]', item.file);
+          formData.append('document_types[]', item.document_type);
+        });
+      }
+      
       let regularization_file_input = EmployeeInformationTabs.regularization_file_input;
       let regularization_memo_file_input = EmployeeInformationTabs.regularization_memo_file_input;
       
