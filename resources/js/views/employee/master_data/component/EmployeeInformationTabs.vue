@@ -1242,7 +1242,7 @@ export default {
   },
   computed: {
     keyPerformances() {
-      return this.$refs.KeyPerformanceTable.monthly_key_performances;
+      return this.$refs.KeyPerformanceTable ? this.$refs.KeyPerformanceTable.monthly_key_performances : '';
     },
     branchErrors() {
       const errors = [];

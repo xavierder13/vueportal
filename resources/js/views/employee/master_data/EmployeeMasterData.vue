@@ -597,8 +597,11 @@ export default {
         formData.append('document_types[]', 'Memo of Regularization');
       }
 
-      let monthly_key_performances = EmployeeInformationTabs.keyPerformances;
-      formData.append('monthly_key_performances', JSON.stringify(monthly_key_performances));
+      if(EmployeeInformationTabs.keyPerformances)
+      {
+        let monthly_key_performances = EmployeeInformationTabs.keyPerformances;
+        formData.append('monthly_key_performances', JSON.stringify(monthly_key_performances));
+      }
 
       return formData;
     },
