@@ -51,12 +51,13 @@ class EmployeeMasterDataController extends Controller
         }])
         ->select(DB::raw("*,
                  FLOOR((TIMESTAMPDIFF(DAY, dob, date_format(NOW(),'%Y-%m-%d')) / 365)) as age,
-                 CONCAT(FLOOR((TIMESTAMPDIFF(DAY, date_employed, date_format(IFNULL(date_resigned, NOW()),'%Y-%m-%d')) / 365)), ' years(s) ',
-                 FLOOR(((TIMESTAMPDIFF(DAY, date_employed, date_format(IFNULL(date_resigned, NOW()),'%Y-%m-%d')) % 365) / 30)), ' month(s) ',
-                 ((TIMESTAMPDIFF(DAY, date_employed, date_format(IFNULL(date_resigned, NOW()),'%Y-%m-%d')) % 365) % 30), ' day(s)')  as length_of_service
+                 CONCAT(FLOOR((TIMESTAMPDIFF(DAY, date_employed, date_format(IFNULL(CASE WHEN date_resigned = '0000-00-00' THEN null ELSE date_resigned END, NOW()),'%Y-%m-%d')) / 365)), ' years(s) ',
+                 FLOOR(((TIMESTAMPDIFF(DAY, date_employed, date_format(IFNULL(CASE WHEN date_resigned = '0000-00-00' THEN null ELSE date_resigned END, NOW()),'%Y-%m-%d')) % 365) / 30)), ' month(s) ',
+                 ((TIMESTAMPDIFF(DAY, date_employed, date_format(IFNULL(CASE WHEN date_resigned = '0000-00-00' THEN null ELSE date_resigned END, NOW()),'%Y-%m-%d')) % 365) % 30), ' day(s)')  as length_of_service
                  "
              )
         );
+        
     }
 
     public function validator($data)
