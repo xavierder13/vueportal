@@ -444,6 +444,8 @@ export default {
       );
     },
     editEmployee(item) {
+
+      console.log(item);
       
       this.editedItem.gender = item.gender.toUpperCase();
       this.editedItem.civil_status = item.civil_status.toUpperCase();
