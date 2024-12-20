@@ -52,14 +52,12 @@ class EmployeeOjtPerformanceRatingController extends Controller
     {       
 
         $valid_fields = [
-            'employee_id' => 'required|integer',
             'mentor' => 'required',
             'grade' => 'numeric|between:0, 999999.99',
             'kpi' => 'numeric|between:0, 999999.99'
         ];
 
         $rules = [
-            'employee_id.required' => 'Employee ID is required',
             'mentor.required' => 'Mentor is required',
             'grade.numeric' => 'Invalid value',
             'grade.between' => 'Invalid value',

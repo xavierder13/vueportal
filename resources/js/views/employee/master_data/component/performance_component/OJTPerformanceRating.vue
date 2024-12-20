@@ -279,13 +279,19 @@ export default {
       );
     },
 
-    updatePeriod() {
+    updatePerformance() {
 
-      let data = { department: this.editedItem.department, grade: this.editedItem.grade };
+      let data = { 
+        department: this.editedItem.department, 
+        grade: this.editedItem.grade,
+        mentor: this.editedItem.mentor 
+      };
+
       axios.post("/api/employee_master_data/ojt_performance_rating/update/"+this.editedItem.id, data).then(
         (response) => {
           this.loading = false;
           let data = response.data;
+          
           if(data.success)
           {
             this.ojt_performance_ratings = data.performances;
@@ -352,7 +358,7 @@ export default {
           // edit mode; from parent component
           if(this.editedIndex > -1)
           {
-            this.storePerformance();
+            this.updatePerformance();
           }
           else
           {

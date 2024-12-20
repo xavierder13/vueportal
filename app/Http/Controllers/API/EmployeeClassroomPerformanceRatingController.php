@@ -49,13 +49,11 @@ class EmployeeClassroomPerformanceRatingController extends Controller
     {       
 
         $valid_fields = [
-            'employee_id' => 'required|integer',
             'department' => 'required',
             'grade' => 'numeric|between:0, 999999.99'
         ];
 
         $rules = [
-            'employee_id.required' => 'Employee ID is required',
             'department.required' => 'Mentor is required',
             'grade.numeric' => 'Invalid value',
             'grade.between' => 'Invalid value',

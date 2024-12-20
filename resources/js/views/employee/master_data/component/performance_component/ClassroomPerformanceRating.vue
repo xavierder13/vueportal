@@ -261,13 +261,14 @@ export default {
       );
     },
 
-    updatePeriod() {
+    updatePerformance() {
 
       let data = { department: this.editedItem.department, grade: this.editedItem.grade };
       axios.post("/api/employee_master_data/classroom_performance_rating/update/"+this.editedItem.id, data).then(
         (response) => {
           this.loading = false;
           let data = response.data;
+          
           if(data.success)
           {
             this.classroom_performance_ratings = data.performances;
@@ -334,7 +335,7 @@ export default {
           // edit mode; from parent component
           if(this.editedIndex > -1)
           {
-            this.storePerformance();
+            this.updatePerformance();
           }
           else
           {
@@ -462,6 +463,12 @@ export default {
     },
 
   },
+  watch: {
+    'editedItem.department'() {
+      console.log(this.editedItem.department);
+      
+    },
+  },
   computed: {
     departmentErrors() {
       const errors = [];
@@ -496,6 +503,15 @@ export default {
         }
       
       });
+
+      // if row edit mode then add the edited value into selection
+      if(this.table_action_mode == 'Edit')
+      {
+        let filtered_departments = this.departments.filter(value => value.name == this.editedItem.department);
+        let department = filtered_departments.length ? filtered_departments[0] : '';
+
+        departments.unshift(department);
+      }
 
       return departments;
     },
