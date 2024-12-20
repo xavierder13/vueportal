@@ -3,7 +3,7 @@
     <v-toolbar flat>
       <v-toolbar-title class="mt-2">Monthly Key Performance</v-toolbar-title>
       <v-divider vertical class="ma-2 ml-4" thickness="20px"></v-divider>
-      <v-tooltip top v-if="hasPermission('employee-master-data-key-performance-add')">
+      <v-tooltip top v-if="hasPermission('employee-master-data-key-performance-create')">
         <template v-slot:activator="{ on, attrs }">
           <v-btn 
             small 
@@ -216,7 +216,7 @@ import { mapGetters } from "vuex";
 
 export default {
 
-  props: ['editedIndex', 'key_performances', 'employee_id'],
+  props: ['editedIndex', 'key_performances', 'data'],
 
   mixins: [validationMixin],
 
@@ -276,7 +276,7 @@ export default {
     },
 
     storePeriod() {
-      let data = { employee_id: this.employee_id, monthly_key_performances: this.added_monthly_key_performances };
+      let data = { employee_id: this.data.id, monthly_key_performances: this.added_monthly_key_performances };
       
       axios.post("/api/employee_master_data/key_performance/store", data).then(
         (response) => {
@@ -286,15 +286,11 @@ export default {
           
           if(data.success)
           {
-            let performances = data.performances;
-
-            this.monthly_key_performances = performances;
-
-            this.showAlert(response.data.success);
+            this.monthly_key_performances = data.performances;
+            this.showAlert(data.success);
+            this.$emit('updateMonthlyKeyPerformance', data.performances);
           }
-          
-          // reset array
-          this.added_monthly_key_performances = [];
+
         },
         (error) => {
           this.isUnauthorized(error);
@@ -308,7 +304,14 @@ export default {
       axios.post("/api/employee_master_data/key_performance/update/"+this.editedItem.id, data).then(
         (response) => {
           this.loading = false;
-          this.showAlert(response.data.success);
+          let data = response.data;
+          
+          if(data.success)
+          {
+            this.showAlert(data.success);
+            this.$emit('updateMonthlyKeyPerformance', data.performances);
+            this.added_monthly_key_performances = [];
+          }
           
         },
         (error) => {
@@ -319,13 +322,19 @@ export default {
 
     deletePeriod() {
 
-      let data = { employee_id: this.employee_id, period: this.period };
+      let data = { employee_id: this.data.id, period: this.period };
       axios.post("/api/employee_master_data/key_performance/delete", data).then(
         (response) => {
           this.loading = false;
-          
-          this.showAlert(response.data.success);
-          this.deleted_monthly_key_performance = [];
+          let data = response.data;
+
+          if(data.success)
+          {
+            this.showAlert(data.success);
+            this.$emit('updateMonthlyKeyPerformance', data.performances);
+            this.deleted_monthly_key_performance = [];
+          }
+        
         },
         (error) => {
           this.showErrorAlert(error);
@@ -393,7 +402,7 @@ export default {
  
       this.$v.editedItem.$touch();
 
-      if(!this.$v.editedItem.$error)
+      if(!this.$v.editedItem.$error && !this.gradeErrors.length)
       {
         if(this.table_action_mode === 'Add')
         {
@@ -503,7 +512,7 @@ export default {
 
           if (result.value) {
             // <-- if confirmed
-            let data = { employee_id: this.employee_id, period: this.period };
+            let data = { employee_id: this.data.id, period: this.period };
             this.loading = true;
             axios.post("/api/employee_master_data/key_performance/delete", data).then(
               (response) => {
@@ -570,6 +579,12 @@ export default {
       const errors = [];
       if (!this.$v.editedItem.grade.$dirty) return errors;
       !this.$v.editedItem.grade.required && errors.push("Grade is required.");
+
+      if(parseInt(this.editedItem.grade) < 0 || parseInt(this.editedItem.grade) > 999999.9)
+      {
+        errors.push("Invalid Value");
+      }
+
       return errors;
     },
 
@@ -627,7 +642,7 @@ export default {
     
     if(this.editedIndex > -1)
     {
-      this.monthly_key_performances = this.key_performances;
+      this.monthly_key_performances = this.data.monthly_key_performances;
     }
       // this.months.forEach(month => {
       //   this.monthly_key_performances.push({ year: 2000, month: month, grade: "" });

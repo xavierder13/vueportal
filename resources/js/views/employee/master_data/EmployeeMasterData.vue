@@ -222,12 +222,14 @@
                 <EmployeeInformationTabs
                   :data="editedItem"
                   :files="employee_files"
-                  :key_performances="monthly_key_performances"
                   :editedIndex="editedIndex"
                   :positions="positions"
                   :branches="branches"
                   :departments="departments"
                   @openAttachFileDialog="openAttachFileDialog"
+                  @updateMonthlyKeyPerformance="updateMonthlyKeyPerformance"
+                  @updateClassroomPerformanceRating="updateClassroomPerformanceRating"
+                  @updateOJTPerformanceRating="updateOJTPerformanceRating"
                   ref="EmployeeInformationTabs"
                   :key="employeeInformationComponentKey"
                 />
@@ -359,7 +361,6 @@ export default {
       dialog: false,
       employees: [],
       employee_files: [],
-      monthly_key_performances: [],
       branches: [],
       departments: [],
       positions: [],
@@ -457,7 +458,9 @@ export default {
       this.employee_files = item.files;
       this.employeeInformationComponentKey += 1;
 
-      this.monthly_key_performances = item.key_performances;
+      this.monthly_key_performances = item.monthly_key_performances;
+      this.classroom_performance_ratings = item.classroom_performance_ratings;
+      this.ojt_performance_ratings = item.ojt_performance_ratings;
 
       // let [month, day, year] = this.editedItem.dob.split("/");
       // this.editedItem.birth_date = `${year}-${month}-${day}`;
@@ -599,10 +602,22 @@ export default {
         formData.append('document_types[]', 'Memo of Regularization');
       }
 
-      if(EmployeeInformationTabs.keyPerformances)
+      let monthly_key_performances = EmployeeInformationTabs.monthlyKeyPerformances;
+      if(monthly_key_performances)
       {
-        let monthly_key_performances = EmployeeInformationTabs.keyPerformances;
         formData.append('monthly_key_performances', JSON.stringify(monthly_key_performances));
+      }
+
+      let classroom_performance_ratings = EmployeeInformationTabs.classroomPerformanceRatings;
+      if(classroom_performance_ratings)
+      {
+        formData.append('classroom_performance_ratings', JSON.stringify(classroom_performance_ratings));
+      }
+
+      let ojt_performance_ratings = EmployeeInformationTabs.ojtPerformanceRatings;
+      if(ojt_performance_ratings)
+      {
+        formData.append('ojt_performance_ratings', JSON.stringify(ojt_performance_ratings));
       }
 
       return formData;
@@ -700,6 +715,18 @@ export default {
       
       // this.employeeInformationComponentKey += 1;
       
+    },
+
+    updateMonthlyKeyPerformance(data) {
+      this.employees[this.editedIndex].monthly_key_performances = data;
+    },
+
+    updateClassroomPerformanceRating(data) {
+      this.employees[this.editedIndex].classroom_performance_ratings = data;
+    },
+
+    updateOJTPerformanceRating(data) {
+      this.employees[this.editedIndex].ojt_performance_ratings = data;
     },
 
     isUnauthorized(error) {

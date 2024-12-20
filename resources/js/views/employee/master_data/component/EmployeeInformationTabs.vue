@@ -16,9 +16,6 @@
       <v-tab class="tab-menu" :style="tab == 4 ? tabCSS : ''">
         Offboarding
       </v-tab>
-      <v-tab class="tab-menu" :style="tab == 5 ? tabCSS : ''">
-        Files & Requirements
-      </v-tab>
     </v-tabs>
     <v-tabs-items v-model="tab">
       <v-tab-item :transition="false" class="full-height-tab-main py-2">
@@ -27,7 +24,7 @@
             Personal Information
           </v-tab>
           <v-tab class="vertical-tab-menu">
-            Files & Requirments
+            Files & Requirements
           </v-tab>
           <v-tab-item :transition="false" class="full-height-tab-personal-data py-2">
             <v-card class="mx-2 elevation-10" height="100%">
@@ -508,7 +505,10 @@
             Monthly Key Performance
           </v-tab>
           <v-tab class="vertical-tab-menu">
-            Performance Rating During Training
+            Classroom Performance Rating
+          </v-tab>
+          <v-tab class="vertical-tab-menu">
+            OJT Performance Rating
           </v-tab>
           <v-tab class="vertical-tab-menu">
             Branch Assignment & Positions
@@ -517,7 +517,7 @@
             Merit History
           </v-tab>
           <v-tab class="vertical-tab-menu">
-            Traing and Re-development
+            Training and Re-development
           </v-tab>
           <v-tab-item :transition="false" class="full-height-tab-performance py-2">
             <v-card class="mx-2 elevation-10" height="100%">
@@ -640,11 +640,11 @@
           <v-tab-item :transition="false" class="full-height-tab-performance py-2">
             <v-card class="mx-2 elevation-10" height="100%">
               <v-card-text>
-                <KeyPerformanceTable 
-                  :employee_id="data.id"
-                  :editedIndex="editedIndex" 
-                  :key_performances="monthly_key_performances"
-                  ref="KeyPerformanceTable"
+                <MonthlyKeyPerformance 
+                  :data="data"
+                  :editedIndex="editedIndex"
+                  @updateMonthlyKeyPerformance="updateMonthlyKeyPerformance"
+                  ref="MonthlyKeyPerformance"
                 />
               </v-card-text>
             </v-card>
@@ -653,47 +653,46 @@
           <v-tab-item :transition="false" class="full-height-tab-performance py-2">
             <v-card class="mx-2 elevation-10" height="100%">
               <v-card-text>
-                <v-row>
-                  <v-col cols="4" class="my-0 py-0 mt-4">
-                    <v-text-field
-                      name="performance_classroom"
-                      label="Classroom Performance Rating (%)"
-                      v-model="editedItem.performance_ojt"
-                      @keypress="decNumValFilter()"
-                    ></v-text-field>
-                  </v-col>
-                </v-row>
-                <v-row>
-                  <v-col cols="4" class="my-0 py-0">
-                    <v-text-field
-                      name="performance_ojt"
-                      label="OJT Performance Rating (%)"
-                      v-model="editedItem.performance_ojt"
-                      @keypress="decNumValFilter()"
-                    ></v-text-field>
-                  </v-col>
-                </v-row>
+                <ClassroomPerformanceRating 
+                  :data="data"
+                  :editedIndex="editedIndex" 
+                  :departments="departments"
+                  @updateClassroomPerformanceRating="updateClassroomPerformanceRating"
+                  ref="ClassroomPerformanceRating"
+                />
               </v-card-text>
             </v-card>
           </v-tab-item>
           <v-tab-item :transition="false" class="full-height-tab-performance py-2">
             <v-card class="mx-2 elevation-10" height="100%">
               <v-card-text>
-               
+                <OJTPerformanceRating
+                  :data="data"
+                  :editedIndex="editedIndex"
+                  @updateOJTPerformanceRating="updateOJTPerformanceRating" 
+                  ref="OJTPerformanceRating"
+                />
               </v-card-text>
             </v-card>
           </v-tab-item>
           <v-tab-item :transition="false" class="full-height-tab-performance py-2">
             <v-card class="mx-2 elevation-10" height="100%">
               <v-card-text>
-                
+                Branch Assignment & Positions
               </v-card-text>
             </v-card>
           </v-tab-item>
           <v-tab-item :transition="false" class="full-height-tab-performance py-2">
             <v-card class="mx-2 elevation-10" height="100%">
               <v-card-text>
-               
+                Merit History
+              </v-card-text>
+            </v-card>
+          </v-tab-item>
+          <v-tab-item :transition="false" class="full-height-tab-performance py-2">
+            <v-card class="mx-2 elevation-10" height="100%">
+              <v-card-text>
+                Training and Re-Development
               </v-card-text>
             </v-card>
           </v-tab-item>
@@ -715,22 +714,7 @@
           </v-card-text>
         </v-card>
       </v-tab-item>
-      <v-tab-item :transition="false" class="full-height-tab-main py-2">
-        <v-card class="mx-2 elevation-10" height="100%">
-          <v-card-title>Files & Requirements</v-card-title>
-          <v-card-text>
-            
-          </v-card-text>
-        </v-card>
-      </v-tab-item>
     </v-tabs-items>  
-    <!-- <AttachFileDialog 
-      :dialog="attach_file_dialog" 
-      :employee_id="data.id"
-      :editedIndex="editedIndex"
-      @closeAttachFileDialog="closeAttachFileDialog"
-      @uploadFile="uploadFile"
-    /> -->
     <v-dialog v-model="dialog_delete_loading" max-width="500px" persistent>
       <v-card>
         <v-card-text>
@@ -802,11 +786,15 @@ import { validationMixin } from "vuelidate";
 import { required, maxLength, email } from "vuelidate/lib/validators";
 import { mapState, mapGetters } from "vuex";
 import AttachFileDialog from './AttachFileDialog.vue';
-import KeyPerformanceTable from './performance_component/KeyPerformanceTable.vue';
+import MonthlyKeyPerformance from './performance_component/MonthlyKeyPerformance.vue';
+import ClassroomPerformanceRating from './performance_component/ClassroomPerformanceRating.vue';
+import OJTPerformanceRating from './performance_component/OJTPerformanceRating.vue';
 
 export default {
   components: {
-    KeyPerformanceTable,
+    MonthlyKeyPerformance,
+    ClassroomPerformanceRating,
+    OJTPerformanceRating,
     AttachFileDialog
   },
   props: [
@@ -946,7 +934,6 @@ export default {
         active: true,
       },
       employee_files: [],
-      monthly_key_performances: [],
       dateErrors: {
         birth_date: { status: false, msg: "" },
         date_employed: { status: false, msg: "" },
@@ -1157,18 +1144,18 @@ export default {
       this.attach_file_dialog = false;
     },
 
-    uploadFile(data) {
-
-      if(this.editedIndex > -1) //update mode
-      {
-        this.employees[this.editedIndex].employee_files.push(data);
-      }
-      else
-      {
-        this.employee_files.push(data);
-      }
-      
+    updateMonthlyKeyPerformance(data) {
+      this.$emit('updateMonthlyKeyPerformance', data);
     },
+
+    updateClassroomPerformanceRating(data) {
+      this.$emit('updateClassroomPerformanceRating', data);
+    },
+
+    updateOJTPerformanceRating(data) {
+      this.$emit('updateOJTPerformanceRating', data);
+    },
+
     showAlert(msg) {
       this.$swal({
         position: "center",
@@ -1187,7 +1174,9 @@ export default {
       this.employee_files = [];
       this.regularization_file_input = [];
       this.regularization_memo_file_input = [];
-      this.$refs.KeyPerformanceTable ? this.$refs.KeyPerformanceTable.clear() : '';
+      this.$refs.MonthlyKeyPerformance ? this.$refs.MonthlyKeyPerformance.clear() : '';
+      this.$refs.ClassroomPerformanceRating ? this.$refs.ClassroomPerformanceRating.clear() : '';
+      this.$refs.OJTPerformanceRating ? this.$refs.OJTPerformanceRating.clear() : '';
     },
     isUnauthorized(error) {
       // if unauthenticated (401)
@@ -1241,8 +1230,14 @@ export default {
     } 
   },
   computed: {
-    keyPerformances() {
-      return this.$refs.KeyPerformanceTable ? this.$refs.KeyPerformanceTable.monthly_key_performances : '';
+    monthlyKeyPerformances() {
+      return this.$refs.MonthlyKeyPerformance ? this.$refs.MonthlyKeyPerformance.monthly_key_performances : '';
+    },
+    classroomPerformanceRatings(){
+      return this.$refs.ClassroomPerformanceRating ? this.$refs.ClassroomPerformanceRating.classroom_performance_ratings : '';
+    },
+    ojtPerformanceRatings() {
+      return this.$refs.OJTPerformanceRating ? this.$refs.OJTPerformanceRating.ojt_performance_ratings : '';
     },
     branchErrors() {
       const errors = [];
@@ -1548,7 +1543,7 @@ export default {
       this.originalItem = Object.assign({}, this.data);
 
       this.employee_files = this.files;
-      this.monthly_key_performances = this.key_performances;
+    
     }  
     
     this.removedFiles = [];

@@ -108,7 +108,12 @@ class EmployeeKeyPerformanceController extends Controller
         $performance->grade = $request->grade;
         $performance->save();
 
-        return response()->json(['success' => 'Record has been updated'], 200);
+        $performances = EmployeeKeyPerformance::where('employee_id', $performance->employee_id)
+                                              ->orderBy('year')
+                                              ->orderBy('id')
+                                              ->get();
+
+        return response()->json(['success' => 'Record has been updated', 'performances' => $performances], 200);
     }
     
     public function delete(Request $request)
@@ -127,7 +132,12 @@ class EmployeeKeyPerformanceController extends Controller
         }
 
         $performances->delete();
+
+        $performances = EmployeeKeyPerformance::where('employee_id', $request->employee_id)
+                                              ->orderBy('year')
+                                              ->orderBy('id')
+                                              ->get();
         
-        return response()->json(['success' => 'Record has been deleted'], 200);
+        return response()->json(['success' => 'Record has been deleted', 'performances' => $performances], 200);
     }
 }

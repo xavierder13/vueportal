@@ -11,6 +11,8 @@ use App\Position;
 use App\RequiredEmployeeMap;
 use App\EmployeeMasterDataFile;
 use App\EmployeeKeyPerformance;
+use App\EmployeeClassroomPerformanceRating;
+use App\EmployeeOjtPerformanceRating;
 use App\Imports\EmployeeMasterDataImport;
 use App\Exports\EmployeeMasterDataExport;
 use App\Exports\BranchManpowerReport;
@@ -45,9 +47,15 @@ class EmployeeMasterDataController extends Controller
         ->with('position')
         ->with('position.rank')
         ->with('files')
-        ->with(['key_performances' => function($query) {
+        ->with(['monthly_key_performances' => function($query) {
             $query->orderBy('year')
                   ->orderBy('id');
+        }])
+        ->with(['classroom_performance_ratings' => function($query) {
+            $query->orderBy('department');
+        }])
+        ->with(['ojt_performance_ratings' => function($query) {
+            $query->orderBy('id');
         }])
         ->select(DB::raw("*,
                  FLOOR((TIMESTAMPDIFF(DAY, dob, date_format(NOW(),'%Y-%m-%d')) / 365)) as age,
@@ -163,6 +171,7 @@ class EmployeeMasterDataController extends Controller
 
     public function store(Request $request)
     {       
+      
         $validator = $this->validator($request->all());
         
         if($validator->fails())
@@ -216,6 +225,33 @@ class EmployeeMasterDataController extends Controller
                     'year' => $performance->year,
                     'month' => $performance->month,
                     'grade' => $performance->grade,
+                ]);
+            }
+        }
+
+        $performances = json_decode($request->classroom_performance_ratings);
+        if(is_array($performances))
+        {
+            foreach ($performances as $key => $performance) {
+
+                EmployeeClassroomPerformanceRating::create([
+                    'employee_id' => $employee->id,
+                    'department' => $performance->department,
+                    'grade' => $performance->grade,
+                ]);
+            }
+        }
+
+        $performances = json_decode($request->ojt_performance_ratings);
+        if(is_array($performances))
+        {
+            foreach ($performances as $key => $performance) {
+
+                EmployeeOjtPerformanceRating::create([
+                    'employee_id' => $employee->id,
+                    'mentor' => $performance->mentor,
+                    'grade' => $performance->grade,
+                    'kpi' => $performance->kpi,
                 ]);
             }
         }

@@ -20,28 +20,28 @@ class EmployeeKeyPerformanceMaintenance
 
         //Employee Master Data Key Performance Record
         if($request->is('api/employee_master_data/key_performance/index')){
-            if($user->can('employee-master-data-list')){
+            if($user->can('employee-master-data-key-performance-list')){
                 return $next($request); 
             }
         }
 
         //Employee Master Data Key Performance Create
         if($request->is('api/employee_master_data/key_performance/create') || $request->is('api/employee_master_data/key_performance/store')){
-            if($user->can('employee-master-data-create')){
+            if($user->can('employee-master-data-key-performance-create')){
                 return $next($request); 
             }
         }
 
         //Employee Master Data Key Performance Edit
         if($request->is('api/employee_master_data/key_performance/edit/*') || $request->is('api/employee_master_data/key_performance/update/*')){
-            if($user->can('employee-master-data-edit')){
+            if($user->can('employee-master-data-key-performance-edit')){
                 return $next($request); 
             }
         }
 
         //Employee Master Data Key Performance Delete
         if($request->is('api/employee_master_data/key_performance/delete')){
-            if($user->can('employee-master-data-delete')){
+            if($user->can('employee-master-data-key-performance-delete')){
                 return $next($request); 
             }
         }

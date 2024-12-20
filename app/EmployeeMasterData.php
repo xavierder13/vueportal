@@ -64,9 +64,21 @@ class EmployeeMasterData extends Model
         //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
     }
 
-    public function key_performances()
+    public function monthly_key_performances()
     {
         return $this->hasMany('App\EmployeeKeyPerformance', 'employee_id', 'id');
+        //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
+    }
+
+    public function classroom_performance_ratings()
+    {
+        return $this->hasMany('App\EmployeeClassroomPerformanceRating', 'employee_id', 'id');
+        //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
+    }
+
+    public function ojt_performance_ratings()
+    {
+        return $this->hasMany('App\EmployeeOjtPerformanceRating', 'employee_id', 'id');
         //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
     }
 

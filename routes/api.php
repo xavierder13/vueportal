@@ -355,6 +355,52 @@ Route::group(['prefix' => 'employee_master_data/key_performance', 'middleware' =
     ]); 
 });
 
+//Employee Master Data Classroom Performance Rating Routes
+Route::group(['prefix' => 'employee_master_data/classroom_performance_rating', 'middleware' => ['auth:api', 'employee.classroom.performance.rating.maintenance']], function() {
+    Route::get('/index', [
+        'uses' => 'API\EmployeeClassroomPerformanceRatingController@index',
+        'as' => 'employee.classroom.performance.rating.index'
+    ]);
+
+    Route::post('/store', [
+        'uses' => 'API\EmployeeClassroomPerformanceRatingController@store',
+        'as' => 'employee.classroom.performance.rating.store'
+    ]); 
+
+    Route::post('/update/{id}', [
+        'uses' => 'API\EmployeeClassroomPerformanceRatingController@update',
+        'as' => 'employee.classroom.performance.rating.update'
+    ]); 
+
+    Route::post('/delete', [
+        'uses' => 'API\EmployeeClassroomPerformanceRatingController@delete',
+        'as' => 'employee.classroom.performance.rating.delete'
+    ]); 
+});
+
+//Employee Master Data OJT Performance Rating Routes
+Route::group(['prefix' => 'employee_master_data/ojt_performance_rating', 'middleware' => ['auth:api', 'employee.ojt.performance.rating.maintenance']], function() {
+    Route::get('/index', [
+        'uses' => 'API\EmployeeOjtPerformanceRatingController@index',
+        'as' => 'employee.ojt.performance.rating.index'
+    ]);
+
+    Route::post('/store', [
+        'uses' => 'API\EmployeeOjtPerformanceRatingController@store',
+        'as' => 'employee.ojt.performance.rating.store'
+    ]); 
+
+    Route::post('/update/{id}', [
+        'uses' => 'API\EmployeeOjtPerformanceRatingController@update',
+        'as' => 'employee.ojt.performance.rating.update'
+    ]); 
+
+    Route::post('/delete', [
+        'uses' => 'API\EmployeeOjtPerformanceRatingController@delete',
+        'as' => 'employee.ojt.performance.rating.delete'
+    ]); 
+});
+
 // Employee Routes
 Route::group(['prefix' => 'employee', 'middleware' => ['auth:api', 'employee.maintenance']], function(){
     Route::get('/index', [
