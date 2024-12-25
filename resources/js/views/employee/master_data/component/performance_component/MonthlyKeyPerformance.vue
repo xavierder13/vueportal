@@ -38,6 +38,15 @@
         </template>
         <span>Delete Period</span>
       </v-tooltip> 
+      <v-spacer></v-spacer>
+      <v-autocomplete
+        v-model="filter_period"
+        :items="filterPeriodItems"
+        label="Filter Period"
+        dense
+        hide-details=""
+      >
+      </v-autocomplete>
     </v-toolbar>
     <v-simple-table fixed-header class="tableFixHead" id="monthly_key_performances">
       <template v-slot:default>
@@ -51,19 +60,19 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(item, index) in monthly_key_performances" :class="index === editedPerfomanceIndex ? 'blue lighten-5' : ''">
+          <tr v-for="(item, index) in filteredMonthlyPerformance" :class="index === editedPerformanceIndex ? 'blue lighten-5' : ''">
             <td class="pa-4"> {{ index + 1 }} </td>
             <td class="pa-2"> {{ item.year }} </td>
             <td class="pa-2"> {{ item.month }}</td>
 
             <!-- START Show Data if row is not for edit (show by default) -->
-            <template v-if="index !== editedPerfomanceIndex && item.status !== 'New'">
+            <template v-if="index !== filteredEditedPerformanceIndex && item.status !== 'New'">
               <td class="pa-2"> {{ item.grade }} </td>
             </template>
             <!-- END Show Data if row is not for edit (show by default) -->
 
             <!-- START Show Fields if row is for edit -->
-            <template v-if="index === editedPerfomanceIndex || item.status === 'New'">
+            <template v-if="index === filteredEditedPerformanceIndex || item.status === 'New'">
               <td class="pa-2">
                 <v-text-field
                   name="grade"
@@ -80,7 +89,7 @@
             <!-- END Show Fields if row is for edit -->
             
             <!-- START Show Edit(pencil icon) and Delete (trash icon) button if not Edit Mode (show by default) -->
-            <template v-if="index !== editedPerfomanceIndex && item.status !== 'New' ">
+            <template v-if="index !== filteredEditedPerformanceIndex && item.status !== 'New' ">
               <td class="pa-2">
                 <v-icon
                   small
@@ -105,7 +114,7 @@
             <!-- END  Show Edit(pencil icon) and Delete (trash icon) button if not Edit Mode (show by default) -->
 
             <!-- START  Show Save and Cancel button if Edit Mode -->
-            <template v-if="index === editedPerfomanceIndex ? true : false || item.status === 'New' ">
+            <template v-if="index === filteredEditedPerformanceIndex ? true : false || item.status === 'New' ">
               <td class="pa-2">
                 <v-btn
                   x-small
@@ -231,7 +240,7 @@ export default {
   },
   data() {
     return {
-      editedPerfomanceIndex: -1,
+      editedPerformanceIndex: -1,
       editedItem: {
         year: "",
         month: "",
@@ -266,6 +275,7 @@ export default {
       period: "",
       addedItems: [],
       deletedItems: [],
+      filter_period: "Show All",
     };
   },
 
@@ -412,7 +422,7 @@ export default {
         }
         else
         {
-          this.monthly_key_performances[this.editedPerfomanceIndex] = this.editedItem;
+          this.monthly_key_performances[this.editedPerformanceIndex] = this.editedItem;
           if(this.editedIndex > -1)
           {
             this.updatePeriod();
@@ -425,9 +435,9 @@ export default {
     },
 
     cancelEvent(item) {
-      this.editedPerfomanceIndex = this.monthly_key_performances.indexOf(item);
+      this.editedPerformanceIndex = this.monthly_key_performances.indexOf(item);
       if (this.table_action_mode === "Add") {
-        this.monthly_key_performances.splice(this.editedPerfomanceIndex, 1);
+        this.monthly_key_performances.splice(this.editedPerformanceIndex, 1);
       } 
 
       this.resetData();
@@ -436,7 +446,9 @@ export default {
     editItem(item) {
       this.table_action_mode = "Edit";
       this.editedItem = Object.assign({}, item);
-      this.editedPerfomanceIndex = this.monthly_key_performances.indexOf(item);
+      this.editedPerformanceIndex = this.monthly_key_performances.indexOf(item);
+      // this.editedPerformanceIndex = this.filteredMonthlyPerformance.indexOf(item);
+      
     },
 
     deleteItem() {
@@ -456,7 +468,7 @@ export default {
     resetData(){
       this.$v.editedItem.$reset();
       this.editedItem = Object.assign({}, this.defaultField);
-      this.editedPerfomanceIndex = -1;
+      this.editedPerformanceIndex = -1;
       this.table_action_mode = "";
     },
 
@@ -574,6 +586,49 @@ export default {
 
   },
   computed: {
+
+    filteredMonthlyPerformance() {
+      // used to involve this model for refreshing/re-render this computed function
+      this.table_action_mode;
+
+      let performances = [];
+
+      this.monthly_key_performances.forEach(value => {
+
+        if(this.filter_period == 'Show All' || value.year == this.filter_period)
+        {
+          performances.push(value);
+        }
+        
+      });
+
+      return performances;
+      // return this.monthly_key_performances.filter(value => value.year == (this.filter_period != 'Show All' ? this.filter_period : value.year));
+    },
+
+    filterPeriodItems() {
+      let periods = [];
+
+      // Return today's date and time
+      var currentTime = new Date()
+
+      // returns the year (four digits)
+      var year = currentTime.getFullYear();
+
+      periods = this.monthly_key_performances.map(value => value.year);
+
+      periods.unshift('Show All');
+
+      return periods;
+
+    },
+
+    filteredEditedPerformanceIndex()
+    {
+      return this.filteredMonthlyPerformance.findIndex(value => {
+        return value.id == this.editedItem.id;
+      });
+    },
     
     gradeErrors(){
       const errors = [];
@@ -624,7 +679,6 @@ export default {
             yearArr.push(i);  
           }
         }
-        
         
       }
 
