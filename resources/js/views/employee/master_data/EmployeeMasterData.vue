@@ -230,6 +230,7 @@
                   @updateMonthlyKeyPerformance="updateMonthlyKeyPerformance"
                   @updateClassroomPerformanceRating="updateClassroomPerformanceRating"
                   @updateOJTPerformanceRating="updateOJTPerformanceRating"
+                  @updateBranchAssignmentPosition="updateBranchAssignmentPosition"
                   ref="EmployeeInformationTabs"
                   :key="employeeInformationComponentKey"
                 />
@@ -727,6 +728,10 @@ export default {
 
     updateOJTPerformanceRating(data) {
       this.employees[this.editedIndex].ojt_performance_ratings = data;
+    },
+
+    updateBranchAssignmentPosition(data) {
+      this.employees[this.editedIndex].branch_assignment_positions = data;
     },
 
     isUnauthorized(error) {

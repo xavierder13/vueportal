@@ -75,6 +75,7 @@ class Kernel extends HttpKernel
         'employee.key.performance.maintenance' => \App\Http\Middleware\EmployeeKeyPerformanceMaintenance::class,
         'employee.classroom.performance.rating.maintenance' => \App\Http\Middleware\EmployeeClassroomPerformanceRatingMaintenance::class,
         'employee.ojt.performance.rating.maintenance' => \App\Http\Middleware\EmployeeOjtPerformanceRatingMaintenance::class,            
+        'employee.branch.assignment.position.maintenance' => \App\Http\Middleware\EmployeeBranchAssignmentPositionMaintenance::class,            
         'employee.maintenance' => \App\Http\Middleware\EmployeeMaintenance::class,
         'employee.loans.maintenance' => \App\Http\Middleware\EmployeeLoansMaintenance::class,
         'employee.premiums.maintenance' => \App\Http\Middleware\EmployeePremiumsMaintenance::class,

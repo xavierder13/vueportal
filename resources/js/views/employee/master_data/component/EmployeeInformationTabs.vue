@@ -678,7 +678,14 @@
           <v-tab-item :transition="false" class="full-height-tab-performance py-2">
             <v-card class="mx-2 elevation-10" height="100%">
               <v-card-text>
-                Branch Assignment & Positions
+                <BranchAssignmentPosition
+                  :data="data"
+                  :positions="positions"
+                  :branches="branches"
+                  :editedIndex="editedIndex"
+                  @updateBranchAssignmentPosition="updateBranchAssignmentPosition" 
+                  ref="BranchAssignmentPosition"
+                />
               </v-card-text>
             </v-card>
           </v-tab-item>
@@ -789,18 +796,19 @@ import AttachFileDialog from './AttachFileDialog.vue';
 import MonthlyKeyPerformance from './performance_component/MonthlyKeyPerformance.vue';
 import ClassroomPerformanceRating from './performance_component/ClassroomPerformanceRating.vue';
 import OJTPerformanceRating from './performance_component/OJTPerformanceRating.vue';
+import BranchAssignmentPosition from './performance_component/BranchAssignmentPosition.vue';
 
 export default {
   components: {
     MonthlyKeyPerformance,
     ClassroomPerformanceRating,
     OJTPerformanceRating,
+    BranchAssignmentPosition,
     AttachFileDialog
   },
   props: [
     'data',
     'files',
-    'key_performances',
     'branches',
     'positions',
     'departments',
@@ -1156,6 +1164,10 @@ export default {
       this.$emit('updateOJTPerformanceRating', data);
     },
 
+    updateBranchAssignmentPosition(data) {
+      this.$emit('updateBranchAssignmentPosition', data);
+    },
+
     showAlert(msg) {
       this.$swal({
         position: "center",
@@ -1177,6 +1189,7 @@ export default {
       this.$refs.MonthlyKeyPerformance ? this.$refs.MonthlyKeyPerformance.clear() : '';
       this.$refs.ClassroomPerformanceRating ? this.$refs.ClassroomPerformanceRating.clear() : '';
       this.$refs.OJTPerformanceRating ? this.$refs.OJTPerformanceRating.clear() : '';
+      this.$refs.BranchAssignmentPosition ? this.$refs.BranchAssignmentPosition.clear() : '';
     },
     isUnauthorized(error) {
       // if unauthenticated (401)

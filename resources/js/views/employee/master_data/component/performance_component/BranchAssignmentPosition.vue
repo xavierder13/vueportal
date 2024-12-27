@@ -1,9 +1,9 @@
 <template>
   <div>
     <v-toolbar flat>
-      <v-toolbar-title class="mt-2">Performance Rating - OJT</v-toolbar-title>
+      <v-toolbar-title class="mt-2">Branch Assignment & Positions</v-toolbar-title>
       <v-divider vertical class="ma-2 ml-4" thickness="20px"></v-divider>
-      <v-tooltip top v-if="hasPermission('employee-master-data-ojt-performance-rating-create')">
+      <v-tooltip top v-if="hasPermission('employee-master-data-branch-assignment-position-create')">
         <template v-slot:activator="{ on, attrs }">
           <v-btn 
             small 
@@ -22,78 +22,92 @@
         <span>Add Period</span>
       </v-tooltip>
     </v-toolbar>
-    <v-simple-table fixed-header class="tableFixHead" id="ojt_performance_ratings">
+    <v-simple-table fixed-header class="tableFixHead" id="branch_assignment_positions">
       <template v-slot:default>
         <thead>
           <tr>
-            <th class="pa-2" style="width:5%">#</th>
-            <th class="pa-2" style="width:40%">Mentor</th>
-            <th class="pa-2" style="width:20%">Grade(%)</th>
-            <th class="pa-2" style="width:20%">KPI(%)</th>
-            <th class="pa-2" style="width:15%"> Actions</th>
+            <th class="pa-2" style="width:3%">#</th>
+            <th class="pa-2" style="width:15%">Date Assigned</th>
+            <th class="pa-2" style="width:20%">Position</th>
+            <th class="pa-2" style="width:20%">Branch</th>
+            <th class="pa-2" style="width:30%">Remarks</th>
+            <th class="pa-2" style="width:10%"> Actions</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(item, index) in ojt_performance_ratings" :class="index === editedPerformanceIndex ? $v.editedItem.$error ? 'red lighten-5' : 'blue lighten-5' : ''">
-            <td class="pa-2" style="width:5%"> {{ index + 1 }} </td>
+          <tr v-for="(item, index) in branch_assignment_positions" :class="index === editedBranchAssignmentIndex ? $v.editedItem.$error ? 'red lighten-5' : 'blue lighten-5' : ''">
+            <td class="pa-2" style="width:3%"> {{ index + 1 }} </td>
             <!-- START Show Data if row is not for edit (show by default) -->
-            <template v-if="index !== editedPerformanceIndex && item.status !== 'New'">
-              <td class="pa-2" style="width:40%"> {{ item.mentor }}</td>
-              <td class="pa-2" style="width:20%"> {{ item.grade }} </td>
-              <td class="pa-2" style="width:20%"> {{ item.kpi }} </td>
+            <template v-if="index !== editedBranchAssignmentIndex && item.status !== 'New'">
+              <td class="pa-2" style="width:15%"> {{ formatDate(item.date_assigned) }}</td>
+              <td class="pa-2" style="width:20%"> {{ item.position }} </td>
+              <td class="pa-2" style="width:20%"> {{ item.branch }} </td>
+              <td class="pa-2" style="width:30%"> {{ item.remarks }} </td>
             </template>
             <!-- END Show Data if row is not for edit (show by default) -->
 
             <!-- START Show Fields if row is for edit -->
-            <template v-if="index === editedPerformanceIndex || item.status === 'New'">
-              <td class="pa-2" style="width:40%">
+            <template v-if="index === editedBranchAssignmentIndex || item.status === 'New'">
+              <td class="pa-2" style="width:15%">
                 <v-text-field
-                  name="mentor"
-                  v-model="editedItem.mentor"
-                  dense
-                  hide-details
-                  :error-messages="mentorErrors"
-                  @input="$v.editedItem.mentor.$touch()"
-                  @blur="$v.editedItem.mentor.$touch()"
+                  label="Date Assigned"
+                  type="date"
+                  v-model="editedItem.date_assigned"
+                  :error-messages="dateAssignedErrors"
+                  @input="$v.editedItem.date_assigned.$touch() + validateDate('date_assigned')"
+                  @blur="$v.editedItem.date_assigned.$touch()"
                 ></v-text-field>
               </td>
               <td class="pa-2" style="width:20%">
-                <v-text-field
-                  name="grade"
-                  v-model="editedItem.grade"
-                  dense
-                  hide-details
-                  :error-messages="gradeErrors"
-                  @input="$v.editedItem.grade.$touch()"
-                  @blur="$v.editedItem.grade.$touch()"
-                  @keypress="intNumValFilter()"
-                ></v-text-field>
+                <v-autocomplete
+                  v-model="editedItem.position"
+                  :items="positions"
+                  item-text="name"
+                  item-value="name"
+                  label="Position"
+                  return-object
+                  :error-messages="positionErrors"
+                  @input="$v.editedItem.position.$touch()"
+                  @blur="$v.editedItem.position.$touch()"
+                >
+                </v-autocomplete>
               </td>
               <td class="pa-2" style="width:20%">
+                <v-autocomplete
+                  v-model="editedItem.branch"
+                  :items="branches"
+                  item-text="name"
+                  item-value="name"
+                  label="Branch"
+                  return-object
+                  :error-messages="branchErrors"
+                  @input="$v.editedItem.branch.$touch()"
+                  @blur="$v.editedItem.branch.$touch()"
+                >
+                </v-autocomplete>
+              </td>
+              <td class="pa-2" style="width:30%">
                 <v-text-field
-                  name="kpi"
-                  v-model="editedItem.kpi"
-                  dense
-                  hide-details
-                  :error-messages="kpiErrors"
-                  @input="$v.editedItem.kpi.$touch()"
-                  @blur="$v.editedItem.kpi.$touch()"
-                  @keypress="intNumValFilter()"
+                  label="Remarks"
+                  v-model="editedItem.remarks"
+                  :error-messages="remarksErrors"
+                  @input="$v.editedItem.remarks.$touch()"
+                  @blur="$v.editedItem.remarks.$touch()"
                 ></v-text-field>
               </td>
             </template>
             <!-- END Show Fields if row is for edit -->
             
             <!-- START Show Edit(pencil icon) and Delete (trash icon) button if not Edit Mode (show by default) -->
-            <template v-if="index !== editedPerformanceIndex && item.status !== 'New' ">
-              <td class="pa-2" style="width:15%">
+            <template v-if="index !== editedBranchAssignmentIndex && item.status !== 'New' ">
+              <td class="pa-2" style="width:10%">
                 <v-icon
                   small
                   class="mr-2"
                   color="green"
                   @click="editItem(item)"
                   :disabled="table_action_mode === 'Add' ? true : false"
-                  v-if="hasPermission('employee-master-data-ojt-performance-rating-edit')"
+                  v-if="hasPermission('employee-master-data-branch-assignment-position-edit')"
                 >
                   mdi-pencil
                 </v-icon>
@@ -103,7 +117,7 @@
                   color="red"
                   @click="showConfirmAlert(item)"
                   :disabled="['Add', 'Edit'].includes(table_action_mode)"
-                  v-if="hasPermission('employee-master-data-ojt-performance-rating-delete')"
+                  v-if="hasPermission('employee-master-data-branch-assignment-position-delete')"
                 >
                   mdi-delete
                 </v-icon>
@@ -112,8 +126,8 @@
             <!-- END  Show Edit(pencil icon) and Delete (trash icon) button if not Edit Mode (show by default) -->
 
             <!-- START  Show Save and Cancel button if Edit Mode -->
-            <template v-if="index === editedPerformanceIndex ? true : false || item.status === 'New' ">
-              <td class="pa-2" style="width:15%">
+            <template v-if="index === editedBranchAssignmentIndex ? true : false || item.status === 'New' ">
+              <td class="pa-2" style="width:10%">
                 <v-btn
                   x-small
                   :disabled="disabled"
@@ -185,21 +199,25 @@ import { mapGetters } from "vuex";
 
 export default {
 
-  props: ['editedIndex', 'key_performances', 'data', 'departments'],
+  props: ['editedIndex', 'data', 'positions', 'branches'],
 
   mixins: [validationMixin],
 
   validations: {
     editedItem: { 
-      mentor: { required: requiredIf(function () {
+      date_assigned: { required: requiredIf(function () {
             return this.table_action_mode;
           }),  
       },
-      grade: { required: requiredIf(function () {
+      position: { required: requiredIf(function () {
             return this.table_action_mode;
           }),  
       },
-      kpi: { required: requiredIf(function () {
+      branch: { required: requiredIf(function () {
+            return this.table_action_mode;
+          }),  
+      },
+      remarks: { required: requiredIf(function () {
             return this.table_action_mode;
           }),  
       },
@@ -209,25 +227,30 @@ export default {
   },
   data() {
     return {
-      editedPerformanceIndex: -1,
+      editedBranchAssignmentIndex: -1,
       editedItem: {
-        mentor: "",
-        grade: "",
-        kpi: "",
+        date_assigned: "",
+        position: "",
+        branch: "",
+        remarks: "",
       },
       defaultField: {
-        mentor: "",
-        grade: "",
-        kpi: "",
+        date_assigned: "",
+        position: "",
+        branch: "",
+        remarks: "",
       },
-      ojt_performance_ratings: [],
-      added_ojt_performance_ratings: [],
-      deleted_ojt_performance_ratings: [],
+      branch_assignment_positions: [],
+      added_branch_assignment_positions: [],
+      deleted_branch_assignment_positions: [],
       action_mode: "",
       table_action_mode: "",
       disabled: false,
       addedItems: [],
       deletedItems: [],
+      dateErrors: {
+        date_assigned: { status: false, msg: "" },
+      },
     };
   },
 
@@ -238,40 +261,40 @@ export default {
 
       let hasNew = false;
       
-      this.ojt_performance_ratings.forEach((value, index) => {
+      this.branch_assignment_positions.forEach((value, index) => {
         if (value.status === "New") {
           hasNew = true;
         }
       });
 
       if (!hasNew) {
-        this.ojt_performance_ratings.push({ status: "New" });
+        this.branch_assignment_positions.push({ status: "New" });
       }
       
       setTimeout(() => {
-        let container = this.$el.querySelector("#ojt_performance_ratings tbody");
+        let container = this.$el.querySelector("#branch_assignment_positions tbody");
         container.scrollTop = container.scrollHeight;
       }, 1);
 
     },
-    storePerformance() {
+    storeBranchAssignment() {
 
       let data = Object.assign(this.editedItem, { employee_id: this.data.id });
       
-      axios.post("/api/employee_master_data/ojt_performance_rating/store", data).then(
+      axios.post("/api/employee_master_data/branch_assignment_position/store", data).then(
         (response) => {
           this.loading = false;
           let data = response.data;
           
           if(data.success)
           {
-            this.ojt_performance_ratings = data.performances;
-            this.$emit('updateOJTPerformanceRating', data.performances);
+            this.branch_assignment_positions = data.branch_assignment_positions;
+            this.$emit('updateBranchAssignmentPosition', data.branch_assignment_positions);
             this.showAlert(data.success);
           }
           
           // reset array
-          this.added_ojt_performance_ratings = [];
+          this.added_branch_assignment_positions = [];
         },
         (error) => {
           this.isUnauthorized(error);
@@ -279,7 +302,7 @@ export default {
       );
     },
 
-    updatePerformance() {
+    updateBranchPosition() {
 
       let data = { 
         department: this.editedItem.department, 
@@ -287,15 +310,15 @@ export default {
         mentor: this.editedItem.mentor 
       };
 
-      axios.post("/api/employee_master_data/ojt_performance_rating/update/"+this.editedItem.id, data).then(
+      axios.post("/api/employee_master_data/branch_assignment_position/update/"+this.editedItem.id, data).then(
         (response) => {
           this.loading = false;
           let data = response.data;
           
           if(data.success)
           {
-            this.ojt_performance_ratings = data.performances;
-            this.$emit('updateClassroomPerformanceRating', data.performances);
+            this.branch_assignment_positions = data.branch_assignment_positions;
+            this.$emit('updateBranchAssignmentPosition', data.branch_assignment_positions);
             this.showAlert(data.success);
           }
           
@@ -306,11 +329,11 @@ export default {
       );
     },
 
-    deletePerformance(item) {
+    deleteBranchAssignment(item) {
       
       this.loading = true;
-      let data = { performance_id: item.id };
-      axios.post("/api/employee_master_data/ojt_performance_rating/delete", data).then(
+      let data = { branch_assignment_id: item.id };
+      axios.post("/api/employee_master_data/branch_assignment_position/delete", data).then(
         (response) => {
           this.loading = false;
 
@@ -334,22 +357,23 @@ export default {
     saveItem(){
  
       this.$v.editedItem.$touch();
+      let dateModelHasErrors = Object.values(this.dateErrors).map((obj) => obj.status).includes(true);
 
-      if(!this.$v.editedItem.$error && !this.gradeErrors.length && !this.kpiErrors.length)
+      if(!this.$v.editedItem.$error && !dateModelHasErrors)
       {
         if(this.table_action_mode === 'Add')
         {
-          let index = this.ojt_performance_ratings.indexOf({ status: 'New' }); 
-          this.ojt_performance_ratings.splice(index, 1);
+          let index = this.branch_assignment_positions.indexOf({ status: 'New' }); 
+          this.branch_assignment_positions.splice(index, 1);
           
           // edit mode; from parent component
           if(this.editedIndex > -1)
           {
-            this.storePerformance();
+            this.storeBranchAssignment();
           }
           else
           {
-            this.ojt_performance_ratings.push(this.editedItem);
+            this.branch_assignment_positions.push(this.editedItem);
           }
 
         }
@@ -358,11 +382,11 @@ export default {
           // edit mode; from parent component
           if(this.editedIndex > -1)
           {
-            this.updatePerformance();
+            this.updateBranchPosition();
           }
           else
           {
-            this.ojt_performance_ratings[this.editedPerformanceIndex] = this.editedItem;
+            this.branch_assignment_positions[this.editedBranchAssignmentIndex] = this.editedItem;
           }
           
         }
@@ -373,9 +397,9 @@ export default {
     },
 
     cancelEvent(item) {
-      this.editedPerformanceIndex = this.ojt_performance_ratings.indexOf(item);
+      this.editedBranchAssignmentIndex = this.branch_assignment_positions.indexOf(item);
       if (this.table_action_mode === "Add") {
-        this.ojt_performance_ratings.splice(this.editedPerformanceIndex, 1);
+        this.branch_assignment_positions.splice(this.editedBranchAssignmentIndex, 1);
       } 
 
       this.resetData();
@@ -384,21 +408,21 @@ export default {
     editItem(item) {
       this.table_action_mode = "Edit";
       this.editedItem = Object.assign({}, item);
-      this.editedPerformanceIndex = this.ojt_performance_ratings.indexOf(item);
+      this.editedBranchAssignmentIndex = this.branch_assignment_positions.indexOf(item);
     },
 
     resetData(){
       this.$v.editedItem.$reset();
       this.editedItem = Object.assign({}, this.defaultField);
-      this.editedPerformanceIndex = -1;
+      this.editedBranchAssignmentIndex = -1;
       this.table_action_mode = "";
     },
 
     clear() {
       this.resetData();
-      this.ojt_performance_ratings = [];
-      this.added_ojt_performance_ratings = [];
-      this.deleted_ojt_performance_ratings = [];
+      this.branch_assignment_positions = [];
+      this.added_branch_assignment_positions = [];
+      this.deleted_branch_assignment_positions = [];
       this.addedItems = [];
       this.deletedItems = [];
 
@@ -441,7 +465,7 @@ export default {
 
           if (result.value) {
             
-            this.deletePerformance(item);
+            this.deleteBranchAssignment(item);
             
           }
         });
@@ -455,8 +479,8 @@ export default {
     },
 
     removeItem() {
-      let index = this.ojt_performance_ratings.indexOf(this.editedItem);
-      this.ojt_performance_ratings.splice(index, 1);
+      let index = this.branch_assignment_positions.indexOf(this.editedItem);
+      this.branch_assignment_positions.splice(index, 1);
     },
 
     intNumValFilter(evt) {
@@ -485,39 +509,77 @@ export default {
       }
     },
 
+    validateDate(field) {
+      
+      // if field is set for validation
+      if(this.$v.editedItem[field])
+      {
+        this.$v.editedItem[field].$touch();
+      }
+
+      let min_date = new Date('1900-01-01').getTime();
+      let max_date = new Date().getTime();
+      let date = this.editedItem[field];
+   
+      if(date)
+      {
+        let date_value = new Date(date).getTime();
+        let [year, month, day] = date.split('-');
+
+        this.dateErrors[field].status = false;
+        this.dateErrors[field].msg = "";
+
+        // if (date_value < min_date || date_value > max_date || year.length > 4) {
+        if (date_value > max_date || year.length > 4 || year < 1900) {
+          this.dateErrors[field].status = true;
+          this.dateErrors[field].msg = 'Enter a valid date';
+        }  
+      }
+  
+    },
+
+    formatDate(date) {
+      if (!date) return null;
+      const [year, month, day] = date.split("-");
+      return `${month}/${day}/${year}`;
+    },
+
   },
   computed: {
-    mentorErrors() {
+    dateAssignedErrors() {
       const errors = [];
-      if (!this.$v.editedItem.mentor.$dirty) return errors;
-      !this.$v.editedItem.mentor.required &&
-        errors.push("Mentor is required.");
-      return errors;
-    },
-    
-    gradeErrors(){
-      const errors = [];
-      if (!this.$v.editedItem.grade.$dirty) return errors;
-      !this.$v.editedItem.grade.required && errors.push("Grade is required.");
+      if (!this.$v.editedItem.date_assigned.$dirty) return errors;
+      !this.$v.editedItem.date_assigned.required && errors.push("Date Assigned is required.");
 
-      if(parseInt(this.editedItem.grade) < 0 || parseInt(this.editedItem.grade) > 999999.9)
+      if(this.dateErrors.date_assigned.msg)
       {
-        errors.push("Invalid Value");
+        errors.push(this.dateErrors.date_assigned.msg);
       }
 
       return errors;
     },
 
-    kpiErrors(){
+    positionErrors() {
       const errors = [];
-      if (!this.$v.editedItem.kpi.$dirty) return errors;
-      !this.$v.editedItem.kpi.required && errors.push("KPI is required.");
+      if (!this.$v.editedItem.position.$dirty) return errors;
+      !this.$v.editedItem.position.required &&
+        errors.push("Position is required.");
+      return errors;
+    },
 
-      if(parseInt(this.editedItem.kpi) < 0 || parseInt(this.editedItem.kpi) > 999999.9)
-      {
-        errors.push("Invalid Value");
-      }
+    branchErrors() {
+      const errors = [];
+      if (!this.$v.editedItem.branch.$dirty) return errors;
+      !this.$v.editedItem.branch.required &&
+        errors.push("Branch is required.");
+      return errors;
+    },
 
+    remarksErrors() {
+      const errors = [];
+      if (!this.$v.editedItem.remarks.$dirty) return errors;
+      !this.$v.editedItem.remarks.required &&
+        errors.push("Remarks is required.");
       return errors;
     },
 
@@ -532,7 +594,7 @@ export default {
     
     if(this.editedIndex > -1)
     {
-      this.ojt_performance_ratings = this.data.ojt_performance_ratings;
+      this.branch_assignment_positions = this.data.branch_assignment_positions;
     }
   },
 };

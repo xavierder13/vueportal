@@ -401,6 +401,29 @@ Route::group(['prefix' => 'employee_master_data/ojt_performance_rating', 'middle
     ]); 
 });
 
+//Employee Master Data Branch Assignment Position Routes
+Route::group(['prefix' => 'employee_master_data/branch_assignment_position', 'middleware' => ['auth:api', 'employee.branch.assignment.position.maintenance']], function() {
+    Route::get('/index', [
+        'uses' => 'API\EmployeeBranchAssignmentPositionController@index',
+        'as' => 'employee.branch.assignment.position.index'
+    ]);
+
+    Route::post('/store', [
+        'uses' => 'API\EmployeeBranchAssignmentPositionController@store',
+        'as' => 'employee.branch.assignment.position.store'
+    ]); 
+
+    Route::post('/update/{id}', [
+        'uses' => 'API\EmployeeBranchAssignmentPositionController@update',
+        'as' => 'employee.branch.assignment.position.update'
+    ]); 
+
+    Route::post('/delete', [
+        'uses' => 'API\EmployeeBranchAssignmentPositionController@delete',
+        'as' => 'employee.branch.assignment.position.delete'
+    ]); 
+});
+
 // Employee Routes
 Route::group(['prefix' => 'employee', 'middleware' => ['auth:api', 'employee.maintenance']], function(){
     Route::get('/index', [

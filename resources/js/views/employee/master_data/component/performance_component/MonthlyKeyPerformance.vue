@@ -52,28 +52,28 @@
       <template v-slot:default>
         <thead>
           <tr>
-            <th class="pa-4" width="10px">#</th>
-            <th class="pa-2">Year</th>
-            <th class="pa-2">Month</th>
-            <th class="pa-2">Actual Grade(%)</th>
-            <th class="pa-2" width="80px"> Actions</th>
+            <th class="pa-4" style="width:5%">#</th>
+            <th class="pa-2" style="width:25%">Year</th>
+            <th class="pa-2" style="width:30%">Month</th>
+            <th class="pa-2" style="width:30%">Actual Grade(%)</th>
+            <th class="pa-2" style="width:10%"> Actions</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(item, index) in filteredMonthlyPerformance" :class="index === editedPerformanceIndex ? 'blue lighten-5' : ''">
-            <td class="pa-4"> {{ index + 1 }} </td>
-            <td class="pa-2"> {{ item.year }} </td>
-            <td class="pa-2"> {{ item.month }}</td>
+          <tr v-for="(item, index) in filteredMonthlyPerformance" :class="index === filteredEditedPerformanceIndex ? 'blue lighten-5' : ''">
+            <td class="pa-4" style="width:5%"> {{ index + 1 }} </td>
+            <td class="pa-2" style="width:25%"> {{ item.year }} </td>
+            <td class="pa-2" style="width:30%"> {{ item.month }} </td>
 
             <!-- START Show Data if row is not for edit (show by default) -->
             <template v-if="index !== filteredEditedPerformanceIndex && item.status !== 'New'">
-              <td class="pa-2"> {{ item.grade }} </td>
+              <td class="pa-2" style="width:30%"> {{ item.grade }} </td>
             </template>
             <!-- END Show Data if row is not for edit (show by default) -->
-
+            
             <!-- START Show Fields if row is for edit -->
             <template v-if="index === filteredEditedPerformanceIndex || item.status === 'New'">
-              <td class="pa-2">
+              <td class="pa-2" style="width:30%">
                 <v-text-field
                   name="grade"
                   v-model="editedItem.grade"
@@ -90,7 +90,7 @@
             
             <!-- START Show Edit(pencil icon) and Delete (trash icon) button if not Edit Mode (show by default) -->
             <template v-if="index !== filteredEditedPerformanceIndex && item.status !== 'New' ">
-              <td class="pa-2">
+              <td class="pa-2" style="width:10%">
                 <v-icon
                   small
                   class="mr-2"
@@ -115,7 +115,7 @@
 
             <!-- START  Show Save and Cancel button if Edit Mode -->
             <template v-if="index === filteredEditedPerformanceIndex ? true : false || item.status === 'New' ">
-              <td class="pa-2">
+              <td class="pa-2" style="width:10%">
                 <v-btn
                   x-small
                   :disabled="disabled"
@@ -211,7 +211,6 @@
   }
 
   tbody td, thead th {
-      width: 19.2%;
       float: left;
   }
 
@@ -448,6 +447,8 @@ export default {
       this.editedItem = Object.assign({}, item);
       this.editedPerformanceIndex = this.monthly_key_performances.indexOf(item);
       // this.editedPerformanceIndex = this.filteredMonthlyPerformance.indexOf(item);
+
+      this.$v.$reset();
       
     },
 
@@ -625,9 +626,24 @@ export default {
 
     filteredEditedPerformanceIndex()
     {
+ 
       return this.filteredMonthlyPerformance.findIndex(value => {
-        return value.id == this.editedItem.id;
+
+        if(this.editedPerformanceIndex > -1)
+        {
+          let performance = this.monthly_key_performances[this.editedPerformanceIndex];
+          let editedItem = Object.assign({}, { id: performance.id, year: performance.year, month: performance.month });
+          let data = Object.assign({}, { id: value.id, year: value.year, month: value.month });
+        
+          return JSON.stringify(editedItem) ==  JSON.stringify(data);
+        }
+        else
+        {
+          return false;
+        }
+        
       });
+
     },
     
     gradeErrors(){
