@@ -1165,6 +1165,25 @@ export default {
     },
 
     updateBranchAssignmentPosition(data) {
+       
+      // get the latest branch assignment and positions from branch_assignment_positions array data
+      if(data.length)
+      {
+        let index = data.length - 1;
+        this.editedItem.date_assigned = data[index].date_assigned;
+
+        let branch = this.branches.filter(branch => {
+          return branch.name == data[index].branch;
+        });
+
+        let position = this.positions.filter(position => {
+          return position.name == data[index].position;
+        });
+
+        this.editedItem.branch = branch[0].id;
+        this.editedItem.position = position[0].id;
+      }
+      
       this.$emit('updateBranchAssignmentPosition', data);
     },
 
@@ -1251,6 +1270,9 @@ export default {
     },
     ojtPerformanceRatings() {
       return this.$refs.OJTPerformanceRating ? this.$refs.OJTPerformanceRating.ojt_performance_ratings : '';
+    },
+    branchAssignmentPositions() {
+      return this.$refs.BranchAssignmentPosition ? this.$refs.BranchAssignmentPosition.branch_assignment_positions : '';
     },
     branchErrors() {
       const errors = [];
@@ -1554,8 +1576,9 @@ export default {
 
       this.editedItem = Object.assign({}, this.data);
       this.originalItem = Object.assign({}, this.data);
-
       this.employee_files = this.files;
+      
+      this.updateBranchAssignmentPosition(this.data.branch_assignment_positions);
     
     }  
     

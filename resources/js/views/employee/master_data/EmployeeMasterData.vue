@@ -621,6 +621,12 @@ export default {
         formData.append('ojt_performance_ratings', JSON.stringify(ojt_performance_ratings));
       }
 
+      let branch_assignment_positions = EmployeeInformationTabs.branchAssignmentPositions;
+      if(branch_assignment_positions)
+      {
+        formData.append('branch_assignment_positions', JSON.stringify(branch_assignment_positions));
+      }
+
       return formData;
     },
 

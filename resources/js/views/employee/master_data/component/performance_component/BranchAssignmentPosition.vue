@@ -65,7 +65,6 @@
                   item-text="name"
                   item-value="name"
                   label="Position"
-                  return-object
                   :error-messages="positionErrors"
                   @input="$v.editedItem.position.$touch()"
                   @blur="$v.editedItem.position.$touch()"
@@ -79,7 +78,6 @@
                   item-text="name"
                   item-value="name"
                   label="Branch"
-                  return-object
                   :error-messages="branchErrors"
                   @input="$v.editedItem.branch.$touch()"
                   @blur="$v.editedItem.branch.$touch()"
@@ -285,6 +283,9 @@ export default {
         (response) => {
           this.loading = false;
           let data = response.data;
+
+          console.log(data);
+          
           
           if(data.success)
           {
@@ -304,16 +305,15 @@ export default {
 
     updateBranchPosition() {
 
-      let data = { 
-        department: this.editedItem.department, 
-        grade: this.editedItem.grade,
-        mentor: this.editedItem.mentor 
-      };
+      let data = Object.assign(this.editedItem, { employee_id: this.data.id });
 
       axios.post("/api/employee_master_data/branch_assignment_position/update/"+this.editedItem.id, data).then(
         (response) => {
           this.loading = false;
           let data = response.data;
+
+          console.log(data);
+          
           
           if(data.success)
           {
@@ -340,6 +340,7 @@ export default {
           let data = response.data;
           if(data.success)
           {
+            this.$emit('updateBranchAssignmentPosition', data.branch_assignment_positions);
             this.showAlert(data.success);
             this.removeItem();
           }
@@ -361,6 +362,7 @@ export default {
 
       if(!this.$v.editedItem.$error && !dateModelHasErrors)
       {
+        
         if(this.table_action_mode === 'Add')
         {
           let index = this.branch_assignment_positions.indexOf({ status: 'New' }); 

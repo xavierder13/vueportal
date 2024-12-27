@@ -13,6 +13,7 @@ use App\EmployeeMasterDataFile;
 use App\EmployeeKeyPerformance;
 use App\EmployeeClassroomPerformanceRating;
 use App\EmployeeOjtPerformanceRating;
+use App\EmployeeBranchAssignmentPosition;
 use App\Imports\EmployeeMasterDataImport;
 use App\Exports\EmployeeMasterDataExport;
 use App\Exports\BranchManpowerReport;
@@ -57,7 +58,9 @@ class EmployeeMasterDataController extends Controller
         ->with(['ojt_performance_ratings' => function($query) {
             $query->orderBy('id');
         }])
-        ->with('branch_assignment_positions')
+        ->with(['branch_assignment_positions' => function($query) {
+            $query->orderBy('date_assigned');
+        }])
         ->select(DB::raw("*,
                  FLOOR((TIMESTAMPDIFF(DAY, dob, date_format(NOW(),'%Y-%m-%d')) / 365)) as age,
                  CONCAT(FLOOR((TIMESTAMPDIFF(DAY, date_employed, date_format(IFNULL(CASE WHEN date_resigned = '0000-00-00' THEN null ELSE date_resigned END, NOW()),'%Y-%m-%d')) / 365)), ' years(s) ',
@@ -256,6 +259,21 @@ class EmployeeMasterDataController extends Controller
                 ]);
             }
         }
+
+        $branch_assignment_positions = json_decode($request->branch_assignment_positions);
+        if(is_array($branch_assignment_positions))
+        {
+            foreach ($branch_assignment_positions as $key => $branch_assignment) {
+
+                EmployeeBranchAssignmentPosition::create([
+                    'employee_id' => $employee->id,
+                    'date_assigned' => $branch_assignment->date_assigned,
+                    'position' => $branch_assignment->position,
+                    'branch' => $branch_assignment->branch,
+                    'remarks' => $branch_assignment->remarks,
+                ]);
+            }
+        }
         
         $employee = $this->getEmployees()->find($employee->id);
 
@@ -441,6 +459,9 @@ class EmployeeMasterDataController extends Controller
 		}
 
         EmployeeKeyPerformance::where('employee_id', $employee_id)->delete();
+        EmployeeClassroomPerformanceRating::where('employee_id', $employee_id)->delete();
+        EmployeeOjtPerformanceRating::where('employee_id', $employee_id)->delete();
+        EmployeeBranchAssignmentPosition::where('employee_id', $employee_id)->delete();
 
         return response()->json(['success' => 'Record has been deleted'], 200);
     }
