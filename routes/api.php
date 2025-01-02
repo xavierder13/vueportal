@@ -424,6 +424,29 @@ Route::group(['prefix' => 'employee_master_data/branch_assignment_position', 'mi
     ]); 
 });
 
+//Employee Master Data Merit History Routes
+Route::group(['prefix' => 'employee_master_data/merit_history', 'middleware' => ['auth:api', 'employee.merit.history.maintenance']], function() {
+    Route::get('/index', [
+        'uses' => 'API\EmployeeMeritHistoryController@index',
+        'as' => 'employee.merit.history.index'
+    ]);
+
+    Route::post('/store', [
+        'uses' => 'API\EmployeeMeritHistoryController@store',
+        'as' => 'employee.merit.history.store'
+    ]); 
+
+    Route::post('/update/{id}', [
+        'uses' => 'API\EmployeeMeritHistoryController@update',
+        'as' => 'employee.merit.history.update'
+    ]); 
+
+    Route::post('/delete', [
+        'uses' => 'API\EmployeeMeritHistoryController@delete',
+        'as' => 'employee.merit.history.delete'
+    ]); 
+});
+
 // Employee Routes
 Route::group(['prefix' => 'employee', 'middleware' => ['auth:api', 'employee.maintenance']], function(){
     Route::get('/index', [

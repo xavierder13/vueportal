@@ -231,6 +231,7 @@
                   @updateClassroomPerformanceRating="updateClassroomPerformanceRating"
                   @updateOJTPerformanceRating="updateOJTPerformanceRating"
                   @updateBranchAssignmentPosition="updateBranchAssignmentPosition"
+                  @updateMeritHistory="updateMeritHistory"
                   ref="EmployeeInformationTabs"
                   :key="employeeInformationComponentKey"
                 />
@@ -445,7 +446,7 @@ export default {
         }
       );
     },
-    editEmployee(item) {
+    editEmployee(item) {      
       
       this.editedItem.gender = item.gender.toUpperCase();
       this.editedItem.civil_status = item.civil_status.toUpperCase();
@@ -738,6 +739,10 @@ export default {
 
     updateBranchAssignmentPosition(data) {
       this.employees[this.editedIndex].branch_assignment_positions = data;
+    },
+
+    updateMeritHistory(data) {
+      this.employees[this.editedIndex].merit_histories = data;
     },
 
     isUnauthorized(error) {
