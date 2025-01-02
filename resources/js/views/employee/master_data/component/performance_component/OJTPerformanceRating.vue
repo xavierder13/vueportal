@@ -66,7 +66,7 @@
                   :error-messages="gradeErrors"
                   @input="$v.editedItem.grade.$touch()"
                   @blur="$v.editedItem.grade.$touch()"
-                  @keypress="intNumValFilter()"
+                  @keypress="decNumValFilter()"
                 ></v-text-field>
               </td>
               <td class="pa-2" style="width:20%">
@@ -78,7 +78,7 @@
                   :error-messages="kpiErrors"
                   @input="$v.editedItem.kpi.$touch()"
                   @blur="$v.editedItem.kpi.$touch()"
-                  @keypress="intNumValFilter()"
+                  @keypress="decNumValFilter()"
                 ></v-text-field>
               </td>
             </template>
@@ -459,7 +459,7 @@ export default {
       this.ojt_performance_ratings.splice(index, 1);
     },
 
-    intNumValFilter(evt) {
+    decNumValFilter(evt) {
       evt = (evt) ? evt : window.event;
       let value = evt.target.value.toString() + evt.key.toString();
 

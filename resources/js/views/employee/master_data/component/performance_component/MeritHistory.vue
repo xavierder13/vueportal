@@ -1,9 +1,9 @@
 <template>
   <div>
     <v-toolbar flat>
-      <v-toolbar-title class="mt-2">Performance Rating - Classroom</v-toolbar-title>
+      <v-toolbar-title class="mt-2">Merit History</v-toolbar-title>
       <v-divider vertical class="ma-2 ml-4" thickness="20px"></v-divider>
-      <v-tooltip top v-if="hasPermission('employee-master-data-classroom-performance-rating-create')">
+      <v-tooltip top v-if="hasPermission('employee-master-data-merit-history-create')">
         <template v-slot:activator="{ on, attrs }">
           <v-btn 
             small 
@@ -22,51 +22,44 @@
         <span>Add Period</span>
       </v-tooltip>
     </v-toolbar>
-    <v-simple-table fixed-header class="tableFixHead" id="classroom_performance_ratings">
+    <v-simple-table fixed-header class="tableFixHead" id="merit_histories">
       <template v-slot:default>
         <thead>
           <tr>
-            <th class="pa-2" style="width:10%">#</th>
-            <th class="pa-2" style="width:35%">Department</th>
-            <th class="pa-2" style="width:35%">Actual Grade(%)</th>
-            <th class="pa-2" style="width:20%"> Actions</th>
+            <th class="pa-2" style="width:5%">#</th>
+            <th class="pa-2" style="width:40%">Merit Date</th>
+            <th class="pa-2" style="width:40%">Salary</th>
+            <th class="pa-2" style="width:15%"> Actions</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(item, index) in classroom_performance_ratings" :class="index === editedPerfomanceIndex ? $v.editedItem.$error ? 'red lighten-5' : 'blue lighten-5' : ''">
-            <td class="pa-2" style="width:10%"> {{ index + 1 }} </td>
+          <tr v-for="(item, index) in merit_histories" :class="index === editedMeritHistoryIndex ? $v.editedItem.$error ? 'red lighten-5' : 'blue lighten-5' : ''">
+            <td class="pa-2" style="width:5%"> {{ index + 1 }} </td>
             <!-- START Show Data if row is not for edit (show by default) -->
-            <template v-if="index !== editedPerfomanceIndex && item.status !== 'New'">
-              <td class="pa-2" style="width:35%"> {{ item.department }}</td>
-              <td class="pa-2" style="width:35%"> {{ item.grade }} </td>
+            <template v-if="index !== editedMeritHistoryIndex && item.status !== 'New'">
+              <td class="pa-2" style="width:40%"> {{ formatDate(item.merit_date) }}</td>
+              <td class="pa-2" style="width:40%"> {{ item.position }} </td>
             </template>
             <!-- END Show Data if row is not for edit (show by default) -->
 
             <!-- START Show Fields if row is for edit -->
-            <template v-if="index === editedPerfomanceIndex || item.status === 'New'">
-              <td class="pa-2" style="width:35%">
-                <v-autocomplete
-                  v-model="editedItem.department"
-                  :items="filteredDepartments"
-                  item-text="name"
-                  item-value="name"
-                  hide-details=""
-                  dense
-                  :error-messages="departmentErrors"
-                  @input="$v.editedItem.department.$touch()"
-                  @blur="$v.editedItem.department.$touch()"
-                >
-                </v-autocomplete>
-              </td>
-              <td class="pa-2" style="width:35%">
+            <template v-if="index === editedMeritHistoryIndex || item.status === 'New'">
+              <td class="pa-2" style="width:40%">
                 <v-text-field
-                  name="grade"
-                  v-model="editedItem.grade"
+                  type="date"
+                  v-model="editedItem.merit_date"
                   dense
                   hide-details
-                  :error-messages="gradeErrors"
-                  @input="$v.editedItem.grade.$touch()"
-                  @blur="$v.editedItem.grade.$touch()"
+                  @input="$v.editedItem.merit_date.$touch() + validateDate('merit_date')"
+                  @blur="$v.editedItem.merit_date.$touch()"
+                ></v-text-field>
+              </td>
+              <td class="pa-2" style="width:30%">
+                <v-text-field
+                  name="salary"
+                  v-model="editedItem.salary"
+                  dense
+                  hide-details
                   @keypress="decNumValFilter()"
                 ></v-text-field>
               </td>
@@ -74,15 +67,15 @@
             <!-- END Show Fields if row is for edit -->
             
             <!-- START Show Edit(pencil icon) and Delete (trash icon) button if not Edit Mode (show by default) -->
-            <template v-if="index !== editedPerfomanceIndex && item.status !== 'New' ">
-              <td class="pa-2" style="width:20%">
+            <template v-if="index !== editedMeritHistoryIndex && item.status !== 'New' ">
+              <td class="pa-2" style="width:15%">
                 <v-icon
                   small
                   class="mr-2"
                   color="green"
                   @click="editItem(item)"
                   :disabled="table_action_mode === 'Add' ? true : false"
-                  v-if="hasPermission('employee-master-data-classroom-performance-rating-edit')"
+                  v-if="hasPermission('employee-master-data-merit-history-edit')"
                 >
                   mdi-pencil
                 </v-icon>
@@ -92,7 +85,7 @@
                   color="red"
                   @click="showConfirmAlert(item)"
                   :disabled="['Add', 'Edit'].includes(table_action_mode)"
-                  v-if="hasPermission('employee-master-data-classroom-performance-rating-delete')"
+                  v-if="hasPermission('employee-master-data-merit-history-delete')"
                 >
                   mdi-delete
                 </v-icon>
@@ -101,8 +94,8 @@
             <!-- END  Show Edit(pencil icon) and Delete (trash icon) button if not Edit Mode (show by default) -->
 
             <!-- START  Show Save and Cancel button if Edit Mode -->
-            <template v-if="index === editedPerfomanceIndex ? true : false || item.status === 'New' ">
-              <td class="pa-2" style="width:20%">
+            <template v-if="index === editedMeritHistoryIndex ? true : false || item.status === 'New' ">
+              <td class="pa-2" style="width:15%">
                 <v-btn
                   x-small
                   :disabled="disabled"
@@ -174,42 +167,42 @@ import { mapGetters } from "vuex";
 
 export default {
 
-  props: ['editedIndex', 'key_performances', 'data', 'departments'],
+  props: ['editedIndex', 'data'],
 
   mixins: [validationMixin],
 
   validations: {
     editedItem: { 
-      grade: { required: requiredIf(function () {
+      merit_date: { required: requiredIf(function () {
             return this.table_action_mode;
           }),  
       },
-      department: { required: requiredIf(function () {
-            return this.table_action_mode;
-          }),  
-      },
+      
     },
     period: { required },
   },
   data() {
     return {
-      editedPerfomanceIndex: -1,
+      editedMeritHistoryIndex: -1,
       editedItem: {
-        department: "",
-        grade: "",
+        merit_date: "",
+        salary: "",
       },
       defaultField: {
-        department: "",
-        grade: "",
+        merit_date: "",
+        salary: "",
       },
-      classroom_performance_ratings: [],
-      added_classroom_performance_ratings: [],
-      deleted_classroom_performance_ratings: [],
+      merit_histories: [],
+      added_merit_histories: [],
+      deleted_merit_histories: [],
       action_mode: "",
       table_action_mode: "",
       disabled: false,
       addedItems: [],
       deletedItems: [],
+      dateErrors: {
+        merit_date: { status: false, msg: "" },
+      },
     };
   },
 
@@ -220,40 +213,43 @@ export default {
 
       let hasNew = false;
       
-      this.classroom_performance_ratings.forEach((value, index) => {
+      this.merit_histories.forEach((value, index) => {
         if (value.status === "New") {
           hasNew = true;
         }
       });
 
       if (!hasNew) {
-        this.classroom_performance_ratings.push({ status: "New" });
+        this.merit_histories.push({ status: "New" });
       }
       
       setTimeout(() => {
-        let container = this.$el.querySelector("#classroom_performance_ratings tbody");
+        let container = this.$el.querySelector("#merit_histories tbody");
         container.scrollTop = container.scrollHeight;
       }, 1);
 
     },
-    storePerformance() {
+    storeMeritHistory() {
 
       let data = Object.assign(this.editedItem, { employee_id: this.data.id });
       
-      axios.post("/api/employee_master_data/classroom_performance_rating/store", data).then(
+      axios.post("/api/employee_master_data/merit_history/store", data).then(
         (response) => {
           this.loading = false;
           let data = response.data;
+
+          console.log(data);
+          
           
           if(data.success)
           {
-            this.classroom_performance_ratings = data.performances;
-            this.$emit('updateClassroomPerformanceRating', data.performances);
+            this.merit_histories = data.merit_histories;
+            this.$emit('updateMeritHistory', data.merit_histories);
             this.showAlert(data.success);
           }
           
           // reset array
-          this.added_classroom_performance_ratings = [];
+          this.added_merit_histories = [];
         },
         (error) => {
           this.isUnauthorized(error);
@@ -261,18 +257,22 @@ export default {
       );
     },
 
-    updatePerformance() {
+    updateMeritHistory() {
 
-      let data = { department: this.editedItem.department, grade: this.editedItem.grade };
-      axios.post("/api/employee_master_data/classroom_performance_rating/update/"+this.editedItem.id, data).then(
+      let data = Object.assign(this.editedItem, { employee_id: this.data.id });
+
+      axios.post("/api/employee_master_data/merit_history/update/"+this.editedItem.id, data).then(
         (response) => {
           this.loading = false;
           let data = response.data;
+
+          console.log(data);
+          
           
           if(data.success)
           {
-            this.classroom_performance_ratings = data.performances;
-            this.$emit('updateClassroomPerformanceRating', data.performances);
+            this.merit_histories = data.merit_histories;
+            this.$emit('updateMeritHistory', data.merit_histories);
             this.showAlert(data.success);
           }
           
@@ -283,17 +283,18 @@ export default {
       );
     },
 
-    deletePerformance(item) {
+    deleteMeritHistory(item) {
       
       this.loading = true;
-      let data = { performance_id: item.id };
-      axios.post("/api/employee_master_data/classroom_performance_rating/delete", data).then(
+      let data = { branch_assignment_id: item.id };
+      axios.post("/api/employee_master_data/merit_history/delete", data).then(
         (response) => {
           this.loading = false;
 
           let data = response.data;
           if(data.success)
           {
+            this.$emit('updateMeritHistory', data.merit_histories);
             this.showAlert(data.success);
             this.removeItem();
           }
@@ -311,22 +312,24 @@ export default {
     saveItem(){
  
       this.$v.editedItem.$touch();
+      let dateModelHasErrors = Object.values(this.dateErrors).map((obj) => obj.status).includes(true);
 
-      if(!this.$v.editedItem.$error && !this.gradeErrors.length)
+      if(!this.$v.editedItem.$error && !dateModelHasErrors)
       {
+        
         if(this.table_action_mode === 'Add')
         {
-          let index = this.classroom_performance_ratings.indexOf({ status: 'New' }); 
-          this.classroom_performance_ratings.splice(index, 1);
-
+          let index = this.merit_histories.indexOf({ status: 'New' }); 
+          this.merit_histories.splice(index, 1);
+          
           // edit mode; from parent component
           if(this.editedIndex > -1)
           {
-            this.storePerformance();
+            this.storeMeritHistory();
           }
           else
           {
-            this.classroom_performance_ratings.push(this.editedItem);
+            this.merit_histories.push(this.editedItem);
           }
 
         }
@@ -335,11 +338,11 @@ export default {
           // edit mode; from parent component
           if(this.editedIndex > -1)
           {
-            this.updatePerformance();
+            this.updateMeritHistory();
           }
           else
           {
-            this.classroom_performance_ratings[this.editedPerfomanceIndex] = this.editedItem;
+            this.merit_histories[this.editedMeritHistoryIndex] = this.editedItem;
           }
           
         }
@@ -350,9 +353,9 @@ export default {
     },
 
     cancelEvent(item) {
-      this.editedPerfomanceIndex = this.classroom_performance_ratings.indexOf(item);
+      this.editedMeritHistoryIndex = this.merit_histories.indexOf(item);
       if (this.table_action_mode === "Add") {
-        this.classroom_performance_ratings.splice(this.editedPerfomanceIndex, 1);
+        this.merit_histories.splice(this.editedMeritHistoryIndex, 1);
       } 
 
       this.resetData();
@@ -361,21 +364,21 @@ export default {
     editItem(item) {
       this.table_action_mode = "Edit";
       this.editedItem = Object.assign({}, item);
-      this.editedPerfomanceIndex = this.classroom_performance_ratings.indexOf(item);
+      this.editedMeritHistoryIndex = this.merit_histories.indexOf(item);
     },
 
     resetData(){
       this.$v.editedItem.$reset();
       this.editedItem = Object.assign({}, this.defaultField);
-      this.editedPerfomanceIndex = -1;
+      this.editedMeritHistoryIndex = -1;
       this.table_action_mode = "";
     },
 
     clear() {
       this.resetData();
-      this.classroom_performance_ratings = [];
-      this.added_classroom_performance_ratings = [];
-      this.deleted_classroom_performance_ratings = [];
+      this.merit_histories = [];
+      this.added_merit_histories = [];
+      this.deleted_merit_histories = [];
       this.addedItems = [];
       this.deletedItems = [];
 
@@ -418,7 +421,7 @@ export default {
 
           if (result.value) {
             
-            this.deletePerformance(item);
+            this.deleteMeritHistory(item);
             
           }
         });
@@ -428,12 +431,11 @@ export default {
         this.removeItem();
       }
 
-      
     },
 
     removeItem() {
-      let index = this.classroom_performance_ratings.indexOf(this.editedItem);
-      this.classroom_performance_ratings.splice(index, 1);
+      let index = this.merit_histories.indexOf(this.editedItem);
+      this.merit_histories.splice(index, 1);
     },
 
     decNumValFilter(evt) {
@@ -462,58 +464,54 @@ export default {
       }
     },
 
-  },
-  watch: {
-    'editedItem.department'() {
-      console.log(this.editedItem.department);
+    validateDate(field) {
       
+      // if field is set for validation
+      if(this.$v.editedItem[field])
+      {
+        this.$v.editedItem[field].$touch();
+      }
+
+      let min_date = new Date('1900-01-01').getTime();
+      let max_date = new Date().getTime();
+      let date = this.editedItem[field];
+   
+      if(date)
+      {
+        let date_value = new Date(date).getTime();
+        let [year, month, day] = date.split('-');
+
+        this.dateErrors[field].status = false;
+        this.dateErrors[field].msg = "";
+
+        // if (date_value < min_date || date_value > max_date || year.length > 4) {
+        if (date_value > max_date || year.length > 4 || year < 1900) {
+          this.dateErrors[field].status = true;
+          this.dateErrors[field].msg = 'Enter a valid date';
+        }  
+      }
+  
     },
+
+    formatDate(date) {
+      if (!date) return null;
+      const [year, month, day] = date.split("-");
+      return `${month}/${day}/${year}`;
+    },
+
   },
   computed: {
-    departmentErrors() {
+    meritDateErrors() {
       const errors = [];
-      if (!this.$v.editedItem.department.$dirty) return errors;
-      !this.$v.editedItem.department.required &&
-        errors.push("Department is required.");
-      return errors;
-    },
-    
-    gradeErrors(){
-      const errors = [];
-      if (!this.$v.editedItem.grade.$dirty) return errors;
-      !this.$v.editedItem.grade.required && errors.push("Grade is required.");
-      if(parseInt(this.editedItem.grade) < 0 || parseInt(this.editedItem.grade) > 999999.9)
+      if (!this.$v.editedItem.merit_date.$dirty) return errors;
+      !this.$v.editedItem.merit_date.required && errors.push("Date Assigned is required.");
+
+      if(this.dateErrors.merit_date.msg)
       {
-        errors.push("Invalid Value");
-      }
-      return errors;
-    },
-
-    filteredDepartments() {
-
-      let departments = [];
-      
-      this.departments.forEach(department => {
-
-        let index = this.classroom_performance_ratings.findIndex((value) => value.department == department.name);
-        
-        if(index < 0)
-        {
-          departments.push(department);  
-        }
-      
-      });
-
-      // if row edit mode then add the edited value into selection
-      if(this.table_action_mode == 'Edit')
-      {
-        let filtered_departments = this.departments.filter(value => value.name == this.editedItem.department);
-        let department = filtered_departments.length ? filtered_departments[0] : '';
-
-        departments.unshift(department);
+        errors.push(this.dateErrors.merit_date.msg);
       }
 
-      return departments;
+      return errors;
     },
 
     ...mapGetters("auth", ["isUnauthorized"]),
@@ -527,7 +525,7 @@ export default {
     
     if(this.editedIndex > -1)
     {
-      this.classroom_performance_ratings = this.data.classroom_performance_ratings;
+      this.merit_histories = this.data.merit_histories;
     }
   },
 };

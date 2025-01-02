@@ -50,7 +50,6 @@
             <template v-if="index === editedBranchAssignmentIndex || item.status === 'New'">
               <td class="pa-2" style="width:15%">
                 <v-text-field
-                  label="Date Assigned"
                   type="date"
                   v-model="editedItem.date_assigned"
                   :error-messages="dateAssignedErrors"
@@ -64,7 +63,6 @@
                   :items="positions"
                   item-text="name"
                   item-value="name"
-                  label="Position"
                   :error-messages="positionErrors"
                   @input="$v.editedItem.position.$touch()"
                   @blur="$v.editedItem.position.$touch()"
@@ -77,7 +75,6 @@
                   :items="branches"
                   item-text="name"
                   item-value="name"
-                  label="Branch"
                   :error-messages="branchErrors"
                   @input="$v.editedItem.branch.$touch()"
                   @blur="$v.editedItem.branch.$touch()"
@@ -86,7 +83,6 @@
               </td>
               <td class="pa-2" style="width:30%">
                 <v-text-field
-                  label="Remarks"
                   v-model="editedItem.remarks"
                   :error-messages="remarksErrors"
                   @input="$v.editedItem.remarks.$touch()"
@@ -483,32 +479,6 @@ export default {
     removeItem() {
       let index = this.branch_assignment_positions.indexOf(this.editedItem);
       this.branch_assignment_positions.splice(index, 1);
-    },
-
-    intNumValFilter(evt) {
-      evt = (evt) ? evt : window.event;
-      let value = evt.target.value.toString() + evt.key.toString();
-
-      if (!/^[-+]?[0-9]*\.?[0-9]*$/.test(value)) {
-        evt.preventDefault();
-      }
-      else if(value.indexOf(".") > -1)
-      {
-        let split_val = value.split('.');
-        let whole_num = split_val[0];
-        let decimal_places = split_val[1];
-        let whole_num_length = whole_num.length  
-        let decimal_length = decimal_places.length;
-  
-        if(decimal_length > 2) //decimal places limit 2
-        {
-          evt.preventDefault();
-        }
-
-      } else {
-
-        return true;
-      }
     },
 
     validateDate(field) {

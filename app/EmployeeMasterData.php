@@ -88,27 +88,27 @@ class EmployeeMasterData extends Model
         //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
     }
 
+    public function merit_histories()
+    {
+        return $this->hasMany('App\EmployeeMeritHistory', 'employee_id', 'id');
+        //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
+    }
+
     public function disciplinary_measures()
     {
-        return $this->hasOne('App\EmployeeDisciplinaryMeasures', 'employee_id', 'id');
+        return $this->hasMany('App\EmployeeDisciplinaryMeasures', 'employee_id', 'id');
         //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
     }
 
     public function employment_histories()
     {
-        return $this->hasOne('App\EmployeeEmploymentHistory', 'employee_id', 'id');
-        //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
-    }
-
-    public function merit_histories()
-    {
-        return $this->hasOne('App\EmployeeMeritHistory', 'employee_id', 'id');
+        return $this->hasMany('App\EmployeeEmploymentHistory', 'employee_id', 'id');
         //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
     }
 
     public function trainings()
     {
-        return $this->hasOne('App\EmployeeTraining', 'employee_id', 'id');
+        return $this->hasMany('App\EmployeeTraining', 'employee_id', 'id');
         //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
     }
 }

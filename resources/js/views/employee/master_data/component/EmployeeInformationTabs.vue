@@ -692,7 +692,12 @@
           <v-tab-item :transition="false" class="full-height-tab-performance py-2">
             <v-card class="mx-2 elevation-10" height="100%">
               <v-card-text>
-                Merit History
+                <MeritHistory
+                  :data="data"
+                  :editedIndex="editedIndex"
+                  @updateMeritHistory="updateMeritHistory" 
+                  ref="MeritHistory"
+                />
               </v-card-text>
             </v-card>
           </v-tab-item>
@@ -797,6 +802,7 @@ import MonthlyKeyPerformance from './performance_component/MonthlyKeyPerformance
 import ClassroomPerformanceRating from './performance_component/ClassroomPerformanceRating.vue';
 import OJTPerformanceRating from './performance_component/OJTPerformanceRating.vue';
 import BranchAssignmentPosition from './performance_component/BranchAssignmentPosition.vue';
+import MeritHistory from './performance_component/MeritHistory.vue';
 
 export default {
   components: {
@@ -804,6 +810,7 @@ export default {
     ClassroomPerformanceRating,
     OJTPerformanceRating,
     BranchAssignmentPosition,
+    MeritHistory,
     AttachFileDialog
   },
   props: [
@@ -1164,6 +1171,10 @@ export default {
       this.$emit('updateOJTPerformanceRating', data);
     },
 
+    updateMeritHistory(data) {
+      this.$emit('updateMeritHistory', data);
+    },
+
     updateBranchAssignmentPosition(data) {
        
       // get the latest branch assignment and positions from branch_assignment_positions array data
@@ -1180,8 +1191,8 @@ export default {
           return position.name == data[index].position;
         });
 
-        this.editedItem.branch = branch[0].id;
-        this.editedItem.position = position[0].id;
+        this.editedItem.branch = branch[0];
+        this.editedItem.position = position[0];
       }
       
       this.$emit('updateBranchAssignmentPosition', data);
@@ -1209,6 +1220,7 @@ export default {
       this.$refs.ClassroomPerformanceRating ? this.$refs.ClassroomPerformanceRating.clear() : '';
       this.$refs.OJTPerformanceRating ? this.$refs.OJTPerformanceRating.clear() : '';
       this.$refs.BranchAssignmentPosition ? this.$refs.BranchAssignmentPosition.clear() : '';
+      this.$refs.MeritHistory ? this.$refs.MeritHistory.clear() : '';
     },
     isUnauthorized(error) {
       // if unauthenticated (401)
@@ -1263,16 +1275,24 @@ export default {
   },
   computed: {
     monthlyKeyPerformances() {
-      return this.$refs.MonthlyKeyPerformance ? this.$refs.MonthlyKeyPerformance.monthly_key_performances : '';
+      let refs = this.$refs.MonthlyKeyPerformance;
+      return refs ? refs.monthly_key_performances : '';
     },
     classroomPerformanceRatings(){
-      return this.$refs.ClassroomPerformanceRating ? this.$refs.ClassroomPerformanceRating.classroom_performance_ratings : '';
+      let refs = this.$refs.ClassroomPerformanceRating;
+      return refs ? refs.classroom_performance_ratings : '';
     },
     ojtPerformanceRatings() {
-      return this.$refs.OJTPerformanceRating ? this.$refs.OJTPerformanceRating.ojt_performance_ratings : '';
+      let refs = this.$refs.OJTPerformanceRating;
+      return refs ? refs.ojt_performance_ratings : '';
     },
     branchAssignmentPositions() {
-      return this.$refs.BranchAssignmentPosition ? this.$refs.BranchAssignmentPosition.branch_assignment_positions : '';
+      let refs = this.$refs.BranchAssignmentPosition;
+      return refs ? refs.branch_assignment_positions : '';
+    },
+    meritHistories() {
+      let refs = this.$refs.MeritHistory;
+      return refs ? refs.branch_assignment_positions : '';
     },
     branchErrors() {
       const errors = [];

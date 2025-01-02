@@ -61,6 +61,9 @@ class EmployeeMasterDataController extends Controller
         ->with(['branch_assignment_positions' => function($query) {
             $query->orderBy('date_assigned');
         }])
+        ->with(['merit_histories' => function($query) {
+            $query->orderBy('merit_date');
+        }])
         ->select(DB::raw("*,
                  FLOOR((TIMESTAMPDIFF(DAY, dob, date_format(NOW(),'%Y-%m-%d')) / 365)) as age,
                  CONCAT(FLOOR((TIMESTAMPDIFF(DAY, date_employed, date_format(IFNULL(CASE WHEN date_resigned = '0000-00-00' THEN null ELSE date_resigned END, NOW()),'%Y-%m-%d')) / 365)), ' years(s) ',

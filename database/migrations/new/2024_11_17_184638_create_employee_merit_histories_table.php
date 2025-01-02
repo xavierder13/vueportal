@@ -15,6 +15,9 @@ class CreateEmployeeMeritHistoriesTable extends Migration
     {
         Schema::create('employee_merit_histories', function (Blueprint $table) {
             $table->id();
+            $table->integer('employee_id');
+            $table->date('merit_date');
+            $table->decimal('salary', 8, 2)->nullable();
             $table->timestamps();
         });
     }

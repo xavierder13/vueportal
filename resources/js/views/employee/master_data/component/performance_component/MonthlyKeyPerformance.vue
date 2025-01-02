@@ -52,7 +52,7 @@
       <template v-slot:default>
         <thead>
           <tr>
-            <th class="pa-4" style="width:5%">#</th>
+            <th class="pa-2" style="width:5%">#</th>
             <th class="pa-2" style="width:25%">Year</th>
             <th class="pa-2" style="width:30%">Month</th>
             <th class="pa-2" style="width:30%">Actual Grade(%)</th>
@@ -61,7 +61,7 @@
         </thead>
         <tbody>
           <tr v-for="(item, index) in filteredMonthlyPerformance" :class="index === filteredEditedPerformanceIndex ? 'blue lighten-5' : ''">
-            <td class="pa-4" style="width:5%"> {{ index + 1 }} </td>
+            <td class="pa-2" style="width:5%"> {{ index + 1 }} </td>
             <td class="pa-2" style="width:25%"> {{ item.year }} </td>
             <td class="pa-2" style="width:30%"> {{ item.month }} </td>
 
@@ -82,7 +82,7 @@
                   :error-messages="gradeErrors"
                   @input="$v.editedItem.grade.$touch()"
                   @blur="$v.editedItem.grade.$touch()"
-                  @keypress="intNumValFilter()"
+                  @keypress="decNumValFilter()"
                 ></v-text-field>
               </td>
             </template>
@@ -559,7 +559,7 @@ export default {
       
     },
 
-    intNumValFilter(evt) {
+    decNumValFilter(evt) {
       evt = (evt) ? evt : window.event;
       let value = evt.target.value.toString() + evt.key.toString();
 
