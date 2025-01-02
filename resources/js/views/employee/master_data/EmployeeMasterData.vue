@@ -628,6 +628,12 @@ export default {
         formData.append('branch_assignment_positions', JSON.stringify(branch_assignment_positions));
       }
 
+      let merit_histories = EmployeeInformationTabs.meritHistories;
+      if(merit_histories)
+      {
+        formData.append('merit_histories', JSON.stringify(merit_histories));
+      }
+
       return formData;
     },
 

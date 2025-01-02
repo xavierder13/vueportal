@@ -14,6 +14,7 @@ use App\EmployeeKeyPerformance;
 use App\EmployeeClassroomPerformanceRating;
 use App\EmployeeOjtPerformanceRating;
 use App\EmployeeBranchAssignmentPosition;
+use App\EmployeeMeritHistory;
 use App\Imports\EmployeeMasterDataImport;
 use App\Exports\EmployeeMasterDataExport;
 use App\Exports\BranchManpowerReport;
@@ -277,6 +278,19 @@ class EmployeeMasterDataController extends Controller
                 ]);
             }
         }
+
+        $merit_histories = json_decode($request->merit_histories);
+        if(is_array($merit_histories))
+        {
+            foreach ($merit_histories as $key => $history) {
+
+                EmployeeMeritHistory::create([
+                    'employee_id' => $employee->id,
+                    'merit_date' => $history->merit_date,
+                    'salary' => $history->salary,
+                ]);
+            }
+        }
         
         $employee = $this->getEmployees()->find($employee->id);
 
@@ -465,6 +479,7 @@ class EmployeeMasterDataController extends Controller
         EmployeeClassroomPerformanceRating::where('employee_id', $employee_id)->delete();
         EmployeeOjtPerformanceRating::where('employee_id', $employee_id)->delete();
         EmployeeBranchAssignmentPosition::where('employee_id', $employee_id)->delete();
+        EmployeeMeritHistory::where('employee_id', $employee_id)->delete();
 
         return response()->json(['success' => 'Record has been deleted'], 200);
     }

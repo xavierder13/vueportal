@@ -38,7 +38,7 @@
             <!-- START Show Data if row is not for edit (show by default) -->
             <template v-if="index !== editedMeritHistoryIndex && item.status !== 'New'">
               <td class="pa-2" style="width:40%"> {{ formatDate(item.merit_date) }}</td>
-              <td class="pa-2" style="width:40%"> {{ item.position }} </td>
+              <td class="pa-2" style="width:40%"> {{ item.salary }} </td>
             </template>
             <!-- END Show Data if row is not for edit (show by default) -->
 
@@ -54,7 +54,7 @@
                   @blur="$v.editedItem.merit_date.$touch()"
                 ></v-text-field>
               </td>
-              <td class="pa-2" style="width:30%">
+              <td class="pa-2" style="width:40%">
                 <v-text-field
                   name="salary"
                   v-model="editedItem.salary"
@@ -286,7 +286,7 @@ export default {
     deleteMeritHistory(item) {
       
       this.loading = true;
-      let data = { branch_assignment_id: item.id };
+      let data = { merit_history_id: item.id };
       axios.post("/api/employee_master_data/merit_history/delete", data).then(
         (response) => {
           this.loading = false;

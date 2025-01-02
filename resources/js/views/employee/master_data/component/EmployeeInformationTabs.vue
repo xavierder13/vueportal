@@ -1292,7 +1292,7 @@ export default {
     },
     meritHistories() {
       let refs = this.$refs.MeritHistory;
-      return refs ? refs.branch_assignment_positions : '';
+      return refs ? refs.merit_histories : '';
     },
     branchErrors() {
       const errors = [];
