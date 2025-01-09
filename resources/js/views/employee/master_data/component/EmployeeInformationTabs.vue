@@ -517,7 +517,7 @@
             Merit History
           </v-tab>
           <v-tab class="vertical-tab-menu">
-            Training and Re-development
+            Training & Re-development
           </v-tab>
           <v-tab-item :transition="false" class="full-height-tab-performance py-2">
             <v-card class="mx-2 elevation-10" height="100%">
