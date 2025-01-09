@@ -15,6 +15,7 @@ use App\EmployeeClassroomPerformanceRating;
 use App\EmployeeOjtPerformanceRating;
 use App\EmployeeBranchAssignmentPosition;
 use App\EmployeeMeritHistory;
+use App\EmployeeTraining;
 use App\Imports\EmployeeMasterDataImport;
 use App\Exports\EmployeeMasterDataExport;
 use App\Exports\BranchManpowerReport;
@@ -65,6 +66,7 @@ class EmployeeMasterDataController extends Controller
         ->with(['merit_histories' => function($query) {
             $query->orderBy('merit_date');
         }])
+        ->with('trainings')
         ->select(DB::raw("*,
                  FLOOR((TIMESTAMPDIFF(DAY, dob, date_format(NOW(),'%Y-%m-%d')) / 365)) as age,
                  CONCAT(FLOOR((TIMESTAMPDIFF(DAY, date_employed, date_format(IFNULL(CASE WHEN date_resigned = '0000-00-00' THEN null ELSE date_resigned END, NOW()),'%Y-%m-%d')) / 365)), ' years(s) ',
@@ -291,6 +293,21 @@ class EmployeeMasterDataController extends Controller
                 ]);
             }
         }
+
+        $trainings = json_decode($request->trainings);
+        if(is_array($trainings))
+        {
+            foreach ($trainings as $key => $training) {
+
+                EmployeeTraining::create([
+                    'employee_id' => $employee->id,
+                    'mentor' => $training->mentor,
+                    'grade' => $training->grade,
+                    'kpi' => $training->kpi,
+                    'remarks' => $training->remarks,
+                ]);
+            }
+        }
         
         $employee = $this->getEmployees()->find($employee->id);
 
@@ -480,6 +497,7 @@ class EmployeeMasterDataController extends Controller
         EmployeeOjtPerformanceRating::where('employee_id', $employee_id)->delete();
         EmployeeBranchAssignmentPosition::where('employee_id', $employee_id)->delete();
         EmployeeMeritHistory::where('employee_id', $employee_id)->delete();
+        EmployeeTraining::where('employee_id', $employee_id)->delete();
 
         return response()->json(['success' => 'Record has been deleted'], 200);
     }

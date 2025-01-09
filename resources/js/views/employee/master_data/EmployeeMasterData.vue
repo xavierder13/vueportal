@@ -232,6 +232,7 @@
                   @updateOJTPerformanceRating="updateOJTPerformanceRating"
                   @updateBranchAssignmentPosition="updateBranchAssignmentPosition"
                   @updateMeritHistory="updateMeritHistory"
+                  @updateTraining="updateTraining"
                   ref="EmployeeInformationTabs"
                   :key="employeeInformationComponentKey"
                 />
@@ -634,6 +635,12 @@ export default {
         formData.append('merit_histories', JSON.stringify(merit_histories));
       }
 
+      let trainings = EmployeeInformationTabs.trainings;
+      if(trainings)
+      {
+        formData.append('trainings', JSON.stringify(trainings));
+      }
+
       return formData;
     },
 
@@ -749,6 +756,10 @@ export default {
 
     updateMeritHistory(data) {
       this.employees[this.editedIndex].merit_histories = data;
+    },
+
+    updateTraining(data) {
+      this.employees[this.editedIndex].trainings = data;
     },
 
     isUnauthorized(error) {

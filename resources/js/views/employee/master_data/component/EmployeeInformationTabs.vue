@@ -704,7 +704,12 @@
           <v-tab-item :transition="false" class="full-height-tab-performance py-2">
             <v-card class="mx-2 elevation-10" height="100%">
               <v-card-text>
-                Training and Re-Development
+                <TrainingRedevelopment
+                  :data="data"
+                  :editedIndex="editedIndex"
+                  @updateTraining="updateTraining" 
+                  ref="TrainingRedevelopment"
+                />
               </v-card-text>
             </v-card>
           </v-tab-item>
@@ -803,6 +808,7 @@ import ClassroomPerformanceRating from './performance_component/ClassroomPerform
 import OJTPerformanceRating from './performance_component/OJTPerformanceRating.vue';
 import BranchAssignmentPosition from './performance_component/BranchAssignmentPosition.vue';
 import MeritHistory from './performance_component/MeritHistory.vue';
+import TrainingRedevelopment from './performance_component/TrainingRedevelopment.vue';
 
 export default {
   components: {
@@ -811,6 +817,7 @@ export default {
     OJTPerformanceRating,
     BranchAssignmentPosition,
     MeritHistory,
+    TrainingRedevelopment,
     AttachFileDialog
   },
   props: [
@@ -1175,6 +1182,10 @@ export default {
       this.$emit('updateMeritHistory', data);
     },
 
+    updateTraining(data) {
+      this.$emit('updateTraining', data);
+    },
+
     updateBranchAssignmentPosition(data) {
        
       // get the latest branch assignment and positions from branch_assignment_positions array data
@@ -1221,6 +1232,7 @@ export default {
       this.$refs.OJTPerformanceRating ? this.$refs.OJTPerformanceRating.clear() : '';
       this.$refs.BranchAssignmentPosition ? this.$refs.BranchAssignmentPosition.clear() : '';
       this.$refs.MeritHistory ? this.$refs.MeritHistory.clear() : '';
+      this.$refs.TrainingRedevelopment ? this.$refs.TrainingRedevelopment.clear() : '';
     },
     isUnauthorized(error) {
       // if unauthenticated (401)
@@ -1293,6 +1305,10 @@ export default {
     meritHistories() {
       let refs = this.$refs.MeritHistory;
       return refs ? refs.merit_histories : '';
+    },
+    trainings() {
+      let refs = this.$refs.TrainingRedevelopment;
+      return refs ? refs.trainings : '';
     },
     branchErrors() {
       const errors = [];

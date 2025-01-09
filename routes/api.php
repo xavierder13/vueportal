@@ -447,6 +447,29 @@ Route::group(['prefix' => 'employee_master_data/merit_history', 'middleware' => 
     ]); 
 });
 
+//Employee Master Data Training Routes
+Route::group(['prefix' => 'employee_master_data/training', 'middleware' => ['auth:api', 'employee.training.maintenance']], function() {
+    Route::get('/index', [
+        'uses' => 'API\EmployeeTrainingController@index',
+        'as' => 'employee.training.index'
+    ]);
+
+    Route::post('/store', [
+        'uses' => 'API\EmployeeTrainingController@store',
+        'as' => 'employee.training.store'
+    ]); 
+
+    Route::post('/update/{id}', [
+        'uses' => 'API\EmployeeTrainingController@update',
+        'as' => 'employee.training.update'
+    ]); 
+
+    Route::post('/delete', [
+        'uses' => 'API\EmployeeTrainingController@delete',
+        'as' => 'employee.training.delete'
+    ]); 
+});
+
 // Employee Routes
 Route::group(['prefix' => 'employee', 'middleware' => ['auth:api', 'employee.maintenance']], function(){
     Route::get('/index', [

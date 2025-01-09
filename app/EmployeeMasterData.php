@@ -93,6 +93,12 @@ class EmployeeMasterData extends Model
         return $this->hasMany('App\EmployeeMeritHistory', 'employee_id', 'id');
         //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
     }
+    
+    public function trainings()
+    {
+        return $this->hasMany('App\EmployeeTraining', 'employee_id', 'id');
+        //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
+    }
 
     public function disciplinary_measures()
     {
@@ -106,9 +112,4 @@ class EmployeeMasterData extends Model
         //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
     }
 
-    public function trainings()
-    {
-        return $this->hasMany('App\EmployeeTraining', 'employee_id', 'id');
-        //                 ( <Model>, <id_of_specified_Model>, <id_of_this_model> )
-    }
 }

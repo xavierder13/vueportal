@@ -281,11 +281,7 @@ export default {
 
     updatePerformance() {
 
-      let data = { 
-        department: this.editedItem.department, 
-        grade: this.editedItem.grade,
-        mentor: this.editedItem.mentor 
-      };
+      let data = this.editedItem;
 
       axios.post("/api/employee_master_data/ojt_performance_rating/update/"+this.editedItem.id, data).then(
         (response) => {
@@ -295,7 +291,7 @@ export default {
           if(data.success)
           {
             this.ojt_performance_ratings = data.performances;
-            this.$emit('updateClassroomPerformanceRating', data.performances);
+            this.$emit('updateOJTPerformanceRating', data.performances);
             this.showAlert(data.success);
           }
           

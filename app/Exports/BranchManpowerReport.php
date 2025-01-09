@@ -70,7 +70,6 @@ class BranchManpowerReport implements FromCollection, WithHeadings
                 $required = $required_employee ? $required_employee->quantity : null;
 
                 $existing = EmployeeMasterData::whereDate('date_employed', '<=', $asOfLastDayLastMonth)
-                                              
                                               ->where(function($query) use ($asOfLastDayLastMonth) {
                                                     $query->whereDate('date_resigned', '>', $asOfLastDayLastMonth)
                                                           ->orWhereIn('date_resigned', ['0000-00-00', null]);
@@ -88,7 +87,7 @@ class BranchManpowerReport implements FromCollection, WithHeadings
                                                 $query->where('name', $position);
                                               })
                                               ->where('branch_id', $branch->id)
-                                              ->get()
+                                              ->get()   
                                               ->count();
 
                 $resigned = EmployeeMasterData::whereDate('date_resigned', '>=', $firstOfMonth)

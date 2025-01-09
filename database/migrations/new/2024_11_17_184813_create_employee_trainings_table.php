@@ -15,6 +15,11 @@ class CreateEmployeeTrainingsTable extends Migration
     {
         Schema::create('employee_trainings', function (Blueprint $table) {
             $table->id();
+            $table->integer('employee_id');
+            $table->string('mentor');
+            $table->decimal('grade', 8, 2);
+            $table->decimal('kpi', 8, 2);
+            $table->string('remarks')->nullable();
             $table->timestamps();
         });
     }
