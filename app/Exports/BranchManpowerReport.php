@@ -72,7 +72,8 @@ class BranchManpowerReport implements FromCollection, WithHeadings
                 $existing = EmployeeMasterData::whereDate('date_employed', '<=', $asOfLastDayLastMonth)
                                               ->where(function($query) use ($asOfLastDayLastMonth) {
                                                     $query->whereDate('date_resigned', '>', $asOfLastDayLastMonth)
-                                                          ->orWhereIn('date_resigned', ['0000-00-00', null]);
+                                                          ->orWhere('date_resigned', '0000-00-00')
+                                                          ->orWhereNull('date_resigned');
                                               })
                                               ->whereHas('position', function($query) use ($position) {
                                                     $query->where('name', $position);
